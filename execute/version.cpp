@@ -22,7 +22,7 @@ void init_version(){
     Command versionCommand={name,Short,Long,example};
     versionCommand.Run=versionCmd;
     Flagset& flags=versionCommand.Flags();
-    flags.BoolVar();
+    // flags.BoolVar();
 
     rootcmd.AddCommand({versionCommand});
     // return imagesCommand;

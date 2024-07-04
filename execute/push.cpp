@@ -24,7 +24,7 @@ void init_push(){
     Command pushCommand={name,Short,Long,example};
     pushCommand.Run=pushCmd;
     Flagset& flags=pushCommand.Flags();
-    flags.StringVar();
+    // flags.StringVar();
 
     rootcmd.AddCommand({pushCommand});
     // return imagesCommand;

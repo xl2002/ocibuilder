@@ -28,7 +28,7 @@ void init_config(){
     configCommand.Run=configCmd;
     Flagset& flags=configCommand.Flags();
     //初始化每个flag的内容
-    flags.StringVar();
+    // flags.StringVar();
 
     rootcmd.AddCommand({configCommand});
     // return configCommand;

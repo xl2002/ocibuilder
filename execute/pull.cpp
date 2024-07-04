@@ -26,7 +26,7 @@ void init_pull(){
     Command pullCommand={name,Short,Long,example};
     pullCommand.Run=pullCmd;
     Flagset& flags=pullCommand.Flags();
-    flags.BoolVar();
+    // flags.BoolVar();
 
     rootcmd.AddCommand({pullCommand});
     // return imagesCommand;

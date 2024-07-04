@@ -12,6 +12,7 @@
 #define COMMAND_H
 
 // #include <errors.h>
+#include <functional>
 #include "flag.h"
 // #include "context.h"
 // using namespace std;
@@ -37,6 +38,7 @@ class Command{
         string Long;                    ///<命令详细的help介绍，用于help command输出
         string example;                 ///<使用该命令的用法例子
         // string category; ///<
+        string usageTemplate;           ///<useTemplate 是用户定义的使用模板。
         string version;                 ///<命令版本
         vector<string> args;            ///<args 是从标志解析的实际参数。
 
@@ -73,10 +75,11 @@ class Command{
         //成员方法
         Command()=default; ///<默认的构造函数
         Command(string& name,string& Short,string& Long,string& example); ///<Command类的列表构造函数
-        bool Args(); ///<检查命令的参数
+        function<bool(Command&,vector<string>&)>Args; ///<检查命令的参数
         Flagset& Flags(); ///<返回命令的标志集
         Flagset& PersistentFlags(); ///<返回命令的持久化标志集
         Command& AddCommand(initializer_list<Command>cmdlist); ///<向命令中添加子命令
+        void SetUsageTemplate(string&);
 };
 
 #endif

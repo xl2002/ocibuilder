@@ -17,9 +17,13 @@
  */
 Flagset Getbuildflags(BuildOptions& br){
     Flagset flags;
-    flags.StringVar();
-    flags.StringArrayVar();
-    flags.String();
+    flags.BoolVar(br.allplatform,"all-platforms",false,"attempt to build for all base image platforms");
+    flags.String("arch","amd64","set the ARCH of the image to the provided value instead of the architecture of the host");
+    flags.StringArrayVar(br.annotation,"annotation",vector<string>(),"set metadata for an image (default [])");
+    flags.StringArrayVar(br.tag,"tag",vector<string>(),"tagged `name` to apply to the built image");
+    flags.StringVar(br.osversion,"os-version",string(),"set required OS `version` for the target image instead of the value from the base image");
+    // flags.StringArrayVar(br.annotation,"",,"");
+    // flags.String();
     return flags;
 }
 
@@ -31,6 +35,6 @@ Flagset Getbuildflags(BuildOptions& br){
  */
 Flagset GetLayerFlags(LayerOptions& lr){
     Flagset flags;
-    flags.BoolVar();
+    // flags.BoolVar();
     return flags;
 }

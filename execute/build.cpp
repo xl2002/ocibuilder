@@ -29,8 +29,13 @@ void init_buildcmd(){
                     buildah bud --volume /home/test:/myvol:ro,Z -t imageName.\n\
                     buildah bud -f Containerfile.simple -f Containerfile.notsosimple."};
     Command build_Command{build_name,build_Short,build_Long,build_example};
-    Flagset& flags=build_Command.Flags();
+    string Template=UsageTemplate();
+    build_Command.SetUsageTemplate(Template);
+    build_Command.Args=MaximumNArgs(1);
 
+    Flagset& flags=build_Command.Flags();
+    flags.SetInterspersed(false);
+    
     Flagset buildflags=Getbuildflags(br);
     flags.AddFlagSet(buildflags);
     build_Command.Run=buildCmd;
@@ -46,4 +51,20 @@ void init_buildcmd(){
  */
 void buildCmd(){
     cout<<"hello buildah-build!"<<endl;
+}
+
+string UsageTemplate(){
+    string str{"Usage:{{if .Runnable}}\
+                {{.UseLine}}{{end}}{{if .HasAvailableSubCommands}}\
+                {{.CommandPath}} [command]{{end}}{{if gt (len .Aliases) 0}}\
+                Aliases:\
+                {{.NameAndAliases}}{{end}}{{if .HasExample}}\
+                Examples:\
+                {{.Example}}{{end}}{{if .HasAvailableSubCommands}}\
+                Available Commands:{{range .Commands}}{{if (or .IsAvailableCommand (eq .Name \"help\"))}}\
+                {{rpad .Name .NamePadding }} {{.Short}}{{end}}{{end}}{{end}}{{if .HasAvailableLocalFlags}}\
+                Flags:\
+                {{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasAvailableInheritedFlags}}\
+                {{end}}"};
+    return str;
 }

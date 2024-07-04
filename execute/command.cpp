@@ -21,15 +21,6 @@ Command::Command(string& name,string& Short,string& Long, string& example):
                 name(name),Short(Short),Long(Long),example(example) {}
 
 
-/**
- * @brief 检查命令的参数
- * 是否为预期参数
- * @return true 参数列表正确
- * @return false 参数列表错误
- */
-bool Command::Args(){
-    return true;
-}
 
 /**
  * @brief 返回命令的标志集
@@ -37,6 +28,7 @@ bool Command::Args(){
  * @return Flagset& 返回命令中标志集的引用
  */
 Flagset& Command::Flags(){
+    
     return flags;
 }
 
@@ -57,4 +49,8 @@ Flagset& Command::PersistentFlags(){
 Command& Command::AddCommand(initializer_list<Command>cmdlist){
     
     return *this;
+}
+
+void Command::SetUsageTemplate(string& str){
+    usageTemplate=str;
 }
