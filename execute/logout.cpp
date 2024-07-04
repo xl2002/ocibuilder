@@ -22,7 +22,7 @@ void init_logout(){
     Command logoutCommand={name,Short,Long,example};
     logoutCommand.Run=logoutCmd;
     Flagset& flags=logoutCommand.Flags();
-    flags.BoolVar();
+    // flags.BoolVar();
 
     rootcmd.AddCommand({logoutCommand});
     // return imagesCommand;

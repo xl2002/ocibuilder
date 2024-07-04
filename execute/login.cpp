@@ -22,7 +22,7 @@ void init_login(){
     Command loginCommand={name,Short,Long,example};
     loginCommand.Run=loginCmd;
     Flagset& flags=loginCommand.Flags();
-    flags.BoolVar();
+    // flags.BoolVar();
 
     rootcmd.AddCommand({loginCommand});
     // return imagesCommand;

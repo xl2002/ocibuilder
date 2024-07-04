@@ -25,7 +25,7 @@ void init_images(){
     Command imagesCommand={name,Short,Long,example};
     imagesCommand.Run=imagesCmd;
     Flagset& flags=imagesCommand.Flags();
-    flags.BoolVar();
+    // flags.BoolVar();
 
     rootcmd.AddCommand({imagesCommand});
     // return imagesCommand;

@@ -14,12 +14,13 @@
 #include "command.h"
 #include "common.h"
 #include "root.h"
+#include "args.h"
 // #include "context.h"
 // #include "creat.h"
 
 // using namespace std;
 
-void init_buildcmd();   ///< 初始化build命令的内容
+void init_buildcmd();    ///< 初始化build命令的内容
 void buildCmd();         ///< build 命令Run操作的
-
+string UsageTemplate();
 #endif

@@ -39,5 +39,6 @@ int main(int argc, char const *argv[]){
     
     // Command build=init_buildcmd();///build
     init();
+    rootcmd.Run();
     return 0;
 }

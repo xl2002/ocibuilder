@@ -1,35 +1,33 @@
 #include <iostream>
 #include <string>
 #include <array>
+// #include "flag.h"
 using namespace std;
 
-class Student{
-	private:
-		int age;
-		string name;
-		string sex;
+class test{
 	public:
-		// 定义内置函数
-		inline void set_value(){
-			cin >>name >>age >>sex;
-		}
-		// 显示成员信息
-		void display(){
-			cout <<endl;
-			cout <<"name:" <<name <<", age:" <<age <<", sex:" <<sex <<endl;
-		}
-		virtual string get_name();
+	virtual void print()=0;
+};
+class Print:public test{
+	public:
+	int n;
+	Print(int n):n(n){};
+	void print() override{
+		cout<<"hello 纯虚函数"<<endl;
+	};
 };
 
-int main(){
-	Student s;
-	s.set_value();
-	s.display();
-	// array(3);
-	string student_name = s.get_name();
-	cout <<"student name:" <<student_name <<endl;
-}
+class a{
+	public:
+	test* t;
+	a(test *p):t(p){};
+};
 
-string Student::get_name(){
-	return name;
+int main(int argc, char const *argv[])
+{
+	/* code */
+	Print p(3);
+	a var(&p);
+	var.t->print();
+	return 0;
 }

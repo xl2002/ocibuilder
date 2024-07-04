@@ -17,6 +17,8 @@
 #include <map>
 #include <vector>
 #include <iostream>
+#include <algorithm>
+#include "value.h"
 using namespace std;
 
 /**
@@ -27,13 +29,16 @@ using namespace std;
 class Flag{
   public:
     string  name;                   ///<在命令行中显示的名称
-    string  shorthand;              ///<单字母缩写标志
+    // string  shorthand;              ///<单字母缩写标志
     string  usage_help;             ///<帮助信息
-    string  default_value;          ///<默认值
-    bool    changed;                ///<如果用户设置该值（或者保留默认值）
+    Value*  value;          ///<默认值
+    string  default_value;
+    bool    changed=false;                ///<如果用户设置该值（或者保留默认值）
     string  deprecated;             ///<如果此标志已弃用，则此字符串是新的或现在要使用的字符串
     string  shorthand_deprecated;   ///<如果不推荐使用此标志的简写，则此字符串是新的或现在要使用的字符串
-    set<string> values;             ///<设定值
+    // set<string> values;             ///<设定值
+    Flag()=default;
+    Flag(string name,string usage,Value* v,string values);
     
 };
 /**
@@ -44,8 +49,9 @@ class Flag{
 class Flagset{
   public:
     string name;                            ///<标志集的名字
-    bool    parsed;                         ///<是否已经进行解析
-    bool    SortedFlags;                    ///<标志是否被排序（按照名称排序）
+    bool    parsed=false;                         ///<是否已经进行解析
+    bool    SortedFlags=false;                    ///<标志是否被排序（按照名称排序）
+    bool    interspersed=false;
     map<string,Flag> actual_flags;          ///<真实的标志集，以标志名为索引
     vector<Flag>    order_actual_flags;     ///<有序的真实标志集
     vector<Flag>    sorted_actual_flags;    ///<已排序的真实标志集
@@ -57,14 +63,20 @@ class Flagset{
 
     
     Flagset()=default;                      ///<构造函数
-    void StringVar();                       ///<根据字符串变量构建字符串标志
-    void StringArrayVar();                  ///<根据字符数组构建字符串标志
-    void String();                          ///<根据字符串构建字符串标志
-    void BoolVar();                         ///<根据bool标志进行构建
+    void Addvar(Value* value,string name,string usage);
+    void StringVar(string &option_name, string name,string value, string usage);                       ///<根据字符串变量构建字符串标志
+    void StringArrayVar(vector<string>& option_name, string name ,vector<string> value , string usage);                  ///<根据字符数组构建字符串标志
+    void String(string name, string value, string usage);                          ///<根据字符串构建字符串标志
+    void BoolVar(bool& option_name, string name, bool value, string usage);                        ///<根据bool标志进行构建
+    void IntVar(int& option_name, string name, int value, string usage);
+    void Int(string name, int value, string usage);
+    void StringSliceVar(vector<string>& option_name, string name ,vector<string> value , string usage);
     void AddFlagSet(Flagset& flags);        ///<将构建好的标志集添加到命令结构中
     void NormalizeFunc();                   ///<对简化的标志进行标准化
-    
+    void SetInterspersed(bool interspersed);
+    void AddFlag(Flag&newflag);
+    bool Lookup(string& name);
 };
-
+vector<Flag> sortFlags(map<string,Flag>& flags);
 
 #endif
