@@ -35,13 +35,7 @@ class Command{
                 string name;
                 bool called=false;
             };
-        bool TraverseChildren=false;
-        bool Hidden=false;
-        bool DisableFlagParsing=false;
-        bool commandsAreSorted=false;
-        int commandsMaxUseLen = 0;
-        int commandsMaxCommandPathLen = 0;
-        int commandsMaxNameLen = 0;
+
         string name;                    ///<命令名称
         string Short;                   ///<命令简短的help介绍
         string Long;                    ///<命令详细的help介绍，用于help command输出
@@ -65,6 +59,13 @@ class Command{
         CommandcalledAs commandcallas;  ///<commandcallas 是用于调用此命令的名称或别名值。
         function<bool(Command&,vector<string>&)>Args; ///<检查命令的参数
         void (*helpFunc)(Command& cmd, vector<string> strs)=nullptr;
+        bool TraverseChildren=false;
+        bool Hidden=false;
+        bool DisableFlagParsing=false;
+        bool commandsAreSorted=false;
+        int commandsMaxUseLen = 0;
+        int commandsMaxCommandPathLen = 0;
+        int commandsMaxNameLen = 0;
         /**
          * @defgroup 函数指针
          * @brief 声明命令运行入口函数
@@ -78,11 +79,11 @@ class Command{
          * @{
          * 
          */
-        void (*PersistentPreRun)(Command& cmd, vector<string>& args)=nullptr;
-        void (*PreRun)(Command& cmd, vector<string>& args)=nullptr; ///<PreRun：该命令的子命令不会继承。
-        void (*Run)(Command& cmd, vector<string>& args)=nullptr; ///<Run：通常是实际功函数。大多数命令只会实现这个。
-        void (*PostRun)(Command& cmd, vector<string>& args)=nullptr; ///<PostRun：在运行命令之后运行。
-        void (*PersistentPostRun)(Command& cmd, vector<string>& args)=nullptr;
+        void (*PersistentPreRun)(Command& cmd, vector<string> args)=nullptr;
+        void (*PreRun)(Command& cmd, vector<string> args)=nullptr; ///<PreRun：该命令的子命令不会继承。
+        void (*Run)(Command& cmd, vector<string> args)=nullptr; ///<Run：通常是实际功函数。大多数命令只会实现这个。
+        void (*PostRun)(Command& cmd, vector<string> args)=nullptr; ///<PostRun：在运行命令之后运行。
+        void (*PersistentPostRun)(Command& cmd, vector<string> args)=nullptr;
         /**
          * @}
          * 
@@ -113,7 +114,7 @@ class Command{
         void InitDefaultHelpFlag();
         void InitDefaultVersionFlag();
         void Traverse(vector<string>args,Command& ret_cmd,vector<string>&ret_args);
-        void Find(vector<string>args,Command& ret_cmd,vector<string>&ret_args);
+        Command* Find(vector<string>args,vector<string>&ret_args);
         Command* findNext(string next);
         vector<string> argsMinusFirstX(vector<string>args,string x);
         void ParseFlags(vector<string> args);
@@ -124,15 +125,15 @@ class Command{
         bool ValidateFlagGroups();
         void mergePersistentFlags();
         void updateParentsPflags();
-        void VisitParents();
+        void VisitParents(const function<void(Command*)>& fn);
 };      
 
-extern Flagset CommandLine;
+extern Flagset* CommandLine;
 
 Flagset* NewFlagSet(const string& name);
 void help_func(Command& cmd, vector<string> a);
 bool hasNoOptDefVal( string name, Flagset* flags);
 vector<string> stripFlags(vector<string> args,Command& cmd);
-void innerfind(Command& cmd,vector<string>&args,Command& ret_cmd,vector<string>& ret_args);
+void innerfind(Command* cmd,vector<string>&args,Command* ret_cmd,vector<string>& ret_args);
 
 #endif

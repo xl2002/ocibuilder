@@ -45,6 +45,6 @@ struct LayerOptions{
 Flagset Getbuildflags(BuildOptions& br);///<返回通用构建标志
 Flagset GetLayerFlags(LayerOptions& lr); ///<返回图层的通用标志
 void init_buildcmd();    ///< 初始化build命令的内容
-void buildCmd(Command& cmd, vector<string>& args);         ///< build 命令Run操作的
+void buildCmd(Command& cmd, vector<string> args);         ///< build 命令Run操作的
 string UsageTemplate();
 #endif

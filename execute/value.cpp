@@ -24,7 +24,7 @@ string StringArrayValue::String(){
         strout<<(*value)[(*value).size()-1];
         return '['+strout.str()+']';
     }else{
-        return "";
+        return "[]";
     }
     
 }
@@ -116,7 +116,7 @@ string stringSliceValue::String(){
         strout<<(*value)[(*value).size()-1];
         return '['+strout.str()+']';
     }else{
-        return "";
+        return "[]";
     }
     
 }

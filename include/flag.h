@@ -93,7 +93,7 @@ class Flagset{
     bool GetBool(string name);
     vector<string> Args();
     void Parse(vector<string>);
-    void parseArgs(vector<string>& args);
+    void parseArgs(vector<string> args);
     bool Set(string name, string value);
     vector<string> parseLongArg(string arg,vector<string> args);
     

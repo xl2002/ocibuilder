@@ -25,9 +25,9 @@ Command init_rootcmd(){
     Appcmd.name="buildah";
     Appcmd.Long="A tool that facilitates building OCI images";
     Appcmd.version="image-spec 1.0.0";
-    Appcmd.Run=[](Command& cmd, vector<string>& args){cmd.Help();};
-    Appcmd.PersistentPreRun=[](Command& cmd, vector<string>& args){before(cmd);};
-    Appcmd.PersistentPostRun=[](Command& cmd, vector<string>& args){after(cmd);};
+    Appcmd.Run=[](Command& cmd, vector<string> args){cmd.Help();};
+    Appcmd.PersistentPreRun=[](Command& cmd, vector<string> args){before(cmd);};
+    Appcmd.PersistentPostRun=[](Command& cmd, vector<string> args){after(cmd);};
     ///初始化运行环境
     StoreOptions storageOptions=DefaultStoreOptions();
     vector<string> defaultStoreDriverOptions;

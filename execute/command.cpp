@@ -41,7 +41,7 @@ Command::~Command(){
     parent_persistent_flags = nullptr;
 }
 
-Flagset CommandLine{};
+Flagset* CommandLine=NewFlagSet("buildah");
 
 /**
  * @brief 返回命令的标志集
@@ -94,19 +94,19 @@ void Command::ExecuteC(int argc, char const *argv[]){
         }
     }
     vector<string> flags;
-    Command cmd;///<用来分析子命令，例如build
+    Command* cmd;///<用来分析子命令，例如build
     if(TraverseChildren){
-        Traverse(args,cmd,flags);
+        // Traverse(args,cmd,flags);
         // flags=f;cmd=c;
     }else{
-        Find(args,cmd,flags);
+        cmd=Find(args,flags);
         // flags=f;cmd=c;
     }
-    cmd.commandcallas.called=true;
-    if(cmd.commandcallas.name==""){
-        cmd.commandcallas.name=cmd.name;
+    cmd->commandcallas.called=true;
+    if(cmd->commandcallas.name==""){
+        cmd->commandcallas.name=cmd->Name();
     }
-    cmd.execute(flags);
+    cmd->execute(flags);
 }
 /**
  * @brief 向命令中添加子命令
@@ -114,7 +114,7 @@ void Command::ExecuteC(int argc, char const *argv[]){
  * @return Command& 返回命令的本身引用
  */
 void Command::AddCommand(initializer_list<Command*>cmdlist){
-        for (auto x : cmdlist) {
+    for (auto x : cmdlist) {
         if (x == this) {
             // throw std::runtime_error("Command can't be a child of itself");
             cerr<<"Command can't be a child of itself"<<endl;
@@ -232,15 +232,15 @@ void Command::InitDefaultHelpCmd(){
         string Long="Help provides help for any command in the application.\
                     Simply type "+ Name() +"help [path to command] for full details.";
         string example="";
-        Command helpcmd(name,Short,Long,example);
-        helpcmd.Run=[](Command& cmd, vector<string>& args){
-            Command new_cmd;
+        Command* helpcmd=new Command(name,Short,Long,example);
+        helpcmd->Run=[](Command& cmd, vector<string> args){
+            Command* new_cmd;
             vector<string> new_args;
-            cmd.Root()->Find(args,new_cmd,new_args);
-            new_cmd.InitDefaultHelpFlag();
-            new_cmd.InitDefaultVersionFlag();
+            new_cmd=cmd.Root()->Find(args,new_args);
+            new_cmd->InitDefaultHelpFlag();
+            new_cmd->InitDefaultVersionFlag();
         };
-        helpCommand=&helpcmd;
+        helpCommand=helpcmd;
     }
     RemoveCommand({helpCommand});
     AddCommand({helpCommand});
@@ -261,7 +261,7 @@ string Command::Name(){
 }
 void Command::InitDefaultHelpFlag(){
     mergePersistentFlags();
-    if(Flags()->Lookup("help")){
+    if(Flags()->Lookup("help")==nullptr){
         string usage("help for");
         if(Name()==""){
             usage=usage+"this command";
@@ -269,7 +269,7 @@ void Command::InitDefaultHelpFlag(){
             usage=usage+Name();
         }
         Flags()->BoolP("help",false,usage);
-        flags->SetAnnotation("help","cobra_annotation_flag_set_by_cobra",vector<string>{"true"});
+        Flags()->SetAnnotation("help","cobra_annotation_flag_set_by_cobra",vector<string>{"true"});
     }
 }
 void Command::InitDefaultVersionFlag(){
@@ -277,7 +277,7 @@ void Command::InitDefaultVersionFlag(){
         return;
     }
     mergePersistentFlags();
-    if(Flags()->Lookup("version")){
+    if(Flags()->Lookup("version")==nullptr){
         string usage="version for ";
         if(Name()==""){
             usage+="this command";
@@ -305,17 +305,17 @@ bool hasNoOptDefVal( string name, Flagset* flags){
 //     }
 
 // }
-vector<string> stripFlags(vector<string> args,Command& cmd){
+vector<string> stripFlags(vector<string> args,Command* cmd){
     if(args.size()==0){
         return args;
     }
-    cmd.mergePersistentFlags();
-    Flagset* flags=cmd.Flags();
+    cmd->mergePersistentFlags();
+    Flagset* flags=cmd->Flags();
     vector<string> commands;
     auto it =args.begin();
     while(it!=args.end()){
         string s=*it;
-        args.erase(it);
+        it=args.erase(it);
         if(s=="--"){
             /// "--" terminates the flags
             break;
@@ -335,24 +335,24 @@ vector<string> stripFlags(vector<string> args,Command& cmd){
     }
     return commands;
 }
-void innerfind(Command& cmd,vector<string>&args,Command& ret_cmd,vector<string>& ret_args){
+Command* innerfind(Command* cmd,vector<string>&args,vector<string>& ret_args){
     vector<string>argsWOflags=stripFlags(args,cmd);
     if(argsWOflags.size()==0){
-        ret_cmd=cmd;
+        // ret_cmd=*cmd;
         ret_args=args;
-        return;
+        return cmd;
         // return make_tuple(cmd,args);
     }
     string nextSubCmd = argsWOflags[0];
-    Command* next_cmd=cmd.findNext(nextSubCmd);
+    Command* next_cmd=cmd->findNext(nextSubCmd);
     if(next_cmd){
-        vector<string>next_args =cmd.argsMinusFirstX(args, nextSubCmd);
-        innerfind(*next_cmd,next_args,ret_cmd,ret_args);
-        return;
+        vector<string>next_args =cmd->argsMinusFirstX(args, nextSubCmd);
+        return innerfind(next_cmd,next_args,ret_args);
+        
     }
-    ret_cmd=cmd;
+    // ret_cmd=*cmd;
     ret_args=args;
-    return;
+    return cmd;
     // return make_tuple(cmd,args);
 }
 vector<string> Command::argsMinusFirstX(vector<string>args,string x){
@@ -381,11 +381,12 @@ vector<string> Command::argsMinusFirstX(vector<string>args,string x){
     }
     return args;
 }
-void Command::Find(vector<string>args,Command& ret_cmd,vector<string>&ret_args){
+Command* Command::Find(vector<string>args,vector<string>&ret_args){
     // Command commandFound;
     // vector<string> new_args;
-    innerfind(*this,args,ret_cmd,ret_args);
+    Command*commandFound= innerfind(this,args,ret_args);
     // return make_tuple(a,commandFound,);
+    return commandFound;
 }
 bool commandNameMatches(string s, string t){
     return s==t;
@@ -393,7 +394,7 @@ bool commandNameMatches(string s, string t){
 Command* Command::findNext(string next){
     // vector<Command*> matches;
     for (auto cmd:this->Son_command){
-        if(commandNameMatches(cmd->name,next)){
+        if(commandNameMatches(cmd->Name(),next)){
             cmd->commandcallas.name=next;
             return cmd;
         }
@@ -408,7 +409,7 @@ void Command::execute(vector<string> args){
     if(helpval){
         return;
     }
-    if(Runnable()){
+    if(!Runnable()){
         return;
     }
     // preRun();
@@ -460,11 +461,11 @@ bool Command::ValidateRequiredFlags(){
     if(missingFlagNames.size()>0){
         cerr<<"required flag(s) "<<to_string(missingFlagNames.size()) <<" not set"<<endl;
     }
-    return true;
+    return false;
 }
 bool Command::ValidateFlagGroups(){
     ///<暂时未定义
-    return true;
+    return false;
 }
 bool Command:: Runnable(){
     if(Run!=nullptr){
@@ -478,14 +479,19 @@ void Command::mergePersistentFlags(){
     Flags()->AddFlagSet(parent_persistent_flags);
 }
 void Command::updateParentsPflags(){
-    parent_persistent_flags->SortedFlags=false;
-    Root()->PersistentFlags()->AddFlagSet(&CommandLine);
+    if(parent_persistent_flags==nullptr){
+        parent_persistent_flags=NewFlagSet(Name());
+        parent_persistent_flags->SortedFlags=false;
+    }
+    Root()->PersistentFlags()->AddFlagSet(CommandLine);
     // Root()->PersistentFlags()->AddFlagSet(CommandLine);
-    VisitParents();
+    VisitParents([this](Command* parent){
+        this->parent_persistent_flags->AddFlagSet(parent->PersistentFlags());
+    });
 }
-void Command::VisitParents(){
+void Command::VisitParents(const function<void(Command*)>& fn){
     if (HasParent()){
-        parent_persistent_flags->AddFlagSet(Parent()->PersistentFlags());
-        Parent()->VisitParents();
+        fn(Parent());
+        Parent()->VisitParents(fn);
     }
 }

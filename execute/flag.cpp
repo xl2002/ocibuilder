@@ -27,9 +27,9 @@ Flagset::~Flagset(){
         delete pair.second;
     }
     // 释放 order_actual_flags 中的 Flag 对象
-    for (Flag* flag : order_actual_flags) {
-        delete flag;
-    }
+    // for (Flag* flag : order_actual_flags) {
+    //     delete flag;
+    // }
     // 释放 sorted_actual_flags 中的 Flag 对象
     for (Flag* flag : sorted_actual_flags) {
         delete flag;
@@ -139,10 +139,13 @@ void Flagset::SetAnnotation(string name,string key,vector<string> value){
     flag->second->Annotations[key]=value;
 }
 void Flagset::AddFlagSet(Flagset* newflagset){
-    if(newflagset->formal_flags.size()==0){
-        cerr<<"the new flagsets is null"<<endl;
-        return;
+    if(newflagset==nullptr){
+        cerr<<" new flag is nulpptr"<<endl;
     }
+    // if(newflagset->formal_flags.size()==0){
+    //     cerr<<"the new flagsets is null"<<endl;
+    //     return;
+    // }
     // vector<Flag*> newflags;
     // if(newflagset->SortedFlags){
     //     if(newflagset->formal_flags.size()!=newflagset->sorted_formal_flags.size()){
@@ -172,7 +175,7 @@ void Flagset::AddFlag(Flag* newflag){
     string name= newflag->name;
     auto it =formal_flags.find(name);
     if(it!=formal_flags.end()){
-        cout<<this->name<<"flag "<<name<< "redefined: "<<name<<endl;
+        cout<<this->name<<" flag "<<name<< " redefined: "<<name<<endl;
         return;
     }
     // if(formal_flags)
@@ -186,6 +189,7 @@ void Flagset::AddFlag(Flag* newflag){
 // }
 void Flagset::VisitAll(const function<void(Flag*)>& fn){
     if(formal_flags.size()==0){
+        cerr<<"the new flagsets is null"<<endl;
         return;
     }
     // if(SortedFlags){
@@ -267,12 +271,14 @@ void Flagset::Parse(vector<string>arguments){
     if(arguments.size()==0){
         return;
     }
-    args.resize(arguments.size());
+    args.reserve(arguments.size());
     parseArgs(arguments);
 }
-void Flagset::parseArgs(vector<string>& args){
-    for (auto it =args.begin();it!=args.end();++it){
+void Flagset::parseArgs(vector<string> args){
+    auto it =args.begin();
+    while (it!=args.end()){
         string str=*it;
+        it=args.erase(it);
         if(str.size()<2||str[0]!='-'||str.size()==1||str[1]!='-'){
             if(!interspersed){
                 this->args.emplace_back(*it);
@@ -285,6 +291,7 @@ void Flagset::parseArgs(vector<string>& args){
         }
         vector<string> in_args(it,args.end());
         args=parseLongArg(str,in_args);
+        it=args.begin();
     }
 }
 vector<string> Flagset::parseLongArg(string arg,vector<string> args){
@@ -334,8 +341,12 @@ bool Flagset::Set(string name, string value){
     }
     // Flag& flag=f;
     flag->value->Set(value);
+    cout<<flag->value->String()<<endl;
     if(!flag->changed){
         flag->changed=true;
+        // if(actual_flags.size()==0){
+        //     actual_flags=new map<string,Flag*>();
+        // }
         actual_flags[name]=flag;
         order_actual_flags.emplace_back(flag);
     }

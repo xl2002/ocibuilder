@@ -79,7 +79,7 @@ void init_buildcmd(){
 
  * 
  */
-void buildCmd(Command& cmd, vector<string>& args){
+void buildCmd(Command& cmd, vector<string> args){
     cout<<"hello buildah-build!"<<endl;
 }
 

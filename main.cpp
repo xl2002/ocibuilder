@@ -21,9 +21,9 @@ using namespace std;
  * 
  */
 void init(int argc, char const *argv[]){
-    CommandLine.name=argv[0];
-    CommandLine.interspersed=true;
-    CommandLine.SortedFlags=true;
+    CommandLine->name=argv[0];
+    CommandLine->interspersed=true;
+    CommandLine->SortedFlags=true;
     init_buildcmd();
 }
 
@@ -43,7 +43,7 @@ int main(int argc, char const *argv[]){
     // Command build=init_buildcmd();///build
     cout<<"hello buildah!"<<endl;
     init(argc, argv);
-    // rootcmd.Execute(argc, argv);
+    rootcmd.Execute(argc, argv);
     // rootcmd.Run();
     return 0;
 }
