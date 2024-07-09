@@ -24,7 +24,7 @@ using std::vector;
 struct imagesOptions
 {
     /* data */
-    bool    all;        ///<是否输出镜像的所有信息
+    bool    all=false;        ///<是否输出镜像的所有信息
 };
 
 void init_images();     ///<初始化 images 命令的内容

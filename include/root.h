@@ -12,6 +12,8 @@
 #define ROOT_H
 #include <map>
 #include "command.h"
+#include "options.h"
+#include "Config_Json.h"
 // #include "flag.h"
 // using namespace std;
 /**
@@ -19,16 +21,26 @@
  * 
  */
 struct globalFlags{
-    bool Debug;                 ///<是否调试
+    bool Debug=false;                 ///<是否调试
     string Root;                ///<
-    string RunRoot;             ///<
+    // string RunRoot;             ///<
     string RegistriesConf;      ///<
     string RegistriesConfDir;   ///<
 };
 //
-
+/**
+ * @brief 全局变量
+ * 
+ */
 extern Command rootcmd; ///<声明全局根命令
+extern Configdetails defaultContainerConfig;
+extern int exitcode;
+extern globalFlags globalFlagOptions;
+
+
 
 Command init_rootcmd(); ///<rootcmd的初始化函数
+void before(Command& cmd);
+void after(Command& cmd);
 
 #endif

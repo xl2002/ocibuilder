@@ -19,8 +19,8 @@ void init_rmi(){
     string Long{"Removes one or more locally stored images."};
     string example{"buildah rmi imageID"};
     Command rmiCommand={name,Short,Long,example};
-    rmiCommand.Run=rmiCmd;
-    rootcmd.AddCommand({rmiCommand});
+    // rmiCommand.Run=rmiCmd;
+    rootcmd.AddCommand({&rmiCommand});
 }
 
 /**

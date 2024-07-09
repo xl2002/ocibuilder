@@ -10,14 +10,43 @@
  */
 #include "build.h"
 
-
 /**
  * @brief 初始化build命令的内容
  * 
  * 对build命令的内容进行初始化，包括命令名，命令介绍，命令用法介绍，build命令合法的标志集
  */
+/**
+ * @brief 返回通用构建标志
+ * 
+ * @param br 
+ * @return Flagset 
+ */
+Flagset* Getbuildflags(BuildOptions* br){
+    Flagset* flags=new Flagset();
+    flags->BoolVar((*br).allplatform,"all-platforms",false,"attempt to build for all base image platforms");
+    flags->String("arch","amd64","set the ARCH of the image to the provided value instead of the architecture of the host");
+    flags->StringArrayVar((*br).annotation,"annotation",vector<string>(),"set metadata for an image (default [])");
+    flags->StringArrayVar((*br).tag,"tag",vector<string>(),"tagged `name` to apply to the built image");
+    flags->StringVar((*br).osversion,"os-version","","set required OS `version` for the target image instead of the value from the base image");
+    // flags.StringArrayVar(br.annotation,"",,"");
+    // flags.String();
+    return flags;
+}
+
+/**
+ * @brief 返回图层的通用标志
+ * 
+ * @param lr 
+ * @return Flagset 
+ */
+Flagset GetLayerFlags(LayerOptions& lr){
+    Flagset flags;
+    // flags.BoolVar();
+    return flags;
+}
+
 void init_buildcmd(){
-    BuildOptions br;
+    BuildOptions* br=new BuildOptions();
     string build_name="build [context]";
     string build_Short="Build an image using instructions in a Containerfile";
     string build_Long={"Builds an OCI image using instructions in one or more Containerfiles.\n\
@@ -28,19 +57,20 @@ void init_buildcmd(){
                     buildah bud -f Containerfile.simple.\n\
                     buildah bud --volume /home/test:/myvol:ro,Z -t imageName.\n\
                     buildah bud -f Containerfile.simple -f Containerfile.notsosimple."};
-    Command build_Command{build_name,build_Short,build_Long,build_example};
+    Command* build_Command=new Command(build_name,build_Short,build_Long,build_example);
     string Template=UsageTemplate();
-    build_Command.SetUsageTemplate(Template);
-    build_Command.Args=MaximumNArgs(1);
+    build_Command->SetUsageTemplate(Template);
+    build_Command->Args=MaximumNArgs(1);
 
-    Flagset& flags=build_Command.Flags();
-    flags.SetInterspersed(false);
+    Flagset* flags=build_Command->Flags();
+    flags->SetInterspersed(false);
     
-    Flagset buildflags=Getbuildflags(br);
-    flags.AddFlagSet(buildflags);
-    build_Command.Run=buildCmd;
+    Flagset* buildflags=Getbuildflags(br);
+    flags->AddFlagSet(buildflags);
+    build_Command->Run=buildCmd;
     rootcmd.AddCommand({build_Command});
-    build_Command.Run();
+    cout<<"hello buildah-build!"<<endl;
+    // build_Command.Run();
     // return build_Command;
 }
 
@@ -49,7 +79,7 @@ void init_buildcmd(){
 
  * 
  */
-void buildCmd(){
+void buildCmd(Command& cmd, vector<string>& args){
     cout<<"hello buildah-build!"<<endl;
 }
 

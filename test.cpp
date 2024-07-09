@@ -1,19 +1,21 @@
 #include <iostream>
 #include <string>
 #include <array>
+#include <tuple>
 // #include "flag.h"
 using namespace std;
 
 class test{
 	public:
-	virtual void print()=0;
+	virtual tuple<string,bool> print()=0;
 };
 class Print:public test{
 	public:
 	int n;
 	Print(int n):n(n){};
-	void print() override{
+	tuple<string,bool> print() override{
 		cout<<"hello 纯虚函数"<<endl;
+		return make_tuple(string("hello"),true);
 	};
 };
 
@@ -28,6 +30,6 @@ int main(int argc, char const *argv[])
 	/* code */
 	Print p(3);
 	a var(&p);
-	var.t->print();
+	auto [ret,Bool]= var.t->print();
 	return 0;
 }

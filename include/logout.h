@@ -24,7 +24,7 @@ using std::vector;
 struct logoutOptions
 {
     /* data */
-    bool    all;        ///<
+    bool    all=false;        ///<
 
 };
 

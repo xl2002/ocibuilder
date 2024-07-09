@@ -19,9 +19,9 @@ void init_logout(){
     string Short{"Logout of a container registry"};
     string Long{"Remove the cached username and password for the registry."};
     string example{"buildah logout quay.io"};
-    Command logoutCommand={name,Short,Long,example};
-    logoutCommand.Run=logoutCmd;
-    Flagset& flags=logoutCommand.Flags();
+    Command* logoutCommand=new Command(name,Short,Long,example);
+    // logoutCommand.Run=logoutCmd;
+    Flagset* flags=logoutCommand->Flags();
     // flags.BoolVar();
 
     rootcmd.AddCommand({logoutCommand});

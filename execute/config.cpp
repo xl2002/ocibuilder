@@ -24,9 +24,9 @@ void init_config(){
                     buildah config --entrypoint '[ \"/entrypoint.sh\", \"dev\" ]' containerID\n\
                     buildah config --env foo=bar --env PATH=$PATH containerID"};
     
-    Command configCommand={name,Short,Long,example};
-    configCommand.Run=configCmd;
-    Flagset& flags=configCommand.Flags();
+    Command* configCommand=new Command(name,Short,Long,example);
+    // configCommand.Run=configCmd;
+    Flagset* flags=configCommand->Flags();
     //初始化每个flag的内容
     // flags.StringVar();
 

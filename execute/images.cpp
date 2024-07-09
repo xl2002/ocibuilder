@@ -22,9 +22,9 @@ void init_images(){
     string example{"buildah images --all\n\
                     buildah images [imageName]\n\
                     buildah images --format '{{.ID}} {{.Name}} {{.Size}} {{.CreatedAtRaw}}'"};
-    Command imagesCommand={name,Short,Long,example};
-    imagesCommand.Run=imagesCmd;
-    Flagset& flags=imagesCommand.Flags();
+    Command* imagesCommand=new Command{name,Short,Long,example};
+    // imagesCommand.Run=imagesCmd;
+    Flagset* flags=imagesCommand->Flags();
     // flags.BoolVar();
 
     rootcmd.AddCommand({imagesCommand});

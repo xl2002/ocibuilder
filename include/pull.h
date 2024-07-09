@@ -23,7 +23,7 @@ using std::vector;
 struct pullOptions
 {
     /* data */
-    bool    allTags;        ///<
+    bool    allTags=false;        ///<
     string  os;             ///<
     string  arch;           ///<
 };

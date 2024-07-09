@@ -23,9 +23,9 @@ void init_pull(){
     string example{"buildah pull imagename\n\
                     buildah pull docker-daemon:imagename:imagetag\n\
                     buildah pull myregistry/myrepository/imagename:imagetag"};
-    Command pullCommand={name,Short,Long,example};
-    pullCommand.Run=pullCmd;
-    Flagset& flags=pullCommand.Flags();
+    Command* pullCommand=new Command{name,Short,Long,example};
+    // pullCommand.Run=pullCmd;
+    Flagset* flags=pullCommand->Flags();
     // flags.BoolVar();
 
     rootcmd.AddCommand({pullCommand});

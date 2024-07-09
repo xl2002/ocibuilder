@@ -9,6 +9,12 @@
  * 
  */
 #include "root.h"
+
+globalFlags globalFlagOptions{};
+int exitcode=0;
+Configdetails defaultContainerConfig{};
+const string logLevel="log-level";
+Command rootcmd=init_rootcmd(); ///<定义rootcmd，作为全局变量
 /**
  * @brief rootcmd的初始化函数
  * 
@@ -18,10 +24,35 @@ Command init_rootcmd(){
     Command Appcmd;
     Appcmd.name="buildah";
     Appcmd.Long="A tool that facilitates building OCI images";
-    Appcmd.version="";
-    // Appcmd.PersistentFlags().StringVar
+    Appcmd.version="image-spec 1.0.0";
+    Appcmd.Run=[](Command& cmd, vector<string>& args){cmd.Help();};
+    Appcmd.PersistentPreRun=[](Command& cmd, vector<string>& args){before(cmd);};
+    Appcmd.PersistentPostRun=[](Command& cmd, vector<string>& args){after(cmd);};
+    ///初始化运行环境
+    StoreOptions storageOptions=DefaultStoreOptions();
+    vector<string> defaultStoreDriverOptions;
+    if(storageOptions.GraphDriverOptions.size()>0){
+        defaultStoreDriverOptions= storageOptions.GraphDriverOptions;
+    }
+    defaultContainerConfig=ConfigdetailsDefault();
+    defaultContainerConfig.CheckCgroupsAndAdjustConfig();
+
+    Flagset* persistentflags=Appcmd.PersistentFlags();
+    persistentflags->StringVar(globalFlagOptions.Root,"root",storageOptions.GraphRoot,"storage root dir");
+    persistentflags->StringVar(globalFlagOptions.RegistriesConf,"registries-conf","","path to registries.conf file (not usually used)");
+    persistentflags->StringVar(globalFlagOptions.RegistriesConfDir,"registries-conf-dir", "", "path to registries.conf.d directory (not usually used)");
+    persistentflags->BoolVar(globalFlagOptions.Debug,"debug",false, "print debugging information");
+    persistentflags->MarkHidden("debug");///<用help时，mark掉的flag不显示
+    
     return Appcmd;
 }
 
 
-Command rootcmd=init_rootcmd(); ///<定义rootcmd，作为全局变量
+
+
+void before(Command& cmd){
+
+}
+void after(Command& cmd){
+
+}

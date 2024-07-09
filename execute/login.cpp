@@ -19,9 +19,9 @@ void init_login(){
     string Short{"Login to a container registry"};
     string Long{"Login to a container registry on a specified server."};
     string example{"buildah login quay.io"};
-    Command loginCommand={name,Short,Long,example};
-    loginCommand.Run=loginCmd;
-    Flagset& flags=loginCommand.Flags();
+    Command* loginCommand=new Command(name,Short,Long,example);
+    // loginCommand.Run=loginCmd;
+    Flagset* flags=loginCommand->Flags();
     // flags.BoolVar();
 
     rootcmd.AddCommand({loginCommand});

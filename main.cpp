@@ -12,7 +12,7 @@
 #include "flag.h"
 #include "command.h"
 #include "build.h"
-
+#include <iostream>
 
 using namespace std;
 
@@ -20,7 +20,10 @@ using namespace std;
  * @brief 初始化各个命令
  * 
  */
-void init(){
+void init(int argc, char const *argv[]){
+    CommandLine.name=argv[0];
+    CommandLine.interspersed=true;
+    CommandLine.SortedFlags=true;
     init_buildcmd();
 }
 
@@ -38,7 +41,9 @@ int main(int argc, char const *argv[]){
     // Rootcmd* Appcmd=init_rootcmd();
     
     // Command build=init_buildcmd();///build
-    init();
-    rootcmd.Run();
+    cout<<"hello buildah!"<<endl;
+    init(argc, argv);
+    // rootcmd.Execute(argc, argv);
+    // rootcmd.Run();
     return 0;
 }

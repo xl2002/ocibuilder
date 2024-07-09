@@ -19,8 +19,8 @@ void init_info(){
     string Long{"Display information about the host and current storage statistics which are useful when reporting issues."};
     string example{"buildah info"};
     Command infoCommand={name,Short,Long,example};
-    infoCommand.Run=infoCmd;
-    rootcmd.AddCommand({infoCommand});
+    // infoCommand.Run=infoCmd;
+    rootcmd.AddCommand({&infoCommand});
 }
 
 /**

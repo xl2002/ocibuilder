@@ -25,7 +25,7 @@ struct LoginOptions
     /* data */
     string  username;
     string  password;
-    bool    getLogin;
+    bool    getLogin=false;
 };
 
 void init_login();      ///<初始化 login 命令的内容

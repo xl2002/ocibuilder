@@ -21,9 +21,9 @@ void init_push(){
     string example{"buildah pull imagename\n\
                     buildah pull docker-daemon:imagename:imagetag\n\
                     buildah pull myregistry/myrepository/imagename:imagetag"};
-    Command pushCommand={name,Short,Long,example};
-    pushCommand.Run=pushCmd;
-    Flagset& flags=pushCommand.Flags();
+    Command* pushCommand=new Command{name,Short,Long,example};
+    // pushCommand.Run=pushCmd;
+    Flagset* flags=pushCommand->Flags();
     // flags.StringVar();
 
     rootcmd.AddCommand({pushCommand});

@@ -23,7 +23,7 @@ using std::vector;
 struct versionOptions
 {
     /* data */
-    bool    json;           ///<
+    bool    json=false;           ///<
 };
 
 void init_version();        ///<初始化 version 命令的内容

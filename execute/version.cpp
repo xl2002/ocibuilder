@@ -19,9 +19,9 @@ void init_version(){
     string Short{"Display the Buildah version information"};
     string Long{"Displays Buildah version information."};
     string example{"buildah version [--json]"};
-    Command versionCommand={name,Short,Long,example};
-    versionCommand.Run=versionCmd;
-    Flagset& flags=versionCommand.Flags();
+    Command* versionCommand=new Command{name,Short,Long,example};
+    // versionCommand.Run=versionCmd;
+    Flagset* flags=versionCommand->Flags();
     // flags.BoolVar();
 
     rootcmd.AddCommand({versionCommand});

@@ -19,8 +19,8 @@ void init_inspect(){
     string Long{"Inspects a build container's or built image's configuration."};
     string example{"buildah inspect"};
     Command inspectCommand={name,Short,Long,example};
-    inspectCommand.Run=inspectCmd;
-    rootcmd.AddCommand({inspectCommand});
+    // inspectCommand.Run=inspectCmd;
+    rootcmd.AddCommand({&inspectCommand});
 }
 
 /**

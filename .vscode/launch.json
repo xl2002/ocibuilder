@@ -6,7 +6,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${fileDirname}/${fileBasenameNoExtension}.exe",
-            "args": [],
+            "args": ["build","--tag","busybox-image","."],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

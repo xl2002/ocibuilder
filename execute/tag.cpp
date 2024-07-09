@@ -20,8 +20,8 @@ void init_tag(){
     string example{"buildah tag imageName firstNewName\n\
                     buildah tag imageName firstNewName SecondNewName"};
     Command tagCommand={name,Short,Long,example};
-    tagCommand.Run=tagCmd;
-    rootcmd.AddCommand({tagCommand});
+    // tagCommand.Run=tagCmd;
+    rootcmd.AddCommand({&tagCommand});
 }
 
 /**

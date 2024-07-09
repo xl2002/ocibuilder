@@ -13,9 +13,9 @@
 #include<string>
 #include "context.h"
 // using namespace std;
-void creat_dir_oci(string path){
-//创建镜像的OCI标志目录结构和文件
-}
+// void creat_dir_oci(string path){
+// //创建镜像的OCI标志目录结构和文件
+// }
 
 void insert(Context* ctx){
     
