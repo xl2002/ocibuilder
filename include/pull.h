@@ -23,11 +23,11 @@ using std::vector;
 struct pullOptions
 {
     /* data */
-    bool    allTags=false;        ///<
-    string  os;             ///<
-    string  arch;           ///<
+    bool    allTags=false;          ///<
+    string  os;                     ///<
+    string  arch;                   ///<
 };
 
-void init_pull();       ///<初始化 pull 命令的内容
-void pullCmd();         ///<pull 命令Run操作的
+void init_pull();
+void pullCmd();
 #endif

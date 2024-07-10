@@ -2,6 +2,7 @@
  * @file args.h
  * @author xiongkang (xiongkang@mail.nwpu.edu.com)
  * @brief 对参数列表的操作
+ * <p>对参数表的操作函数的声明
  * @version 0.1
  * @date 2024-07-03
  * 

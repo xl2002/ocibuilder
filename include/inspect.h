@@ -17,6 +17,6 @@
 using std::string;
 using std::vector;
 
-void inspectCmd();      ///<inspect 命令Run操作的
-void init_inspect();    ///<初始化 inspect 命令的内容
+void inspectCmd();      
+void init_inspect();    
 #endif

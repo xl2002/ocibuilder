@@ -28,6 +28,6 @@ struct LoginOptions
     bool    getLogin=false;
 };
 
-void init_login();      ///<初始化 login 命令的内容
-void loginCmd();        ///<login 命令Run操作的
+void init_login();      
+void loginCmd();        
 #endif

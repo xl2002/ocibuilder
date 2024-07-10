@@ -28,7 +28,7 @@ struct logoutOptions
 
 };
 
-void init_logout();     ///<初始化 logout 命令的内容
-void logoutCmd();       ///<logout 命令Run操作的
+void init_logout();     
+void logoutCmd();       
 
 #endif

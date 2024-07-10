@@ -11,18 +11,16 @@
 #include "build.h"
 
 /**
- * @brief 初始化build命令的内容
+ * @brief 返回build命令的标志
+ * <p>根据BuildOptions结构体中的标志名，创建并初始化每个flag
  * 
- * 对build命令的内容进行初始化，包括命令名，命令介绍，命令用法介绍，build命令合法的标志集
- */
-/**
- * @brief 返回通用构建标志
- * 
- * @param br 
- * @return Flagset 
+ * @param br br为BuildOptions的对象，存储build命令的flag
+ * @return Flagset* 返回一个标志集指针，注意是动态分配，不就随着函数的结束而销毁
  */
 Flagset* Getbuildflags(BuildOptions* br){
+    //动态分配分配一个Flagset指针，用于存储初始化中的flag，并作为返回值
     Flagset* flags=new Flagset();
+    //调用flag初始化函数
     flags->BoolVar((*br).allplatform,"all-platforms",false,"attempt to build for all base image platforms");
     flags->String("arch","amd64","set the ARCH of the image to the provided value instead of the architecture of the host");
     flags->StringArrayVar((*br).annotation,"annotation",vector<string>(),"set metadata for an image (default [])");
@@ -44,7 +42,12 @@ Flagset GetLayerFlags(LayerOptions& lr){
     // flags.BoolVar();
     return flags;
 }
-
+/**
+ * @brief 初始化build命令的内容
+ * <p>新建一个Command对象用来初始化build命令，完成对build命令的flag的初始化，
+ * 并且将初始化好的build对象加入到rootcmd中。
+ * 
+ */
 void init_buildcmd(){
     BuildOptions* br=new BuildOptions();
     string build_name="build [context]";
@@ -58,6 +61,7 @@ void init_buildcmd(){
                     buildah bud --volume /home/test:/myvol:ro,Z -t imageName.\n\
                     buildah bud -f Containerfile.simple -f Containerfile.notsosimple."};
     Command* build_Command=new Command(build_name,build_Short,build_Long,build_example);
+    //定义使用模板
     string Template=UsageTemplate();
     build_Command->SetUsageTemplate(Template);
     build_Command->Args=MaximumNArgs(1);
@@ -76,13 +80,18 @@ void init_buildcmd(){
 
 /**
  * @brief build 命令Run操作的
-
- * 
+ * <p>定义build命令的行为
+ * @param cmd 用来运行的命令
+ * @param args 运行的参数
  */
 void buildCmd(Command& cmd, vector<string> args){
     cout<<"hello buildah-build!"<<endl;
 }
-
+/**
+ * @brief 模板定义
+ * 
+ * @return string 返回模板的字符串
+ */
 string UsageTemplate(){
     string str{"Usage:{{if .Runnable}}\
                 {{.UseLine}}{{end}}{{if .HasAvailableSubCommands}}\

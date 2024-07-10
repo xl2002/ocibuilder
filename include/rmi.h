@@ -17,6 +17,6 @@
 using std::string;
 using std::vector;
 
-void rmiCmd();      ///<rmi 命令Run操作的
-void init_rmi();    ///<初始化 rmi 命令的内容
+void rmiCmd();
+void init_rmi();
 #endif

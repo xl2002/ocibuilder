@@ -11,7 +11,7 @@
 #include "command.h"
 /**
  * @brief Command类的列表构造函数
- * 对命令的名称，介绍，使用例子进行初始化的构造函数
+ * <p>对命令的名称，介绍，使用例子进行初始化的构造函数
  * @param name 命令的名称
  * @param Short 命令的简短介绍
  * @param Long 命令详细的介绍
@@ -20,6 +20,10 @@
 
 Command::Command(string& name,string& Short,string& Long, string& example):
                 name(name),Short(Short),Long(Long),example(example) {}
+/**
+ * @brief 销毁Command::Command对象
+ * <p>主要是对自定义的对象指针进行销毁，注意销毁的顺序，避免重复释放资源
+ */
 Command::~Command(){
     for (Command* cmd : Son_command) {
         delete cmd;
@@ -40,13 +44,16 @@ Command::~Command(){
     // inherited_flags = nullptr;
     // parent_persistent_flags = nullptr;
 }
-
+/**
+ * @brief CommandLine 是默认的命令行标志集。
+ * 
+ */
 Flagset* CommandLine=NewFlagSet("buildah");
 
 /**
  * @brief 返回命令的标志集
  * 
- * @return Flagset& 返回命令中标志集的引用
+ * @return Flagset* 标志集的指针
  */
 Flagset* Command::Flags(){
     if(flags==nullptr){
@@ -68,7 +75,11 @@ Flagset* NewFlagSet(const string& name){
     ret_flag->SortedFlags=true;
     return ret_flag;
 }
-
+/**
+ * @brief 返回Command对象的持续化标志集
+ * <p>如果Command对象的持续化标志集为空，则新建一个空的Flagset
+ * @return Flagset* 返回的新建的Flagset指针
+ */
 Flagset* Command::PersistentFlags(){
     if(persistent_flags==nullptr){
         persistent_flags=NewFlagSet(name);
@@ -76,11 +87,21 @@ Flagset* Command::PersistentFlags(){
     }
     return persistent_flags;
 }
-
+/**
+ * @brief 执行入口
+ * <p>执行使用args（默认为os.Args[1:]）并运行命令树来查找适当的匹配项用于命令，然后是相应的标志。
+ * @param argc 参数数量
+ * @param argv 参数列表指针
+ */
 void Command::Execute(int argc, char const *argv[]){
     ExecuteC(argc,argv);
 }
-
+/**
+ * @brief ExecuteC 执行命令
+ * 
+ * @param argc 参数数量
+ * @param argv 参数列表指针
+ */
 void Command::ExecuteC(int argc, char const *argv[]){
     if(HasParent()){
         Root()->ExecuteC(argc,argv);
@@ -109,9 +130,9 @@ void Command::ExecuteC(int argc, char const *argv[]){
     cmd->execute(flags);
 }
 /**
- * @brief 向命令中添加子命令
- * 
- * @return Command& 返回命令的本身引用
+ * @brief 向Command对象中添加子Command对象
+ * <p>函数接受同时添加多个子Command对象
+ * @param cmdlist Command对象指针列表
  */
 void Command::AddCommand(initializer_list<Command*>cmdlist){
     for (auto x : cmdlist) {
@@ -145,6 +166,10 @@ void Command::AddCommand(initializer_list<Command*>cmdlist){
     }
     return;
 }
+/**
+ * @brief 在Command对象中删除cmdlist中的子命令
+ * @param cmdlist 需要删除的命令指针列表
+ */
 void Command::RemoveCommand(initializer_list<Command*>cmdlist){
     // vector<Command> remainingCommands;
     for(auto cmd: cmdlist){
@@ -175,24 +200,47 @@ void Command::RemoveCommand(initializer_list<Command*>cmdlist){
         }
     }
 }
+/**
+ * @brief CommandPath 返回此命令的完整路径。
+ * 
+ * @return string 
+ */
 string Command::CommandPath(){
     if(HasParent()){
         return Parent()->CommandPath()+" "+ Name();
     }
     return Name();
 }
+/**
+ * @brief SetUsageTemplate 设置使用模板
+ * 
+ * @param str 使用模板的值
+ */
 void Command::SetUsageTemplate(string& str){
     usageTemplate=str;
 }
-
+/**
+ * @brief 输出命令的帮助信息
+ * 
+ */
 void Command::Help(){
     Helpfunc()(*this,vector<string>{});
 }
+/**
+ * @brief 一个help函数，用来第一help命令的行为
+ * 
+ * @param cmd 执行help命令的对象
+ * @param a 参数列表
+ */
 void help_func(Command& cmd, vector<string> a){
     cmd.mergePersistentFlags();
     // The help should be sent to stdout
     //err := tmpl(c.OutOrStdout(), c.HelpTemplate(), c)
 }
+/**
+ * @brief Helpfunc函数返回一个函数指针
+ * HelpFunc 返回 SetHelpFunc 为此命令设置的函数或父级，或者返回具有默认帮助行为的函数。
+ */
 void (* Command::Helpfunc())(Command& cmd, vector<string> str){
     if(helpFunc!=nullptr){
         return helpFunc;
@@ -202,26 +250,51 @@ void (* Command::Helpfunc())(Command& cmd, vector<string> str){
     }
     return &help_func;
 }
-
+/**
+ * @brief 检查Command对象是否有父对象
+ * 
+ * @return true 
+ * @return false 
+ */
 bool Command::HasParent(){
-    if(parent_Command){
+    if(parent_Command!=nullptr){
         return true;
     }else{
         return false;
     }
 }
+/**
+ * @brief Root函数返回Command对象命令树的根命令
+ * 
+ * @return Command* 根命令的指针 
+ */
 Command* Command::Root(){
     if(HasParent()){
         return Parent()->Root();
     }
     return this;
 }
+/**
+ * @brief Parent返回Command对象的父命令
+ * 
+ * @return Command* 父命令指针
+ */
 Command* Command::Parent(){
     return parent_Command;
 }
+/**
+ * @brief 检查命令Command是否有子命令
+ * <p> 如果有返回true，没有返回false
+ * @return true 
+ * @return false 
+ */
 bool Command::HasSubCommands(){
     return Son_command.size()>0;
 }
+/**
+ * @brief InitDefaultHelpCmd初始化默认的help命令
+ * <p>如果没有help子命令，则创建新的默认help命令
+ */
 void Command::InitDefaultHelpCmd(){
     if(!HasSubCommands()){
         return;
@@ -245,12 +318,20 @@ void Command::InitDefaultHelpCmd(){
     RemoveCommand({helpCommand});
     AddCommand({helpCommand});
 }
-
+/**
+ * @brief InitDefaultCompletionCmd 初始化默认的Completion命令
+ * 
+ */
 void Command::InitDefaultCompletionCmd(){
     //添加completion命令
     // c.AddCommand(completionCmd);
     // completionCmd.AddCommand(bash, zsh, fish, powershell);
 }
+/**
+ * @brief 返回命令的名字
+ * <p>只取name字符串的第一个空格前的子字符串
+ * @return string 返回字符串
+ */
 string Command::Name(){
     string name=this->name;
     auto it=name.find_first_of(" ");
@@ -259,6 +340,10 @@ string Command::Name(){
     }
     return name;
 }
+/**
+ * @brief 将默认的help标志添加到Command对象
+ * <p>如果Command对象已经有help标签，则什么也不做
+ */
 void Command::InitDefaultHelpFlag(){
     mergePersistentFlags();
     if(Flags()->Lookup("help")==nullptr){
@@ -272,6 +357,10 @@ void Command::InitDefaultHelpFlag(){
         Flags()->SetAnnotation("help","cobra_annotation_flag_set_by_cobra",vector<string>{"true"});
     }
 }
+/**
+ * @brief 添加version标签到Command对象中
+ * <p> 如果version变量为空，则不添加
+ */
 void Command::InitDefaultVersionFlag(){
     if(version==""){
         return;
@@ -289,9 +378,23 @@ void Command::InitDefaultVersionFlag(){
 
     }
 }
+/**
+ * @brief 遍历命令树以查找命令，并为每个父节点解析参数。
+ * 
+ * @param ret_cmd 用来保存Command对象
+ * @param ret_args 保存查找解析的参数
+ */
 void Command::Traverse(vector<string>args,Command& ret_cmd,vector<string>&ret_args){
 
 }
+/**
+ * @brief 检查name标签有没有默认值
+ * 
+ * @param name 标签名
+ * @param flags 标签集
+ * @return true 
+ * @return false 
+ */
 bool hasNoOptDefVal( string name, Flagset* flags){
     Flag* f=flags->Lookup(name);
     if(f==nullptr){
@@ -305,6 +408,13 @@ bool hasNoOptDefVal( string name, Flagset* flags){
 //     }
 
 // }
+/**
+ * @brief 根据参数进行标签分析
+ * 
+ * @param args 参数列表
+ * @param cmd 运行的命令
+ * @return vector<string> 
+ */
 vector<string> stripFlags(vector<string> args,Command* cmd){
     if(args.size()==0){
         return args;
@@ -335,6 +445,14 @@ vector<string> stripFlags(vector<string> args,Command* cmd){
     }
     return commands;
 }
+/**
+ * @brief 递归分析参数
+ * 
+ * @param cmd 使用参数的命令
+ * @param args 源参数
+ * @param ret_args 返回参数
+ * @return Command* 解析参数后，保存到Command
+ */
 Command* innerfind(Command* cmd,vector<string>&args,vector<string>& ret_args){
     vector<string>argsWOflags=stripFlags(args,cmd);
     if(argsWOflags.size()==0){
@@ -355,6 +473,12 @@ Command* innerfind(Command* cmd,vector<string>&args,vector<string>& ret_args){
     return cmd;
     // return make_tuple(cmd,args);
 }
+/**
+ * @brief argsMinusFirstX 仅删除 args 中的第一个 x。  
+ * 
+ * @param x 
+ * @return vector<string> 返回字符串列表
+ */
 vector<string> Command::argsMinusFirstX(vector<string>args,string x){
     if(args.size()==0){
         return args;
@@ -381,6 +505,12 @@ vector<string> Command::argsMinusFirstX(vector<string>args,string x){
     }
     return args;
 }
+/**
+ * @brief 根据给定的参数和命令树查找目标命令
+ * <p>在最高节点上运行。只能往下搜索。
+ * @param ret_args 查找解析的参数
+ * @return Command* 查找到的Command对象
+ */
 Command* Command::Find(vector<string>args,vector<string>&ret_args){
     // Command commandFound;
     // vector<string> new_args;
@@ -388,9 +518,23 @@ Command* Command::Find(vector<string>args,vector<string>&ret_args){
     // return make_tuple(a,commandFound,);
     return commandFound;
 }
+/**
+ * @brief commandNameMatches 检查两个命令名称是否相等
+ * 
+ * @param s 源命令
+ * @param t 目的命令
+ * @return true 
+ * @return false 
+ */
 bool commandNameMatches(string s, string t){
     return s==t;
 }
+/**
+ * @brief 根据next在子命令中查找
+ * 
+ * @param next Command对象名
+ * @return Command* 目标Command对象的指针
+ */
 Command* Command::findNext(string next){
     // vector<Command*> matches;
     for (auto cmd:this->Son_command){
@@ -401,6 +545,11 @@ Command* Command::findNext(string next){
     }
     return nullptr;
 }
+/**
+ * @brief 根据解析出的参数执行命令
+ * 
+ * @param args 参数列表
+ */
 void Command::execute(vector<string> args){
     InitDefaultHelpFlag();
     InitDefaultVersionFlag();
@@ -430,7 +579,7 @@ void Command::execute(vector<string> args){
     if(PreRun!=nullptr){
         PreRun(*this,argWoFlags);
     }
-    if(ValidateRequiredFlags()||ValidateFlagGroups()){
+    if(!ValidateRequiredFlags()||!ValidateFlagGroups()){
         return;
     }
     if(Run!=nullptr){
@@ -446,10 +595,21 @@ void Command::execute(vector<string> args){
     }
     return;
 }
+/**
+ * @brief ParseFlags 解析持久标志树和本地标志。
+ * 
+ * @param args 输入参数列表
+ */
 void Command::ParseFlags(vector<string> args){
     mergePersistentFlags();
     Flags()->Parse(args);
 }
+/**
+ * @brief ValidateRequiredFlags 验证所有必需的标志是否存在，否则返回错误
+ * 
+ * @return true 
+ * @return false 
+ */
 bool Command::ValidateRequiredFlags(){
     auto flags=Flags();
     vector<string> missingFlagNames;
@@ -461,23 +621,44 @@ bool Command::ValidateRequiredFlags(){
     if(missingFlagNames.size()>0){
         cerr<<"required flag(s) "<<to_string(missingFlagNames.size()) <<" not set"<<endl;
     }
-    return false;
+    return true;
 }
+/**
+ * @brief ValidateFlagGroups 验证mutualExclusive/oneRequired/requiredAsGroup 逻辑并返回遇到的第一个错误。
+ * 
+ * @return true 
+ * @return false 
+ */
 bool Command::ValidateFlagGroups(){
     ///<暂时未定义
-    return false;
+    return true;
 }
+/**
+ * @brief Runnable 确定命令本身是否可运行。
+ * 
+ * @return true 
+ * @return false 
+ */
 bool Command:: Runnable(){
     if(Run!=nullptr){
         return true;
     }
     return false;
 }
+/**
+ * @brief mergePersistentFlags将PersistentFlags()合并到Flags(),并添加所有父级缺少的持久标志。
+ * 
+ */
 void Command::mergePersistentFlags(){
     updateParentsPflags();
     Flags()->AddFlagSet(PersistentFlags());
     Flags()->AddFlagSet(parent_persistent_flags);
 }
+/**
+ * @brief updateParentsPflags 通过添加所有父级的新持久标志来更新 parentsPflags。 
+ * <p>If parentsPflags == nullptr，它产生新的。
+ * 
+ */
 void Command::updateParentsPflags(){
     if(parent_persistent_flags==nullptr){
         parent_persistent_flags=NewFlagSet(Name());
@@ -489,6 +670,11 @@ void Command::updateParentsPflags(){
         this->parent_persistent_flags->AddFlagSet(parent->PersistentFlags());
     });
 }
+/**
+ * @brief VisitParents 访问命令的所有父级并在每个父级上调用 fn。
+ * 
+ * @param fn 上级传递的函数对象
+ */
 void Command::VisitParents(const function<void(Command*)>& fn){
     if (HasParent()){
         fn(Parent());

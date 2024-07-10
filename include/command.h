@@ -55,54 +55,55 @@ class Command{
         Flagset* local_flags=nullptr;            ///<local_flags 包含本地标志。
         Flagset* inherited_flags=nullptr;        ///<inherited_flags 包含继承的标志。
         Flagset* parent_persistent_flags=nullptr;///<Parent_persistent_flags 是 cmd 父级的所有持久标志。
-// }
-        CommandcalledAs commandcallas;  ///<commandcallas 是用于调用此命令的名称或别名值。
+        CommandcalledAs commandcallas;           ///<commandcallas 是用于调用此命令的名称或别名值。
         function<bool(Command&,vector<string>&)>Args; ///<检查命令的参数
-        void (*helpFunc)(Command& cmd, vector<string> strs)=nullptr;
-        bool TraverseChildren=false;
-        bool Hidden=false;
-        bool DisableFlagParsing=false;
-        bool commandsAreSorted=false;
-        int commandsMaxUseLen = 0;
-        int commandsMaxCommandPathLen = 0;
-        int commandsMaxNameLen = 0;
+        void (*helpFunc)(Command& cmd, vector<string> strs)=nullptr; ///<help 函数
+        bool TraverseChildren=false;            ///<TraverseChildren 在执行子命令之前解析所有父级上的标志。
+        bool Hidden=false;                      ///<Hidden定义此命令是否隐藏并且不应显示在可用命令列表中。
+        bool DisableFlagParsing=false;          ///<禁用标志解析​​，如果true，所有标志都将作为参数传递给命令。
+        bool commandsAreSorted=false;           ///<CommandsAreSorted 定义命令切片是否已排序。
+        int commandsMaxUseLen = 0;              ///<用于填充的命令字符串长度的最大长度。
+        int commandsMaxCommandPathLen = 0;      ///<
+        int commandsMaxNameLen = 0;             ///<
         /**
          * @defgroup 函数指针
          * @brief 声明命令运行入口函数
          * 函数函数指针指向函数，方便对不同命令的Run函数进行不同的定义
          * 
          * *Run 函数按以下顺序执行：
+         * - PersistentPreRun()
          * - PreRun()
 	     * - Run()
 	     * - PostRun()
+         * - PersistentPostRun()
          * <p>所有函数都具有相同的参数，即命令名称后面的参数。
          * @{
          * 
          */
-        void (*PersistentPreRun)(Command& cmd, vector<string> args)=nullptr;
-        void (*PreRun)(Command& cmd, vector<string> args)=nullptr; ///<PreRun：该命令的子命令不会继承。
-        void (*Run)(Command& cmd, vector<string> args)=nullptr; ///<Run：通常是实际功函数。大多数命令只会实现这个。
-        void (*PostRun)(Command& cmd, vector<string> args)=nullptr; ///<PostRun：在运行命令之后运行。
-        void (*PersistentPostRun)(Command& cmd, vector<string> args)=nullptr;
+        void (*PersistentPreRun)(Command& cmd, vector<string> args)=nullptr;    ///<PersistentPreRun：该命令的子命令将继承并执行。
+        void (*PreRun)(Command& cmd, vector<string> args)=nullptr;              ///<PreRun：该命令的子命令不会继承。
+        void (*Run)(Command& cmd, vector<string> args)=nullptr;                 ///<Run：通常是实际功函数。大多数命令只会实现这个。
+        void (*PostRun)(Command& cmd, vector<string> args)=nullptr;             ///<PostRun：在运行命令之后运行。
+        void (*PersistentPostRun)(Command& cmd, vector<string> args)=nullptr;   ///<PersistentPostRun：此命令的子命令将在 PostRun 之后继承并执行。
         /**
          * @}
          * 
          */
         //成员方法
+        
         Command()=default; ///<默认的构造函数
-        Command(string& name,string& Short,string& Long,string& example); ///<Command类的列表构造函数
+        Command(string& name,string& Short,string& Long,string& example);  
         ~Command();
         void Execute(int argc, char const *argv[]);
         void ExecuteC(int argc, char const *argv[]);
         void execute(vector<string> args);
-        Flagset* Flags(); ///<返回命令的标志集
+        Flagset* Flags(); 
         string  Name();
-        Flagset* PersistentFlags(); ///<返回命令的持久化标志集
-        void AddCommand(initializer_list<Command*>cmdlist); ///<向命令中添加子命令
+        Flagset* PersistentFlags(); 
+        void AddCommand(initializer_list<Command*>cmdlist); 
         void RemoveCommand(initializer_list<Command*>cmdlist);
         string CommandPath();
         void SetUsageTemplate(string&);
-        
         void Help();
         void (*Helpfunc())(Command& cmd, vector<string> str);
         bool HasParent();
@@ -135,5 +136,5 @@ void help_func(Command& cmd, vector<string> a);
 bool hasNoOptDefVal( string name, Flagset* flags);
 vector<string> stripFlags(vector<string> args,Command& cmd);
 void innerfind(Command* cmd,vector<string>&args,Command* ret_cmd,vector<string>& ret_args);
-
+bool commandNameMatches(string s, string t);
 #endif

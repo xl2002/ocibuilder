@@ -32,14 +32,14 @@ struct globalFlags{
  * @brief 全局变量
  * 
  */
-extern Command rootcmd; ///<声明全局根命令
-extern Configdetails defaultContainerConfig;
-extern int exitcode;
-extern globalFlags globalFlagOptions;
+extern Command rootcmd;                         ///<声明全局根命令
+extern Configdetails defaultContainerConfig;    ///<声明全局镜像config
+extern int exitcode;                            ///<声明全局程序结束标志
+extern globalFlags globalFlagOptions;           ///<声明全局标签选项
 
 
 
-Command init_rootcmd(); ///<rootcmd的初始化函数
+Command init_rootcmd();
 void before(Command& cmd);
 void after(Command& cmd);
 

@@ -17,6 +17,6 @@
 using std::string;
 using std::vector;
 
-void tagCmd();          ///<tag 命令Run操作的
-void init_tag();        ///<初始化 tag 命令的内容
+void tagCmd();
+void init_tag();
 #endif

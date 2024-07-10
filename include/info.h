@@ -17,6 +17,6 @@
 using std::string;
 using std::vector;
 
-void infoCmd();     ///<info 命令Run操作的
-void init_info();   ///<初始化 info 命令的内容
+void infoCmd();     
+void init_info();   
 #endif

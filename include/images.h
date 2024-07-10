@@ -27,6 +27,6 @@ struct imagesOptions
     bool    all=false;        ///<是否输出镜像的所有信息
 };
 
-void init_images();     ///<初始化 images 命令的内容
-void imagesCmd();       ///<images 命令Run操作的
+void init_images();     
+void imagesCmd();       
 #endif

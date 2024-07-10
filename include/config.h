@@ -23,7 +23,7 @@ using std::vector;
 struct configOptions
 {
     /* data */
-    bool    addHistory=false;         ///<向镜像中添加历史记录信息
+    bool    addHistory=false;   ///<向镜像中添加历史记录信息
     vector<string>  annotation; ///<更改镜像的annotation
     string  arch        ;       ///<更改镜像的 arch
     string  author      ;       ///<更改镜像的 author
@@ -33,7 +33,7 @@ struct configOptions
     vector<string> label;       ///<更改镜像的 label
     string  os          ;       ///<更改镜像的 os
 };
-void configCmd();   ///<初始化 config 命令的内容
-void init_config(); ///<config 命令Run操作的
+void configCmd();   
+void init_config(); 
 
 #endif

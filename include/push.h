@@ -26,6 +26,6 @@ struct pushOptions
     string  format;         ///<
 };
 
-void init_push();       ///<初始化 push 命令的内容
-void pushCmd();         ///<push 命令Run操作的
+void init_push();
+void pushCmd();
 #endif

@@ -26,6 +26,6 @@ struct versionOptions
     bool    json=false;           ///<
 };
 
-void init_version();        ///<初始化 version 命令的内容
-void versionCmd();          ///<version 命令Run操作的
+void init_version();
+void versionCmd();
 #endif

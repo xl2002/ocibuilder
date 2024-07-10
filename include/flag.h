@@ -32,18 +32,18 @@ using namespace std;
 class Flag{
   public:
     string  name;                   ///<在命令行中显示的名称
-    // string  shorthand;              ///<单字母缩写标志
+    // string  shorthand;           ///<单字母缩写标志
     string  usage_help;             ///<帮助信息
-    Value*  value=nullptr;          ///<默认值
+    Value*  value=nullptr;          ///<用来保存标签从参数列表中分析得到值
     // unique_ptr<Value> value;
-    string  default_value;
-    string  NoOptDefVal;
-    map<string,vector<string>> Annotations;
-    bool    hidden=false;
+    string  default_value;          ///<标签的默认值
+    string  NoOptDefVal;            ///< 默认值（作为文本）；如果该标志位于命令行上且没有任何选项
+    map<string,vector<string>> Annotations; ///< 由 bash 自动完成代码使用
+    bool    hidden=false;                 ///<是否允许在帮助/使用文本中隐藏标志
     bool    changed=false;                ///<如果用户设置该值（或者保留默认值）
-    string  deprecated;             ///<如果此标志已弃用，则此字符串是新的或现在要使用的字符串
-    string  shorthand_deprecated;   ///<如果不推荐使用此标志的简写，则此字符串是新的或现在要使用的字符串
-    // set<string> values;             ///<设定值
+    string  deprecated;                   ///<如果此标志已弃用，则此字符串是新的或现在要使用的字符串
+    string  shorthand_deprecated;         ///<如果不推荐使用此标志的简写，则此字符串是新的或现在要使用的字符串
+    // set<string> values;                ///<设定值
     Flag()=default;
     Flag(string name,string usage,Value* v,string values);
     ~Flag();
@@ -55,33 +55,32 @@ class Flag{
  */
 class Flagset{
   public:
-    string name;                            ///<标志集的名字
-    bool    parsed=false;                         ///<是否已经进行解析
-    bool    SortedFlags=false;                    ///<标志是否被排序（按照名称排序）
-    bool    interspersed=false;
-    map<string,Flag*> actual_flags;          ///<真实的标志集，以标志名为索引
-    vector<Flag*>    order_actual_flags;     ///<有序的真实标志集
-    vector<Flag*>    sorted_actual_flags;    ///<已排序的真实标志集
-    map<string,Flag*> formal_flags;          ///<正式的标志集（类似进行标准化后的）
-    vector<Flag*>    order_formal_flags;     ///<有序的正式标志集
-    vector<Flag*>    sorted_formal_flags;    ///<已排序的正式标志集
-    ostream*    output=nullptr;                     ///<用于输出
-    vector<string> args;                    ///<标志后的参数
-// }
+    string name;                              ///<标志集的名字
+    bool    parsed=false;                     ///<是否已经进行解析
+    bool    SortedFlags=false;                ///<标志是否被排序（按照名称排序）
+    bool    interspersed=false;               ///<允许散布选项/非选项参数
+    map<string,Flag*> actual_flags;           ///<真实的标志集，以标志名为索引
+    vector<Flag*>    order_actual_flags;      ///<有序的真实标志集
+    vector<Flag*>    sorted_actual_flags;     ///<已排序的真实标志集
+    map<string,Flag*> formal_flags;           ///<正式的标志集（类似进行标准化后的）
+    vector<Flag*>    order_formal_flags;      ///<有序的正式标志集
+    vector<Flag*>    sorted_formal_flags;     ///<已排序的正式标志集
+    ostream*    output=nullptr;               ///<用于输出
+    vector<string> args;                      ///<标志后的参数
     
     Flagset()=default;                      ///<构造函数
     ~Flagset();
     Flag* Addvar(Value* value,string name,string usage);
-    void StringVar(string &option_name, string name,string value, string usage);                       ///<根据字符串变量构建字符串标志
-    void StringArrayVar(vector<string>& option_name, string name ,vector<string> value , string usage);                  ///<根据字符数组构建字符串标志
-    void String(string name, string value, string usage);                          ///<根据字符串构建字符串标志
-    void BoolVar(bool& option_name, string name, bool value, string usage);                        ///<根据bool标志进行构建
+    void StringVar(string &option_name, string name,string value, string usage);
+    void StringArrayVar(vector<string>& option_name, string name ,vector<string> value , string usage);
+    void String(string name, string value, string usage);
+    void BoolVar(bool& option_name, string name, bool value, string usage);
     void BoolP(string name,bool value, string usage);
     void IntVar(int& option_name, string name, int value, string usage);
     void Int(string name, int value, string usage);
     void StringSliceVar(vector<string>& option_name, string name ,vector<string> value , string usage);
-    void AddFlagSet(Flagset* flags);        ///<将构建好的标志集添加到命令结构中
-    // void NormalizeFunc();                   ///<对简化的标志进行标准化
+    void AddFlagSet(Flagset* flags);
+    // void NormalizeFunc();
     void SetInterspersed(bool interspersed);
     void SetAnnotation(string name,string key,vector<string> value);
     void AddFlag(Flag* newflag);

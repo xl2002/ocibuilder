@@ -10,9 +10,20 @@
  */
 
 #include "flag.h"
+/**
+ * @brief 构造一个新的Flag::Flag对象
+ * 
+ * @param name 标签名
+ * @param usage 标签的用途
+ * @param v 标签的值
+ * @param values 标签的默认值
+ */
 Flag::Flag(string name,string usage,Value* v,string values):name(name),usage_help(usage),value(v),default_value(values) {}
 // Flag::Flag(string name,string usage,Value* v,string values):name(name),usage_help(usage),value(std::make_unique<Value>(v)),default_value(values) {}
-
+/**
+ * @brief 销毁Flag::Flag对象
+ * 
+ */
 Flag::~Flag(){
     if(value){
         // cout << "Deleting value pointer: " << value << endl;
@@ -20,7 +31,10 @@ Flag::~Flag(){
         value=nullptr;
     }
 }
-
+/**
+ * @brief 销毁Flagset::Flagset对象
+ * 
+ */
 Flagset::~Flagset(){
     // 释放 actual_flags 中的 Flag 对象
     // for (auto& pair : actual_flags) {
@@ -50,16 +64,28 @@ Flagset::~Flagset(){
     // 不需要释放 output 指针，因为它不是由 Flagset 类分配的内存
     output = nullptr;
 }
+/**
+ * @brief 将标签添加到标签集中
+ * 
+ * @param value 标签的值
+ * @param name 标签的名
+ * @param usage 标签的用途
+ * @return Flag* 返回标签的指针
+ */
 Flag* Flagset::Addvar(Value* value,string name,string usage){
     Flag* flag=new Flag{name,usage,value,value->String()};
     AddFlag(flag);
     // ret_flag=*flag;
     return flag;
 }
+
 /**
  * @brief 根据字符串变量构建字符串标志
- * 
- * StringVar定义一个具有指定名称、默认值和用法字符串的字符串标志。
+ * <p>StringVar定义一个具有指定名称、默认值和用法字符串的字符串标志。
+ * @param option_name 可选项的名称
+ * @param name 标签名
+ * @param value 标签值
+ * @param usage 标签用途介绍
  */
 void Flagset::StringVar(string &option_name, string name,string value, string usage){
     StringValue* pvalue=newStringValue(value,option_name);
@@ -69,8 +95,11 @@ void Flagset::StringVar(string &option_name, string name,string value, string us
 
 /**
  * @brief 根据字符数组构建字符串标志
- * 
- * StringArrayVar定义一个具有指定名称、默认值和用法字符串的字符串标志。
+ * <p> StringArrayVar定义一个具有指定名称、默认值和用法字符串的字符串标志。
+ * @param option_name 可选项的名称
+ * @param name 标签名
+ * @param value 标签值
+ * @param usage 标签用途介绍
  */
 void Flagset::StringArrayVar(vector<string>& option_name, string name ,vector<string> value , string usage){
     StringArrayValue* pvalue=newStringArrayValue(value,option_name);
@@ -79,8 +108,10 @@ void Flagset::StringArrayVar(vector<string>& option_name, string name ,vector<st
 
 /**
  * @brief 根据字符串构建字符串标志
- * 
- * string 定义具有指定名称、默认值和用法字符串的字符串标志。
+ * <p>string 定义具有指定名称、默认值和用法字符串的字符串标志。
+ * @param name 标签名
+ * @param value 标签的值
+ * @param usage 标签用途介绍
  */
 void Flagset::String(string name, string value, string usage){
     string option_name;
@@ -90,47 +121,81 @@ void Flagset::String(string name, string value, string usage){
 
 /**
  * @brief 根据bool标志进行构建
- * 
- * BoolVar 定义一个具有指定名称、默认值和用法字符串的布尔标志。
+ * <p>BoolVar 定义一个具有指定名称、默认值和用法字符串的布尔标志。
+ * @param option_name 可选项的名称
+ * @param name 标签名
+ * @param value 标签值
+ * @param usage 标签用途介绍
  */
 void Flagset::BoolVar(bool& option_name, string name, bool value, string usage){
     BoolValue* pvalue=newBoolValue(value,option_name);
     Flag* flag=Addvar(pvalue,name,usage);
     flag->NoOptDefVal="true";
 }
+/**
+ * @brief 根据标签名创建,没有给出标签值存储位置
+ * 
+ * @param name 标签名
+ * @param value 标签值
+ * @param usage 标签用途
+ */
 void Flagset::BoolP(string name,bool value, string usage){
-    bool option_name;
-    BoolVar(option_name,name,value,usage);
+    bool* option_name=new bool();
+    BoolVar(*option_name,name,value,usage);
 }
+/**
+ * @brief 创建值为int的标签
+ * 
+ * @param option_name int值保存的位置
+ * @param name 标签名
+ * @param value 标签值
+ * @param usage 标签用途
+ */
 void Flagset::IntVar(int& option_name, string name, int value, string usage){
     IntValue* pvalue=newIntValue(value,option_name);
     Flag* flag=Addvar(pvalue,name,usage);
 }
-
+/**
+ * @brief 创建值为int的标签，没有提供存储位置
+ * 
+ * @param name 标签名
+ * @param value 标签值
+ * @param usage 标签用途
+ */
 void Flagset::Int(string name, int value, string usage){
-    int option_name;
-    IntValue* pvalue=newIntValue(value,option_name);
-    Flag* flag=Addvar(pvalue,name,usage);
+    int* option_name=new int();
+    // IntValue* pvalue=newIntValue(value,option_name);
+    // Flag* flag=Addvar(pvalue,name,usage);
+    IntVar(*option_name,name,value,usage);
 }
-
+/**
+ * @brief StringSliceVar 定义一个具有指定名称、默认值和用法字符串的字符串标志。
+ * 
+ * @param option_name 字符串值保存的位置
+ * @param name 标签名
+ * @param value 标签值
+ * @param usage 标签用途
+ */
 void Flagset::StringSliceVar(vector<string>& option_name, string name ,vector<string> value , string usage){
     stringSliceValue* pvalue=newStringSliceValue(value,option_name);
     Flag* flag=Addvar(pvalue,name,usage);
 }
 
 /**
- * @brief 对简化的标志进行标准化
+ * @brief SetInterspersed 设置是否支持散布选项/非选项参数。
  * 
- * NormalizeFunc 允许您添加一个可以翻译标志名称的函数。
- * 添加到FlagSet的标志将被翻译，然后当任何东西试图查找也将被翻译的标志时。
+ * @param interspersed 
  */
-// void Flagset::NormalizeFunc(){
-    
-// } 
-
 void Flagset::SetInterspersed(bool interspersed){
     this->interspersed=interspersed;
 }
+/**
+ * @brief SetAnnotation 允许在 FlagSet 中的标志上设置任意注释。
+ * 
+ * @param name 标签名
+ * @param key 注释关键字
+ * @param value 注释内容
+ */
 void Flagset::SetAnnotation(string name,string key,vector<string> value){
     auto flag=formal_flags.find(name);
     if(flag==formal_flags.end()){
@@ -138,28 +203,15 @@ void Flagset::SetAnnotation(string name,string key,vector<string> value){
     }
     flag->second->Annotations[key]=value;
 }
+/**
+ * @brief AddFlagSet 将一个 FlagSet 添加到另一个 FlagSet
+ * 
+ * @param newflagset 需要添加的标签集
+ */
 void Flagset::AddFlagSet(Flagset* newflagset){
     if(newflagset==nullptr){
         cerr<<" new flag is nulpptr"<<endl;
     }
-    // if(newflagset->formal_flags.size()==0){
-    //     cerr<<"the new flagsets is null"<<endl;
-    //     return;
-    // }
-    // vector<Flag*> newflags;
-    // if(newflagset->SortedFlags){
-    //     if(newflagset->formal_flags.size()!=newflagset->sorted_formal_flags.size()){
-    //         newflagset->sorted_formal_flags=sortFlags(newflagset->formal_flags);
-    //     }
-    //     newflags=newflagset->sorted_formal_flags;
-    // }else{
-    //     newflags=newflagset->order_formal_flags;
-    // }
-    // for(auto flag:newflags){
-    //     if(!Lookup(flag->name)){
-    //         AddFlag(flag);
-    //     }
-    // }
     // Flagset* fs=this;
     // function<void(Flag*)>fn =[this](Flag* f){
     //     this->Lookup(f->name);
@@ -171,6 +223,11 @@ void Flagset::AddFlagSet(Flagset* newflagset){
         this->AddFlag(f);
     });
 }
+/**
+ * @brief AddFlag 会将标志添加到 FlagSet
+ * 
+ * @param newflag 被添加的标签
+ */
 void Flagset::AddFlag(Flag* newflag){
     string name= newflag->name;
     auto it =formal_flags.find(name);
@@ -184,9 +241,12 @@ void Flagset::AddFlag(Flag* newflag){
     // *newf=*newflag;
     order_formal_flags.emplace_back(newflag);
 }
-// void Visitflag(Flag& flag,vector<string>& names){
-
-// }
+/**
+ * @brief 如果 f.SortFlags 为 false，则 VisitAll 按字典顺序或原始顺序访问标志，并为每个标志调用 fn。
+ * <p>它访问所有标志，甚至是那些未设置的标志。
+ * 
+ * @param fn 可调用对象
+ */
 void Flagset::VisitAll(const function<void(Flag*)>& fn){
     if(formal_flags.size()==0){
         cerr<<"the new flagsets is null"<<endl;
@@ -213,6 +273,12 @@ void Flagset::VisitAll(const function<void(Flag*)>& fn){
         fn(flag);
     }
 }
+/**
+ * @brief Lookup 返回指定标志的 Flag 结构，如果不存在则返回 nullptr。
+ * 
+ * @param name 标签名
+ * @return Flag* 标签名对应的标签
+ */
 Flag* Flagset::Lookup(const string& name){
     auto it= formal_flags.find(name);
     if(it!=formal_flags.end()){
@@ -221,6 +287,12 @@ Flag* Flagset::Lookup(const string& name){
         return nullptr;
     }
 }
+/**
+ * @brief MarkHidden 在您的程序中设置一个“隐藏”标志。
+ * <p>它将继续运行，但不会显示在帮助或使用消息中。
+ * 
+ * @param name 标签名
+ */
 void Flagset::MarkHidden(string name){
     Flag* flag=Lookup(name);
     if(flag==nullptr){
@@ -229,7 +301,13 @@ void Flagset::MarkHidden(string name){
         flag->hidden=true;
     }
 }
-
+/**
+ * @brief 函数返回给定标志名称的给定类型
+ * 
+ * @param name 标签名
+ * @param ftype 指定类型
+ * @return string 
+ */
 string Flagset::getFlagType(string name,const string ftype){
     Flag* flag=Lookup(name);
     if(flag==nullptr){
@@ -245,16 +323,35 @@ string Flagset::getFlagType(string name,const string ftype){
     return ret;
 
 }
-        bool Flagset:: GetBool(string name){
+/**
+ * @brief 获取布尔对象
+ * 
+ * @param name 
+ * @return true 
+ * @return false 
+ */
+bool Flagset:: GetBool(string name){
     if(getFlagType(name,"bool")=="bool"){
         return true;
     }else{
         return false;
     }
 }
+/**
+ * @brief Args 返回非标志参数。
+ * 
+ * @return vector<string> 
+ */
+
 vector<string> Flagset::Args(){
     return args;
 }
+/**
+ * @brief sortFlags 将标志作为按字典排序顺序的切片返回。
+ * 
+ * @param flags 被排序的标签集
+ * @return vector<Flag*> 已排序的标签集
+ */
 vector<Flag*> sortFlags(map<string,Flag*> flags){
     vector<pair<string,Flag*>> vec_flags(flags.begin(),flags.end());
     sort(vec_flags.begin(),vec_flags.end(),[](pair<string,Flag*>&s1,pair<string,Flag*>&s2){
@@ -266,7 +363,12 @@ vector<Flag*> sortFlags(map<string,Flag*> flags){
     }
     return ret_flags;
 }
-void Flagset::Parse(vector<string>arguments){
+/**
+ * @brief Parse 从参数列表中解析标志定义
+ * 
+ * @param arguments 参数列表
+ */
+void Flagset::Parse(vector<string> arguments){
     parsed=true;
     if(arguments.size()==0){
         return;
@@ -274,6 +376,11 @@ void Flagset::Parse(vector<string>arguments){
     args.reserve(arguments.size());
     parseArgs(arguments);
 }
+/**
+ * @brief 分析子命令参数
+ * 
+ * @param args 参数列表
+ */
 void Flagset::parseArgs(vector<string> args){
     auto it =args.begin();
     while (it!=args.end()){
@@ -294,6 +401,13 @@ void Flagset::parseArgs(vector<string> args){
         it=args.begin();
     }
 }
+/**
+ * @brief 解析长标签名的参数
+ * 
+ * @param arg 
+ * @param args 
+ * @return vector<string> 
+ */
 vector<string> Flagset::parseLongArg(string arg,vector<string> args){
     vector<string> ret_args=args;
     string name(arg.begin()+2,arg.end());
@@ -329,7 +443,14 @@ vector<string> Flagset::parseLongArg(string arg,vector<string> args){
         cerr<<"fail to set the flag value"<<endl;
     }
     return ret_args;
-}
+}/**
+ * @brief Set 设置指定标志的值。
+ * 
+ * @param name 标签名
+ * @param value 标签值
+ * @return true 
+ * @return false 
+ */
 bool Flagset::Set(string name, string value){
     // string name =this->name;
     Flag* flag;

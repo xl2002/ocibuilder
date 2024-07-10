@@ -1,3 +1,13 @@
+/**
+ * @file value.h
+ * @author xiongkang (xiongkang@mail.nwpu.edu.com)
+ * @brief value.h 声明与标签值相关的结构和方法
+ * @version 0.1
+ * @date 2024-07-10
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #ifndef VALUE_H
 #define VALUE_H
 #include <string>
@@ -6,7 +16,10 @@
 #include <algorithm>
 using std::string;
 using std::vector;
-
+/**
+ * @brief 抽象基类
+ * <p>为了能够适用不同标签对值类型不同的需求
+ */
 class Value {
     public:
     ~Value()=default;
@@ -14,7 +27,10 @@ class Value {
     virtual void Set(string value)=0;
     virtual string Type()=0;
 };
-
+/**
+ * @brief 保存字符串数组的抽象基类的子类
+ * 
+ */
 class StringArrayValue:public Value{
     public:
     vector<string>* value;
@@ -27,7 +43,10 @@ class StringArrayValue:public Value{
     void Repalce(vector<string> newval);
     vector<string> GetSlice();
 };
-
+/**
+ * @brief 保存字符串的抽象基类的子类
+ * 
+ */
 class StringValue: public Value{
     public:
     string* value;
@@ -36,7 +55,10 @@ class StringValue: public Value{
     void Set(string value) override;
     string Type() override;
 };
-
+/**
+ * @brief 保存布尔类型的抽象基类的子类
+ * 
+ */
 class BoolValue:public Value{
     public:
     bool* value=nullptr;
@@ -46,7 +68,10 @@ class BoolValue:public Value{
     string Type() override;
     bool IsBoolFlag();
 };
-
+/**
+ * @brief 保存int类型的抽象基类的子类
+ * 
+ */
 class IntValue:public Value{
     public:
     int* value=nullptr;
@@ -55,7 +80,10 @@ class IntValue:public Value{
     void Set(string value) override;
     string Type() override;
 };
-
+/**
+ * @brief 保存字符串和bool类型的抽象基类的子类
+ * 
+ */
 class stringSliceValue:public Value{
     public:
     vector<string>* value;

@@ -10,7 +10,14 @@
  */
 #include "common.h"
 
-
+/**
+ * @brief 要围绕分隔符的第一个实例进行分割.
+ * 
+ * @param str 
+ * @param delimiter 
+ * @param max_splits 
+ * @return vector<string> 
+ */
 vector<string> SplitN(const string& str, const string& delimiter, size_t max_splits) {
     vector<string> result;
     size_t start = 0;
@@ -23,10 +30,16 @@ vector<string> SplitN(const string& str, const string& delimiter, size_t max_spl
         end = str.find(delimiter, start);
         ++splits;
     }
-    result.push_back(str.substr(start)); // Add the remaining part of the string
+    result.push_back(str.substr(start)); // 添加字符串的剩余部分
 
     return result;
 }
+/**
+ * @brief 将字符串解析成布尔类型
+ * 
+ * @param str 
+ * @return string 
+ */
 string ParseBool(string str){
     string lower_str = str;
     transform(lower_str.begin(), lower_str.end(), lower_str.begin(), ::tolower);

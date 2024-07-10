@@ -1,3 +1,13 @@
+/**
+ * @file Config_Json.h
+ * @author xiongkang (xiongkang@mail.nwpu.edu.com)
+ * @brief 声明与镜像的config文件相关的方法与类
+ * @version 0.1
+ * @date 2024-07-10
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #ifndef CONFIG_JSON_H
 #define CONFIG_JSON_H
 
@@ -29,7 +39,10 @@ class ConfigMapConfig{
 class FarmConfig{
 
 };
-
+/**
+ * @brief 保存config文件需要的具体信息
+ * 
+ */
 class Configdetails{
     public:
     ContainersConfig*    Containers=nullptr;
@@ -43,7 +56,6 @@ class Configdetails{
 
     void CheckCgroupsAndAdjustConfig();
 };
-
 Configdetails ConfigdetailsDefault();
 
 #endif
