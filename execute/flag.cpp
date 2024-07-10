@@ -31,22 +31,22 @@ Flagset::~Flagset(){
     //     delete flag;
     // }
     // 释放 sorted_actual_flags 中的 Flag 对象
-    // for (Flag* flag : sorted_actual_flags) {
-    //     delete flag;
-    // }
+    for (Flag* flag : sorted_actual_flags) {
+        delete flag;
+    }
     // 释放 formal_flags 中的 Flag 对象
-    // for (auto& pair : formal_flags) {
-    //     delete pair.second;
-    // }
+    for (auto& pair : formal_flags) {
+        delete pair.second;
+    }
     // 释放 order_formal_flags 中的 Flag 对象
     // for (Flag* flag : order_formal_flags) {
     //     if(flag)
     //     delete flag;
     // }
     // 释放 sorted_formal_flags 中的 Flag 对象
-    // for (Flag* flag : sorted_formal_flags) {
-    //     delete flag;
-    // }
+    for (Flag* flag : sorted_formal_flags) {
+        delete flag;
+    }
     // 不需要释放 output 指针，因为它不是由 Flagset 类分配的内存
     output = nullptr;
 }

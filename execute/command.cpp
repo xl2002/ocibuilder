@@ -25,20 +25,20 @@ Command::~Command(){
         delete cmd;
     }
     // 释放动态分配的 Flagset 对象
-    delete flags;
-    delete persistent_flags;
+    // delete flags;
+    // delete persistent_flags;
     delete local_flags;
     delete inherited_flags;
     delete parent_persistent_flags;
 
     // 将指针设为 nullptr
-    parent_Command = nullptr;
-    helpCommand = nullptr;
-    flags = nullptr;
-    persistent_flags = nullptr;
-    local_flags = nullptr;
-    inherited_flags = nullptr;
-    parent_persistent_flags = nullptr;
+    // parent_Command = nullptr;
+    // helpCommand = nullptr;
+    // flags = nullptr;
+    // persistent_flags = nullptr;
+    // local_flags = nullptr;
+    // inherited_flags = nullptr;
+    // parent_persistent_flags = nullptr;
 }
 
 Flagset* CommandLine=NewFlagSet("buildah");
