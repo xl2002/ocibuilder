@@ -43,7 +43,15 @@ int main(int argc, char const *argv[]){
     // Command build=init_buildcmd();///build
     cout<<"hello buildah!"<<endl;
     init(argc, argv);
-    rootcmd.Execute(argc, argv);
+    try
+    {
+        rootcmd.Execute(argc, argv);
+    }
+    catch(const myerror& e)
+    {
+        e.logerror();
+        exit(1);
+    }
     // rootcmd.Run();
     return 0;
 }

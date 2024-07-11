@@ -80,11 +80,15 @@ class Command{
          * @{
          * 
          */
-        void (*PersistentPreRun)(Command& cmd, vector<string> args)=nullptr;    ///<PersistentPreRun：该命令的子命令将继承并执行。
-        void (*PreRun)(Command& cmd, vector<string> args)=nullptr;              ///<PreRun：该命令的子命令不会继承。
-        void (*Run)(Command& cmd, vector<string> args)=nullptr;                 ///<Run：通常是实际功函数。大多数命令只会实现这个。
-        void (*PostRun)(Command& cmd, vector<string> args)=nullptr;             ///<PostRun：在运行命令之后运行。
-        void (*PersistentPostRun)(Command& cmd, vector<string> args)=nullptr;   ///<PersistentPostRun：此命令的子命令将在 PostRun 之后继承并执行。
+        function <void(Command& , vector<string>)> PersistentPreRun=nullptr;    ///<PersistentPreRun：该命令的子命令将继承并执行。
+        function <void(Command& , vector<string>)> PreRun=nullptr;              ///<PreRun：该命令的子命令不会继承。
+        function <void(Command& , vector<string>)> Run=nullptr;                 ///<Run：通常是实际功函数。大多数命令只会实现这个。
+        function <void(Command& , vector<string>)> PostRun=nullptr;             ///<PostRun：在运行命令之后运行。
+        function <void(Command& , vector<string>)> PersistentPostRun=nullptr;   ///<PersistentPostRun：此命令的子命令将在 PostRun 之后继承并执行。
+        // void (*PreRun)(Command& cmd, vector<string> args)=nullptr;              ///<PreRun：该命令的子命令不会继承。
+        // void (*Run)(Command& cmd, vector<string> args)=nullptr;                 ///<Run：通常是实际功函数。大多数命令只会实现这个。
+        // void (*PostRun)(Command& cmd, vector<string> args)=nullptr;             ///<PostRun：在运行命令之后运行。
+        // void (*PersistentPostRun)(Command& cmd, vector<string> args)=nullptr;   ///<PersistentPostRun：此命令的子命令将在 PostRun 之后继承并执行。
         /**
          * @}
          * 
@@ -137,4 +141,5 @@ bool hasNoOptDefVal( string name, Flagset* flags);
 vector<string> stripFlags(vector<string> args,Command& cmd);
 void innerfind(Command* cmd,vector<string>&args,Command* ret_cmd,vector<string>& ret_args);
 bool commandNameMatches(string s, string t);
+void legacyArgs(Command*cmd,vector<string>args);
 #endif

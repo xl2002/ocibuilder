@@ -199,6 +199,7 @@ void Flagset::SetInterspersed(bool interspersed){
 void Flagset::SetAnnotation(string name,string key,vector<string> value){
     auto flag=formal_flags.find(name);
     if(flag==formal_flags.end()){
+        // throw myerror("no such flag: "+name);
         cerr<<"no such flag: "<<name<<endl;
     }
     flag->second->Annotations[key]=value;
@@ -210,7 +211,8 @@ void Flagset::SetAnnotation(string name,string key,vector<string> value){
  */
 void Flagset::AddFlagSet(Flagset* newflagset){
     if(newflagset==nullptr){
-        cerr<<" new flag is nulpptr"<<endl;
+        return;
+        // cerr<<" new flag is nulpptr"<<endl;
     }
     // Flagset* fs=this;
     // function<void(Flag*)>fn =[this](Flag* f){
@@ -232,7 +234,7 @@ void Flagset::AddFlag(Flag* newflag){
     string name= newflag->name;
     auto it =formal_flags.find(name);
     if(it!=formal_flags.end()){
-        cout<<this->name<<" flag "<<name<< " redefined: "<<name<<endl;
+        // cout<<this->name<<" flag "<<name<< " redefined: "<<name<<endl;
         return;
     }
     // if(formal_flags)
@@ -249,7 +251,7 @@ void Flagset::AddFlag(Flag* newflag){
  */
 void Flagset::VisitAll(const function<void(Flag*)>& fn){
     if(formal_flags.size()==0){
-        cerr<<"the new flagsets is null"<<endl;
+        // cerr<<"the new flagsets is null"<<endl;
         return;
     }
     // if(SortedFlags){
@@ -296,7 +298,8 @@ Flag* Flagset::Lookup(const string& name){
 void Flagset::MarkHidden(string name){
     Flag* flag=Lookup(name);
     if(flag==nullptr){
-        cerr<<"flag "<<name<<"does not exit"<<endl;
+        throw myerror("flag "+name+"does not exit");
+        // cerr<<"flag "<<name<<"does not exit"<<endl;
     }else{
         flag->hidden=true;
     }
@@ -311,11 +314,13 @@ void Flagset::MarkHidden(string name){
 string Flagset::getFlagType(string name,const string ftype){
     Flag* flag=Lookup(name);
     if(flag==nullptr){
-        cerr<<"flag accessed but not defined: "<<name<<endl;
+        throw myerror("flag accessed but not defined: "+name);
+        // cerr<<"flag accessed but not defined: "<<name<<endl;
         return "";
     }
     if(flag->value->Type()!=ftype){
-        cerr<<"trying to get"<< ftype<<" value of flag of type "<<flag->value->Type()<<endl;
+        throw myerror("trying to get"+ ftype+" value of flag of type "+flag->value->Type());
+        // cerr<<"trying to get"<< ftype<<" value of flag of type "<<flag->value->Type()<<endl;
         return "";
     }
     string sval=flag->value->String();
@@ -331,11 +336,20 @@ string Flagset::getFlagType(string name,const string ftype){
  * @return false 
  */
 bool Flagset:: GetBool(string name){
-    if(getFlagType(name,"bool")=="bool"){
-        return true;
-    }else{
-        return false;
+    try
+    {
+        if(getFlagType(name,"bool")=="bool"){
+            return true;
+        }else{
+            return false;
+        }
     }
+    catch(const myerror& e)
+    {
+        throw;
+    }
+    
+
 }
 /**
  * @brief Args 返回非标志参数。
@@ -374,7 +388,16 @@ void Flagset::Parse(vector<string> arguments){
         return;
     }
     args.reserve(arguments.size());
-    parseArgs(arguments);
+    try
+    {
+        parseArgs(arguments);
+    }
+    catch(const myerror& e)
+    {
+        throw;
+    }
+    
+    
 }
 /**
  * @brief 分析子命令参数
@@ -397,7 +420,14 @@ void Flagset::parseArgs(vector<string> args){
             }
         }
         vector<string> in_args(it,args.end());
-        args=parseLongArg(str,in_args);
+        try
+        {
+            args=parseLongArg(str,in_args);
+        }
+        catch(const myerror& e)
+        {
+            throw;
+        }
         it=args.begin();
     }
 }
@@ -412,14 +442,16 @@ vector<string> Flagset::parseLongArg(string arg,vector<string> args){
     vector<string> ret_args=args;
     string name(arg.begin()+2,arg.end());
     if(name.size()==0|| name[0]=='-'||name[0]=='='){
-        cerr<<"bad flag syntax: "<<name<<endl;
+        throw myerror("bad flag syntax: "+arg);
+        // cerr<<"bad flag syntax: "<<name<<endl;
         return ret_args;
     }
     vector<string> split=SplitN(name,"=",2);
     name=split[0];
     Flag* flag;
     if(formal_flags.find(name)==formal_flags.end()){
-        cerr<<"unknown flag: --"<<name<<endl;
+        throw myerror("unknown flag: --"+name);
+        // cerr<<"unknown flag: --"<<name<<endl;
     }else{
         flag=formal_flags[name];
     }
@@ -436,12 +468,26 @@ vector<string> Flagset::parseLongArg(string arg,vector<string> args){
         ret_args.erase(ret_args.begin());
     }else{
         /// '--flag' (arg was required)
-        cerr<<"flag needs an argument: "<<arg<<endl;
-        return ret_args;
+        throw myerror("flag needs an argument: "+arg);
+        // cerr<<"flag needs an argument: "<<arg<<endl;
+        // return ret_args;
     }
-    if(!Set(flag->name,value)){
-        cerr<<"fail to set the flag value"<<endl;
+    // if(!Set(flag->name,value)){
+    //     throw myerror("fail to set the flag value");
+    //     // cerr<<"fail to set the flag value"<<endl;
+    // }
+    try
+    {
+        if(!Set(flag->name,value)){
+            // throw myerror("fail to set the flag value");
+            cerr<<"fail to set the flag value"<<endl;
+        }
     }
+    catch(const myerror& e)
+    {
+        throw;
+    }
+    
     return ret_args;
 }/**
  * @brief Set 设置指定标志的值。
@@ -455,14 +501,15 @@ bool Flagset::Set(string name, string value){
     // string name =this->name;
     Flag* flag;
     if(formal_flags.find(name)==formal_flags.end()){
-        cerr<<"no such flag "<<name<<endl;
+        throw myerror("no such flag "+name);
+        // cerr<<"no such flag "<<name<<endl;
         return false;
     }else{
         flag=formal_flags[name];
     }
     // Flag& flag=f;
     flag->value->Set(value);
-    cout<<flag->value->String()<<endl;
+    cout<<"flag: "<<flag->name<<"\nvalue: "<<flag->value->String()<<endl;
     if(!flag->changed){
         flag->changed=true;
         // if(actual_flags.size()==0){

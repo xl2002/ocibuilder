@@ -21,11 +21,11 @@
  * 
  */
 struct globalFlags{
-    bool Debug=false;                 ///<是否调试
-    string Root;                ///<
-    // string RunRoot;             ///<
-    string RegistriesConf;      ///<
-    string RegistriesConfDir;   ///<
+    bool Debug=false;                   ///<是否调试
+    string Root;                        ///<
+    // string RunRoot;                  ///<
+    string RegistriesConf;              ///<
+    string RegistriesConfDir;           ///<
 };
 //
 /**

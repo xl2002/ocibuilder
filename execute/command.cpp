@@ -94,7 +94,14 @@ Flagset* Command::PersistentFlags(){
  * @param argv 参数列表指针
  */
 void Command::Execute(int argc, char const *argv[]){
-    ExecuteC(argc,argv);
+    try
+    {
+        ExecuteC(argc,argv);
+    }
+    catch(const myerror& e)
+    {
+        throw ;
+    }
 }
 /**
  * @brief ExecuteC 执行命令
@@ -116,18 +123,40 @@ void Command::ExecuteC(int argc, char const *argv[]){
     }
     vector<string> flags;
     Command* cmd;///<用来分析子命令，例如build
-    if(TraverseChildren){
-        // Traverse(args,cmd,flags);
-        // flags=f;cmd=c;
-    }else{
-        cmd=Find(args,flags);
-        // flags=f;cmd=c;
+    try
+    {
+        if(TraverseChildren){
+            // Traverse(args,cmd,flags);
+            // flags=f;cmd=c;
+        }else{
+            cmd=Find(args,flags);
+            // flags=f;cmd=c;
+        }
     }
+    catch(const myerror& e)
+    {
+        if(cmd!=nullptr){
+            *this=*cmd;
+        }
+        cerr<<"Run "<<CommandPath()<<"--help' for usage."<<endl;
+        throw ;
+    }
+    
+
     cmd->commandcallas.called=true;
     if(cmd->commandcallas.name==""){
         cmd->commandcallas.name=cmd->Name();
     }
-    cmd->execute(flags);
+    try
+    {
+        cmd->execute(flags);
+    }
+    catch(const myerror& e)
+    {
+        throw ;
+    }
+    
+    
 }
 /**
  * @brief 向Command对象中添加子Command对象
@@ -506,6 +535,23 @@ vector<string> Command::argsMinusFirstX(vector<string>args,string x){
     return args;
 }
 /**
+ * @brief LegacyArgs
+ * <p> LegacyArgs 验证具有以下行为：
+ * <p> - 没有子命令的根命令可以采用任意参数
+ * <p> - 带有子命令的根命令将进行子命令有效性检查
+ * <p> - 子命令将始终接受任意参数
+ * @param cmd 
+ */
+void legacyArgs(Command*cmd,vector<string>args){
+    if(!cmd->HasSubCommands()){
+        return;
+    }
+    if(!cmd->HasParent() && args.size()>0){
+        throw myerror("unknown command"+args[0]+" for "+cmd->CommandPath());
+    }
+    return;
+}
+/**
  * @brief 根据给定的参数和命令树查找目标命令
  * <p>在最高节点上运行。只能往下搜索。
  * @param ret_args 查找解析的参数
@@ -516,6 +562,20 @@ Command* Command::Find(vector<string>args,vector<string>&ret_args){
     // vector<string> new_args;
     Command*commandFound= innerfind(this,args,ret_args);
     // return make_tuple(a,commandFound,);
+    if(commandFound->Args==nullptr){
+        vector<string> a=stripFlags(ret_args,commandFound);
+        try
+        {
+            legacyArgs(commandFound,a);
+        }
+        catch(const myerror& e)
+        {
+            throw ;
+        }
+        
+        return commandFound;
+        
+    }
     return commandFound;
 }
 /**
@@ -553,8 +613,25 @@ Command* Command::findNext(string next){
 void Command::execute(vector<string> args){
     InitDefaultHelpFlag();
     InitDefaultVersionFlag();
-    ParseFlags(args);
-    bool helpval=Flags()->GetBool("help");
+    try
+    {
+        ParseFlags(args);
+    }
+    catch(const myerror& e)
+    {
+        throw ;
+    }
+    bool helpval;
+    try
+    {
+        helpval=Flags()->GetBool("help");
+    }
+    catch(const myerror& e)
+    {
+        cerr<<"\"help\" flag declared as non-bool. Please correct your code"<<endl;
+        throw ;
+    }
+    
     if(helpval){
         return;
     }
@@ -566,31 +643,77 @@ void Command::execute(vector<string> args){
     if(DisableFlagParsing){
         argWoFlags=args;
     }
-    // vector<Command*> parents;
-    // for (auto p=this;p!=nullptr;p=p->Parent()){
-    //     parents.emplace_back(p);
-    // }
+    
 
     for(auto p=this;p!=nullptr;p=p->Parent()){
         if(p->PersistentPreRun!=nullptr){
-            p->PersistentPreRun(*this,argWoFlags);
+            try
+            {
+                p->PersistentPreRun(*this,argWoFlags);
+            }
+            catch(const myerror& e)
+            {
+                throw;
+            }
         }
     }
     if(PreRun!=nullptr){
-        PreRun(*this,argWoFlags);
+        try
+        {
+            PreRun(*this,argWoFlags);
+        }
+        catch(const myerror& e)
+        {
+            throw;
+        }
+        
     }
-    if(!ValidateRequiredFlags()||!ValidateFlagGroups()){
-        return;
+    try
+    {
+        ValidateRequiredFlags();
+    }
+    catch(const myerror& e)
+    {
+        throw;
+    }
+    try
+    {
+        ValidateFlagGroups();
+    }
+    catch(const myerror& e)
+    {
+        throw;
     }
     if(Run!=nullptr){
-        Run(*this,argWoFlags);
+        try
+        {
+            Run(*this,argWoFlags);
+        }
+        catch(const myerror& e)
+        {
+            throw;
+        }
     }
     if(PostRun!=nullptr){
-        PostRun(*this,argWoFlags);
+        try
+        {
+            PostRun(*this,argWoFlags);
+        }
+        catch(const myerror& e)
+        {
+            throw;
+        }
     }
     for (auto p=this;p!=nullptr;p=p->Parent()){
         if(p->PersistentPostRun!=nullptr){
-            p->PersistentPostRun(*this,argWoFlags);
+            try
+            {
+                p->PersistentPostRun(*this,argWoFlags);
+            }
+            catch(const myerror& e)
+            {
+                throw;
+            }
         }
     }
     return;
@@ -602,7 +725,16 @@ void Command::execute(vector<string> args){
  */
 void Command::ParseFlags(vector<string> args){
     mergePersistentFlags();
-    Flags()->Parse(args);
+    try
+    {
+        Flags()->Parse(args);
+    }
+    catch(const myerror& e)
+    {
+        throw;
+    }
+    
+    
 }
 /**
  * @brief ValidateRequiredFlags 验证所有必需的标志是否存在，否则返回错误
@@ -619,7 +751,8 @@ bool Command::ValidateRequiredFlags(){
     };
     flags->VisitAll(fn);
     if(missingFlagNames.size()>0){
-        cerr<<"required flag(s) "<<to_string(missingFlagNames.size()) <<" not set"<<endl;
+        throw myerror("required flag(s) "+to_string(missingFlagNames.size()) +" not set");
+        // cerr<<"required flag(s) "<<to_string(missingFlagNames.size()) <<" not set"<<endl;
     }
     return true;
 }

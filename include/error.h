@@ -12,14 +12,33 @@
 #define ERROR_H
 #include <stdexcept>
 #include <string>
+#include <iostream>
+using std::cerr;
+using std::endl;
 /**
  * @brief 未匹配的异常
  * 
  */
-class error_mismatch:public std::runtime_error{
+class myerror:public std::exception {
     public:
-    error_mismatch(const std::string &s):std::runtime_error(s){};
+    myerror(const std::string &message):message_(message) {};
+
+    virtual const char* what() const noexcept override {
+        return message_.c_str();
+    }
+    void logerror() const{
+        cerr<<"Error: "<<what()<<endl;
+    }
+    private:
+    std::string message_;
 };
 
+// class error{
+//     private:
+//     std::string error_str;
+
+//     public:
+
+// };
 
 #endif

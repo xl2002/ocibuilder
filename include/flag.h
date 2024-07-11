@@ -22,6 +22,7 @@
 #include <algorithm>
 #include "value.h"
 #include "common.h"
+#include "error.h"
 using namespace std;
 
 /**

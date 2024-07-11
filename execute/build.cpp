@@ -73,7 +73,7 @@ void init_buildcmd(){
     flags->AddFlagSet(buildflags);
     build_Command->Run=buildCmd;
     rootcmd.AddCommand({build_Command});
-    cout<<"hello buildah-build!"<<endl;
+    // cout<<"hello buildah-build!"<<endl;
     // build_Command.Run();
     // return build_Command;
 }

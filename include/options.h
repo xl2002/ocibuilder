@@ -13,6 +13,12 @@
 #include <string>
 #include <map>
 #include <vector>
+#include "error.h"
+#include <cstdlib>   // For getenv
+#include <sys/stat.h> // For stat
+// #include <stdexcept> // For runtime_error
+#include <fstream>   // For ifstream
+#include <sstream>   // For stringstream
 using std::string;
 using std::map;
 using std::vector;
@@ -29,8 +35,19 @@ class StoreOptions{
     vector<string> GraphDriverOptions;      ///<
     map<string,string> PullOptions;         ///<
 };
-
+extern const string overlayDriver;
+extern const string overlay2;
+extern const string storageConfEnv;
+//函数声明
 StoreOptions DefaultStoreOptions();
+bool usePerUserStorage();
+std::string getConfigHome();
+std::string getHomeDir();
+bool fileExists(const std::string& filename);
+std::string DefaultConfigFile();
+StoreOptions loadStoreOptionsFromConfFile(const std::string& storageConf);
+StoreOptions loadStoreOptions();
+
 
 
 #endif // MACRO

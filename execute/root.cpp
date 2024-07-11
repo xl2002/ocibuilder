@@ -29,12 +29,23 @@ Command init_rootcmd(){
     Appcmd.PersistentPreRun=[](Command& cmd, vector<string> args){before(cmd);};
     Appcmd.PersistentPostRun=[](Command& cmd, vector<string> args){after(cmd);};
     ///初始化运行环境
-    StoreOptions storageOptions=DefaultStoreOptions();
+    StoreOptions storageOptions;
+    try{
+        storageOptions=DefaultStoreOptions();
+    }catch(const myerror& e){
+        e.logerror();
+        exit(1);
+    }
     vector<string> defaultStoreDriverOptions;
     if(storageOptions.GraphDriverOptions.size()>0){
         defaultStoreDriverOptions= storageOptions.GraphDriverOptions;
     }
-    defaultContainerConfig=ConfigdetailsDefault();
+    try{
+        defaultContainerConfig=ConfigdetailsDefault();
+    }catch(const myerror& e){
+        e.logerror();
+        exit(1);
+    }
     defaultContainerConfig.CheckCgroupsAndAdjustConfig();
 
     Flagset* persistentflags=Appcmd.PersistentFlags();
@@ -42,7 +53,13 @@ Command init_rootcmd(){
     persistentflags->StringVar(globalFlagOptions.RegistriesConf,"registries-conf","","path to registries.conf file (not usually used)");
     persistentflags->StringVar(globalFlagOptions.RegistriesConfDir,"registries-conf-dir", "", "path to registries.conf.d directory (not usually used)");
     persistentflags->BoolVar(globalFlagOptions.Debug,"debug",false, "print debugging information");
-    persistentflags->MarkHidden("debug");///<用help时，mark掉的flag不显示
+    try{
+        persistentflags->MarkHidden("debug");///<用help时，mark掉的flag不显示
+    }catch(const myerror& e){
+        cerr<<"unable to mark cpu-profile flag as hidden: "<<e.what()<<endl;
+        // exit(1);
+    }
+    
     
     return Appcmd;
 }
