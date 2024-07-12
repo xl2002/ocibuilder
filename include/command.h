@@ -131,6 +131,9 @@ class Command{
         void mergePersistentFlags();
         void updateParentsPflags();
         void VisitParents(const function<void(Command*)>& fn);
+        Flag* Flag_find(string name);
+        Flag* persistentFlag_find(string name);
+        bool HasPersistentFlags();
 };      
 
 extern Flagset* CommandLine;

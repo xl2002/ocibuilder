@@ -57,7 +57,7 @@ Flagset* CommandLine=NewFlagSet("buildah");
  */
 Flagset* Command::Flags(){
     if(flags==nullptr){
-        flags=NewFlagSet(name);
+        flags=NewFlagSet(Name());
         // flags->name=this->name;
     }
     return flags;
@@ -82,7 +82,7 @@ Flagset* NewFlagSet(const string& name){
  */
 Flagset* Command::PersistentFlags(){
     if(persistent_flags==nullptr){
-        persistent_flags=NewFlagSet(name);
+        persistent_flags=NewFlagSet(Name());
         // persistent_flags->name=this->name;
     }
     return persistent_flags;
@@ -813,4 +813,37 @@ void Command::VisitParents(const function<void(Command*)>& fn){
         fn(Parent());
         Parent()->VisitParents(fn);
     }
+}
+Flag* Command::Flag_find(string name){
+    Flag* flag=Flags()->Lookup(name);
+    if(flag==nullptr){
+        flag=persistentFlag_find(name);
+    }
+    return flag;
+}
+/**
+ * @brief 递归查找匹配的持久标志。
+ * 
+ * @param name 
+ * @return Flag* 
+ */
+Flag* Command::persistentFlag_find(string name){
+    Flag* flag;
+    if(HasPersistentFlags()){
+        flag=PersistentFlags()->Lookup(name);
+    }
+    if(flag==nullptr){
+        updateParentsPflags();
+        flag=parent_persistent_flags->Lookup(name);
+    }
+    return flag;
+}
+/**
+ * @brief HasPersistentFlags 检查命令是否包含持久标志。
+ * 
+ * @return true 
+ * @return false 
+ */
+bool Command::HasPersistentFlags(){
+    return PersistentFlags()->HasFlags();
 }

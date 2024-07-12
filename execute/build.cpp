@@ -17,17 +17,58 @@
  * @param br br为BuildOptions的对象，存储build命令的flag
  * @return Flagset* 返回一个标志集指针，注意是动态分配，不就随着函数的结束而销毁
  */
-Flagset* Getbuildflags(BuildOptions* br){
+Flagset* Getbuildflags(BudResults* br){
     //动态分配分配一个Flagset指针，用于存储初始化中的flag，并作为返回值
     Flagset* flags=new Flagset();
     //调用flag初始化函数
-    flags->BoolVar((*br).allplatform,"all-platforms",false,"attempt to build for all base image platforms");
+    flags->BoolVar(br->allplatform,"all-platforms",false,"attempt to build for all base image platforms");
     flags->String("arch","amd64","set the ARCH of the image to the provided value instead of the architecture of the host");
-    flags->StringArrayVar((*br).annotation,"annotation",vector<string>(),"set metadata for an image (default [])");
-    flags->StringArrayVar((*br).tag,"tag",vector<string>(),"tagged `name` to apply to the built image");
-    flags->StringVar((*br).osversion,"os-version","","set required OS `version` for the target image instead of the value from the base image");
-    // flags.StringArrayVar(br.annotation,"",,"");
-    // flags.String();
+    flags->StringArrayVar(br->annotation,"annotation",vector<string>(),"set metadata for an image (default [])");
+    flags->StringArrayVar(br->tag,"tag",vector<string>(),"tagged `name` to apply to the built image");
+    flags->StringVar(br->osversion,"os-version","","set required OS `version` for the target image instead of the value from the base image");
+    flags->StringArrayVar(br->BuildArg,"build-arg", vector<string>(), "`argument=value` to supply to the builder");
+    flags->StringArrayVar(br->CacheFrom,"cache-from", vector<string>(), "remote repository list to utilise as potential cache source.");
+    flags->StringArrayVar(br->CacheTo,"cache-to", vector<string>(), "remote repository list to utilise as potential cache destination.");
+    flags->StringVar(br->CacheTTL,"cache-ttl", "", "only consider cache images under specified duration.");
+    flags->StringVar(br->CertDir,"cert-dir", "", "use certificates at the specified path to access the registry");
+    flags->BoolVar(br->Compress,"compress", false, "this is a legacy option, which has no effect on the image");
+    flags->StringArrayVar(br->File,"file", vector<string>(), "`pathname or URL` of a Dockerfile");
+    flags->StringVar(br->Creds, "creds", "", "use `[username[:password]]` for accessing the registry");
+	flags->StringVar(br->CWOptions, "cw", "", "confidential workload `options`");
+	flags->BoolVar(br->DisableCompression, "disable-compression", true, "don't compress layers by default");
+	flags->BoolVar(br->DisableContentTrust, "disable-content-trust", false, "this is a Docker specific option and is a NOOP");
+	flags->StringArrayVar(br->envs, "env", vector<string>(), "set environment variable for the image");
+
+    flags->StringVar(br->Format,"format", "oci", "`format` of the built image's manifest and metadata.");
+    flags->StringVar(br->From,"from", "", "image name used to replace the value in the first FROM instruction in the Containerfile");
+    flags->StringVar(br->Iidfile,"iidfile", "", "`file` to write the image ID to");
+    flags->IntVar(br->Jobs, "jobs", 1, "how many stages to run in parallel");
+    flags->StringArrayVar(br->Label,"label", vector<string>(), "set metadata for an image (default [])");
+
+    flags->StringArrayVar(br->LayerLabel, "layer-label", vector<string>(), "set metadata for an intermediate image (default [])");
+    flags->StringVar(br->Logfile, "logfile", "", "log to `file` instead of stdout/stderr");
+    flags->StringVar(br->Manifest, "manifest", "", "add the image to the specified manifest list. Creates manifest list if it does not exist");
+    flags->BoolVar(br->NoCache, "no-cache", false, "do not use existing cached images for the container build. Build from the start with a new set of cached layers.");
+    flags->Int64Var(br->Timestamp, "timestamp", 0, "set created timestamp to the specified epoch seconds to allow for deterministic builds, defaults to current time");
+    
+    flags->BoolVar(br->OmitHistory, "omit-history", false, "omit build history information from built image");
+    flags->StringArrayVar(br->OCIHooksDir, "hooks-dir", vector<string>(), "set the OCI hooks directory path (may be set multiple times)");
+    flags->StringVar(br->Pull, "pull", "true", "pull base and SBOM scanner images from the registry if newer or not present in store, if false, only pull base and SBOM scanner images if not present, if always, pull base and SBOM scanner images even if the named images are present in store, if never, only use images present in store if available");
+    flags->Lookup("pull")->NoOptDefVal="true";//allow `--pull ` to be set to `true` as expected.
+    flags->BoolVar(br->PullAlways, "pull-always", false, "pull the image even if the named image is present in store");
+    flags->MarkHidden("pull-always");
+    flags->BoolVar(br->PullNever, "pull-never", false, "do not pull the image, use the image present in store if available");
+    flags->MarkHidden("pull-never");
+    flags->BoolVar(br->Quiet, "quiet", false, "refrain from announcing build instructions and image read/write progress");
+    flags->BoolVar(br->IdentityLabel, "identity-label", true, "add default identity label");
+    flags->BoolVar(br->Rm, "rm", true, "remove intermediate containers after a successful build");
+    flags->BoolVar(br->Stdin, "stdin", false, "pass stdin into containers");
+    flags->StringVar(br->BuildOutput, "output", "", "output destination (format: type=local,dest=path)");
+    flags->StringVar(br->Target, "target", "", "set the target build stage to build");
+    flags->StringArrayVar(br->OSFeatures,"os-feature", vector<string>(), "set required OS `feature` for the target image in addition to values from the base image");
+    
+    
+    
     return flags;
 }
 
@@ -37,9 +78,57 @@ Flagset* Getbuildflags(BuildOptions* br){
  * @param lr 
  * @return Flagset 
  */
-Flagset GetLayerFlags(LayerOptions& lr){
-    Flagset flags;
-    // flags.BoolVar();
+Flagset* GetLayerFlags(LayerResults* lr){
+    Flagset* flags=new Flagset();
+	flags->BoolVar(lr->ForceRm, "force-rm", false, "always remove intermediate containers after a build, even if the build is unsuccessful.");
+	flags->BoolVar(lr->Layers, "layers", true, "use intermediate layers during build. Use BUILDAH_LAYERS environment variable to override.");
+    return flags;
+}
+Flagset* GetFromAndBudFlags(FromAndBudResults* fr){
+    Flagset* flags=new Flagset();
+    flags->StringSliceVar(fr->AddHost, "add-host", vector<string>(), "add a custom host-to-IP mapping (`host:ip`) (default [])");
+	flags->StringVar(fr->BlobCache, "blob-cache", "", "assume image blobs in the specified directory will be available for pushing");
+	flags->MarkHidden("blob-cache"); 
+	flags->StringSliceVar(fr->CapAdd, "cap-add", vector<string>(), "add the specified capability when running (default [])");
+	flags->StringSliceVar(fr->CapDrop, "cap-drop", vector<string>(), "drop the specified capability when running (default [])");
+	flags->StringVar(fr->CDIConfigDir, "cdi-config-dir", "", "`directory` of CDI configuration files");
+	flags->MarkHidden("cdi-config-dir");
+	flags->StringVar(fr->CgroupParent, "cgroup-parent", "", "optional parent cgroup for the container");
+	flags->Uint64Var(fr->CPUPeriod, "cpu-period", 0, "limit the CPU CFS (Completely Fair Scheduler) period");
+	flags->Int64Var(fr->CPUQuota, "cpu-quota", 0, "limit the CPU CFS (Completely Fair Scheduler) quota");
+	flags->Uint64Var(fr->CPUShares, "cpu-shares", 0, "CPU shares (relative weight)");
+	flags->StringVar(fr->CPUSetCPUs, "cpuset-cpus", "", "CPUs in which to allow execution (0-3, 0,1)");
+	flags->StringVar(fr->CPUSetMems, "cpuset-mems", "", "memory nodes (MEMs) in which to allow execution (0-3, 0,1). Only effective on NUMA systems.");
+	flags->StringSliceVar(fr->DecryptionKeys, "decryption-key", vector<string>(), "key needed to decrypt the image");
+	// flags->StringArrayVar(fr->Devices, "device", defaultContainerConfig.Containers.Devices.Get(), "additional devices to provide");
+	// flags->StringSliceVar(fr->DNSSearch, "dns-search", defaultContainerConfig.Containers.DNSSearches.Get(), "set custom DNS search domains");
+	// flags->StringSliceVar(fr->DNSServers, "dns", defaultContainerConfig.Containers.DNSServers.Get(), "set custom DNS servers or disable it completely by setting it to 'none', which prevents the automatic creation of `/etc/resolv.conf`.");
+	// flags->StringSliceVar(fr->DNSOptions, "dns-option", defaultContainerConfig.Containers.DNSOptions.Get(), "set custom DNS options");
+	flags->BoolVar(fr->HTTPProxy, "http-proxy", true, "pass through HTTP Proxy environment variables");
+	// flags->StringVar(fr->Isolation, "isolation", DefaultIsolation(), "`type` of process isolation to use. Use BUILDAH_ISOLATION environment variable to override.");
+	flags->StringVar(fr->Memory, "memory","","memory limit (format: <number>[<unit>], where unit = b, k, m or g)");
+	flags->StringVar(fr->MemorySwap, "memory-swap", "", "swap limit equal to memory plus swap: '-1' to enable unlimited swap");
+	flags->IntVar(fr->Retry, "retry", 3, "number of times to retry in case of failure when performing push/pull");
+	// flags->StringVar(fr->RetryDelay, "retry-delay", defaultContainerConfig.Engine.RetryDelay, "delay between retries in case of push/pull failures");
+	flags->String("arch", "amd64", "set the ARCH of the image to the provided value instead of the architecture of the host");
+	flags->String("os", "Windows10", "prefer `OS` instead of the running OS when pulling images");
+	flags->StringSlice("platform", vector<string>{"linux/arm"}, "set the `OS/ARCH[/VARIANT]` of the image to the provided value instead of the current operating system and architecture of the host (for example \"linux/arm\")");
+	flags->String("variant", "", "override the `variant` of the specified image");
+	flags->StringArrayVar(fr->SecurityOpt, "security-opt", vector<string>(), "security options (default [])");
+	// flags->StringVar(fr->ShmSize, "shm-size", defaultContainerConfig.Containers.ShmSize, "size of '/dev/shm'. The format is `<number><unit>`.");
+	// flags->StringSliceVar(fr->Ulimit, "ulimit", defaultContainerConfig.Containers.DefaultUlimits.Get(), "ulimit options");
+	// flags->StringArrayVar(fr->Volumes, "volume", defaultContainerConfig.Volumes(), "bind mount a volume into the container");
+
+    return flags;
+}
+Flagset* GetUserNSFlags(UserNSResults* ur){
+    Flagset* flags=new Flagset();
+	flags->StringSliceVar(ur->GroupAdd, "group-add", vector<string>(), "add additional groups to the primary container process. 'keep-groups' allows container processes to use supplementary groups.");
+	flags->StringVar(ur->UserNS, "userns", "", "'container', `path` of user namespace to join, or 'host'");
+	flags->StringSliceVar(ur->UserNSUIDMap, "userns-uid-map", vector<string>(), "`containerUID:hostUID:length` UID mapping to use in user namespace");
+	flags->StringSliceVar(ur->UserNSGIDMap, "userns-gid-map", vector<string>(), "`containerGID:hostGID:length` GID mapping to use in user namespace");
+	flags->StringVar(ur->UserNSUIDMapUser, "userns-uid-map-user", "", "`name` of entries from /etc/subuid to use to set user namespace UID mapping");
+	flags->StringVar(ur->UserNSGIDMapGroup, "userns-gid-map-group", "", "`name` of entries from /etc/subgid to use to set user namespace GID mapping");
     return flags;
 }
 /**
@@ -49,7 +138,6 @@ Flagset GetLayerFlags(LayerOptions& lr){
  * 
  */
 void init_buildcmd(){
-    BuildOptions* br=new BuildOptions();
     string build_name="build [context]";
     string build_Short="Build an image using instructions in a Containerfile";
     string build_Long={"Builds an OCI image using instructions in one or more Containerfiles.\n\
@@ -69,9 +157,25 @@ void init_buildcmd(){
     Flagset* flags=build_Command->Flags();
     flags->SetInterspersed(false);
     
-    Flagset* buildflags=Getbuildflags(br);
+    BudResults* buildFlagResults=new BudResults();
+    LayerResults* layerFlagsResults=new LayerResults();
+    FromAndBudResults* fromAndBudResults=new FromAndBudResults();
+    UserNSResults* userNSResults=new UserNSResults();
+    BuildOptions* br=new BuildOptions(buildFlagResults,layerFlagsResults,fromAndBudResults,userNSResults);
+
+    Flagset* buildflags=Getbuildflags(buildFlagResults);
+    Flagset* layerFlags=GetLayerFlags(layerFlagsResults);
+    Flagset* fromAndBudFlags=GetFromAndBudFlags(fromAndBudResults);
+    Flagset* usernsFlags=GetUserNSFlags(userNSResults);
+
     flags->AddFlagSet(buildflags);
-    build_Command->Run=buildCmd;
+    flags->AddFlagSet(layerFlags);
+    flags->AddFlagSet(fromAndBudFlags);
+    flags->AddFlagSet(usernsFlags);
+
+    build_Command->Run=[=](Command& cmd, vector<string> args){
+        buildCmd(cmd,args,br);
+    };
     rootcmd.AddCommand({build_Command});
     // cout<<"hello buildah-build!"<<endl;
     // build_Command.Run();
@@ -84,8 +188,9 @@ void init_buildcmd(){
  * @param cmd 用来运行的命令
  * @param args 运行的参数
  */
-void buildCmd(Command& cmd, vector<string> args){
+void buildCmd(Command& cmd, vector<string> args,BuildOptions* iopts){
     cout<<"hello buildah-build!"<<endl;
+    
 }
 /**
  * @brief 模板定义
@@ -106,4 +211,17 @@ string UsageTemplate(){
                 {{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasAvailableInheritedFlags}}\
                 {{end}}"};
     return str;
+}
+/**
+ * @brief GenBuildOptions 将命令行标志转换为 BuildOptions 结构
+ * 
+ * @param cmd 
+ * @param inputArgs 
+ * @param iopts 
+ * @param budopt 
+ * @param ret_containerfiles 
+ * @param removeAll 
+ */
+void GenBuildOptions(Command* cmd, vector<string> inputArgs,BuildOptions iopts, define_BuildOptions* budopt, vector<string>& ret_containerfiles,vector<string>& removeAll){
+
 }

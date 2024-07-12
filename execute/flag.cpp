@@ -156,6 +156,30 @@ void Flagset::IntVar(int& option_name, string name, int value, string usage){
     Flag* flag=Addvar(pvalue,name,usage);
 }
 /**
+ * @brief 创建值为int64_t的标签
+ * 
+ * @param option_name 
+ * @param name 
+ * @param value 
+ * @param usage 
+ */
+void Flagset::Int64Var(int64_t& option_name, string name, int value, string usage){
+    int64Value* pvalue=newInt64Value(value,option_name);
+    Flag* flag=Addvar(pvalue,name,usage);
+}
+/**
+ * @brief 创建值为uint64_t的标签
+ * 
+ * @param option_name 
+ * @param name 
+ * @param value 
+ * @param usage 
+ */
+void Flagset::Uint64Var(uint64_t& option_name, string name, int value, string usage){
+    uint64Value* pvalue=newUint64Value(value,option_name);
+    Flag* flag=Addvar(pvalue,name,usage);
+}
+/**
  * @brief 创建值为int的标签，没有提供存储位置
  * 
  * @param name 标签名
@@ -180,7 +204,17 @@ void Flagset::StringSliceVar(vector<string>& option_name, string name ,vector<st
     stringSliceValue* pvalue=newStringSliceValue(value,option_name);
     Flag* flag=Addvar(pvalue,name,usage);
 }
-
+/**
+ * @brief 字符串值保存的位置
+ * 
+ * @param name 
+ * @param value 
+ * @param usage 
+ */
+void Flagset::StringSlice(string name ,vector<string> value , string usage){
+    vector<string>* option_name=new vector<string>();
+    StringSliceVar(*option_name,name,value,usage);
+}
 /**
  * @brief SetInterspersed 设置是否支持散布选项/非选项参数。
  * 
@@ -522,4 +556,13 @@ bool Flagset::Set(string name, string value){
         cerr<< "flag "<<name<<"has been deprecated, "<<flag->deprecated<<endl;
     }
     return true;
+}
+/**
+ * @brief HasFlags 返回一个布尔值来指示 FlagSet 是否定义了任何标志。
+ * 
+ * @return true 
+ * @return false 
+ */
+bool Flagset::HasFlags(){
+    return formal_flags.size()>0;
 }

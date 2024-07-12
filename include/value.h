@@ -81,6 +81,30 @@ class IntValue:public Value{
     string Type() override;
 };
 /**
+ * @brief 保存int64类型的抽象基类的子类
+ * 
+ */
+class int64Value:public Value{
+    public:
+    int64_t* value=nullptr;
+    int64Value(int64_t* new_val):value(new_val){};
+    string String() override;
+    void Set(string value) override;
+    string Type() override;
+};
+/**
+ * @brief 保存uint64类型的抽象基类的子类
+ * 
+ */
+class uint64Value:public Value{
+    public:
+    uint64_t* value=nullptr;
+    uint64Value(uint64_t* new_val):value(new_val){};
+    string String() override;
+    void Set(string value) override;
+    string Type() override;
+};
+/**
  * @brief 保存字符串和bool类型的抽象基类的子类
  * 
  */
@@ -101,6 +125,8 @@ StringValue* newStringValue(string value, string &option_name);
 StringArrayValue* newStringArrayValue(vector<string> value,vector<string>& option_name);
 BoolValue* newBoolValue(bool value,bool& option_name);
 IntValue* newIntValue(int value,int& option_name);
+int64Value* newInt64Value(int64_t value,int64_t& option_name);
+uint64Value* newUint64Value(uint64_t value,uint64_t& option_name);
 stringSliceValue* newStringSliceValue(vector<string> value,vector<string>& option_name);
 
 #endif

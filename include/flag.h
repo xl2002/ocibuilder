@@ -78,8 +78,11 @@ class Flagset{
     void BoolVar(bool& option_name, string name, bool value, string usage);
     void BoolP(string name,bool value, string usage);
     void IntVar(int& option_name, string name, int value, string usage);
+    void Int64Var(int64_t& option_name, string name, int value, string usage);
+    void Uint64Var(uint64_t& option_name, string name, int value, string usage);
     void Int(string name, int value, string usage);
     void StringSliceVar(vector<string>& option_name, string name ,vector<string> value , string usage);
+    void StringSlice(string name ,vector<string> value , string usage);
     void AddFlagSet(Flagset* flags);
     // void NormalizeFunc();
     void SetInterspersed(bool interspersed);
@@ -96,7 +99,7 @@ class Flagset{
     void parseArgs(vector<string> args);
     bool Set(string name, string value);
     vector<string> parseLongArg(string arg,vector<string> args);
-    
+    bool HasFlags();
 };
 
 vector<Flag*> sortFlags(map<string,Flag*> flags);
