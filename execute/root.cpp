@@ -53,6 +53,7 @@ Command init_rootcmd(){
     persistentflags->StringVar(globalFlagOptions.RegistriesConf,"registries-conf","","path to registries.conf file (not usually used)");
     persistentflags->StringVar(globalFlagOptions.RegistriesConfDir,"registries-conf-dir", "", "path to registries.conf.d directory (not usually used)");
     persistentflags->BoolVar(globalFlagOptions.Debug,"debug",false, "print debugging information");
+    persistentflags->StringVar(globalFlagOptions.DefaultMountsFile, "default-mounts-file", "", "path to default mounts file");
     try{
         persistentflags->MarkHidden("debug");///<用help时，mark掉的flag不显示
     }catch(const myerror& e){

@@ -8,7 +8,7 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#include "info.h"
+#include "cmd/info.h"
 /**
  * @brief 初始化 info 命令的内容
  * 

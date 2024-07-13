@@ -8,7 +8,7 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#include "push.h"
+#include "cmd/push.h"
 /**
  * @brief 初始化 push 命令的内容
  * 

@@ -9,9 +9,9 @@
  * 
  */
 #include "root.h"
-#include "flag.h"
-#include "command.h"
-#include "build.h"
+#include "cobra/flag.h"
+#include "cobra/command.h"
+#include "cmd/build.h"
 #include <iostream>
 
 using namespace std;

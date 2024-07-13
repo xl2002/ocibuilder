@@ -11,12 +11,12 @@
 #ifndef BUILD_H
 #define BUILD_H
 // #pragma once
-#include "command.h"
-#include "common.h"
+#include "cobra/command.h"
+#include "cli/common.h"
 #include "root.h"
-#include "args.h"
-#include "error.h"
-#include "define.h"
+#include "cobra/args.h"
+#include "cobra/error.h"
+#include "define/define.h"
 #include <fstream>
 #include <memory>
 #include <cstdio>

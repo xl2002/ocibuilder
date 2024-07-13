@@ -12,7 +12,7 @@
 #define LOGOUT_H
 #include <string>
 #include <vector>
-#include "command.h"
+#include "cobra/command.h"
 #include "root.h"
 using std::string;
 using std::vector;

@@ -8,7 +8,7 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#include "build.h"
+#include "cmd/build.h"
 
 /**
  * @brief 返回build命令的标志
@@ -198,7 +198,7 @@ void buildCmd(Command& cmd, vector<string> args,BuildOptions* iopts){
                 throw myerror("Failed to open log file: " + iopts->buildFlagResults->Logfile);
             }
         }
-        define_BuildOptions* budopt;
+        define_BuildOptions* budopt=new define_BuildOptions();
         vector<string> ret_containerfiles;
         vector<string> removeAll;
         GenBuildOptions(&cmd,args,iopts,budopt,ret_containerfiles,removeAll);

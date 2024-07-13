@@ -20,8 +20,8 @@
 #include <vector>
 #include <iostream>
 #include <algorithm>
-#include "value.h"
-#include "common.h"
+#include "pflag/value.h"
+#include "cli/common.h"
 #include "error.h"
 using namespace std;
 
@@ -103,5 +103,6 @@ class Flagset{
 };
 
 vector<Flag*> sortFlags(map<string,Flag*> flags);
+
 
 #endif

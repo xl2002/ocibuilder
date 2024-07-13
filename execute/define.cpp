@@ -8,32 +8,40 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#include "define.h"
+#include "define/define.h"
 const string
 	tarExt  = "tar",
 	solaris = "solaris",
 	windows = "windows",
 	darwin  = "darwin",
 	freebsd = "freebsd";
-enum Pull_Policy{
-    PullIfMissing,
-    PullAlways,
-    PullIfNewer,
-    PullNever
-};
+
 string PullPolicy::String(){
-    if(value=Pull_Policy::PullIfMissing){
-        return "missing";
-    }else if(value==Pull_Policy::PullAlways){
-        return "always";
-    }else if(value==Pull_Policy::PullIfNewer){
-        return "ifnewer";
-    }else if(value==Pull_Policy::PullNever){
-        return "nerver";
-    }else{
-        std::cerr<<"unrecognized policy "<<value<<std::endl;
-        return "";
-    }
+    // if(value==Pull_Policy::PullIfMissing){
+    //     return "missing";
+    // }else if(value==Pull_Policy::PullAlways){
+    //     return "always";
+    // }else if(value==Pull_Policy::PullIfNewer){
+    //     return "ifnewer";
+    // }else if(value==Pull_Policy::PullNever){
+    //     return "nerver";
+    // }else{
+    //     std::cerr<<"unrecognized policy "<<value<<std::endl;
+    //     return "";
+    // }
+    switch(value) {
+            case PullIfMissing:
+                return "missing";
+            case PullAlways:
+                return "always";
+            case PullIfNewer:
+                return "ifnewer";
+            case PullNever:
+                return "never";
+            default:
+                std::cerr << "unrecognized policy " << value << std::endl;
+                return "";
+        }
 }
 
 map<string,Pull_Policy>PolicyMap ={
@@ -43,60 +51,43 @@ map<string,Pull_Policy>PolicyMap ={
 	{"ifnewer", PullIfNewer}
 };
 string Isolation::String(){
-    if(value==isolation::IsolationDefault||value==isolation::IsolationOCI){
+    if(value==IsolationDefault||value==IsolationOCI){
         return "oci";
-    }else if(value==isolation::IsolationChroot){
+    }else if(value==IsolationChroot){
         return "chroot";
-    }else if(value==isolation::IsolationOCIRootless){
+    }else if(value==IsolationOCIRootless){
         return "rootless";
     }else{
         std::cerr<<"unrecognized isolation type "<<value<<std::endl;
         return "";
     }
 }
-enum isolation{
-    IsolationDefault,
-    IsolationOCI,
-    IsolationChroot,
-    IsolationOCIRootless
-};
+
 string Compression::String(){
-    if(value==compression::Uncompressed){
+    if(value==Uncompressed){
         return tarExt;
-    }else if(value==compression::Bzip2){
+    }else if(value==Bzip2){
         return tarExt+".bz2";
-    }else if(value==compression::Gzip){
+    }else if(value==Gzip){
         return tarExt+".gz";
-    }else if(value==compression::Xz){
+    }else if(value==Xz){
         return tarExt+".xz";
-    }else if(value==compression::Zstd){
+    }else if(value==Zstd){
         return tarExt+".zst";
     }else{
         std::cerr<<"unrecognized isolation type "<<value<<std::endl;
         return "";
     }
 }
-enum compression{
-    Uncompressed,
-    Bzip2,
-    Gzip,
-    Xz,
-    Zstd
-};
 string NetworkConfigurationPolicy::String(){
-    if(value==networkConfigurationPolicy::NetworkDefault){
+    if(value==NetworkDefault){
         return "NetworkDefault";
-    }else if(value==networkConfigurationPolicy::NetworkDisabled){
+    }else if(value==NetworkDisabled){
         return "NetworkDisabled";
-    }else if(value==networkConfigurationPolicy::NetworkEnabled){
+    }else if(value==NetworkEnabled){
         return "NetworkEnabled";
     }else{
         std::cerr<<"unknown NetworkConfigurationPolicy "<<value<<std::endl;
         return "";
     }
 }
-enum networkConfigurationPolicy{
-    NetworkDefault,
-    NetworkDisabled,
-    NetworkEnabled
-};

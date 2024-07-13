@@ -8,7 +8,7 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#include "common.h"
+#include "cli/common.h"
 
 /**
  * @brief 要围绕分隔符的第一个实例进行分割.

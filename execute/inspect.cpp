@@ -8,7 +8,7 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#include "inspect.h"
+#include "cmd/inspect.h"
 /**
  * @brief 初始化 inspect 命令的内容
  * 

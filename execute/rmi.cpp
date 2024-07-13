@@ -8,7 +8,7 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#include "rmi.h"
+#include "cmd/rmi.h"
 /**
  * @brief 初始化 rmi 命令的内容
  * 

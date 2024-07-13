@@ -8,7 +8,7 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#include "images.h"
+#include "cmd/images.h"
 
 /**
  * @brief 初始化 images 命令的内容

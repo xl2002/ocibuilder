@@ -19,27 +19,47 @@ using std::string;
 using std::map;
 using std::vector;
 
-enum Pull_Policy:int;
+enum Pull_Policy{
+    PullIfMissing,
+    PullAlways,
+    PullIfNewer,
+    PullNever
+};
 class PullPolicy{
     public:
     Pull_Policy value;
+	PullPolicy()=default;
     PullPolicy(Pull_Policy v):value(v){};
     string String();
 };
 
 extern map<string,Pull_Policy>PolicyMap ;
 
-enum isolation:int;
+enum isolation{
+    IsolationDefault,
+    IsolationOCI,
+    IsolationChroot,
+    IsolationOCIRootless
+};
 class Isolation{
     public:
     isolation value;
+	Isolation()=default;
     Isolation(isolation v):value(v){};
     string String();
 };
 
-enum compression:int;
+enum compression{
+    Uncompressed,
+    Bzip2,
+    Gzip,
+    Xz,
+    Zstd
+};
 class Compression{
+	public:
     compression value;
+	Compression()=default;
     Compression(compression v):value(v){};
     string String();
 };
@@ -71,10 +91,15 @@ struct ConfidentialWorkloadOptions {
 	string Slop                     ;
 	string FirmwareLibrary          ;
 };
-enum networkConfigurationPolicy:int;
+enum networkConfigurationPolicy{
+    NetworkDefault,
+    NetworkDisabled,
+    NetworkEnabled
+};
 class NetworkConfigurationPolicy{
     public:
     networkConfigurationPolicy value;
+	NetworkConfigurationPolicy()=default;
     NetworkConfigurationPolicy(networkConfigurationPolicy v):value(v){};
     string String();
 };
@@ -195,7 +220,8 @@ class Weighted{
 class SBOMScanOptions{
 
 };
-struct define_BuildOptions{
+class define_BuildOptions{
+	public:
 	// ContainerSuffix 为容器添加后缀的名称
 	string ContainerSuffix;
 	// ContextDirectory 是 COPY 和 ADD 命令的默认源位置。
@@ -266,11 +292,11 @@ struct define_BuildOptions{
 	//为零）默认情况下。
 	std::function<void(string format,vector<string>args)> Log;
 	// In 连接到标准输入以获取 RUN 指令。
-	std::istream In;
+	std::istream* In=nullptr;
 	// Out 是发送非错误日志消息的地方。
-	std::ostream Out ;
+	std::ostream* Out=nullptr ;
 	// Err 是应该发送错误日志消息的地方。
-	std::ostream Err ;
+	std::ostream* Err=nullptr ;
 	// SignaturePolicyPath 指定签名的覆盖位置
 	//用于验证新图像的策略
 	//正在写入。  除非在特定情况下，否则不应有任何值
@@ -284,7 +310,7 @@ struct define_BuildOptions{
 	//ReportWriter 是一个 io.Writer，用于报告
 	//（可能的）拉动源图像和
 	//写入新图像。
-	std::ostream ReportWriter;
+	std::ostream* ReportWriter=nullptr;
 	//OutputFormat 是输出图像清单的格式
 	//配置数据。
 	//接受的值为 buildah.OCIv1ImageManifest 和 buildah.Dockerv2ImageManifest。
@@ -424,6 +450,7 @@ struct define_BuildOptions{
 	//CDIConfigDir 是 CDI 配置文件的位置，如果文件位于
 	//不应使用默认配置位置。
 	string CDIConfigDir;
+	define_BuildOptions()=default;
 };
 
 #endif // DEFINE_H

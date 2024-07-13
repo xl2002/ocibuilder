@@ -13,7 +13,7 @@
 #include <string>
 #include <map>
 #include <vector>
-#include "error.h"
+#include "cobra/error.h"
 #include <cstdlib>   // For getenv
 #include <sys/stat.h> // For stat
 // #include <stdexcept> // For runtime_error
