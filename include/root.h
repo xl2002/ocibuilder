@@ -26,6 +26,7 @@ struct globalFlags{
     // string RunRoot;                  ///<
     string RegistriesConf;              ///<
     string RegistriesConfDir;           ///<
+    string DefaultMountsFile ;   
 };
 //
 /**

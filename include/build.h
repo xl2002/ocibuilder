@@ -15,6 +15,15 @@
 #include "common.h"
 #include "root.h"
 #include "args.h"
+#include "error.h"
+#include "define.h"
+#include <fstream>
+#include <memory>
+#include <cstdio>
+#include <dirent.h>
+#include <sys/stat.h>
+#include <unistd.h>
+// #include <filesystem>
 // #include "context.h"
 // #include "creat.h"
 // using namespace std;
@@ -119,11 +128,19 @@ struct UserNSResults{
  */
 struct BuildOptions{
     BudResults*         buildFlagResults=nullptr;
+    // shared_ptr<BudResults> br;
     LayerResults*       layerFlagsResults=nullptr;
     FromAndBudResults*  fromAndBudResults=nullptr;
     UserNSResults*      userNSResults=nullptr;
+    std::ofstream       logwriter;
     BuildOptions(BudResults*bp=nullptr,LayerResults* lp=nullptr,FromAndBudResults*fp=nullptr,UserNSResults*up=nullptr):
                 buildFlagResults(bp),layerFlagsResults(lp),fromAndBudResults(fp),userNSResults(up){};
+    ~BuildOptions(){
+        delete buildFlagResults;
+        delete layerFlagsResults;
+        delete fromAndBudResults;
+        delete userNSResults;
+    }
 };
 /**
  * @struct LayerOptions
@@ -131,9 +148,6 @@ struct BuildOptions{
  * 
  */
 
-struct define_BuildOptions{
-
-};
 Flagset* Getbuildflags(BuildOptions* br);
 Flagset* GetLayerFlags(LayerResults* lr);
 Flagset* GetFromAndBudFlags(FromAndBudResults* fr);
@@ -141,6 +155,6 @@ Flagset* GetUserNSFlags(UserNSResults* ur);
 void init_buildcmd();
 void buildCmd(Command& cmd, vector<string> args,BuildOptions* iopts);
 string UsageTemplate();
-void GenBuildOptions(Command* cmd, vector<string> inputArgs,BuildOptions iopts, define_BuildOptions* budopt, vector<string>& ret_containerfiles,vector<string>& removeAll);
-
+void GenBuildOptions(Command* cmd, vector<string> inputArgs,BuildOptions* iopts, define_BuildOptions* budopt, vector<string>& ret_containerfiles,vector<string>& removeAll);
+void RemoveAll(const std::string& path);
 #endif

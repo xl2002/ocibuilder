@@ -28,6 +28,4 @@ struct pullOptions
     string  arch;                   ///<
 };
 
-void init_pull();
-void pullCmd();
 #endif

@@ -162,7 +162,8 @@ void init_buildcmd(){
     FromAndBudResults* fromAndBudResults=new FromAndBudResults();
     UserNSResults* userNSResults=new UserNSResults();
     BuildOptions* br=new BuildOptions(buildFlagResults,layerFlagsResults,fromAndBudResults,userNSResults);
-
+    // br->br=std::make_shared<BudResults>(buildFlagResults);
+    // br->br=buildFlagResults;
     Flagset* buildflags=Getbuildflags(buildFlagResults);
     Flagset* layerFlags=GetLayerFlags(layerFlagsResults);
     Flagset* fromAndBudFlags=GetFromAndBudFlags(fromAndBudResults);
@@ -189,8 +190,50 @@ void init_buildcmd(){
  * @param args 运行的参数
  */
 void buildCmd(Command& cmd, vector<string> args,BuildOptions* iopts){
-    cout<<"hello buildah-build!"<<endl;
-    
+    try {
+        cout<<"hello buildah-build!"<<endl;
+        if(cmd.Flag_find("logfile")->changed){
+            iopts->logwriter.open(iopts->buildFlagResults->Logfile,std::ios::out | std::ios::trunc);
+            if(!iopts->logwriter){
+                throw myerror("Failed to open log file: " + iopts->buildFlagResults->Logfile);
+            }
+        }
+        define_BuildOptions* budopt;
+        vector<string> ret_containerfiles;
+        vector<string> removeAll;
+        GenBuildOptions(&cmd,args,iopts,budopt,ret_containerfiles,removeAll);
+        auto remove_temp_files = [&removeAll]() {
+            for (const auto& f : removeAll) {
+                RemoveAll(f);
+            }
+            return;
+        };
+        budopt->DefaultMountsFilePath=globalFlagOptions.DefaultMountsFile;
+        std::string store;
+        try {
+            // store = getStore(c);
+        } catch (const std::exception& e) {
+            remove_temp_files();
+            throw;
+        }
+
+        std::string id, ref;
+        try {
+            // std::tie(id, ref) = BuildDockerfiles("context", store, options, containerfiles);
+            if (!budopt->Manifest.empty()) {
+                std::cerr << "manifest list id = " << id << ", ref = " << ref << std::endl;
+            }
+        } catch (const std::exception& e) {
+            remove_temp_files();
+            throw;
+        }
+
+        remove_temp_files();
+
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        throw;
+    }
 }
 /**
  * @brief 模板定义
@@ -222,6 +265,30 @@ string UsageTemplate(){
  * @param ret_containerfiles 
  * @param removeAll 
  */
-void GenBuildOptions(Command* cmd, vector<string> inputArgs,BuildOptions iopts, define_BuildOptions* budopt, vector<string>& ret_containerfiles,vector<string>& removeAll){
+void GenBuildOptions(Command* cmd, vector<string> inputArgs,BuildOptions* iopts, define_BuildOptions* budopt, vector<string>& ret_containerfiles,vector<string>& removeAll){
 
+}
+void RemoveAll(const std::string& path) {
+    struct stat path_stat;
+    if (stat(path.c_str(), &path_stat) != 0) {
+        return; // 路径不存在
+    }
+
+    if (S_ISDIR(path_stat.st_mode)) {
+        DIR* dir = opendir(path.c_str());
+        if (dir) {
+            struct dirent* entry;
+            while ((entry = readdir(dir)) != nullptr) {
+                if (std::string(entry->d_name) == "." || std::string(entry->d_name) == "..") {
+                    continue;
+                }
+                std::string fullPath = path + "/" + entry->d_name;
+                RemoveAll(fullPath);
+            }
+            closedir(dir);
+        }
+        rmdir(path.c_str());
+    } else {
+        remove(path.c_str());
+    }
 }
