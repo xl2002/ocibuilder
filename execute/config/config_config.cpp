@@ -8,7 +8,7 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#include "config/Config_Json.h"
+#include "config/config.h"
 void Configdetails::CheckCgroupsAndAdjustConfig(){
     return;
 }

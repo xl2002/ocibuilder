@@ -8,8 +8,8 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#if !defined(DEFINE_H)
-#define DEFINE_H
+#if !defined(DEFINE_DEFINE_H)
+#define DEFINE_DEFINE_H
 #include <string>
 #include <map>
 #include <iostream>
@@ -453,4 +453,4 @@ class define_BuildOptions{
 	define_BuildOptions()=default;
 };
 
-#endif // DEFINE_H
+#endif // DEFINE_DEFINE_H

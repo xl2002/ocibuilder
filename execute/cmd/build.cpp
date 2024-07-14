@@ -255,19 +255,19 @@ string UsageTemplate(){
                 {{end}}"};
     return str;
 }
-/**
- * @brief GenBuildOptions 将命令行标志转换为 BuildOptions 结构
- * 
- * @param cmd 
- * @param inputArgs 
- * @param iopts 
- * @param budopt 
- * @param ret_containerfiles 
- * @param removeAll 
- */
-void GenBuildOptions(Command* cmd, vector<string> inputArgs,BuildOptions* iopts, define_BuildOptions* budopt, vector<string>& ret_containerfiles,vector<string>& removeAll){
+// /**
+//  * @brief GenBuildOptions 将命令行标志转换为 BuildOptions 结构
+//  * 
+//  * @param cmd 
+//  * @param inputArgs 
+//  * @param iopts 
+//  * @param budopt 
+//  * @param ret_containerfiles 
+//  * @param removeAll 
+//  */
+// void GenBuildOptions(Command* cmd, vector<string> inputArgs,BuildOptions* iopts, define_BuildOptions* budopt, vector<string>& ret_containerfiles,vector<string>& removeAll){
 
-}
+// }
 void RemoveAll(const std::string& path) {
     struct stat path_stat;
     if (stat(path.c_str(), &path_stat) != 0) {
