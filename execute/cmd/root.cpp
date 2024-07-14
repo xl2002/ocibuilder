@@ -8,7 +8,7 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#include "root.h"
+#include "cmd/root.h"
 
 globalFlags globalFlagOptions{};
 int exitcode=0;

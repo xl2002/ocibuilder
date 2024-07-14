@@ -2,21 +2,23 @@
     "tasks": [
         {
             "type": "cppbuild",
-            "label": "C/C++: g++.exe 生成活动文件",
-            "command": "D:\\Softwares\\mingw64\\bin\\g++.exe",
+            "label": "build",
+            // "command": "D:\\Softwares\\mingw64\\bin\\mingw32-make.exe",
+            "command": "mingw32-make",
             "args": [
-                "-fdiagnostics-color=always",
-                "-g",
-                "${file}",
-                "-std=c++11",
-                // "-stdlib=libc++",
-                "-I","${workspaceFolder}\\include",
-                "${workspaceFolder}\\execute\\*.cpp",
-                "-o",
-                "${fileDirname}\\${fileBasenameNoExtension}.exe"
+                // "all"
+                // "-fdiagnostics-color=always",
+                // "-g",
+                // "${file}",
+                // "-std=c++11",
+                // // "-stdlib=libc++",
+                // "-I","${workspaceFolder}\\include",
+                // "${workspaceFolder}\\execute\\*.cpp",
+                // "-o",
+                // "${fileDirname}\\${fileBasenameNoExtension}.exe"
             ],
             "options": {
-                "cwd": "${fileDirname}"
+                "cwd": "${workspaceFolder}"
             },
             "problemMatcher": [
                 "$gcc"
