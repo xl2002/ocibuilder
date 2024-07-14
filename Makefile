@@ -28,7 +28,7 @@ LIB		:= lib
 
 ifeq ($(OS),Windows_NT)
 MAIN	:= main.exe
-SOURCEDIRS	:= $(shell dir /s /b /ad $(SRC))
+SOURCEDIRS	:= $(SRC) $(shell dir /s /b /ad $(SRC))
 INCLUDEDIRS	:= $(INCLUDE)
 LIBDIRS		:= $(LIB)
 FIXPATH = $(subst /,\,$1)
@@ -52,7 +52,7 @@ LIBS		:= $(patsubst %,-L %, $(LIBDIRS:%/=%))
 
 # define the C source files
 SOURCES		:= $(wildcard $(patsubst %,%/*.cpp, $(SOURCEDIRS)))
-# SOURCES		:= $(foreach dir, $(SOURCEDIRS), $(wildcard $(dir)/*.cpp))
+# SOURCES		:= $(wildcard $(foreach dir,$(SOURCEDIRS),$(dir)/*.cpp))
 
 # define the C object files
 OBJECTS		:= $(SOURCES:.cpp=.o)

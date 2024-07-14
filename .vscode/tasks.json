@@ -6,6 +6,7 @@
             // "command": "D:\\Softwares\\mingw64\\bin\\mingw32-make.exe",
             "command": "mingw32-make",
             "args": [
+                "-j"
                 // "all"
                 // "-fdiagnostics-color=always",
                 // "-g",
