@@ -8,8 +8,8 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#ifndef RMI_H
-#define RMI_H
+#ifndef CMD_RMI_H
+#define CMD_RMI_H
 #include <string>
 #include <vector>
 #include "cobra/command.h"

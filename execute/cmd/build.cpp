@@ -209,29 +209,31 @@ void buildCmd(Command& cmd, vector<string> args,BuildOptions* iopts){
             return;
         };
         budopt->DefaultMountsFilePath=globalFlagOptions.DefaultMountsFile;
-        std::string store;
+        auto stores=new store();
         try {
-            // store = getStore(c);
-        } catch (const std::exception& e) {
+            stores = getStore(&cmd);
+        } catch (const myerror& e) {
             remove_temp_files();
             throw;
         }
 
-        std::string id, ref;
+        string id;
+        auto ref=new canonical();
         try {
-            // std::tie(id, ref) = BuildDockerfiles("context", store, options, containerfiles);
+            id= BuildDockerfiles(stores, *budopt, ret_containerfiles,ref);
             if (!budopt->Manifest.empty()) {
-                std::cerr << "manifest list id = " << id << ", ref = " << ref << std::endl;
+                throw myerror("manifest list id = " + id + ", ref = " + ref->String());
+                // std::cerr << "manifest list id = " << id << ", ref = " << ref << std::endl;
             }
-        } catch (const std::exception& e) {
+        } catch (const myerror& e) {
             remove_temp_files();
             throw;
         }
 
         remove_temp_files();
 
-    } catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
+    } catch (const myerror& e) {
+        // std::cerr << "Error: " << e.what() << std::endl;
         throw;
     }
 }

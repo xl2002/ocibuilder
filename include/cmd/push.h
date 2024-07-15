@@ -8,8 +8,8 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#ifndef PUSH_H
-#define PUSH_H
+#ifndef CMD_PUSH_H
+#define CMD_PUSH_H
 #include <string>
 #include <vector>
 #include "cobra/command.h"

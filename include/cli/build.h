@@ -6,6 +6,7 @@
 #include <fstream>
 #include "cobra/command.h"
 #include "define/build.h"
+#include "cli/common.h"
 // #include ""
 using std::string;
 using std::vector;

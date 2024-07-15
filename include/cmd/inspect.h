@@ -8,8 +8,8 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#ifndef INSPECT_H
-#define INSPECT_H
+#ifndef CMD_INSPECT_H
+#define CMD_INSPECT_H
 #include <string>
 #include <vector>
 #include "cobra/command.h"

@@ -8,8 +8,8 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#ifndef IMAGES_H
-#define IMAGES_H
+#ifndef CMD_IMAGES_H
+#define CMD_IMAGES_H
 #include <string>
 #include <vector>
 #include "cobra/command.h"

@@ -8,8 +8,8 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#ifndef CONFIG_JSON_H
-#define CONFIG_JSON_H
+#ifndef CONFIG_CONFIG_H
+#define CONFIG_CONFIG_H
 
 class ContainersConfig{
 
