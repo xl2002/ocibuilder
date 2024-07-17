@@ -161,7 +161,8 @@ void init_buildcmd(){
     LayerResults* layerFlagsResults=new LayerResults();
     FromAndBudResults* fromAndBudResults=new FromAndBudResults();
     UserNSResults* userNSResults=new UserNSResults();
-    BuildOptions* br=new BuildOptions(buildFlagResults,layerFlagsResults,fromAndBudResults,userNSResults);
+    // BuildOptions* br=new BuildOptions(buildFlagResults,layerFlagsResults,fromAndBudResults,userNSResults);
+    BuildOptions* br=new BuildOptions();
     // br->br=std::make_shared<BudResults>(buildFlagResults);
     // br->br=buildFlagResults;
     Flagset* buildflags=Getbuildflags(buildFlagResults);
@@ -193,9 +194,9 @@ void buildCmd(Command& cmd, vector<string> args,BuildOptions* iopts){
     try {
         cout<<"hello buildah-build!"<<endl;
         if(cmd.Flag_find("logfile")->changed){
-            iopts->logwriter.open(iopts->buildFlagResults->Logfile,std::ios::out | std::ios::trunc);
+            iopts->logwriter.open(iopts->Logfile,std::ios::out | std::ios::trunc);
             if(!iopts->logwriter){
-                throw myerror("Failed to open log file: " + iopts->buildFlagResults->Logfile);
+                throw myerror("Failed to open log file: " + iopts->Logfile);
             }
         }
         define_BuildOptions* budopt=new define_BuildOptions();
@@ -209,29 +210,31 @@ void buildCmd(Command& cmd, vector<string> args,BuildOptions* iopts){
             return;
         };
         budopt->DefaultMountsFilePath=globalFlagOptions.DefaultMountsFile;
-        std::string store;
+        auto stores=new store();
         try {
-            // store = getStore(c);
-        } catch (const std::exception& e) {
+            stores = getStore(&cmd);
+        } catch (const myerror& e) {
             remove_temp_files();
             throw;
         }
 
-        std::string id, ref;
+        string id;
+        auto ref=new canonical();
         try {
-            // std::tie(id, ref) = BuildDockerfiles("context", store, options, containerfiles);
+            id= BuildDockerfiles(stores, *budopt, ret_containerfiles,ref);
             if (!budopt->Manifest.empty()) {
-                std::cerr << "manifest list id = " << id << ", ref = " << ref << std::endl;
+                throw myerror("manifest list id = " + id + ", ref = " + ref->String());
+                // std::cerr << "manifest list id = " << id << ", ref = " << ref << std::endl;
             }
-        } catch (const std::exception& e) {
+        } catch (const myerror& e) {
             remove_temp_files();
             throw;
         }
 
         remove_temp_files();
 
-    } catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
+    } catch (const myerror& e) {
+        // std::cerr << "Error: " << e.what() << std::endl;
         throw;
     }
 }

@@ -6,6 +6,7 @@
 #include <fstream>
 #include "cobra/command.h"
 #include "define/build.h"
+#include "cli/common.h"
 // #include ""
 using std::string;
 using std::vector;
@@ -110,21 +111,22 @@ struct UserNSResults{
  * 后续在功能扩展时，只需在BuildOptions中添加即可添加flag
  */
 
-struct BuildOptions{
-    BudResults*         buildFlagResults=nullptr;
-    // shared_ptr<BudResults> br;
-    LayerResults*       layerFlagsResults=nullptr;
-    FromAndBudResults*  fromAndBudResults=nullptr;
-    UserNSResults*      userNSResults=nullptr;
+struct BuildOptions:public BudResults,public LayerResults,public FromAndBudResults,public UserNSResults{
+    // BudResults*         buildFlagResults=nullptr;
+    // // shared_ptr<BudResults> br;
+    // LayerResults*       layerFlagsResults=nullptr;
+    // FromAndBudResults*  fromAndBudResults=nullptr;
+    // UserNSResults*      userNSResults=nullptr;
     std::ofstream       logwriter;
-    BuildOptions(BudResults*bp=nullptr,LayerResults* lp=nullptr,FromAndBudResults*fp=nullptr,UserNSResults*up=nullptr):
-                buildFlagResults(bp),layerFlagsResults(lp),fromAndBudResults(fp),userNSResults(up){};
-    ~BuildOptions(){
-        delete buildFlagResults;
-        delete layerFlagsResults;
-        delete fromAndBudResults;
-        delete userNSResults;
-    }
+    // BuildOptions(BudResults*bp=nullptr,LayerResults* lp=nullptr,FromAndBudResults*fp=nullptr,UserNSResults*up=nullptr):
+    //             buildFlagResults(bp),layerFlagsResults(lp),fromAndBudResults(fp),userNSResults(up){};
+    // ~BuildOptions(){
+    //     delete buildFlagResults;
+    //     delete layerFlagsResults;
+    //     delete fromAndBudResults;
+    //     delete userNSResults;
+    // }
+    BuildOptions():BudResults(),LayerResults(),FromAndBudResults(),UserNSResults(){};
 };
 
 

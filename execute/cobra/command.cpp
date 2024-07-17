@@ -122,7 +122,7 @@ void Command::ExecuteC(int argc, char const *argv[]){
         }
     }
     vector<string> flags;
-    Command* cmd;///<用来分析子命令，例如build
+    Command* cmd=new Command();///<用来分析子命令，例如build
     try
     {
         if(TraverseChildren){

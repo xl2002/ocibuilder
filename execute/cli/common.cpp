@@ -52,3 +52,7 @@ string ParseBool(string str){
     }
     return "false";
 }
+
+store* getStore(Command* cmd){
+    return new store();
+}

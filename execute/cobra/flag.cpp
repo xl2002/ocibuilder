@@ -10,6 +10,7 @@
  */
 
 #include "cobra/flag.h"
+#include "cli/common.h"
 /**
  * @brief 构造一个新的Flag::Flag对象
  * 
@@ -358,8 +359,8 @@ string Flagset::getFlagType(string name,const string ftype){
         return "";
     }
     string sval=flag->value->String();
-    string ret=ParseBool(sval);
-    return ret;
+    // string ret=ParseBool(sval);
+    return sval;
 
 }
 /**
@@ -372,7 +373,7 @@ string Flagset::getFlagType(string name,const string ftype){
 bool Flagset:: GetBool(string name){
     try
     {
-        if(getFlagType(name,"bool")=="bool"){
+        if(getFlagType(name,"bool")=="true"){
             return true;
         }else{
             return false;
