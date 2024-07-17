@@ -8,8 +8,8 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#if !defined(DEFINE_BUILD_H)
-#define DEFINE_BUILD_H
+#if !defined(DEFINE_DEFINE_H)
+#define DEFINE_DEFINE_H
 #include <string>
 #include <map>
 #include <iostream>

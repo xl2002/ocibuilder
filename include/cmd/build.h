@@ -8,8 +8,8 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#ifndef CMD_BUILD_H
-#define CMD_BUILD_H
+#ifndef BUILD_H
+#define BUILD_H
 // #pragma once
 #include "cobra/command.h"
 #include "cli/common.h"
@@ -24,9 +24,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include "cli/build.h"
-#include "docker/reference.h"
-#include "imagebuildah/build.h"
-#include "storage/storage.h"
 // #include <filesystem>
 // #include "context.h"
 // #include "creat.h"

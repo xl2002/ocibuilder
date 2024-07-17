@@ -9,8 +9,8 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#ifndef COBRA_ARGS_H
-#define COBRA_ARGS_H
+#ifndef ARGS_H
+#define ARGS_H
 #include <iostream>
 #include <vector>
 #include <functional>

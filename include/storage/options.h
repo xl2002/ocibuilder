@@ -8,8 +8,8 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#if !defined(STIRAGE_UTILS_H)
-#define STIRAGE_UTILS_H
+#if !defined(OPTIONS_H)
+#define OPTIONS_H
 #include <string>
 #include <map>
 #include <vector>

@@ -8,8 +8,8 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#ifndef CMD_PULL_H
-#define CMD_PULL_H
+#ifndef PULL_H
+#define PULL_H
 #include <string>
 #include <vector>
 #include "cobra/command.h"

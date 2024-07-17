@@ -8,8 +8,8 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#ifndef CMD_VERSION_H
-#define CMD_VERSION_H
+#ifndef VERSION_H
+#define VERSION_H
 #include <string>
 #include <vector>
 #include "cobra/command.h"

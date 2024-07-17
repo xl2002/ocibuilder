@@ -10,8 +10,8 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#ifndef COBRA_FLAG_H
-#define COBRA_FLAG_H
+#ifndef FLAG_H
+#define FLAG_H
 #include <functional>
 #include <memory>
 #include <string>
@@ -21,7 +21,8 @@
 #include <iostream>
 #include <algorithm>
 #include "pflag/value.h"
-#include "cobra/error.h"
+#include "cli/common.h"
+#include "error.h"
 using namespace std;
 
 /**

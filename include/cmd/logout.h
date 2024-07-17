@@ -8,8 +8,8 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#ifndef CMD_LOGOUT_H
-#define CMD_LOGOUT_H
+#ifndef LOGOUT_H
+#define LOGOUT_H
 #include <string>
 #include <vector>
 #include "cobra/command.h"

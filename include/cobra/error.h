@@ -8,8 +8,8 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#ifndef COBRA_ERROR_H
-#define COBRA_ERROR_H
+#ifndef ERROR_H
+#define ERROR_H
 #include <stdexcept>
 #include <string>
 #include <iostream>

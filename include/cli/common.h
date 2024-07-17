@@ -8,18 +8,14 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#ifndef CLI_COMMON_H
-#define CLI_COMMON_H
+#ifndef COMMON_H
+#define COMMON_H
 #include <vector>
 #include <string>
 #include <algorithm>
-#include "storage/storage.h"
-#include <memory>
-#include "cobra/command.h"
 using std::vector;
 using std::string;
 vector<string> SplitN(const string& str,const string& delimiter, size_t max_splits);
 string ParseBool(string str);
-store* getStore(Command* cmd);
 
 #endif

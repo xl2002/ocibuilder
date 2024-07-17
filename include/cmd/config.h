@@ -8,12 +8,12 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#ifndef CMD_CONFIG_H
-#define CMD_CONFIG_H
+#ifndef CONFIG_H
+#define CONFIG_H
 #include <string>
 #include <vector>
 #include "cobra/command.h"
-#include "cmd/root.h"
+#include "root.h"
 using std::string;
 using std::vector;
 /**

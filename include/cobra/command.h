@@ -8,16 +8,15 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#ifndef COBRA_COMMAND_H
-#define COBRA_COMMAND_H
+#ifndef COMMAND_H
+#define COMMAND_H
 
 // #include <errors.h>
 #include <numeric>
 #include <tuple>
-// #include <ios>
+#include <ios>
 #include <functional>
-// #include "cobra/flag.h"
-#include "cobra/flag.h"
+#include "flag.h"
 // #include "context.h"
 // using namespace std;
 /**
@@ -57,7 +56,7 @@ class Command{
         Flagset* inherited_flags=nullptr;        ///<inherited_flags 包含继承的标志。
         Flagset* parent_persistent_flags=nullptr;///<Parent_persistent_flags 是 cmd 父级的所有持久标志。
         CommandcalledAs commandcallas;           ///<commandcallas 是用于调用此命令的名称或别名值。
-        std::function<bool(Command&,vector<string>&)>Args; ///<检查命令的参数
+        function<bool(Command&,vector<string>&)>Args; ///<检查命令的参数
         void (*helpFunc)(Command& cmd, vector<string> strs)=nullptr; ///<help 函数
         bool TraverseChildren=false;            ///<TraverseChildren 在执行子命令之前解析所有父级上的标志。
         bool Hidden=false;                      ///<Hidden定义此命令是否隐藏并且不应显示在可用命令列表中。
