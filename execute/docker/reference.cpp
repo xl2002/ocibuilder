@@ -9,4 +9,15 @@ Digest canonical::Digests(){\
     Digest d;
     return d;
 }
-
+string NamedTagged::Tag(){
+    return "";
+}
+string NamedTagged::String(){
+    return "";
+}
+string Tagged::String(){
+    return "";
+}
+string Tagged::Tag(){
+    return "";
+}

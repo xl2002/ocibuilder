@@ -383,8 +383,18 @@ bool Flagset:: GetBool(string name){
     {
         throw;
     }
+}
+string Flagset::GetString(string name){
+    try
+    {
+        string val=getFlagType(name,"string");
+        return val;
+    }
+    catch(const myerror& e)
+    {
+        throw;
+    }
     
-
 }
 /**
  * @brief Args 返回非标志参数。

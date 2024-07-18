@@ -15,25 +15,11 @@
 #include <iostream>
 #include <vector>
 #include <functional>
+#include "define/pull.h"
 using std::string;
 using std::map;
 using std::vector;
 
-enum Pull_Policy{
-    PullIfMissing,
-    PullAlways,
-    PullIfNewer,
-    PullNever
-};
-class PullPolicy{
-    public:
-    Pull_Policy value;
-	PullPolicy()=default;
-    PullPolicy(Pull_Policy v):value(v){};
-    string String();
-};
-
-extern map<string,Pull_Policy>PolicyMap ;
 
 enum isolation{
     IsolationDefault,

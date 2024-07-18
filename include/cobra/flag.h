@@ -93,6 +93,8 @@ class Flagset{
     void MarkHidden(string name);
     string getFlagType(string name,string ftype);
     bool GetBool(string name);
+    string GetString(string name);
+
     vector<string> Args();
     void Parse(vector<string>);
     void parseArgs(vector<string> args);

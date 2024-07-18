@@ -26,6 +26,7 @@ Flagset* Getbuildflags(BudResults* br){
     flags->StringArrayVar(br->annotation,"annotation",vector<string>(),"set metadata for an image (default [])");
     flags->StringArrayVar(br->tag,"tag",vector<string>(),"tagged `name` to apply to the built image");
     flags->StringVar(br->osversion,"os-version","","set required OS `version` for the target image instead of the value from the base image");
+    flags->StringVar(br->Authfile, "authfile", "", "path of the authentication file.");
     flags->StringArrayVar(br->BuildArg,"build-arg", vector<string>(), "`argument=value` to supply to the builder");
     flags->StringArrayVar(br->CacheFrom,"cache-from", vector<string>(), "remote repository list to utilise as potential cache source.");
     flags->StringArrayVar(br->CacheTo,"cache-to", vector<string>(), "remote repository list to utilise as potential cache destination.");
@@ -131,6 +132,19 @@ Flagset* GetUserNSFlags(UserNSResults* ur){
 	flags->StringVar(ur->UserNSGIDMapGroup, "userns-gid-map-group", "", "`name` of entries from /etc/subgid to use to set user namespace GID mapping");
     return flags;
 }
+Flagset* GetNameSpaceFlags(NameSpaceResults* nr){
+    Flagset* flags=new Flagset();
+    flags->StringVar(nr->Cgroup, "cgroupns", "", "'private', or 'host'");
+    flags->StringVar(nr->IPC, "ipc", "", "'private', `path` of IPC namespace to join, or 'host'");
+	flags->StringVar(nr->Network, "network", "", "'private', 'none', 'ns:path' of network namespace to join, or 'host'");
+	flags->StringVar(nr->CNIConfigDir, "cni-config-dir", "", "`directory` of CNI configuration files");
+	flags->MarkHidden("cni-config-dir");
+	flags->StringVar(nr->CNIPlugInPath, "cni-plugin-path", "", "`path` of CNI network plugins");
+	flags->MarkHidden("cni-plugin-path");
+	flags->StringVar(nr->PID, "pid", "", "private, `path` of PID namespace to join, or 'host'");
+	flags->StringVar(nr->UTS, "uts", "", "private, :`path` of UTS namespace to join, or 'host'");
+    return flags;
+}
 /**
  * @brief 初始化build命令的内容
  * <p>新建一个Command对象用来初始化build命令，完成对build命令的flag的初始化，
@@ -161,6 +175,7 @@ void init_buildcmd(){
     LayerResults* layerFlagsResults=new LayerResults();
     FromAndBudResults* fromAndBudResults=new FromAndBudResults();
     UserNSResults* userNSResults=new UserNSResults();
+    NameSpaceResults* namespaceResults=new NameSpaceResults();
     // BuildOptions* br=new BuildOptions(buildFlagResults,layerFlagsResults,fromAndBudResults,userNSResults);
     BuildOptions* br=new BuildOptions();
     // br->br=std::make_shared<BudResults>(buildFlagResults);
@@ -169,12 +184,12 @@ void init_buildcmd(){
     Flagset* layerFlags=GetLayerFlags(layerFlagsResults);
     Flagset* fromAndBudFlags=GetFromAndBudFlags(fromAndBudResults);
     Flagset* usernsFlags=GetUserNSFlags(userNSResults);
-
+    Flagset* namespaceFlags=GetNameSpaceFlags(namespaceResults);
     flags->AddFlagSet(buildflags);
     flags->AddFlagSet(layerFlags);
     flags->AddFlagSet(fromAndBudFlags);
     flags->AddFlagSet(usernsFlags);
-
+    flags->AddFlagSet(namespaceFlags);
     build_Command->Run=[=](Command& cmd, vector<string> args){
         buildCmd(cmd,args,br);
     };
@@ -194,7 +209,7 @@ void buildCmd(Command& cmd, vector<string> args,BuildOptions* iopts){
     try {
         cout<<"hello buildah-build!"<<endl;
         if(cmd.Flag_find("logfile")->changed){
-            iopts->logwriter.open(iopts->Logfile,std::ios::out | std::ios::trunc);
+            iopts->logwriter->open(iopts->Logfile,std::ios::out | std::ios::trunc);
             if(!iopts->logwriter){
                 throw myerror("Failed to open log file: " + iopts->Logfile);
             }

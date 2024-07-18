@@ -43,7 +43,7 @@ StoreOptions DefaultStoreOptions();
 bool usePerUserStorage();
 std::string getConfigHome();
 std::string getHomeDir();
-bool fileExists(const std::string& filename);
+// bool fileExists(const std::string& filename);
 std::string DefaultConfigFile();
 StoreOptions loadStoreOptionsFromConfFile(const std::string& storageConf);
 StoreOptions loadStoreOptions();

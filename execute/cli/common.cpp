@@ -9,7 +9,9 @@
  * 
  */
 #include "cli/common.h"
-
+#include "define/types.h"
+#include <cstdlib>
+#include <algorithm>
 /**
  * @brief 要围绕分隔符的第一个实例进行分割.
  * 
@@ -55,4 +57,43 @@ string ParseBool(string str){
 
 store* getStore(Command* cmd){
     return new store();
+}
+
+string GetFormat(string format){
+    if(format==OCI){
+        return OCIv1ImageManifest;
+    }else if(format==DOCKER){
+        return Dockerv2ImageManifest;
+    }
+    else{
+        throw myerror("unrecognized image type "+format);
+    }
+}
+
+bool UseLayers(){
+    const char* layersEnv=std::getenv("BUILDAH_LAYERS");
+    if (!layersEnv) {
+        return false;
+    }
+    std::string layers = layersEnv;
+    std::transform(layers.begin(), layers.end(), layers.begin(), ::tolower);
+    return layers == "true" || layers == "1";
+}
+std::string JoinPath(const std::string& path1, const std::string& path2) {
+    char sep = '/';
+    std::string result = path1;
+
+    // Ensure the first path does not end with a separator
+    if (!result.empty() && result[result.size() - 1] == sep) {
+        result.pop_back();
+    }
+
+    // Ensure the second path does not start with a separator
+    if (!path2.empty() && path2[0] == sep) {
+        result += path2;
+    } else {
+        result += sep + path2;
+    }
+
+    return result;
 }

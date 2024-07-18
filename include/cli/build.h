@@ -20,6 +20,7 @@ struct BudResults{
     vector<string>      tag;         ///<镜像的标签
     vector<string>      envs;        ///<镜像的环境变量
     string              osversion;           ///<镜像支持的操作系统
+    string              Authfile;
     vector<string>      BuildArg;
     vector<string>      CacheFrom;
     vector<string>      CacheTo;
@@ -104,6 +105,15 @@ struct UserNSResults{
     string              UserNSGIDMapGroup;
 };
 
+struct NameSpaceResults{
+    string          Cgroup;
+	string          IPC;
+	string          Network;
+	string          CNIConfigDir;
+	string          CNIPlugInPath;
+	string          PID;
+	string          UTS;
+};
 /**
  * @struct BuildOptions
  * @brief BuildOptions 代表build标志的结果
@@ -111,13 +121,13 @@ struct UserNSResults{
  * 后续在功能扩展时，只需在BuildOptions中添加即可添加flag
  */
 
-struct BuildOptions:public BudResults,public LayerResults,public FromAndBudResults,public UserNSResults{
+struct BuildOptions:public BudResults,public LayerResults,public FromAndBudResults,public UserNSResults,public NameSpaceResults{
     // BudResults*         buildFlagResults=nullptr;
     // // shared_ptr<BudResults> br;
     // LayerResults*       layerFlagsResults=nullptr;
     // FromAndBudResults*  fromAndBudResults=nullptr;
     // UserNSResults*      userNSResults=nullptr;
-    std::ofstream       logwriter;
+    std::ofstream*       logwriter=nullptr;
     // BuildOptions(BudResults*bp=nullptr,LayerResults* lp=nullptr,FromAndBudResults*fp=nullptr,UserNSResults*up=nullptr):
     //             buildFlagResults(bp),layerFlagsResults(lp),fromAndBudResults(fp),userNSResults(up){};
     // ~BuildOptions(){

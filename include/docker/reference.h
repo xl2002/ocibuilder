@@ -27,4 +27,17 @@ class canonical:public Canonical{
     string Name() override;
     Digest Digests() override;
 };
+class NamedTagged:public Named{
+    public:
+    ~NamedTagged()=default;
+    string Tag();
+    string String() override;
+};
+class Tagged:public Reference{
+    public:
+    string Tag();
+    string String() override;
+};
+// class 
+
 #endif // DOCKER_REFERENCE_H

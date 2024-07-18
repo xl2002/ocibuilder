@@ -9,6 +9,7 @@
  * 
  */
 #include "storage/utils.h"
+#include "pkg/util/util.h"
 /**
  * @brief 
  * 
@@ -79,17 +80,17 @@ std::string DefaultConfigFile() {
     }
     return home + "/containers/storage.conf";
 }
-/**
- * @brief 
- * 
- * @param filename 
- * @return true 
- * @return false 
- */
-bool fileExists(const std::string& filename) {
-    struct stat buffer;
-    return (stat(filename.c_str(), &buffer) == 0);
-}
+// /**
+//  * @brief 
+//  * 
+//  * @param filename 
+//  * @return true 
+//  * @return false 
+//  */
+// bool fileExists(const std::string& filename) {
+//     struct stat buffer;
+//     return (stat(filename.c_str(), &buffer) == 0);
+// }
 /**
  * @brief 获取主目录对象
  * 
