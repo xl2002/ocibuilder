@@ -170,21 +170,21 @@ void init_buildcmd(){
 
     Flagset* flags=build_Command->Flags();
     flags->SetInterspersed(false);
-    
-    BudResults* buildFlagResults=new BudResults();
-    LayerResults* layerFlagsResults=new LayerResults();
-    FromAndBudResults* fromAndBudResults=new FromAndBudResults();
-    UserNSResults* userNSResults=new UserNSResults();
-    NameSpaceResults* namespaceResults=new NameSpaceResults();
-    // BuildOptions* br=new BuildOptions(buildFlagResults,layerFlagsResults,fromAndBudResults,userNSResults);
     BuildOptions* br=new BuildOptions();
+    // BudResults* buildFlagResults=new BudResults();
+    // LayerResults* layerFlagsResults=new LayerResults();
+    // FromAndBudResults* fromAndBudResults=new FromAndBudResults();
+    // UserNSResults* userNSResults=new UserNSResults();
+    // NameSpaceResults* namespaceResults=new NameSpaceResults();
+    // BuildOptions* br=new BuildOptions(buildFlagResults,layerFlagsResults,fromAndBudResults,userNSResults);
+    
     // br->br=std::make_shared<BudResults>(buildFlagResults);
     // br->br=buildFlagResults;
-    Flagset* buildflags=Getbuildflags(buildFlagResults);
-    Flagset* layerFlags=GetLayerFlags(layerFlagsResults);
-    Flagset* fromAndBudFlags=GetFromAndBudFlags(fromAndBudResults);
-    Flagset* usernsFlags=GetUserNSFlags(userNSResults);
-    Flagset* namespaceFlags=GetNameSpaceFlags(namespaceResults);
+    Flagset* buildflags=Getbuildflags(br);
+    Flagset* layerFlags=GetLayerFlags(br);
+    Flagset* fromAndBudFlags=GetFromAndBudFlags(br);
+    Flagset* usernsFlags=GetUserNSFlags(br);
+    Flagset* namespaceFlags=GetNameSpaceFlags(br);
     flags->AddFlagSet(buildflags);
     flags->AddFlagSet(layerFlags);
     flags->AddFlagSet(fromAndBudFlags);

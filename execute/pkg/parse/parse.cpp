@@ -29,7 +29,7 @@ PullPolicy PullPolicyFromOptions(Command* c){
         if(pullAlwaysFlagValue|| pullFlagValue=="always"){
             pullPolicy=PullAlways;
         }
-        bool pullNeverFlagValue=flags->GetBool("pull-nerver");
+        bool pullNeverFlagValue=flags->GetBool("pull-never");
         if(pullNeverFlagValue|| pullFlagValue=="nerver"||pullFlagValue=="false"){
             pullPolicy=PullNever;
         }
