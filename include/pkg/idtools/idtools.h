@@ -1,6 +1,7 @@
 #if !defined(PKG_IDTOOLS_IDTOOLS_H)
 #define PKG_IDTOOLS_IDTOOLS_H
-
+#include <string>
+#include <vector>
 struct IDMap
 {
     public:

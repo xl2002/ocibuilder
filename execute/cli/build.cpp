@@ -86,7 +86,28 @@ void GenBuildOptions(Command* cmd, vector<string> inputArgs,BuildOptions* iopts,
         std::ostream* stderrStream = &std::cerr;
         std::ostream* reporterStream = &std::cerr;
         if(iopts->logwriter!=nullptr){}
-        SystemContext*systemContext= SystemContextFromOptions(cmd);
+        auto systemContext= SystemContextFromOptions(cmd);
+        auto isolation= IsolationOption(iopts->Isolation);
+        // auto runtimeFlags=vector<string>();
+        // for(auto it:iopt)
+        auto commonOpts= CommonbuildOptions(cmd);
+        if(cmd->Flag_find("rm")->changed || cmd->Flag_find("force-rm")->changed && (!cmd->Flag_find("layers")->changed && !cmd->Flag_find("no-cache")->changed)){
+
+        }
+        if(cmd->Flag_find("compress")->changed){
+            throw myerror("--compress option specified but is ignored");
+        }
+        auto compression=Gzip;
+        if(iopts->DisableCompression){
+            compression=Uncompressed;
+        }
+        if(cmd->Flag_find("disable-content-trust")){
+
+        }
+        NetworkConfigurationPolicy networkPolicy;
+        auto namespaceOptions= Namespaceoptions(cmd,networkPolicy);
+        auto idmappingoptions=make_shared<IDMappingOptions>();
+        auto usernsOption=idmappingOptions(cmd,isolation,idmappingoptions);
     }
     catch(const myerror& e)
     {

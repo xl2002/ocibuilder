@@ -3,6 +3,8 @@
 #include <string>
 #include "docker/reference.h"
 #include "pkg/internal/types.h"
+#include "define/specs.h"
+#include "pkg/idtools/idtools.h"
 using std::string;
 const std::string
     Package="buildah",
@@ -21,10 +23,11 @@ enum ShortNameMode {
     ShortNameModeEnforcing
 };
 enum class OptionalBool : unsigned char {
-    Undefined = 0,
-    True,
-    False
+    OptionalBoolUndefined = 0,
+    OptionalBoolTrue,
+    OptionalBoolFalse
 };
+OptionalBool NewOptionalBool(bool b);
 struct DockerAuthConfig  {
 	string Username ;
 	string Password ;
@@ -147,4 +150,24 @@ struct SystemContext  {
 	// CompressionLevel specifies what compression level is used
 	int *CompressionLevel=nullptr;
 };
+
+struct AutoUserNsOptions{
+    uint32_t Size;
+    uint32_t InitialSize;
+    std::string PasswdFile;
+    std::string GroupFile;
+    std::vector<IDMap> AdditionalUIDMappings;
+    std::vector<IDMap> AdditionalGIDMappings;
+};
+struct IDMappingOptions{
+	bool HostUIDMapping;
+	bool HostGIDMapping;
+	vector<LinuxIDMapping> UIDMap;
+	vector<LinuxIDMapping> GIDMap;
+	bool AutoUserNs;
+	AutoUserNsOptions AutoUserNsOpts;
+};
+
+
+
 #endif // DEFINE_TYPES_H

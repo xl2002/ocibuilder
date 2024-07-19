@@ -14,3 +14,10 @@ void TempDirForURL(std::string dir,std::string prefix, std::string url,std::stri
     }
     return ;
 }
+OptionalBool NewOptionalBool(bool b){
+    auto o=OptionalBool::OptionalBoolFalse;
+    if(b){
+        o=OptionalBool::OptionalBoolTrue;
+    }
+    return o;
+}

@@ -118,7 +118,7 @@ Flagset* GetFromAndBudFlags(FromAndBudResults* fr){
 	flags->StringArrayVar(fr->SecurityOpt, "security-opt", vector<string>(), "security options (default [])");
 	// flags->StringVar(fr->ShmSize, "shm-size", defaultContainerConfig.Containers.ShmSize, "size of '/dev/shm'. The format is `<number><unit>`.");
 	// flags->StringSliceVar(fr->Ulimit, "ulimit", defaultContainerConfig.Containers.DefaultUlimits.Get(), "ulimit options");
-	// flags->StringArrayVar(fr->Volumes, "volume", defaultContainerConfig.Volumes(), "bind mount a volume into the container");
+	flags->StringArrayVar(fr->Volumes, "volume",vector<string>(), "bind mount a volume into the container");
 
     return flags;
 }

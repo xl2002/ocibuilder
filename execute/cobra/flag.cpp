@@ -324,6 +324,14 @@ Flag* Flagset::Lookup(const string& name){
         return nullptr;
     }
 }
+bool Flagset:: Changed(string name ) {
+	auto flag = Lookup(name);
+	// If a flag doesn't exist, it wasn't changed....
+	if (flag == nullptr) {
+		return false;
+	}
+	return flag->changed;
+}
 /**
  * @brief MarkHidden 在您的程序中设置一个“隐藏”标志。
  * <p>它将继续运行，但不会显示在帮助或使用消息中。
@@ -395,6 +403,51 @@ string Flagset::GetString(string name){
         throw;
     }
     
+}
+std::vector<std::string> SplitStringBySpaces(const std::string& input) {
+    std::vector<std::string> result;
+    std::istringstream iss(input);
+    std::string word;
+
+    while (iss >> word) {
+        result.push_back(word);
+    }
+
+    return result;
+}
+vector<string> Flagset::GetStringArray(string name){
+    try
+    {
+        string val=getFlagType(name,"stringArray");
+        auto sval=val.substr(1,val.size()-2);
+        return SplitStringBySpaces(sval);
+    }
+    catch(const myerror& e)
+    {
+        throw;
+    }
+}
+uint64_t Flagset::GetUint64(string name){
+    try
+    {
+        string val=getFlagType(name,"uint64");
+        return std::stoull(val);
+    }
+    catch(const myerror& e)
+    {
+        throw;
+    }
+}
+int64_t Flagset::GetInt64(string name){
+    try
+    {
+        string val=getFlagType(name,"int64");
+        return std::stoll(val);
+    }
+    catch(const myerror& e)
+    {
+        throw;
+    }
 }
 /**
  * @brief Args 返回非标志参数。

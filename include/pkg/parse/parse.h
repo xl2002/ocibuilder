@@ -4,6 +4,15 @@
 #include "define/pull.h"
 #include "cobra/command.h"
 #include "define/types.h"
+#include "define/build.h"
+#include "define/namespace.h"
+// #include "pkg/idtools/idtools.h"
 PullPolicy PullPolicyFromOptions(Command* c);
-SystemContext* SystemContextFromOptions(Command* c);
+shared_ptr<SystemContext> SystemContextFromOptions(Command* c);
+std::string GetTempDir();
+shared_ptr<Isolation> IsolationOption(string isolation);
+shared_ptr<CommonBuildOptions> CommonbuildOptions(Command* cmd);
+void parseSecurityOpts(vector<string> securityOpts,shared_ptr<CommonBuildOptions> commonOpts);
+shared_ptr<NamespaceOptions> Namespaceoptions(Command* cmd,NetworkConfigurationPolicy& networkPolicy);
+shared_ptr<NamespaceOptions> idmappingOptions(Command* cmd,shared_ptr<Isolation> isolation,shared_ptr<IDMappingOptions>idmapOptions);
 #endif // PARSE_PARSE_H

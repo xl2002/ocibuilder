@@ -90,11 +90,14 @@ class Flagset{
     // void Visitflag(Flag& flag,vector<string>& names);
     void VisitAll(const function<void(Flag*)>&fn);
     Flag* Lookup(const string& name);
+    bool Changed(string name );
     void MarkHidden(string name);
     string getFlagType(string name,string ftype);
     bool GetBool(string name);
     string GetString(string name);
-
+    vector<string>GetStringArray(string name);
+    uint64_t GetUint64(string name);
+    int64_t GetInt64(string name);
     vector<string> Args();
     void Parse(vector<string>);
     void parseArgs(vector<string> args);
