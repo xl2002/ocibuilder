@@ -93,5 +93,6 @@
     "C_Cpp.errorSquiggles": "enabled",
     "cSpell.words": [
         "xiongkang"
-    ]
+    ],
+    "CodeGPT.apiKey": "CodeGPT Plus Beta"
 }

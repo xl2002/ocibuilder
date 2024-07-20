@@ -8,6 +8,7 @@
 #include <cstdio>
 #include <iostream>
 #include <memory>
+#include <chrono>
 vector<string> getContainerfiles(vector<string> files);
 
 void GenBuildOptions(Command* cmd, vector<string> inputArgs,BuildOptions* iopts, define_BuildOptions* options, vector<string>& ret_containerfiles,vector<string>& removeAll){
@@ -108,13 +109,54 @@ void GenBuildOptions(Command* cmd, vector<string> inputArgs,BuildOptions* iopts,
         auto namespaceOptions= Namespaceoptions(cmd,networkPolicy);
         auto idmappingoptions=make_shared<IDMappingOptions>();
         auto usernsOption=idmappingOptions(cmd,isolation,idmappingoptions);
+        namespaceOptions->AddOrReplace(usernsOption->val);
+        auto platforms=PlatformsFromOptions(cmd);
+        auto decryptConfig=DecryptConfigs(iopts->DecryptionKeys);
+        std::vector<std::string>excludes;
+        std::shared_ptr<std::chrono::system_clock::time_point> timestamp;
+        if(cmd->Flag_find("timestamp")->changed){
+
+        }
+        if(cmd->Flag_find("output")->changed){
+
+        }
+        auto confidentialWorkloadOptions=ConfidentialWorkloadOptions();
+        if(cmd->Flag_find("cw")->changed){
+
+        }
+        auto cacheTo=std::vector<Named>();
+        auto cacheFrom=std::vector<Named>();
+        if(cmd->Flag_find("cache-to")->changed){
+
+        }
+        if(cmd->Flag_find("cache-from")->changed){
+
+        }
+        std::chrono::duration<int> cacheTTL();
+        if(cmd->Flag_find("cache-ttl")->changed){
+            
+        }
+        if(cmd->Flag_find("network")->changed){
+
+        }
+        std::vector<SBOMScanOptions> sbomScanOptions;
+        // if(cmd->Flag_find("sbom")->changed || cmd->Flag_find("sbom-scanner-command")->changed || cmd->Flag_find("sbom-scanner-image")->changed 
+        //     || cmd->Flag_find("sbom-image-output")->changed || cmd->Flag_find("sbom-merge-strategy")->changed || cmd->Flag_find("sbom-output")->changed
+        //     || cmd->Flag_find("sbom-purl-output")->changed || cmd->Flag_find("sbom-image-purl-output")->changed){
+
+        // }
+
+
+        if(iopts->RetryDelay!=""){}
+        if(iopts->Quiet){
+
+        }
     }
     catch(const myerror& e)
     {
         throw;
     }
     
-
 }
 vector<string> getContainerfiles(vector<string> files){
     vector<string>containerfiles;

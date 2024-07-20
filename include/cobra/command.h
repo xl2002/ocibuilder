@@ -135,6 +135,7 @@ class Command{
         Flag* Flag_find(string name);
         Flag* persistentFlag_find(string name);
         bool HasPersistentFlags();
+        
 };      
 
 extern Flagset* CommandLine;

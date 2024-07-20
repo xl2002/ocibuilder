@@ -2,20 +2,26 @@
 #include <algorithm>
 #include "util/util.h"
 
-const
-	// SeccompDefaultPath defines the default seccomp path
-	string SeccompDefaultPath = "/usr/share/containers/seccomp.json",
-	// SeccompOverridePath if this exists it overrides the default seccomp path
-	SeccompOverridePath = "/etc/containers/seccomp.json",
-	// TypeBind is the type for mounting host dir
-	TypeBind = "bind",
-	// TypeTmpfs is the type for mounting tmpfs
-	TypeTmpfs = "tmpfs",
-	// TypeCache is the type for mounting a common persistent cache from host
-	TypeCache = "cache",
-	// mount=type=cache must create a persistent directory on host so it's available for all consecutive builds.
-	// Lifecycle of following directory will be inherited from how host machine treats temporary directory
-	BuildahCacheDir = "buildah-cache";
+// 定义常量字符串
+
+// SeccompDefaultPath 定义了默认的 seccomp 配置文件路径
+const string SeccompDefaultPath = "/usr/share/containers/seccomp.json",
+
+// SeccompOverridePath 如果存在，则覆盖默认的 seccomp 配置文件路径
+SeccompOverridePath = "/etc/containers/seccomp.json",
+
+// TypeBind 是用于挂载主机目录的类型
+TypeBind = "bind",
+
+// TypeTmpfs 是用于挂载 tmpfs 的类型
+TypeTmpfs = "tmpfs",
+
+// TypeCache 是用于挂载主机上常用的持久缓存的类型
+TypeCache = "cache",
+
+// mount=type=cache 必须在主机上创建一个持久目录，以便在所有连续的构建中都可用。
+// 以下目录的生命周期将继承主机如何处理临时目录的方式
+BuildahCacheDir = "buildah-cache";
 
 PullPolicy PullPolicyFromOptions(Command* c){
     Flagset* flags=c->Flags();
@@ -277,16 +283,152 @@ shared_ptr<NamespaceOptions> Namespaceoptions(Command* cmd,NetworkConfigurationP
 
     }
     networkPolicy=policy;
+    //对networkPolicy类型进行判断
     return options;
 }
 
-shared_ptr<NamespaceOptions> idmappingOptions(Command* cmd,shared_ptr<Isolation> isolation,shared_ptr<IDMappingOptions>idmapOptions){
-    auto flags=cmd->Flags();
-    auto persistentFlags=cmd->PersistentFlags();
-    bool isAuto=false;
-    auto autoOpts=make_shared<AutoUserNsOptions>();
-    auto user=cmd->Flag_find("userns-uid-map-user")->value->String();
-    auto user=cmd->Flag_find("userns-gid-map-group")->value->String();
+std::vector<std::array<uint32_t, 3>> parseIDMap(const std::vector<std::string>& spec) {
+    std::vector<std::array<uint32_t, 3>> m;
+    m.reserve(spec.size());
+    // for (const auto& s : spec)
+    // {
+    //     std::istringstream iss(s);
+    //     std::vector<std::string> args{std::istream_iterator<std::string>(iss), {}};
+    //     if (args.size() % 3 != 0)
+    //     {
+    //         throw std::runtime_error("mapping " + s + " is not in the form containerid:hostid:size[,...]");
+    //     }
+    //     for (size_t i = 0; i < args.size(); i += 3)
+    //     {
+    //         uint32_t cid, hostid, size;
+    //         iss >> cid >> hostid >> size;
+    //         m.emplace_back(cid, hostid, size);
+    //     }
+    // }
+    return m;
 }
 
+/**
+ * @brief A function to generate NamespaceOptions based on input parameters.
+ *
+ * @param cmd Command pointer for accessing flags and persistent flags
+ * @param isolation Isolation options for namespace isolation
+ * @param idmapOptions IDMapping options for mapping user and group IDs
+ *
+ * @return shared_ptr<NamespaceOptions> representing the generated NamespaceOptions
+ *
+ * @throws None
+ */
+shared_ptr<NamespaceOptions> idmappingOptions(Command* cmd,shared_ptr<Isolation> isolation,shared_ptr<IDMappingOptions> idmapOptions)
+{
+    // Get the flags and persistent flags from the command
+    auto flags=cmd->Flags();
+    auto persistentFlags=cmd->PersistentFlags();
 
+    // Initialize a boolean flag to indicate whether auto-mapping is enabled
+    bool isAuto=false;
+
+    // Create an instance of AutoUserNsOptions
+    auto autoOpts=make_shared<AutoUserNsOptions>();
+
+    // Get the values of the userns-uid-map-user and userns-gid-map-group flags
+    // from the command flags
+    auto user=cmd->Flag_find("userns-uid-map-user")->value->String();
+    auto group=cmd->Flag_find("userns-gid-map-group")->value->String();
+    // 如果只指定了用户或组，则使用相同的值作为另一个，因为我们需要同时指定才能使用名称初始化映射。
+    if (user.empty() && !group.empty()) {
+        user = group;
+    }
+    if (group.empty() && !user.empty()) {
+        group = user;
+    }
+    // 要么从空开始，要么从名称开始。
+    auto mapping=NewIDMappingsFromMaps(vector<IDMap>(),vector<IDMap>());
+    if(user!="" && group!=""){
+
+    }
+    auto globalOptions=persistentFlags;
+        // We'll parse the UID and GID mapping options the same way.
+    auto buildIDMap = [=](const std::vector<IDMap>& basemap, const std::string& option) {
+        std::vector<LinuxIDMapping> outmap;
+        outmap.reserve(basemap.size());
+        // Start with the name-based map entries.
+        for (const auto& m : basemap) {
+
+            outmap.push_back(LinuxIDMapping{
+                static_cast<uint32_t>(m.ContainerID),
+                static_cast<uint32_t>(m.HostID),
+                static_cast<uint32_t>(m.Size),
+            });
+        }
+        // Parse the flag's value as one or more triples (if it's even
+        // been set), and append them.
+        std::vector<std::string> spec;
+        if(globalOptions->Lookup(option)!=nullptr && globalOptions->Lookup(option)->changed){
+            spec=globalOptions->GetStringArray(option);
+        }
+        if (cmd->Flag_find(option)->changed) {
+            spec = flags->GetStringArray(option);
+        }
+        std::vector<std::array<uint32_t,3>> idmap = parseIDMap(spec);
+        for (const auto& m : idmap) {
+            outmap.push_back(LinuxIDMapping{
+                m[0],
+                m[1],
+                m[2],
+            });
+        }
+        return outmap;
+    };
+    auto uidmap=buildIDMap(mapping->UIDs(), "userns-uid-map");
+    auto gidmap=buildIDMap(mapping->GIDs(), "userns-gid-map");
+    if(uidmap.size()==0 && gidmap.size()!=0){
+        uidmap=gidmap;
+    }
+    if(gidmap.size()==0 && uidmap.size()!=0){
+        gidmap=uidmap;
+    }
+    auto usernsOption=NamespaceOption();
+    usernsOption.Name=UserNamespace;
+    usernsOption.Host=uidmap.size()==0 && gidmap.size()==0;
+    if(cmd->Flag_find("userns")->changed){
+
+    }
+    auto usernsOptions=NamespaceOptions();
+    usernsOptions.val.emplace_back(usernsOption);
+    if ((!uidmap.empty() || !gidmap.empty()) && usernsOption.Host) {
+        throw myerror("can not specify ID mappings while using host's user namespace");
+    }
+    auto idm=IDMappingOptions();
+    idm.HostUIDMapping=usernsOption.Host;
+    idm.HostGIDMapping=usernsOption.Host;
+    idm.UIDMap=uidmap;
+    idm.GIDMap=gidmap;
+    idm.AutoUserNs=isAuto;
+    idm.AutoUserNsOpts=*autoOpts;
+    idmapOptions=make_shared<IDMappingOptions>(idm);
+    return make_shared<NamespaceOptions>(usernsOptions);
+}
+
+std::vector<platforms> PlatformsFromOptions(Command* cmd){
+    std::string os,arch,variant;
+    if(cmd->Flag_find("os")->changed){
+
+    }
+    if(cmd->Flag_find("arch")->changed){
+
+    }
+    if(cmd->Flag_find("variant")->changed){
+
+    }
+    auto Platforms=std::vector<platforms>();
+    auto p=platforms();
+    p.OS=os;
+    p.Arch=arch;
+    p.Variant=variant;
+    Platforms.emplace_back(p);
+    if(cmd->Flag_find("platform")->changed){
+
+    }
+    return Platforms;
+}

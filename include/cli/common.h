@@ -16,6 +16,7 @@
 #include "storage/storage.h"
 #include <memory>
 #include "cobra/command.h"
+#include "config/config.h"
 using std::vector;
 using std::string;
 vector<string> SplitN(const string& str, const string& delimiter, size_t max_splits);
@@ -24,4 +25,5 @@ store* getStore(Command* cmd);
 string GetFormat(string format);
 bool UseLayers();
 std::string JoinPath(const std::string& path1, const std::string& path2);
+shared_ptr<DecryptConfig> DecryptConfigs(vector<string>decryptionKeys);
 #endif

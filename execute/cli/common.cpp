@@ -97,3 +97,11 @@ std::string JoinPath(const std::string& path1, const std::string& path2) {
 
     return result;
 }
+
+shared_ptr<DecryptConfig> DecryptConfigs(vector<string>decryptionKeys){
+    auto decryptConfig=make_shared<DecryptConfig>();
+    if(decryptionKeys.size()>0){
+
+    }
+    return decryptConfig;
+}

@@ -10,7 +10,12 @@
  */
 #ifndef CONFIG_CONFIG_H
 #define CONFIG_CONFIG_H
-
+#include <map>
+#include <string>
+#include <vector>
+using std::map;
+using std::string;
+using std::vector;
 class ContainersConfig{
 
 };
@@ -57,5 +62,7 @@ class Configdetails{
     void CheckCgroupsAndAdjustConfig();
 };
 Configdetails ConfigdetailsDefault();
-
+struct DecryptConfig{
+    map<string,vector<vector<uint8_t>>>Parameters;
+};
 #endif
