@@ -39,19 +39,21 @@ Flagset* Getbuildflags(BudResults* br){
 	flags->BoolVar(br->DisableCompression, "disable-compression", true, "don't compress layers by default");
 	flags->BoolVar(br->DisableContentTrust, "disable-content-trust", false, "this is a Docker specific option and is a NOOP");
 	flags->StringArrayVar(br->envs, "env", vector<string>(), "set environment variable for the image");
-
+    flags->StringVar(br->IgnoreFile, "ignorefile", "", "path to an alternate .dockerignore file");
     flags->StringVar(br->Format,"format", "oci", "`format` of the built image's manifest and metadata.");
     flags->StringVar(br->From,"from", "", "image name used to replace the value in the first FROM instruction in the Containerfile");
+    flags->BoolVar(br->LogRusage, "log-rusage", false, "log resource usage at each build step");
     flags->StringVar(br->Iidfile,"iidfile", "", "`file` to write the image ID to");
     flags->IntVar(br->Jobs, "jobs", 1, "how many stages to run in parallel");
     flags->StringArrayVar(br->Label,"label", vector<string>(), "set metadata for an image (default [])");
-
+    flags->StringVar(br->OSVersion, "os-version", "", "set required OS `version` for the target image instead of the value from the base image");
     flags->StringArrayVar(br->LayerLabel, "layer-label", vector<string>(), "set metadata for an intermediate image (default [])");
+    flags->BoolVar(br->LogSplitByPlatform, "logsplit", false, "split logfile to different files for each platform");
     flags->StringVar(br->Logfile, "logfile", "", "log to `file` instead of stdout/stderr");
     flags->StringVar(br->Manifest, "manifest", "", "add the image to the specified manifest list. Creates manifest list if it does not exist");
     flags->BoolVar(br->NoCache, "no-cache", false, "do not use existing cached images for the container build. Build from the start with a new set of cached layers.");
     flags->Int64Var(br->Timestamp, "timestamp", 0, "set created timestamp to the specified epoch seconds to allow for deterministic builds, defaults to current time");
-    
+    flags->StringVar(br->RusageLogFile, "rusage-logfile", "", "destination file to which rusage should be logged to instead of stdout (= the default).");
     flags->BoolVar(br->OmitHistory, "omit-history", false, "omit build history information from built image");
     flags->StringArrayVar(br->OCIHooksDir, "hooks-dir", vector<string>(), "set the OCI hooks directory path (may be set multiple times)");
     flags->StringVar(br->Pull, "pull", "true", "pull base and SBOM scanner images from the registry if newer or not present in store, if false, only pull base and SBOM scanner images if not present, if always, pull base and SBOM scanner images even if the named images are present in store, if never, only use images present in store if available");
@@ -67,9 +69,13 @@ Flagset* Getbuildflags(BudResults* br){
     flags->StringVar(br->BuildOutput, "output", "", "output destination (format: type=local,dest=path)");
     flags->StringVar(br->Target, "target", "", "set the target build stage to build");
     flags->StringArrayVar(br->OSFeatures,"os-feature", vector<string>(), "set required OS `feature` for the target image in addition to values from the base image");
-    
-    
-    
+    flags->StringVar(br->SignBy, "sign-by", "", "sign the image using a GPG key with the specified `FINGERPRINT`");
+    flags->StringVar(br->SignaturePolicy, "signature-policy", "", "`pathname` of signature policy file (not usually used)");
+    flags->MarkHidden("signature-policy");
+    flags->BoolVar(br->SkipUnusedStages, "skip-unused-stages", true, "skips stages in multi-stage builds which do not affect the final target");
+    flags->BoolVar(br->Squash, "squash", false, "squash all image layers into a single layer");
+    flags->StringSliceVar(br->UnsetEnvs, "unsetenv",  vector<string>(), "unset environment variable from final image");
+	flags->StringSliceVar(br->UnsetLabels, "unsetlabel",  vector<string>(), "unset label when inheriting labels from base image");
     return flags;
 }
 

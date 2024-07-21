@@ -1,12 +1,32 @@
-struct SBOMScanOptions {
-    std::vector<std::string> Type;    // 一个缩短的名称，表示已定义的这些选项的组
-    std::string Image;                // 要使用的扫描器映像
-    PullPolicy PullPolicy;           // 获取扫描器映像的方式
-    std::vector<std::string> Commands; // 要用于图像根文件系统或 ContextDir 位置的一个或多个命令
-    std::vector<std::string> ContextDir; // 要查找的目录位置
-    std::string SBOMOutput;           // 在外部存储的 SBOM 扫描器输出（即本地文件系统）
-    std::string PURLOutput;           // 在外部存储的 PURL 列表（即本地文件系统）
-    std::string ImageSBOMOutput;      // 在图像中存储的 SBOM 扫描器输出
-    std::string ImagePURLOutput;      // 在图像中存储的 PURL 列表
-    SBOMMergeStrategy MergeStrategy;  // 多次扫描的输出合并方式
-};
+#include <vector>
+#include <string>
+#include <algorithm>
+
+std::vector<std::string> LookupEnvVarReferences(const std::vector<std::string>& specs, const std::vector<std::string>& environ) {
+    std::vector<std::string> result;
+    result.reserve(specs.size());
+
+    for (const auto& spec : specs) {
+        size_t pos = spec.find('=');
+        if (pos != std::string::npos) {
+            result.push_back(spec);
+
+        } else if (spec == "*") {
+            result.insert(result.end(), environ.begin(), environ.end());
+
+        } else {
+            std::string prefix = spec + "=";
+            if (spec.back() == '*') {
+                prefix.pop_back();
+            }
+
+            for (const auto& env : environ) {
+                if (env.compare(0, prefix.size(), prefix) == 0) {
+                    result.push_back(env);
+                }
+            }
+        }
+    }
+
+    return result;
+}

@@ -5,7 +5,7 @@ string canonical::String(){
 string canonical::Name(){
     return "";
 }
-Digest canonical::Digests(){\
+Digest canonical::Digests(){
     Digest d;
     return d;
 }
@@ -19,5 +19,12 @@ string Tagged::String(){
     return "";
 }
 string Tagged::Tag(){
+    return "";
+}
+
+string named::String(){
+    return "";
+}
+string named::Name(){
     return "";
 }

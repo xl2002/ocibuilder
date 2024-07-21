@@ -2,8 +2,9 @@
 #include <windows.h>
 #include <sys/stat.h>
 #include <vector>
-bool MirrorToTempFileIfPathIsDescriptor(std::string file ,const std::string &authfile){
+bool MirrorToTempFileIfPathIsDescriptor(std::string file ,std::string &authfile){
     if(file.substr(0,8)!="/dev/fd/"){
+        authfile=file;
         return false;
     }
     try
@@ -18,6 +19,7 @@ bool MirrorToTempFileIfPathIsDescriptor(std::string file ,const std::string &aut
     {
         throw;
     }
+    return true;
 }
 
 std::string joinPath(const std::string& path1, const std::string& path2) {

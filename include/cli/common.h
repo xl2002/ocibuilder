@@ -26,4 +26,5 @@ string GetFormat(string format);
 bool UseLayers();
 std::string JoinPath(const std::string& path1, const std::string& path2);
 shared_ptr<DecryptConfig> DecryptConfigs(vector<string>decryptionKeys);
+std::vector<std::string> LookupEnvVarReferences(const std::vector<std::string>& specs);
 #endif

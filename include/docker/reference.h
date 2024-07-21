@@ -16,6 +16,12 @@ class Named:public Reference{
     ~Named()=default;
     virtual string Name()=0;
 };
+class named:public Named{
+    public:
+    ~named()=default;
+    string String() override;
+    string Name() override;
+};
 class Canonical:public Named{
     public:
     ~Canonical()=default;

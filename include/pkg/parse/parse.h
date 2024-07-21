@@ -8,12 +8,9 @@
 #include "define/namespace.h"
 #include <array>
 #include <sstream>
+#include "pkg/util/util.h"
 // #include "pkg/idtools/idtools.h"
-struct platforms{
-    std::string OS;
-    std::string Arch;
-    std::string Variant; 
-};
+
 PullPolicy PullPolicyFromOptions(Command* c);
 shared_ptr<SystemContext> SystemContextFromOptions(Command* c);
 std::string GetTempDir();

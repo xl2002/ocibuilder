@@ -47,8 +47,9 @@ void GenBuildOptions(Command* cmd, vector<string> inputArgs,BuildOptions* iopts,
         map<string,string> args;
         if(cmd->Flag_find("build-arg-file")->changed){}
         if(cmd->Flag_find("build-arg")->changed){}
+        auto additionalBuildContext=map<string,shared_ptr<AdditionalBuildContext>>();
         if(cmd->Flag_find("build-context")->changed){}
-        vector<string> containerfiles=getContainerfiles(iopts->File);
+        ret_containerfiles=getContainerfiles(iopts->File);
         string format=GetFormat(iopts->Format);
         bool layers=UseLayers();
         if(cmd->Flag_find("layers")->changed){
@@ -73,9 +74,9 @@ void GenBuildOptions(Command* cmd, vector<string> inputArgs,BuildOptions* iopts,
             }
 
         }
-        if(containerfiles.size()==0){
+        if(ret_containerfiles.size()==0){
             string  containerfile= DiscoverContainerfile(contextDir);
-            containerfiles.emplace_back(containerfile);
+            ret_containerfiles.emplace_back(containerfile);
             contextDir=getDirectory(containerfile);
         }
         contextDir = resolveSymlinks(contextDir);
@@ -89,10 +90,10 @@ void GenBuildOptions(Command* cmd, vector<string> inputArgs,BuildOptions* iopts,
         if(iopts->logwriter!=nullptr){}
         auto systemContext= SystemContextFromOptions(cmd);
         auto isolation= IsolationOption(iopts->Isolation);
-        // auto runtimeFlags=vector<string>();
+        auto runtimeFlags=vector<string>();
         // for(auto it:iopt)
         auto commonOpts= CommonbuildOptions(cmd);
-        if(cmd->Flag_find("rm")->changed || cmd->Flag_find("force-rm")->changed && (!cmd->Flag_find("layers")->changed && !cmd->Flag_find("no-cache")->changed)){
+        if(cmd->Flag_find("rm")->changed || (cmd->Flag_find("force-rm")->changed && (!cmd->Flag_find("layers")->changed && !cmd->Flag_find("no-cache")->changed))){
 
         }
         if(cmd->Flag_find("compress")->changed){
@@ -124,15 +125,15 @@ void GenBuildOptions(Command* cmd, vector<string> inputArgs,BuildOptions* iopts,
         if(cmd->Flag_find("cw")->changed){
 
         }
-        auto cacheTo=std::vector<Named>();
-        auto cacheFrom=std::vector<Named>();
+        auto cacheTo=std::vector<named>();
+        auto cacheFrom=std::vector<named>();
         if(cmd->Flag_find("cache-to")->changed){
 
         }
         if(cmd->Flag_find("cache-from")->changed){
 
         }
-        std::chrono::duration<int> cacheTTL();
+        std::chrono::duration<int> cacheTTL(0);
         if(cmd->Flag_find("cache-ttl")->changed){
             
         }
@@ -145,27 +146,98 @@ void GenBuildOptions(Command* cmd, vector<string> inputArgs,BuildOptions* iopts,
         //     || cmd->Flag_find("sbom-purl-output")->changed || cmd->Flag_find("sbom-image-purl-output")->changed){
 
         // }
+        options->AddCapabilities=iopts->CapAdd;
+        options->AdditionalBuildContexts=additionalBuildContext;
+        options->AdditionalTags=tags;
+        options->AllPlatforms=iopts->allplatform;
+        options->Annotations=iopts->annotation;
+        options->Architecture=systemContext->ArchitectureChoice;
+        options->Args=args;
+        options->BlobDirectory=iopts->BlobCache;
+        options->BuildOutput=iopts->BuildOutput;
+        options->CacheFrom=cacheFrom;
+        options->CacheTo=cacheTo;
+        options->CacheTTL=cacheTTL;
+        options->CDIConfigDir=iopts->CDIConfigDir;
+        options->CNIConfigDir=iopts->CNIConfigDir;
+        options->CNIPluginPath=iopts->CNIPlugInPath;
+        options->ConfidentialWorkload=confidentialWorkloadOptions;
+        // options->CPPFlags=iopts->CPPFlags;
+        options->CommonBuildOpts=commonOpts;
+        options->Compression=compression;
+        options->ConfigureNetwork=networkPolicy;
+        options->ContextDirectory=contextDir;
+        options->Devices=iopts->Devices;
+        options->DropCapabilities=iopts->CapDrop;
+        options->Err=stderrStream;
+        options->Excludes=excludes;
+        options->ForceRmIntermediateCtrs=iopts->ForceRm;
+        options->From=iopts->From;
+        options->GroupAdd=iopts->GroupAdd;
+        options->IDMappingoptions=idmappingoptions;
+        options->IIDFile=iopts->Iidfile;
+        options->IgnoreFile=iopts->IgnoreFile;
+        options->In=stdinStream;
+        options->Isolation=isolation;
+        options->Jobs=make_shared<int>(iopts->Jobs); // iopts->Jobs;
+        options->Labels=iopts->Label;
+        options->LayerLabels=iopts->LayerLabel;
+        options->Layers=layers;
+        options->LogFile=iopts->Logfile;
+        options->LogRusage=iopts->LogRusage;
+        options->LogSplitByPlatform=iopts->LogSplitByPlatform;
+        options->Manifest=iopts->Manifest;
+        options->MaxPullPushRetries=iopts->Retry;
+        options->Namespaceoptions=namespaceOptions->val;
+        options->NoCache=iopts->NoCache;
+        options->OS=systemContext->OSChoice;
+        options->OSFeatures=iopts->OSFeatures;
+        options->OSVersion=iopts->OSVersion;
+        options->OciDecryptConfig=decryptConfig;
+        options->Out=stdoutStream;
+        options->Output=output;
+        options->OutputFormat=format;
+        options->PlatformsList=platforms;
+        options->PullPolicy=pullPolicy;
+        options->Quiet=iopts->Quiet;
+        options->RemoveIntermediateCtrs=iopts->Rm;
+        options->ReportWriter=reporterStream;
+        // options->Runtime=iopts->Runtime;
+        options->RuntimeArgs=runtimeFlags;
+        options->RusageLogFile=iopts->RusageLogFile;
+        options->SBOMScanOptions=sbomScanOptions;
+        options->SignBy=iopts->SignBy;
+        options->SignaturePolicyPath=iopts->SignaturePolicy;
+        options->SkipUnusedStages=NewOptionalBool(iopts->SkipUnusedStages);
+        options->Squash=iopts->Squash;
+        options->SystemContext=systemContext;
+        options->Target=iopts->Target;
+        options->Timestamp=timestamp;
+        options->TransientMounts=iopts->Volumes;
+        options->UnsetEnvs=iopts->UnsetEnvs;
+        options->UnsetLabels=iopts->UnsetLabels;
+        if(iopts->RetryDelay!=""){
 
-
-        if(iopts->RetryDelay!=""){}
+        }
         if(iopts->Quiet){
 
         }
+        options->Envs=LookupEnvVarReferences(iopts->envs);
     }
     catch(const myerror& e)
     {
         throw;
     }
-    
+    return;
 }
 vector<string> getContainerfiles(vector<string> files){
-    vector<string>containerfiles;
+    vector<string>ret_containerfiles;
     for(auto it:files){
         if(it=="-"){
-            containerfiles.emplace_back("D://");
+            ret_containerfiles.emplace_back("D://");
         }else{
-            containerfiles.emplace_back(it);
+            ret_containerfiles.emplace_back(it);
         }
     }
-    return containerfiles;
+    return ret_containerfiles;
 }

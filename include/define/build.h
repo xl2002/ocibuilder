@@ -16,10 +16,18 @@
 #include <vector>
 #include <functional>
 #include "define/pull.h"
+#include "docker/reference.h"
+#include "config/config.h"
+#include "define/namespace.h"
+#include "define/types.h"
+#include <memory>
+// #include "pkg/parse/parse.h"
+#include <chrono>
 using std::string;
 using std::map;
 using std::vector;
-
+using std::shared_ptr;
+using std::function;
 
 enum isolation{
     IsolationDefault,
@@ -64,19 +72,19 @@ struct AdditionalBuildContext {
 	//运行步骤。
 	string DownloadedCache ;
 };
-struct ConfidentialWorkloadOptions {
-	bool Convert              ;
-	string AttestationURL     ;
-	int CPUs                     ;
-	int Memory                   ;
-	string TempDir                  ; // 用于磁盘映像的临时明文副本
-	string TeeType                  ;
-	bool IgnoreAttestationErrors    ;
-	string WorkloadID               ;
-	string DiskEncryptionPassphrase ;
-	string Slop                     ;
-	string FirmwareLibrary          ;
-};
+// struct ConfidentialWorkloadOptions {
+// 	bool Convert=false              ;
+// 	string AttestationURL     ;
+// 	int CPUs=0                     ;
+// 	int Memory=0                   ;
+// 	string TempDir                  ; // 用于磁盘映像的临时明文副本
+// 	string TeeType                  ;
+// 	bool IgnoreAttestationErrors=false    ;
+// 	string WorkloadID               ;
+// 	string DiskEncryptionPassphrase ;
+// 	string Slop                     ;
+// 	string FirmwareLibrary          ;
+// };
 enum networkConfigurationPolicy{
     NetworkDefault,
     NetworkDisabled,
@@ -89,7 +97,11 @@ class NetworkConfigurationPolicy{
     NetworkConfigurationPolicy(networkConfigurationPolicy v):value(v){};
     string String();
 };
-
+struct platforms{
+    std::string OS;
+    std::string Arch;
+    std::string Variant; 
+};
 
 ///CommonBuildOptions 是可以通过 buildah from 和 build 的标志定义的资源
 struct CommonBuildOptions  {
@@ -175,37 +187,37 @@ struct CommonBuildOptions  {
 	vector<string> OCIHooksDir;
 };
 
-struct Time  {
-    //wall 和 ext 对 wall time 秒、wall time 纳秒进行编码，
-	//和可选的单调时钟读数（以纳秒为单位）。
-	//
-	//从高位到低位位置，wall编码一个1位标志（hasMonotonic），
-	//33 位秒字段和 30 位墙壁时间纳秒字段。
-	//纳秒字段的范围是 [0, 999999999]。
-	//如果 hasMonotonic 位为 0，则 33 位字段必须为零
-	//自 1 年 1 月 1 日起完整签名的 64 位墙秒存储在 ext.
-    //如果 hasMonotonic 位为 1，则 33 位字段保存 33 位
-	//自 1885 年 1 月 1 日以来的无符号墙秒，并且 ext 持有
-	//带符号的 64 位单调时钟读数，自进程启动以来的纳秒数。
-	uint64_t wall;
-	int64_t ext;
+// struct Time  {
+//     //wall 和 ext 对 wall time 秒、wall time 纳秒进行编码，
+// 	//和可选的单调时钟读数（以纳秒为单位）。
+// 	//
+// 	//从高位到低位位置，wall编码一个1位标志（hasMonotonic），
+// 	//33 位秒字段和 30 位墙壁时间纳秒字段。
+// 	//纳秒字段的范围是 [0, 999999999]。
+// 	//如果 hasMonotonic 位为 0，则 33 位字段必须为零
+// 	//自 1 年 1 月 1 日起完整签名的 64 位墙秒存储在 ext.
+//     //如果 hasMonotonic 位为 1，则 33 位字段保存 33 位
+// 	//自 1885 年 1 月 1 日以来的无符号墙秒，并且 ext 持有
+// 	//带符号的 64 位单调时钟读数，自进程启动以来的纳秒数。
+// 	uint64_t wall;
+// 	int64_t ext;
 
-	// loc specifies the Location that should be used to
-	// determine the minute, hour, month, day, and year
-	// that correspond to this Time.
-	// The nil location means UTC.
-	// All UTC times are represented with loc==nil, never loc==&utcLoc.
-	// loc *Location
-};
+// 	// loc specifies the Location that should be used to
+// 	// determine the minute, hour, month, day, and year
+// 	// that correspond to this Time.
+// 	// The nil location means UTC.
+// 	// All UTC times are represented with loc==nil, never loc==&utcLoc.
+// 	// loc *Location
+// };
 class Duration{
 
 };
 class Weighted{
 
 };
-class SBOMScanOptions{
+// class SBOMScanOptions{
 
-};
+// };
 class define_BuildOptions{
 	public:
 	// ContainerSuffix 为容器添加后缀的名称
@@ -213,7 +225,7 @@ class define_BuildOptions{
 	// ContextDirectory 是 COPY 和 ADD 命令的默认源位置。
 	string ContextDirectory;
 	// PullPolicy 控制我们是否拉取镜像。  它应该是 PullIfMissing、PullAlways、PullIfNewer 或 PullNever 之一。
-	PullPolicy* PullPolicy=nullptr;
+	PullPolicy PullPolicy;
     //注册表是一个附加在图像名称前面的值（如果它是）
 	//需要拉取，并且图像名称单独无法解析为
 	//对源图像的引用。  没有隐式添加分隔符。
@@ -226,7 +238,7 @@ class define_BuildOptions{
 	// Quiet告诉我们是否在执行步骤时宣布这些步骤。
 	bool Quiet;
 	// Isolation控制 Run() 如何运行事物。
-	Isolation Isolation;
+	shared_ptr<Isolation> Isolation=nullptr;
 	//Runtime 是 RUN 指令运行时的命令名称
 	//隔离是 IsolationDefault 或 IsolationOCI。  它应该
 	//接受与 runc 相同的参数和标志。
@@ -238,14 +250,14 @@ class define_BuildOptions{
 	vector<string> TransientMounts;
 	//CacheFrom 指定任何远程存储库，可以将其视为
 	//潜在的缓存源。
-	vector<string> CacheFrom;
+	vector<named> CacheFrom;
 	//CacheTo 指定任何可以被视为的远程存储库
 	//潜在的缓存目的地。
-	vector<string> CacheTo;
+	vector<named> CacheTo;
 	//CacheTTL指定持续时间，如果使用`--cache-ttl`指定则
 	//在此持续时间内缓存中间图像将被视为
 	//在此持续时间之外的有效缓存源和图像将被忽略。
-	string CacheTTL;
+	std::chrono::duration<int> CacheTTL;
 	//压缩指定应用的压缩类型
 	//图层斑点。  默认不使用压缩，但是
 	//建议使用 archive.Gzip。
@@ -253,7 +265,7 @@ class define_BuildOptions{
 	//可以插入到 Dockerfile 中的参数
 	map<string,string>Args;
 	//外部附加构建上下文的映射
-	map<string,AdditionalBuildContext> AdditionalBuildContexts;
+	map<string,shared_ptr<AdditionalBuildContext>> AdditionalBuildContexts;
 	// 要写入的图像的名称。
 	string Output ;
 	//BuildOutput 指定是否为后续构建选择任何自定义构建输出。
@@ -292,7 +304,7 @@ class define_BuildOptions{
 	//SkipUnusedStages 允许用户在多阶段构建中跳过阶段
 	//对目标阶段没有任何贡献。预期违约
 	//值为真。
-	uint8_t SkipUnusedStages;
+	OptionalBool SkipUnusedStages;
 	//ReportWriter 是一个 io.Writer，用于报告
 	//（可能的）拉动源图像和
 	//写入新图像。
@@ -302,10 +314,10 @@ class define_BuildOptions{
 	//接受的值为 buildah.OCIv1ImageManifest 和 buildah.Dockerv2ImageManifest。
 	string OutputFormat ;
 	// SystemContext 保存用于身份验证的参数。
-	// SystemContext *types.SystemContext;
+	shared_ptr< SystemContext> SystemContext;
 	//NamespaceOptions 控制我们如何设置命名空间进程
 	//处理 RUN 指令时可能需要。
-	// NamespaceOptions []NamespaceOption;
+	std::vector<NamespaceOption> Namespaceoptions;
 	//ConfigureNetwork 控制是否使用网络接口
 	//路由是为新的网络命名空间配置的（即，当没有
 	//加入另一个名称空间而不仅仅是使用主机的名称空间
@@ -323,7 +335,7 @@ class define_BuildOptions{
 
 	//如果我们要设置自己的用户命名空间，则使用 ID 映射选项
 	//处理 RUN 指令时。
-	// IDMappingOptions *IDMappingOptions;
+	shared_ptr<IDMappingOptions> IDMappingoptions=nullptr;
 	//AddCapability 是添加到默认集的功能列表
 	//处理 RUN 指令。
 	vector<string> AddCapabilities  ;
@@ -332,7 +344,7 @@ class define_BuildOptions{
 	//将被丢弃。
 	vector<string> DropCapabilities  ;
 	// CommonBuildOpts 是*必需的*。
-	CommonBuildOptions* CommonBuildOpts =nullptr;
+	shared_ptr<CommonBuildOptions> CommonBuildOpts =nullptr;
 	// CPPFlags 是传递给 C 预处理器 (cpp) 的附加参数。
 	vector<string> CPPFlags ;
 	//DefaultMountsFilePath 是保存要挂载的 RUN 挂载的文件路径
@@ -375,7 +387,7 @@ class define_BuildOptions{
 	string Architecture ;
 	//Timestamp 将创建的时间戳设置为指定时间，允许
 	//用于确定性、内容可寻址的构建。
-	Time* Timestamp=nullptr;
+	std::shared_ptr<std::chrono::system_clock::time_point> Timestamp=nullptr;
 	//OS 指定要构建的镜像的操作系统。
 	string OS ;
 	//MaxPullPushRetries 是我们拉或推任何一个的最大尝试次数
@@ -385,12 +397,12 @@ class define_BuildOptions{
 	Duration PullPushRetryDelay;
 	//OciDecryptConfig 包含可用于解密图像的配置（如果是）
 	//如果非零则加密。如果为零，则不会尝试解密图像。
-	vector<string,vector<vector<int8_t>>>* OciDecryptConfig=nullptr;
+	shared_ptr<DecryptConfig> OciDecryptConfig=nullptr;
 	//Jobs 是并行运行的阶段数。  如果未指定，则默认为 1。
 	//如果提供了 JobSemaphore，则忽略。
-	int *Jobs=nullptr;
+	shared_ptr<int> Jobs=nullptr;
 	//JobSemaphore，当您希望与更多构建共享作业时。
-	Weighted *JobSemaphore=nullptr;
+	shared_ptr<Weighted>JobSemaphore=nullptr;
 	//LogRusage 记录每个步骤的资源使用情况。
 	bool LogRusage ;
 	//Rusage 日志将被保存到的文件，而不是 stdout。
@@ -409,9 +421,7 @@ class define_BuildOptions{
 	//Platforms 是我们想要的已解析 OS/Arch/Variant 三元组的列表
 	//为其构建图像。  如果该切片中有项目，则操作系统和
 	//上面的架构字段被忽略。
-    struct {
-        string OS, Arch, Variant;
-    }Platforms;
+	vector<platforms> PlatformsList;
 	//AllPlatforms 告诉构建器设置目标平台列表
 	//匹配所有构建基础的平台集
 	//图像可用。  如果设置此字段，则平台将被忽略。

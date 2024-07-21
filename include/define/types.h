@@ -5,6 +5,7 @@
 #include "pkg/internal/types.h"
 #include "define/specs.h"
 #include "pkg/idtools/idtools.h"
+#include "define/pull.h"
 using std::string;
 typedef string TeeType;
 const std::string
@@ -156,30 +157,30 @@ struct SystemContext  {
 };
 
 struct AutoUserNsOptions{
-    uint32_t Size;
-    uint32_t InitialSize;
+    uint32_t Size=0;
+    uint32_t InitialSize=0;
     std::string PasswdFile;
     std::string GroupFile;
     std::vector<IDMap> AdditionalUIDMappings;
     std::vector<IDMap> AdditionalGIDMappings;
 };
 struct IDMappingOptions{
-	bool HostUIDMapping;
-	bool HostGIDMapping;
+	bool HostUIDMapping=false;
+	bool HostGIDMapping=false;
 	vector<LinuxIDMapping> UIDMap;
 	vector<LinuxIDMapping> GIDMap;
-	bool AutoUserNs;
+	bool AutoUserNs=false;
 	AutoUserNsOptions AutoUserNsOpts;
 };
 
 struct ConfidentialWorkloadOptions{
-	bool Convert;
+	bool Convert=false;
 	std::string AttestationURL;
-	int CPUs;
-	int Memory;
+	int CPUs=0;
+	int Memory=0;
 	std::string TempDir;
 	TeeType teeType;
-	bool IgnoreAttestationErrors;
+	bool IgnoreAttestationErrors=false;
 	std::string WorkloadID;
 	std::string DiskEncryptionPassphrase;
 	std::string Slop;

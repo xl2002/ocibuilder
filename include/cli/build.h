@@ -7,6 +7,7 @@
 #include "cobra/command.h"
 #include "define/build.h"
 #include "cli/common.h"
+#include "define/types.h"
 // #include ""
 using std::string;
 using std::vector;
@@ -34,8 +35,12 @@ struct BudResults{
     bool                DisableContentTrust=false;
     string              Format;
     string              From;
+    string              IgnoreFile; 
     string              Iidfile;
     int                 Jobs=0;
+    bool                LogRusage=false;
+    string              RusageLogFile;
+    bool                LogSplitByPlatform=false;
     vector<string>      Label;
     vector<string>      LayerLabel;
     string              Logfile;
@@ -54,6 +59,14 @@ struct BudResults{
     string              BuildOutput;
     string              Target;
     vector<string>      OSFeatures;
+    string              OSVersion;
+    string              SignBy;
+    string              SignaturePolicy;
+    bool                SkipUnusedStages=false;
+    bool                Squash=false;
+    vector<string>      UnsetEnvs;
+    vector<string>      UnsetLabels;
+
 };
 /**
  * @brief LayerResults 表示层标志的结果

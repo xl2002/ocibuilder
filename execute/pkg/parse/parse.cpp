@@ -1,6 +1,6 @@
 #include "pkg/parse/parse.h"
 #include <algorithm>
-#include "util/util.h"
+
 
 // 定义常量字符串
 
@@ -195,7 +195,7 @@ shared_ptr<CommonBuildOptions> CommonbuildOptions(Command* cmd){
     if(!addHost.empty()){
 
     }
-    auto noDNS = false;
+    noDNS = false;
 	auto dnsServers = vector<string>();
     if(flags->Changed("dns")){
 
