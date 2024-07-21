@@ -374,18 +374,19 @@ string Flagset::getFlagType(string name,const string ftype){
 /**
  * @brief 获取布尔对象
  * 
- * @param name 
- * @return true 
- * @return false 
+ * @param name 标签名
+ * @return true 如果标志的值为“true”，则返回true
+ * @return false 如果标志的值不为“true”，则返回false
  */
-bool Flagset:: GetBool(string name){
+bool Flagset::GetBool(string name){
     try
     {
-        if(getFlagType(name,"bool")=="true"){
-            return true;
-        }else{
-            return false;
-        }
+        // 获取标志的值，并将其转换为小写
+        string val = getFlagType(name, "bool");
+        std::transform(val.begin(), val.end(), val.begin(), ::tolower);
+        
+        // 如果标志的值为“true”，则返回true，否则返回false
+        return (val == "true");
     }
     catch(const myerror& e)
     {
@@ -419,6 +420,18 @@ vector<string> Flagset::GetStringArray(string name){
     try
     {
         string val=getFlagType(name,"stringArray");
+        auto sval=val.substr(1,val.size()-2);
+        return SplitStringBySpaces(sval);
+    }
+    catch(const myerror& e)
+    {
+        throw;
+    }
+}
+vector<string> Flagset::GetStringSlice(string name){
+    try
+    {
+        string val=getFlagType(name,"stringSlice");
         auto sval=val.substr(1,val.size()-2);
         return SplitStringBySpaces(sval);
     }

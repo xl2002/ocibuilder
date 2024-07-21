@@ -76,6 +76,17 @@ Flagset* Getbuildflags(BudResults* br){
     flags->BoolVar(br->Squash, "squash", false, "squash all image layers into a single layer");
     flags->StringSliceVar(br->UnsetEnvs, "unsetenv",  vector<string>(), "unset environment variable from final image");
 	flags->StringSliceVar(br->UnsetLabels, "unsetlabel",  vector<string>(), "unset label when inheriting labels from base image");
+    flags->BoolVar(br->TLSVerify, "tls-verify", true, "require HTTPS and verify certificates when accessing the registry");
+    flags->BoolVar(br->NoHostname, "no-hostname", false, "do not create new /etc/hostname file for RUN instructions, use the one from the base image.");
+    flags->BoolVar(br->NoHosts, "no-hosts", false, "do not create new /etc/hosts file for RUN instructions, use the one from the base image.");
+    flags->StringSliceVar( br->AddHost, "add-host", vector<string>(), "add a custom host-to-IP mapping (`host:ip`) (default [])");
+    flags->StringArrayVar( br->Secrets, "secret",  vector<string>(), "secret file to expose to the build") ;
+    flags->StringArrayVar( br ->SSH, "ssh",  vector<string>(), "SSH agent socket or keys to expose to the build. (format: default|<id>[=<socket>|<key>[,<key>]])");
+    
+    
+    
+    
+    
     return flags;
 }
 
@@ -112,7 +123,7 @@ Flagset* GetFromAndBudFlags(FromAndBudResults* fr){
 	// flags->StringSliceVar(fr->DNSServers, "dns", defaultContainerConfig.Containers.DNSServers.Get(), "set custom DNS servers or disable it completely by setting it to 'none', which prevents the automatic creation of `/etc/resolv.conf`.");
 	// flags->StringSliceVar(fr->DNSOptions, "dns-option", defaultContainerConfig.Containers.DNSOptions.Get(), "set custom DNS options");
 	flags->BoolVar(fr->HTTPProxy, "http-proxy", true, "pass through HTTP Proxy environment variables");
-	// flags->StringVar(fr->Isolation, "isolation", DefaultIsolation(), "`type` of process isolation to use. Use BUILDAH_ISOLATION environment variable to override.");
+	flags->StringVar(fr->Isolation, "isolation", "oci", "`type` of process isolation to use. Use BUILDAH_ISOLATION environment variable to override.");
 	flags->StringVar(fr->Memory, "memory","","memory limit (format: <number>[<unit>], where unit = b, k, m or g)");
 	flags->StringVar(fr->MemorySwap, "memory-swap", "", "swap limit equal to memory plus swap: '-1' to enable unlimited swap");
 	flags->IntVar(fr->Retry, "retry", 3, "number of times to retry in case of failure when performing push/pull");

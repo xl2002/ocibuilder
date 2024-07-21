@@ -66,11 +66,12 @@ void GenBuildOptions(Command* cmd, vector<string> inputArgs,BuildOptions* iopts,
                 removeAll.emplace_back(tempDir);
                 contextDir=JoinPath(tempDir,subDir);
             }else{
-                char fullPath[MAX_PATH];
-                if(_fullpath(fullPath,cliArgs[0].c_str(),MAX_PATH)!=nullptr){
-                    throw myerror ("Failed to get absolute path");
-                }
-                contextDir=string(fullPath);
+                // char fullPath[MAX_PATH];
+                // if(_fullpath(fullPath,cliArgs[0].c_str(),MAX_PATH)==nullptr){
+                //     throw myerror ("Failed to get absolute path");
+                // }
+                // contextDir=string(fullPath);
+                contextDir=Abspath(cliArgs[0]);
             }
 
         }

@@ -58,6 +58,7 @@ struct BudResults{
     bool                Stdin;
     string              BuildOutput;
     string              Target;
+    bool                TLSVerify=false;
     vector<string>      OSFeatures;
     string              OSVersion;
     string              SignBy;
@@ -66,7 +67,11 @@ struct BudResults{
     bool                Squash=false;
     vector<string>      UnsetEnvs;
     vector<string>      UnsetLabels;
-
+    bool                NoHostname=false;
+    bool                NoHosts=false;
+    vector<string>      AddHost;
+    vector<string>      Secrets;
+    vector<string>      SSH;
 };
 /**
  * @brief LayerResults 表示层标志的结果

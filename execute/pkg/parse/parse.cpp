@@ -79,10 +79,10 @@ shared_ptr< SystemContext> SystemContextFromOptions(Command* c){
         if(c->Flag_find("tls-verify")->changed){
 
         }
-        bool insecure= flags->GetBool("insecure");
-        if(c->Flag_find("insecure")->changed){
+        // bool insecure= flags->GetBool("insecure");
+        // if(c->Flag_find("insecure")->changed){
 
-        }
+        // }
         bool disableCompression= flags->GetBool("disable-compression");
         if(disableCompression){
             ctx->OCIAcceptUncompressedLayers=true;
@@ -178,9 +178,9 @@ shared_ptr<Isolation> IsolationOption(string isolation){
 
 shared_ptr<CommonBuildOptions> CommonbuildOptions(Command* cmd){
     auto flags=cmd->Flags();
-    int64_t memoryLimit;
-    int64_t memorySwap;
-    bool noDNS;
+    int64_t memoryLimit=0;
+    int64_t memorySwap=0;
+    bool noDNS=false;
     auto memVal=flags->GetString("memory");
     if(!memVal.empty()){
 
@@ -191,7 +191,7 @@ shared_ptr<CommonBuildOptions> CommonbuildOptions(Command* cmd){
     }
     auto noHostname= flags->GetBool("no-hostname");
     auto noHosts= flags->GetBool("no-hosts");
-    auto addHost=flags->GetStringArray("add-host");
+    auto addHost=flags->GetStringSlice("add-host");
     if(!addHost.empty()){
 
     }

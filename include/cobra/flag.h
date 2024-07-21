@@ -96,6 +96,7 @@ class Flagset{
     bool GetBool(string name);
     string GetString(string name);
     vector<string>GetStringArray(string name);
+    vector<string> GetStringSlice(string name);
     uint64_t GetUint64(string name);
     int64_t GetInt64(string name);
     vector<string> Args();

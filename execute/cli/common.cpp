@@ -12,6 +12,7 @@
 #include "define/types.h"
 #include <cstdlib>
 #include <algorithm>
+#include <windows.h>
 /**
  * @brief 要围绕分隔符的第一个实例进行分割.
  * 
@@ -153,4 +154,11 @@ std::vector<std::string> LookupEnvVarReferences(const std::vector<std::string>& 
     }
 
     return result;
+}
+string Abspath(string path){
+    char fullPath[MAX_PATH];
+    if(_fullpath(fullPath,path.c_str(),MAX_PATH)==nullptr){
+        throw myerror ("Failed to get absolute path");
+    }
+    return string(fullPath);
 }
