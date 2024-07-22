@@ -1,19 +1,14 @@
 #include "define/pull.h"
 
 
+/**
+ * @brief 将 Pull_Policy 类型转换为字符串类型
+ * 
+ * @param value Pull_Policy 类型
+ * @return string 转换后的字符串
+ * @throws std::cerr 如果 value 不是 Pull_Policy 类型中的有效值，则抛出错误信息
+ */
 string PullPolicy::String(){
-    // if(value==Pull_Policy::PullIfMissing){
-    //     return "missing";
-    // }else if(value==Pull_Policy::PullAlways){
-    //     return "always";
-    // }else if(value==Pull_Policy::PullIfNewer){
-    //     return "ifnewer";
-    // }else if(value==Pull_Policy::PullNever){
-    //     return "nerver";
-    // }else{
-    //     std::cerr<<"unrecognized policy "<<value<<std::endl;
-    //     return "";
-    // }
     switch(value) {
             case PullIfMissing:
                 return "missing";

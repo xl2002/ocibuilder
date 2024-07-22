@@ -11,6 +11,18 @@
 #include <chrono>
 vector<string> getContainerfiles(vector<string> files);
 
+/**
+ * @brief 生成给定命令的构建选项。
+ *
+ * @param cmd 命令。
+ * @param inputArgs 输入参数。
+ * @param iopts 构建选项。
+ * @param options 指向构建选项的共享指针。
+ * @param ret_containerfiles 存储容器文件的向量。
+ * @param removeAll 存储要删除的文件的向量。
+ *
+ *@throws myerror 如果发生错误。
+ */
 void GenBuildOptions(Command* cmd, vector<string> inputArgs,BuildOptions* iopts, shared_ptr<define_BuildOptions> options, vector<string>& ret_containerfiles,vector<string>& removeAll){
     string output;
     vector<string> tags;
@@ -231,14 +243,20 @@ void GenBuildOptions(Command* cmd, vector<string> inputArgs,BuildOptions* iopts,
     }
     return;
 }
-vector<string> getContainerfiles(vector<string> files){
-    vector<string>ret_containerfiles;
-    for(auto it:files){
-        if(it=="-"){
+/**
+ * @brief getContainerfiles 函数将命令行参数转换为容器文件
+ * @param files 命令行参数
+ * @return vector<string> 容器文件
+ */
+vector<string> getContainerfiles(vector<string> files) {
+    vector<string> ret_containerfiles;
+    for (auto it : files) {
+        if (it == "-") {
             ret_containerfiles.emplace_back("D://");
-        }else{
+        } else {
             ret_containerfiles.emplace_back(it);
         }
     }
     return ret_containerfiles;
 }
+

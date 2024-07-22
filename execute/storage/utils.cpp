@@ -43,9 +43,15 @@ StoreOptions DefaultStoreOptions(){
     return ret;
 }
 /**
- * @brief 实现 DefaultConfigFile 函数
+ * @brief 获取默认配置文件路径
+ * 该函数用于获取默认的配置文件路径，优先级为：
+ * 1. 检查是否已经设置了默认配置文件，如果设置则返回
+ * 2. 通过环境变量获取路径，如果环境变量存在则返回
+ * 3. 如果不使用用户个人存储，则检查默认覆盖配置文件，如果存在则返回
+ * 4. 检查 XDG_CONFIG_HOME 环境变量，如果存在则返回
+ * 5. 获取用户家目录并拼接默认配置文件路径，如果无法获取则抛出异常
  * 
- * @return std::string 返回config文件路径
+ * @return std::string 返回默认配置文件路径
  */
 std::string DefaultConfigFile() {
     // 检查是否已经设置了默认配置文件
@@ -81,16 +87,21 @@ std::string DefaultConfigFile() {
     return home + "/containers/storage.conf";
 }
 
+
 /**
- * @brief 获取主目录对象
+ * @brief 获取用户家目录对象
+ * 该函数用于获取用户家目录的路径，并返回字符串类型的路径
+ * 该函数并不直接返回实际的家目录路径，而是返回一个占位符"D:/"，
+ * 实际的家目录路径需要通过实际的用户家目录获取方法替换该占位符
  * 
- * @return std::string 
+ * @return std::string 返回用户家目录路径
  */
 std::string getHomeDir() {
     return "D:/"; // 替换为实际的用户家目录获取方法
 }
 /**
  * @brief 获取环境变量 XDG_CONFIG_HOME
+ * 该函数用于获取环境变量 XDG_CONFIG_HOME 的值
  * 
  * @return std::string 
  */
@@ -98,18 +109,25 @@ std::string getConfigHome() {
     return std::getenv("XDG_CONFIG_HOME") ? std::getenv("XDG_CONFIG_HOME") : "";
 }
 /**
- * @brief 判断是否使用用户个人存储
+ * @brief 检查是否使用用户个人存储
  * 
- * @return true 
- * @return false 
+ * 该函数用于检查是否应该使用用户个人存储。由于目前的实现中始终返回 true，
+ * 因此始终使用用户个人存储。
+ * 
+ * @return true 始终返回 true，表示使用用户个人存储
+ * @return false 永远不会返回 false，因为当前的实现始终返回 true
  */
 bool usePerUserStorage() {
     return true; // 假设始终使用用户个人存储
 }
+
 /**
- * @brief 实现 loadStoreOptions 函数
+ * @brief 加载存储选项，获取默认配置文件路径并加载存储选项。
+ * 获取默认配置文件路径时，如果出现错误，则捕获并返回错误。
+ * 加载存储选项时，使用获取到的配置文件路径。
  * 
- * @return std::string 
+ * @return StoreOptions 存储选项对象
+ * @throws myerror 获取默认配置文件路径时出现错误
  */
 StoreOptions loadStoreOptions() {
     // 获取默认配置文件路径
@@ -119,16 +137,16 @@ StoreOptions loadStoreOptions() {
     } catch (const myerror& e) {
         // 捕获并返回错误
         throw myerror(e.what());
-        // return defaultStoreOptions;
     }
     // 加载存储选项
     return loadStoreOptionsFromConfFile(storageConf);
 }
 /**
- * @brief 加载存储选项
+ * @brief 从配置文件加载存储选项，配置文件路径为参数storageConf，
+ * 并将存储选项的GraphRoot设置为storageConf，然后返回这个存储选项对象。
  * 
- * @param storageConf 
- * @return StoreOptions 
+ * @param storageConf 配置文件路径
+ * @return StoreOptions 存储选项对象
  */
 StoreOptions loadStoreOptionsFromConfFile(const std::string& storageConf){
     defaultStoreOptions.GraphRoot=storageConf;

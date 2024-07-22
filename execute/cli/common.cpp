@@ -14,12 +14,12 @@
 #include <algorithm>
 #include <windows.h>
 /**
- * @brief 要围绕分隔符的第一个实例进行分割.
+ * @brief 根据分隔符对字符串进行拆分，最多拆分max_splits-1次，返回一个包含拆分结果的vector<string>。
  * 
- * @param str 
- * @param delimiter 
- * @param max_splits 
- * @return vector<string> 
+ * @param str 要进行拆分的字符串
+ * @param delimiter 拆分字符串的分隔符
+ * @param max_splits 最多拆分次数，默认为-1，表示拆分所有实例
+ * @return vector<string> 一个包含拆分结果的string向量
  */
 vector<string> SplitN(const string& str, const string& delimiter, size_t max_splits) {
     vector<string> result;
@@ -39,6 +39,7 @@ vector<string> SplitN(const string& str, const string& delimiter, size_t max_spl
 }
 /**
  * @brief 将字符串解析成布尔类型
+ * 将字符串解析成布尔类型，字符串的值可能是 true, false, 1, 0, t, f
  * 
  * @param str 
  * @return string 
@@ -56,10 +57,22 @@ string ParseBool(string str){
     return "false";
 }
 
+/**
+ * @brief 根据命令 cmd 获取对应的 store 对象
+ * @param cmd 命令
+ * @return shared_ptr<store> store 对象
+ */
 shared_ptr<store> getStore(Command* cmd){
     return make_shared<store>();
 }
 
+/**
+ * @brief 根据镜像类型获取对应的 manifest 类型
+ * 
+ * @param format 镜像类型
+ * @return string manifest 类型
+ * @throws myerrormirror image type
+ */
 string GetFormat(string format){
     if(format==OCI){
         return OCIv1ImageManifest;
@@ -86,6 +99,9 @@ bool UseLayers(){
  * @param path1 第一个路径字符串
  * @param path2 第二个路径字符串
  * @return 连接后的路径字符串
+ * 
+ * 该函数将两个路径字符串连接在一起，确保路径之间没有多余的分隔符。
+ * 例如，JoinPath("a", "b") 将返回 "a/b"，而不是 "a//b"。
  */
 std::string JoinPath(const std::string& path1, const std::string& path2) {
     char sep = '/'; // 使用 '/' 作为分隔符
@@ -105,6 +121,7 @@ std::string JoinPath(const std::string& path1, const std::string& path2) {
 
     return result;
 }
+
 
 /**
  * @brief DecryptConfigs 根据解密密钥构造一个 DecryptConfig 对象。
@@ -183,7 +200,7 @@ string Abspath(string path){
     // 如果获取绝对路径失败，_fullpath 返回 nullptr
     if(_fullpath(fullPath,path.c_str(),MAX_PATH)==nullptr){
         // 如果获取绝对路径失败，抛出一个 myerror 异常，并提供错误信息
-        throw myerror ("获取绝对路径失败");
+        throw myerror ("Failed to obtain the absolute path. ");
     }
     // 返回绝对路径
     return string(fullPath);

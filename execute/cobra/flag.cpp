@@ -324,6 +324,11 @@ Flag* Flagset::Lookup(const string& name){
         return nullptr;
     }
 }
+/**
+ * @brief 判断指定的标志是否发生了变化
+ * @param name 标志的名称
+ * @return true 如果标志发生了变化； false 如果标志未发生变化
+ */
 bool Flagset:: Changed(string name ) {
 	auto flag = Lookup(name);
 	// If a flag doesn't exist, it wasn't changed....
@@ -393,18 +398,28 @@ bool Flagset::GetBool(string name){
         throw;
     }
 }
-string Flagset::GetString(string name){
-    try
-    {
-        string val=getFlagType(name,"string");
+/**
+ * @brief 获取字符串对象
+ * 
+ * @param name 标签名
+ * @return 标志的值
+ * @throws myerror 标志未定义或类型不匹配时抛出异常
+ */
+string Flagset::GetString(string name) {
+    try {
+        string val = getFlagType(name, "string");
         return val;
-    }
-    catch(const myerror& e)
-    {
+    } catch (const myerror& e) {
         throw;
     }
-    
 }
+/**
+ * @brief 将字符串按空格分割成字符串数组
+ * 
+ * @param input 输入字符串
+ * @return std::vector<std::string> 分割后的字符串数组
+ * @throws None 不会抛出异常
+ */
 std::vector<std::string> SplitStringBySpaces(const std::string& input) {
     std::vector<std::string> result;
     std::istringstream iss(input);
@@ -416,6 +431,16 @@ std::vector<std::string> SplitStringBySpaces(const std::string& input) {
 
     return result;
 }
+/**
+ * @brief 获取字符串数组对象
+ * 
+ * @param name 标签名
+ * @return std::vector<std::string> 标志的值
+ * @throws myerror 标志未定义或类型不匹配时抛出异常
+ * 
+ * @details 该函数通过调用getFlagType函数获取标志的值，并将其按空格分割成字符串数组。
+ * 分割函数为SplitStringBySpaces。
+ */
 vector<string> Flagset::GetStringArray(string name){
     try
     {
@@ -428,6 +453,16 @@ vector<string> Flagset::GetStringArray(string name){
         throw;
     }
 }
+/**
+ * @brief 获取字符串片段对象
+ * 
+ * @param name 标签名
+ * @return std::vector<std::string> 标志的值
+ * @throws myerror 标志未定义或类型不匹配时抛出异常
+ * 
+ * @details 该函数通过调用getFlagType函数获取标志的值，并将其按空格分割成字符串数组。
+ * 分割函数为SplitStringBySpaces。
+ */
 vector<string> Flagset::GetStringSlice(string name){
     try
     {
@@ -440,6 +475,13 @@ vector<string> Flagset::GetStringSlice(string name){
         throw;
     }
 }
+/**
+ * @brief 获取uint64_t类型的标志值
+ * 
+ * @param name 标志名
+ * @return uint64_t 标志值
+ * @throws myerror 标志未定义或类型不匹配时抛出异常
+ */
 uint64_t Flagset::GetUint64(string name){
     try
     {

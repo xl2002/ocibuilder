@@ -6,6 +6,11 @@ const string
 	darwin  = "darwin",
 	freebsd = "freebsd";
 
+/**
+ * @brief 将Isolation枚举为字符串
+ * 
+ * @return string 
+ */
 string Isolation::String(){
     if(value==IsolationDefault||value==IsolationOCI){
         return "oci";
@@ -19,6 +24,11 @@ string Isolation::String(){
     }
 }
 
+/**
+ * @brief 将Compression枚举为字符串
+ * 
+ * @return string 返回对应的压缩文件扩展名
+ */
 string Compression::String(){
     if(value==Uncompressed){
         return tarExt;
@@ -35,6 +45,15 @@ string Compression::String(){
         return "";
     }
 }
+/**
+ * @brief 将NetworkConfigurationPolicy枚举转换为字符串
+ * 
+ * @return string 返回对应的字符串表示
+ * 
+ * - NetworkDefault: 默认网络配置
+ * - NetworkDisabled: 禁用网络
+ * - NetworkEnabled: 启用网络
+ */
 string NetworkConfigurationPolicy::String(){
     if(value==NetworkDefault){
         return "NetworkDefault";

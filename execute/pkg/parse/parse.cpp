@@ -23,6 +23,13 @@ TypeCache = "cache",
 // 以下目录的生命周期将继承主机如何处理临时目录的方式
 BuildahCacheDir = "buildah-cache";
 
+/**
+ * @brief 根据命令的标志来确定 pull 策略
+ * 
+ * @param c 命令对象
+ * @return PullPolicy pull 策略
+ * @throws myerror 如果标志之间存在冲突，将抛出错误信息
+ */
 PullPolicy PullPolicyFromOptions(Command* c){
     Flagset* flags=c->Flags();
     int pullFlagsCount=0;
@@ -65,6 +72,13 @@ PullPolicy PullPolicyFromOptions(Command* c){
     return PullPolicy(pullPolicy);
 }
 
+/**
+ * @brief 根据命令的标志来生成SystemContext
+ *
+ * @param c 命令对象
+ * @return shared_ptr<SystemContext> SystemContext对象
+ * @throws myerror 如果标志之间存在冲突，将抛出错误信息
+ */
 shared_ptr< SystemContext> SystemContextFromOptions(Command* c){
     Flagset* flags=c->Flags();
     // SystemContext* ctx=new SystemContext();
@@ -135,6 +149,10 @@ shared_ptr< SystemContext> SystemContextFromOptions(Command* c){
     
     return ctx;
 }
+/**
+ * @brief 获取临时目录
+ * @return string 临时目录的路径
+ */
 std::string GetTempDir() {
     // try {
     //     std::string tmpdir = GetEnvVar("TMPDIR");
@@ -159,6 +177,11 @@ std::string GetTempDir() {
     return "D:/tmp";
 }
 
+/**
+ * @brief 将字符串表示的Isolation类型转换为Isolation枚举
+ * @param isolation 字符串表示的Isolation类型
+ * @return shared_ptr<Isolation> Isolation枚举
+ */
 shared_ptr<Isolation> IsolationOption(string isolation){
     if(!isolation.empty()){
         transform(isolation.begin(),isolation.end(),isolation.begin(),::tolower);
@@ -176,6 +199,11 @@ shared_ptr<Isolation> IsolationOption(string isolation){
     }
 }
 
+/**
+ * @brief 将命令的标志转换为CommonBuildOptions对象
+ * @param cmd 命令指针
+ * @return shared_ptr<CommonBuildOptions> CommonBuildOptions对象
+ */
 shared_ptr<CommonBuildOptions> CommonbuildOptions(Command* cmd){
     auto flags=cmd->Flags();
     int64_t memoryLimit=0;
@@ -258,6 +286,13 @@ shared_ptr<CommonBuildOptions> CommonbuildOptions(Command* cmd){
     return commonOpts;
 }
 
+/**
+ * @brief 解析安全选项
+ * @details 解析传入的安全选项，并将解析结果设置到CommonBuildOptions中
+ * @param securityOpts 安全选项的字符串数组
+ * @param commonOpts CommonBuildOptions的指针
+ * @throws 无
+ */
 void parseSecurityOpts(vector<string> securityOpts,shared_ptr<CommonBuildOptions> commonOpts){
     for(auto it:securityOpts){
         
@@ -275,6 +310,13 @@ void parseSecurityOpts(vector<string> securityOpts,shared_ptr<CommonBuildOptions
     }
 }
 
+/**
+ * @brief 该函数将Command指针cmd和NetworkConfigurationPolicy的引用networkPolicy作为参数
+ *        并将Command的Flags()结果转换为NamespaceOptions智能指针
+ * @param cmd Command指针
+ * @param networkPolicy NetworkConfigurationPolicy的引用
+ * @return NamespaceOptions智能指针
+ */
 shared_ptr<NamespaceOptions> Namespaceoptions(Command* cmd,NetworkConfigurationPolicy& networkPolicy){
     auto flags=cmd->Flags();
     auto options=make_shared<NamespaceOptions>();
@@ -287,6 +329,13 @@ shared_ptr<NamespaceOptions> Namespaceoptions(Command* cmd,NetworkConfigurationP
     return options;
 }
 
+/**
+ * @brief 将ID映射的字符串数组转换为std::vector<std::array<uint32_t, 3>>对象
+ *
+ * @param spec ID映射的字符串数组
+ *
+ * @return std::vector<std::array<uint32_t, 3>>对象
+ */
 std::vector<std::array<uint32_t, 3>> parseIDMap(const std::vector<std::string>& spec) {
     std::vector<std::array<uint32_t, 3>> m;
     m.reserve(spec.size());
@@ -410,6 +459,13 @@ shared_ptr<NamespaceOptions> idmappingOptions(Command* cmd,shared_ptr<Isolation>
     return make_shared<NamespaceOptions>(usernsOptions);
 }
 
+/**
+ * @brief 从命令行标志中获取平台列表
+ * 
+ * @param cmd 命令对象
+ * @return std::vector<platforms> 平台列表
+ * @throws myerror 如果标志之间存在冲突，将抛出错误信息
+ */
 std::vector<platforms> PlatformsFromOptions(Command* cmd){
     std::string os,arch,variant;
     if(cmd->Flag_find("os")->changed){

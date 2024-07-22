@@ -102,6 +102,7 @@ Flagset* GetLayerFlags(LayerResults* lr){
 	flags->BoolVar(lr->Layers, "layers", true, "use intermediate layers during build. Use BUILDAH_LAYERS environment variable to override.");
     return flags;
 }
+
 Flagset* GetFromAndBudFlags(FromAndBudResults* fr){
     Flagset* flags=new Flagset();
     flags->StringSliceVar(fr->AddHost, "add-host", vector<string>(), "add a custom host-to-IP mapping (`host:ip`) (default [])");
@@ -139,27 +140,56 @@ Flagset* GetFromAndBudFlags(FromAndBudResults* fr){
 
     return flags;
 }
+
+/**
+ * @brief 获取命名空间标志对象
+ * 
+ * @param ur 命名空间结果
+ * @return Flagset* 命名空间标志对象
+ *
+ * @details
+ * - group-add: 添加其他组到主容器进程
+ * - userns: 用户命名空间
+ * - userns-uid-map: 用户命名空间 UID 映射
+ * - userns-gid-map: 用户命名空间 GID 映射
+ * - userns-uid-map-user: 从 /etc/subuid 中选择 UID 映射
+ * - userns-gid-map-group: 从 /etc/subgid 中选择 GID 映射
+ */
 Flagset* GetUserNSFlags(UserNSResults* ur){
     Flagset* flags=new Flagset();
-	flags->StringSliceVar(ur->GroupAdd, "group-add", vector<string>(), "add additional groups to the primary container process. 'keep-groups' allows container processes to use supplementary groups.");
-	flags->StringVar(ur->UserNS, "userns", "", "'container', `path` of user namespace to join, or 'host'");
-	flags->StringSliceVar(ur->UserNSUIDMap, "userns-uid-map", vector<string>(), "`containerUID:hostUID:length` UID mapping to use in user namespace");
-	flags->StringSliceVar(ur->UserNSGIDMap, "userns-gid-map", vector<string>(), "`containerGID:hostGID:length` GID mapping to use in user namespace");
-	flags->StringVar(ur->UserNSUIDMapUser, "userns-uid-map-user", "", "`name` of entries from /etc/subuid to use to set user namespace UID mapping");
-	flags->StringVar(ur->UserNSGIDMapGroup, "userns-gid-map-group", "", "`name` of entries from /etc/subgid to use to set user namespace GID mapping");
+    flags->StringSliceVar(ur->GroupAdd, "group-add", vector<string>(), "add additional groups to the primary container process. 'keep-groups' allows container processes to use supplementary groups.");
+    flags->StringVar(ur->UserNS, "userns", "", "'container', `path` of user namespace to join, or 'host'");
+    flags->StringSliceVar(ur->UserNSUIDMap, "userns-uid-map", vector<string>(), "`containerUID:hostUID:length` UID mapping to use in user namespace");
+    flags->StringSliceVar(ur->UserNSGIDMap, "userns-gid-map", vector<string>(), "`containerGID:hostGID:length` GID mapping to use in user namespace");
+    flags->StringVar(ur->UserNSUIDMapUser, "userns-uid-map-user", "", "`name` of entries from /etc/subuid to use to set user namespace UID mapping");
+    flags->StringVar(ur->UserNSGIDMapGroup, "userns-gid-map-group", "", "`name` of entries from /etc/subgid to use to set user namespace GID mapping");
     return flags;
 }
+/**
+ * @brief 获取命名空间标志对象
+ * 
+ * @param nr 命名空间结果
+ * @return Flagset* 命名空间标志对象
+ * 
+ * - Cgroup: cgroup 命名空间
+ * - IPC: IPC 命名空间
+ * - Network: 网络 命名空间
+ * - CNIConfigDir: CNI 配置目录
+ * - CNIPlugInPath: CNI 插件路径
+ * - PID: 进程 命名空间
+ * - UTS: 主机 命名空间
+ */
 Flagset* GetNameSpaceFlags(NameSpaceResults* nr){
     Flagset* flags=new Flagset();
-    flags->StringVar(nr->Cgroup, "cgroupns", "", "'private', or 'host'");
-    flags->StringVar(nr->IPC, "ipc", "", "'private', `path` of IPC namespace to join, or 'host'");
-	flags->StringVar(nr->Network, "network", "", "'private', 'none', 'ns:path' of network namespace to join, or 'host'");
-	flags->StringVar(nr->CNIConfigDir, "cni-config-dir", "", "`directory` of CNI configuration files");
-	flags->MarkHidden("cni-config-dir");
-	flags->StringVar(nr->CNIPlugInPath, "cni-plugin-path", "", "`path` of CNI network plugins");
-	flags->MarkHidden("cni-plugin-path");
-	flags->StringVar(nr->PID, "pid", "", "private, `path` of PID namespace to join, or 'host'");
-	flags->StringVar(nr->UTS, "uts", "", "private, :`path` of UTS namespace to join, or 'host'");
+    flags->StringVar(nr->Cgroup, "cgroupns", "", "'private', or 'host'"); // cgroup 命名空间
+    flags->StringVar(nr->IPC, "ipc", "", "'private', `path` of IPC namespace to join, or 'host'"); // IPC 命名空间
+    flags->StringVar(nr->Network, "network", "", "'private', 'none', 'ns:path' of network namespace to join, or 'host'"); // 网络 命名空间
+    flags->StringVar(nr->CNIConfigDir, "cni-config-dir", "", "`directory` of CNI configuration files"); // CNI 配置目录
+    flags->MarkHidden("cni-config-dir");
+    flags->StringVar(nr->CNIPlugInPath, "cni-plugin-path", "", "`path` of CNI network plugins"); // CNI 插件路径
+    flags->MarkHidden("cni-plugin-path");
+    flags->StringVar(nr->PID, "pid", "", "private, `path` of PID namespace to join, or 'host'"); // 进程 命名空间
+    flags->StringVar(nr->UTS, "uts", "", "private, :`path` of UTS namespace to join, or 'host'"); // 主机 命名空间
     return flags;
 }
 /**
@@ -188,15 +218,6 @@ void init_buildcmd(){
     Flagset* flags=build_Command->Flags();
     flags->SetInterspersed(false);
     BuildOptions* br=new BuildOptions();
-    // BudResults* buildFlagResults=new BudResults();
-    // LayerResults* layerFlagsResults=new LayerResults();
-    // FromAndBudResults* fromAndBudResults=new FromAndBudResults();
-    // UserNSResults* userNSResults=new UserNSResults();
-    // NameSpaceResults* namespaceResults=new NameSpaceResults();
-    // BuildOptions* br=new BuildOptions(buildFlagResults,layerFlagsResults,fromAndBudResults,userNSResults);
-    
-    // br->br=std::make_shared<BudResults>(buildFlagResults);
-    // br->br=buildFlagResults;
     Flagset* buildflags=Getbuildflags(br);
     Flagset* layerFlags=GetLayerFlags(br);
     Flagset* fromAndBudFlags=GetFromAndBudFlags(br);
@@ -225,17 +246,21 @@ void init_buildcmd(){
 void buildCmd(Command& cmd, vector<string> args,BuildOptions* iopts){
     try {
         cout<<"hello buildah-build!"<<endl;
+        // 打开日志文件
         if(cmd.Flag_find("logfile")->changed){
             iopts->logwriter->open(iopts->Logfile,std::ios::out | std::ios::trunc);
             if(!iopts->logwriter){
                 throw myerror("Failed to open log file: " + iopts->Logfile);
             }
         }
-        // define_BuildOptions* budopt=new define_BuildOptions();
+        // 定义构建选项
         auto budopt=make_shared<define_BuildOptions>();
+        // 存储容器文件和要删除的文件
         vector<string> ret_containerfiles;
         vector<string> removeAll;
+        // 生成构建选项
         GenBuildOptions(&cmd,args,iopts,budopt,ret_containerfiles,removeAll);
+        // 定义删除临时文件的lambda函数
         auto remove_temp_files = [&removeAll]() {
             for (const auto& f : removeAll) {
                 RemoveAll(f);
@@ -243,7 +268,7 @@ void buildCmd(Command& cmd, vector<string> args,BuildOptions* iopts){
             return;
         };
         budopt->DefaultMountsFilePath=globalFlagOptions.DefaultMountsFile;
-        // auto stores=new store();
+        // 获取存储对象
         auto stores=make_shared<store>();
         try {
             stores =getStore(&cmd);
@@ -253,9 +278,9 @@ void buildCmd(Command& cmd, vector<string> args,BuildOptions* iopts){
         }
 
         string id;
-        // auto ref=new canonical();
         auto ref=make_shared<canonical>();
         try {
+            // 构建Dockerfile
             id= BuildDockerfiles(stores, budopt, ret_containerfiles,ref);
             if (!budopt->Manifest.empty()) {
                 throw myerror("manifest list id = " + id + ", ref = " + ref->String());
@@ -269,7 +294,6 @@ void buildCmd(Command& cmd, vector<string> args,BuildOptions* iopts){
         remove_temp_files();
 
     } catch (const myerror& e) {
-        // std::cerr << "Error: " << e.what() << std::endl;
         throw;
     }
 }
@@ -295,6 +319,14 @@ string UsageTemplate(){
     return str;
 }
 
+/**
+ * @brief 删除一个目录或文件
+ * 
+ * 该函数用于删除一个目录或文件。如果是一个目录，
+ * 该函数将递归删除目录下的所有文件和子目录。
+ * 
+ * @param path 路径
+ */
 void RemoveAll(const std::string& path) {
     struct stat path_stat;
     if (stat(path.c_str(), &path_stat) != 0) {

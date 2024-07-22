@@ -606,7 +606,13 @@ Command* Command::findNext(string next){
     return nullptr;
 }
 /**
- * @brief 根据解析出的参数执行命令
+ * @brief 执行命令
+ * 
+ * @details 根据解析出的参数执行命令。该函数首先执行InitDefaultHelpFlag()和InitDefaultVersionFlag()函数，然后解析参数flags。如果解析出的help标志为true，则直接返回。如果命令不可执行，则直接返回。
+ * 
+ * 接下来，遍历所有的父命令，如果其中存在PersistentPreRun函数，则执行该函数。然后执行PreRun函数，如果有的话。然后执行ValidateRequiredFlags()和ValidateFlagGroups()函数，最后执行Run函数。
+ * 
+ * 如果Run函数执行完成后，还有PostRun函数，则执行PostRun函数。最后，遍历所有的父命令，如果其中存在PersistentPostRun函数，则执行该函数。
  * 
  * @param args 参数列表
  */
@@ -814,6 +820,18 @@ void Command::VisitParents(const function<void(Command*)>& fn){
         Parent()->VisitParents(fn);
     }
 }
+/**
+ * @brief Flag_find 递归查找匹配的标志。
+ * 
+ * @param name 标志的名称
+ * @return Flag* 返回匹配的标志指针，如果没有找到，则为nullptr
+ * 
+ * @details 
+ * 首先在命令的标志集中查找匹配的标志。如果没有找到，则在命令的持久化标志集中查找匹配的标志。
+ * 
+ * @note 
+ * 如果在持久化标志集中找到匹配的标志，那么返回的标志指针的所有权属于持久化标志集。
+ */
 Flag* Command::Flag_find(string name){
     Flag* flag=Flags()->Lookup(name);
     if(flag==nullptr){
