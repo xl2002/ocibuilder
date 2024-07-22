@@ -1,35 +1,32 @@
 #include <iostream>
-#include <string>
-#include <array>
-#include <tuple>
-// #include "flag.h"
-using namespace std;
+#include <thread>
+#include <mutex>
+#include <condition_variable>
 
-class test{
-	public:
-	virtual tuple<string,bool> print()=0;
-};
-class Print:public test{
-	public:
-	int n;
-	Print(int n):n(n){};
-	tuple<string,bool> print() override{
-		cout<<"hello 纯虚函数"<<endl;
-		return make_tuple(string("hello"),true);
-	};
-};
+std::mutex mtx;
+std::condition_variable cv;
+bool ready = false;
 
-class a{
-	public:
-	test* t;
-	a(test *p):t(p){};
-};
+void print_id(int id) {
+    std::unique_lock<std::mutex> lock(mtx);
+    cv.wait(lock, []{ return ready; });
+    std::cout << "Thread ID: " << id << std::endl;
+}
 
-int main(int argc, char const *argv[])
-{
-	/* code */
-	Print p(3);
-	a var(&p);
-	auto [ret,Bool]= var.t->print();
-	return 0;
+void set_ready() {
+    std::unique_lock<std::mutex> lock(mtx);
+    ready = true;
+    cv.notify_all();
+}
+
+int main() {
+    std::thread t1(print_id, 1);
+    std::thread t2(print_id, 2);
+    
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    set_ready();
+    
+    t1.join();
+    t2.join();
+    return 0;
 }

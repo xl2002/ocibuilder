@@ -21,6 +21,7 @@ using std::endl;
  */
 class myerror:public std::exception {
     public:
+    myerror() = default;
     myerror(const std::string &message):message_(message) {};
 
     virtual const char* what() const noexcept override {
@@ -28,6 +29,9 @@ class myerror:public std::exception {
     }
     void logerror() const{
         cerr<<"Error: "<<what()<<endl;
+    }
+    void AddError(const std::string& err) {
+        message_ += err;
     }
     private:
     std::string message_;

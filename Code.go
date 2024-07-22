@@ -1,32 +1,33 @@
-#include <vector>
-#include <string>
-#include <algorithm>
+package multierror
 
-std::vector<std::string> LookupEnvVarReferences(const std::vector<std::string>& specs, const std::vector<std::string>& environ) {
-    std::vector<std::string> result;
-    result.reserve(specs.size());
+import "sync"
 
-    for (const auto& spec : specs) {
-        size_t pos = spec.find('=');
-        if (pos != std::string::npos) {
-            result.push_back(spec);
+// Group is a collection of goroutines which return errors that need to be
+// coalesced.
+class Group {
+public:
+    std::mutex mutex;
+    std::shared_ptr<Error> err;
+    std::condition_variable cv;
+    std::atomic<int> wg;
+};
 
-        } else if (spec == "*") {
-            result.insert(result.end(), environ.begin(), environ.end());
-
-        } else {
-            std::string prefix = spec + "=";
-            if (spec.back() == '*') {
-                prefix.pop_back();
-            }
-
-            for (const auto& env : environ) {
-                if (env.compare(0, prefix.size(), prefix) == 0) {
-                    result.push_back(env);
-                }
-            }
+void Group::Go(std::function<std::string()> f) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    futures_.emplace_back(std::async(std::launch::async, [this, f]() {
+        std::string err = f();
+        if (!err.empty()) {
+            std::lock_guard<std::mutex> lock(mutex_);
+            err_->AddError(err);
         }
-    }
+    }));
+    ++wg_;
+}
 
-    return result;
+// Wait方法阻塞，直到Go方法的所有函数调用返回，然后返回multierror。
+std::shared_ptr<myerror> Group::Wait() {
+    for (auto& future : futures_) {
+        future.wait();
+    }
+    return err_;
 }
