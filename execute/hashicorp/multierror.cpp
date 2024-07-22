@@ -23,7 +23,6 @@ void Group::Go(std::function<void()> f) {
             // 将错误信息添加到错误列表中
             err_->AddError(e.what());
         }
-
         // // 如果返回值不为空，则将错误信息添加到错误列表中
         // if (!err.empty()) {
         //     // 获取互斥锁，确保在多线程访问时安全
