@@ -56,8 +56,8 @@ string ParseBool(string str){
     return "false";
 }
 
-store* getStore(Command* cmd){
-    return new store();
+shared_ptr<store> getStore(Command* cmd){
+    return make_shared<store>();
 }
 
 string GetFormat(string format){
@@ -121,6 +121,17 @@ shared_ptr<DecryptConfig> DecryptConfigs(vector<string> decryptionKeys) {
 /**
  * @brief LookupEnvVarReferences 从 specs 中查找环境变量。
  * @param specs 一个环境变量规格的向量。
+ * 
+ * specs 中的每个元素可以是环境变量的规格，规格有两种形式：
+ * 1. 环境变量的名称 + "=" + 环境变量的值，例如："FOO=bar"。
+ * 2. 环境变量的前缀，例如："FOO="。
+ * 
+ * 如果 specs 中的元素是规格 1，则该元素会被添加到结果向量中。
+ * 如果 specs 中的元素是规格 2，并且环境中存在以该前缀开头的环境变量，
+ * 则以该前缀开头的所有环境变量都会被添加到结果向量中。
+ * 
+ * 如果 specs 中的元素是 "*"，则所有的环境变量都会被添加到结果向量中。
+ * 
  * @return 一个环境变量的向量。
  */
 std::vector<std::string> LookupEnvVarReferences(const std::vector<std::string>& specs) {
@@ -130,23 +141,23 @@ std::vector<std::string> LookupEnvVarReferences(const std::vector<std::string>& 
     for (const auto& spec : specs) {
         size_t pos = spec.find('=');
         if (pos != std::string::npos) {
-            // If the spec has an '=', it's a literal env var assignment.
+            // 如果 spec 有 '='，则是一个环境变量的规格，添加到结果向量中。
             result.push_back(spec);
 
         } else if (spec == "*") {
-            // If the spec is '*', use all environment variables.
+            // 如果 spec 是 '*'，则使用所有的环境变量。
             // result.insert(result.end(), environ.begin(), environ.end());
 
         } else {
             std::string prefix = spec + "=";
             if (spec.back() == '*') {
-                // If the spec ends with '*', strip it off for the prefix.
+                // 如果 spec 以 '*' 结尾，则去掉 '*' 作为前缀。
                 prefix.pop_back();
             }
 
             // for (const auto& env : environ) {
             //     if (env.compare(0, prefix.size(), prefix) == 0) {
-            //         // If the env var matches the prefix, add it to the result.
+            //         // 如果 env 以 prefix 开头，则添加到结果向量中。
             //         result.push_back(env);
             //     }
             // }
@@ -155,10 +166,26 @@ std::vector<std::string> LookupEnvVarReferences(const std::vector<std::string>& 
 
     return result;
 }
+/**
+ * @brief 获取给定路径的绝对路径
+ * 
+ * 该函数使用 C 函数 _fullpath 来获取给定路径的绝对路径。
+ * 如果获取绝对路径失败，会抛出一个 myerror 异常。
+ * 
+ * @param path 给定的路径
+ * @return 绝对路径
+ * @throws myerror 如果获取绝对路径失败
+ */
 string Abspath(string path){
+    // 定义一个大小为 MAX_PATH 的字符数组，用于存储绝对路径
     char fullPath[MAX_PATH];
+    // 使用 _fullpath 函数来获取给定路径的绝对路径，并将结果存储在 fullPath 中
+    // 如果获取绝对路径失败，_fullpath 返回 nullptr
     if(_fullpath(fullPath,path.c_str(),MAX_PATH)==nullptr){
-        throw myerror ("Failed to get absolute path");
+        // 如果获取绝对路径失败，抛出一个 myerror 异常，并提供错误信息
+        throw myerror ("获取绝对路径失败");
     }
+    // 返回绝对路径
     return string(fullPath);
 }
+

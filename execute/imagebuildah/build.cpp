@@ -1,5 +1,5 @@
 #include "imagebuildah/build.h"
-string BuildDockerfiles(Store* store, define_BuildOptions options,vector<string> paths,Canonical* ret_ref){
+string BuildDockerfiles(shared_ptr<store> stores, shared_ptr<define_BuildOptions> options,vector<string> paths,shared_ptr<Canonical> ret_ref){
     
     return "";
 }

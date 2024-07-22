@@ -231,7 +231,8 @@ void buildCmd(Command& cmd, vector<string> args,BuildOptions* iopts){
                 throw myerror("Failed to open log file: " + iopts->Logfile);
             }
         }
-        define_BuildOptions* budopt=new define_BuildOptions();
+        // define_BuildOptions* budopt=new define_BuildOptions();
+        auto budopt=make_shared<define_BuildOptions>();
         vector<string> ret_containerfiles;
         vector<string> removeAll;
         GenBuildOptions(&cmd,args,iopts,budopt,ret_containerfiles,removeAll);
@@ -242,18 +243,20 @@ void buildCmd(Command& cmd, vector<string> args,BuildOptions* iopts){
             return;
         };
         budopt->DefaultMountsFilePath=globalFlagOptions.DefaultMountsFile;
-        auto stores=new store();
+        // auto stores=new store();
+        auto stores=make_shared<store>();
         try {
-            stores = getStore(&cmd);
+            stores =getStore(&cmd);
         } catch (const myerror& e) {
             remove_temp_files();
             throw;
         }
 
         string id;
-        auto ref=new canonical();
+        // auto ref=new canonical();
+        auto ref=make_shared<canonical>();
         try {
-            id= BuildDockerfiles(stores, *budopt, ret_containerfiles,ref);
+            id= BuildDockerfiles(stores, budopt, ret_containerfiles,ref);
             if (!budopt->Manifest.empty()) {
                 throw myerror("manifest list id = " + id + ", ref = " + ref->String());
                 // std::cerr << "manifest list id = " << id << ", ref = " << ref << std::endl;
@@ -275,6 +278,7 @@ void buildCmd(Command& cmd, vector<string> args,BuildOptions* iopts){
  * 
  * @return string 返回模板的字符串
  */
+
 string UsageTemplate(){
     string str{"Usage:{{if .Runnable}}\
                 {{.UseLine}}{{end}}{{if .HasAvailableSubCommands}}\
@@ -290,19 +294,7 @@ string UsageTemplate(){
                 {{end}}"};
     return str;
 }
-// /**
-//  * @brief GenBuildOptions 将命令行标志转换为 BuildOptions 结构
-//  * 
-//  * @param cmd 
-//  * @param inputArgs 
-//  * @param iopts 
-//  * @param budopt 
-//  * @param ret_containerfiles 
-//  * @param removeAll 
-//  */
-// void GenBuildOptions(Command* cmd, vector<string> inputArgs,BuildOptions* iopts, define_BuildOptions* budopt, vector<string>& ret_containerfiles,vector<string>& removeAll){
 
-// }
 void RemoveAll(const std::string& path) {
     struct stat path_stat;
     if (stat(path.c_str(), &path_stat) != 0) {

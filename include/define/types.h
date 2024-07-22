@@ -19,7 +19,7 @@ const std::string
 	SEV="sev",
 	SNP="snp";
 
-
+bool hasPrefix(const std::string& str, const std::string& prefix);
 void TempDirForURL(std::string dir,std::string prefix, std::string url,std::string& name, std::string& subdir);
 enum ShortNameMode {
     ShortNameModeInvalid = 0,

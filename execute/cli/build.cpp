@@ -11,7 +11,7 @@
 #include <chrono>
 vector<string> getContainerfiles(vector<string> files);
 
-void GenBuildOptions(Command* cmd, vector<string> inputArgs,BuildOptions* iopts, define_BuildOptions* options, vector<string>& ret_containerfiles,vector<string>& removeAll){
+void GenBuildOptions(Command* cmd, vector<string> inputArgs,BuildOptions* iopts, shared_ptr<define_BuildOptions> options, vector<string>& ret_containerfiles,vector<string>& removeAll){
     string output;
     vector<string> tags;
     bool cleanTmpFile=false;
