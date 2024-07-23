@@ -15,8 +15,8 @@
 #include <windows.h>
 #include <mutex>
 #include <iostream>
-#define PATH_MAX 4096
-using namespace std;
+// #define PATH_MAX 4096
+using std::string;
 /**
  * @brief 
  * 
@@ -51,8 +51,9 @@ bool loadDefaultStoreOptions() {
         }
     };
     setDefaults();
-
-    std::string path = getenv("CONTAINERS_STORAGE_CONF");
+    const char* env_p = std::getenv("CONTAINERS_STORAGE_CONF");
+    string path = env_p ? env_p : "";
+    // std::string path = string(std::getenv(string("CONTAINERS_STORAGE_CONF").c_str()));
     if (!path.empty()) {
         defaultOverrideConfigFile = path;
         if (!ReloadConfigurationFileIfNeeded(path, &defaultStoreOptions)) {
@@ -61,8 +62,9 @@ bool loadDefaultStoreOptions() {
         setDefaults();
         return true;
     }
-
-    std::string xdgConfigHome = getenv("XDG_CONFIG_HOME");
+    const char* xdgConfigHome_p = std::getenv("XDG_CONFIG_HOME");
+    string xdgConfigHome = xdgConfigHome_p ? xdgConfigHome_p : "";
+    // std::string xdgConfigHome =string (std::getenv(string("XDG_CONFIG_HOME").c_str()));
     if (!xdgConfigHome.empty()) {
         std::string homeConfigFile = joinPath(xdgConfigHome, "containers/storage.conf");
         if (fileExists(homeConfigFile)) {
@@ -224,7 +226,7 @@ shared_ptr<store> GetStore(StoreOptions options){
     }
 
     ///<处理路径
-     if (!storeOptions.graph_root.empty()) {
+    if (!storeOptions.graph_root.empty()) {
         storeOptions.graph_root = Abspath(storeOptions.graph_root);
     }
     if (!storeOptions.run_root.empty()) {
