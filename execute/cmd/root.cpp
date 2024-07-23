@@ -37,8 +37,8 @@ Command init_rootcmd(){
         exit(1);
     }
     vector<string> defaultStoreDriverOptions;
-    if(storageOptions.GraphDriverOptions.size()>0){
-        defaultStoreDriverOptions= storageOptions.GraphDriverOptions;
+    if(storageOptions.graph_driver_options.size()>0){
+        defaultStoreDriverOptions= storageOptions.graph_driver_options;
     }
     try{
         defaultContainerConfig=ConfigdetailsDefault();
@@ -49,7 +49,7 @@ Command init_rootcmd(){
     defaultContainerConfig.CheckCgroupsAndAdjustConfig();
 
     Flagset* persistentflags=Appcmd.PersistentFlags();
-    persistentflags->StringVar(globalFlagOptions.Root,"root",storageOptions.GraphRoot,"storage root dir");
+    persistentflags->StringVar(globalFlagOptions.Root,"root",storageOptions.graph_root,"storage root dir");
     persistentflags->StringVar(globalFlagOptions.RegistriesConf,"registries-conf","","path to registries.conf file (not usually used)");
     persistentflags->StringVar(globalFlagOptions.RegistriesConfDir,"registries-conf-dir", "", "path to registries.conf.d directory (not usually used)");
     persistentflags->BoolVar(globalFlagOptions.Debug,"debug",false, "print debugging information");
