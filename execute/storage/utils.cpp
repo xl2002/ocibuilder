@@ -10,6 +10,13 @@
  */
 #include "storage/utils.h"
 #include "pkg/util/util.h"
+#include "cli/common.h"
+#include <stdlib.h> 
+#include <windows.h>
+#include <mutex>
+#include <iostream>
+#define PATH_MAX 4096
+using namespace std;
 /**
  * @brief 
  * 
@@ -17,6 +24,8 @@
 const string overlayDriver  = "overlay";
 const string overlay2       = "overlay2";
 const string storageConfEnv = "CONTAINERS_STORAGE_CONF";
+const string defaultRunRoot = "/run/containers/storage";
+const string defaultGraphRoot = "/var/lib/containers/storage";
 /**
  * @brief 检查是否已经设置了默认配置文件
  * 
@@ -28,12 +37,63 @@ std::string defaultConfigFile = "D:/share/containers/storage.conf";
 /// @brief 
 std::string defaultOverrideConfigFile = "D:/containers/storage.conf";
 StoreOptions defaultStoreOptions;
+std::mutex storesLock;
+vector<std::shared_ptr<store>> stores;
+bool loadDefaultStoreOptions() {
+    defaultStoreOptions.graph_driver_name = "";
+
+    auto setDefaults = []() {
+        if (defaultStoreOptions.run_root.empty()) {
+            defaultStoreOptions.run_root = defaultRunRoot;
+        }
+        if (defaultStoreOptions.graph_root.empty()) {
+            defaultStoreOptions.graph_root = defaultGraphRoot;
+        }
+    };
+    setDefaults();
+
+    std::string path = getenv("CONTAINERS_STORAGE_CONF");
+    if (!path.empty()) {
+        defaultOverrideConfigFile = path;
+        if (!ReloadConfigurationFileIfNeeded(path, &defaultStoreOptions)) {
+            return false;
+        }
+        setDefaults();
+        return true;
+    }
+
+    std::string xdgConfigHome = getenv("XDG_CONFIG_HOME");
+    if (!xdgConfigHome.empty()) {
+        std::string homeConfigFile = joinPath(xdgConfigHome, "containers/storage.conf");
+        if (fileExists(homeConfigFile)) {
+            defaultOverrideConfigFile = homeConfigFile;
+        }
+    }
+
+    if (fileExists(defaultOverrideConfigFile)) {
+        defaultConfigFile = defaultOverrideConfigFile;
+        if (!ReloadConfigurationFileIfNeeded(defaultOverrideConfigFile,&defaultStoreOptions)) {
+            return false;
+        }
+        setDefaults();
+        return true;
+    }
+
+    if (!fileExists(defaultConfigFile)) {
+        std::cerr << "Attempting to use " << defaultConfigFile << std::endl;
+    }
+    if (!ReloadConfigurationFileIfNeeded(defaultConfigFile, &defaultStoreOptions) && std::make_error_code(std::errc::no_such_file_or_directory) != std::errc::no_such_file_or_directory) {
+        return false;
+    }
+    setDefaults();
+    return true;
+}
 /**
  * @brief 默认的存储选项
  * 
  * @return StoreOptions 
  */
-StoreOptions DefaultStoreOptions(){
+StoreOptions DefaultStoreOptions() {
     StoreOptions ret;
     try{
         ret=loadStoreOptions();
@@ -54,18 +114,18 @@ StoreOptions DefaultStoreOptions(){
  * @return std::string 返回默认配置文件路径
  */
 std::string DefaultConfigFile() {
-    // 检查是否已经设置了默认配置文件
+    ///<检查是否已经设置了默认配置文件
     if (defaultConfigFileSet) {
         return defaultConfigFile;
     }
 
-    // 通过环境变量获取路径
+    ///<通过环境变量获取路径
     const char* path = std::getenv(storageConfEnv.c_str());
     if (path) {
         return path;
     }
 
-    // 如果不使用用户个人存储，则检查默认覆盖配置文件
+    ///<如果不使用用户个人存储，则检查默认覆盖配置文件
     if (!usePerUserStorage()) {
         if (fileExists(defaultOverrideConfigFile)) {
             return defaultOverrideConfigFile;
@@ -73,13 +133,13 @@ std::string DefaultConfigFile() {
         return defaultConfigFile;
     }
 
-    // 检查 XDG_CONFIG_HOME 环境变量
+    ///<检查 XDG_CONFIG_HOME 环境变量
     std::string configHome = getConfigHome();
     if (!configHome.empty()) {
         return configHome + "/containers/storage.conf";
     }
 
-    // 获取用户家目录并拼接默认配置文件路径
+    // 获取用户目录并拼接默认配置文件路径
     std::string home = getHomeDir();
     if (home.empty()) {
         throw myerror("cannot determine user's homedir");
@@ -130,15 +190,16 @@ bool usePerUserStorage() {
  * @throws myerror 获取默认配置文件路径时出现错误
  */
 StoreOptions loadStoreOptions() {
-    // 获取默认配置文件路径
+    ///<获取默认配置文件路径
     std::string storageConf;
     try {
         storageConf = DefaultConfigFile();
     } catch (const myerror& e) {
-        // 捕获并返回错误
+        ///<捕获并返回错误
         throw myerror(e.what());
+        ///<return defaultStoreOptions;
     }
-    // 加载存储选项
+    ///<加载存储选项
     return loadStoreOptionsFromConfFile(storageConf);
 }
 /**
@@ -149,6 +210,63 @@ StoreOptions loadStoreOptions() {
  * @return StoreOptions 存储选项对象
  */
 StoreOptions loadStoreOptionsFromConfFile(const std::string& storageConf){
-    defaultStoreOptions.GraphRoot=storageConf;
+    defaultStoreOptions.graph_root=storageConf;
     return defaultStoreOptions;
+}
+shared_ptr<store> GetStore(StoreOptions options){
+    if(loadDefaultStoreOptions()){
+        cerr << "Error loading default store options" << endl;
+        return nullptr;
+    }
+    StoreOptions storeOptions = options;
+    if (storeOptions.run_root.empty() && storeOptions.graph_root.empty() && storeOptions.graph_driver_name.empty() && storeOptions.graph_driver_options.empty()) {
+        storeOptions = defaultStoreOptions;
+    }
+
+    ///<处理路径
+     if (!storeOptions.graph_root.empty()) {
+        storeOptions.graph_root = Abspath(storeOptions.graph_root);
+    }
+    if (!storeOptions.run_root.empty()) {
+        storeOptions.run_root = Abspath(storeOptions.run_root);
+    }
+    // std::lock_guard<std::mutex> lock(storesLock);
+
+    // for (const auto& s : stores) {
+    //     if (s->graph_root == storeOptions.graph_root && s->run_root == storeOptions.run_root &&
+    //         (storeOptions.graph_driver_name.empty() || s->graph_driver_name == storeOptions.graph_driver_name)) {
+    //         return s;
+    //     }
+    // }
+
+    // if (storeOptions.run_root.empty() || storeOptions.graph_root.empty()) {
+    //     cerr << "Error: runroot or graphroot must be set" << endl;
+    //     return nullptr;
+    // }
+
+    // // 创建目录
+    // if (!CreateDirectory(storeOptions.run_root.c_str(), NULL) && GetLastError() != ERROR_ALREADY_EXISTS) {
+    //     cerr << "Error creating run root directory: " << storeOptions.run_root << endl;
+    //     return nullptr;
+    // }
+    // if (!CreateDirectory(storeOptions.graph_root.c_str(), NULL) && GetLastError() != ERROR_ALREADY_EXISTS) {
+    //     cerr << "Error creating graph root directory: " << storeOptions.graph_root << endl;
+    //     return nullptr;
+    // }
+
+    // // 创建新的 Store 对象
+    // auto newStore = std::make_shared<Store>();
+    // newStore->run_root = storeOptions.run_root;
+    // newStore->graph_root = storeOptions.graph_root;
+    // newStore->graph_driver_name = storeOptions.graph_driver_name;
+    // newStore->graph_driver_options = storeOptions.graph_driver_options;
+
+    // // 将新创建的 Store 对象添加到 stores 列表中
+    // stores.push_back(newStore);
+
+    // return newStore;
+    return make_shared<store>();
+}
+bool  ReloadConfigurationFileIfNeeded(string configFile, StoreOptions* storeOptions){
+    return true;
 }

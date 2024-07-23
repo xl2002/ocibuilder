@@ -7,7 +7,7 @@
             "command": "mingw32-make",
             "args": [
                 "-j"
-                // "all"
+                // "all",
                 // "-fdiagnostics-color=always",
                 // "-g",
                 // "${file}",
@@ -25,7 +25,7 @@
                 "$gcc"
             ],
             "group": "build",
-            "detail": "编译器: D:\\Softwares\\mingw64\\bin\\g++.exe"
+            "detail": "编译器: d:\\Software\\MinGw\\mingw64\\mingw64\\bin\\g++.exe"
         }
     ],
     "version": "2.0.0"

@@ -12,10 +12,17 @@
 #define CLI_COMMON_H
 #include <vector>
 #include <string>
+#include <sstream>
 #include <algorithm>
+#include <iostream>
+#include <tuple>
 #include "storage/storage.h"
 #include <memory>
 #include "cobra/command.h"
+#include "define/types.h"
+// #include "storage/runtime.h"
+// #include "storage/image.h"
+#include "storage/Utils.h"
 #include "config/config.h"
 using std::vector;
 using std::string;
