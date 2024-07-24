@@ -27,9 +27,34 @@ struct LinuxIDMapping{
     LinuxIDMapping(uint32_t c,uint32_t h,uint32_t s):ContainerID(c),HostID(h),Size(s){};
 };
 
+/**
+ * @brief LinuxTimeOffset 保存时间偏移
+ * LinuxTimeOffset 结构体保存了时间偏移，包括以下字段:
+ * - Secs: 秒偏移
+ * - Nanosecs: 纳秒偏移
+ */
 struct LinuxTimeOffset{
     int64_t Secs;
     uint32_t Nanosecs;
+};
+/**
+ * @brief Mount 表示一个挂载点
+ * 
+ * Mount 结构定义了一个挂载点，包括以下字段：
+ * - Destination: 挂载点的目标路径
+ * - Type: 挂载点的类型
+ * - Source: 挂载点的来源路径
+ * - Options: 挂载点的选项
+ * - UIDMappings: 用户 ID 映射列表
+ * - GIDMappings: 用户组 ID 映射列表
+ */
+struct Mount {
+    std::string Destination;
+    std::string Type;
+    std::string Source;
+    std::string Options;
+	vector<LinuxIDMapping> UIDMappings;
+	vector<LinuxIDMapping> GIDMappings;
 };
 
 #endif // DEFINE_SPECS_H

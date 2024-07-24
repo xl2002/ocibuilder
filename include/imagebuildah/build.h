@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <iostream>
+#include <stdexcept>
 #include "docker/reference.h"
 #include "storage/storage.h"
 #include "define/build.h"

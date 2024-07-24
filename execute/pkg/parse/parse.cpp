@@ -1,6 +1,6 @@
 #include "pkg/parse/parse.h"
 #include <algorithm>
-
+#include <define/specs.h>
 
 // 定义常量字符串
 
@@ -487,4 +487,28 @@ std::vector<platforms> PlatformsFromOptions(Command* cmd){
 
     }
     return Platforms;
+}
+// Volume parses the input of --volume
+Mount Volume(string volume){
+    auto mount=Mount();
+    
+    return mount;
+}
+
+void Volumes( std::vector<std::string> volumes){
+    try
+    {
+        if(volumes.empty()){
+            return;
+        }
+        for(auto& v:volumes){
+            Volume(v);
+        }
+    }
+    catch(const myerror& e)
+    {
+        throw;
+    }
+    
+    
 }

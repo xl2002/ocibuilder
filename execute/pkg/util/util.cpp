@@ -163,3 +163,7 @@ std::string resolveSymlinks(const std::string& path) {
     }
     return std::string(buffer.data());
 }
+
+ImageReference VerifyTagName(std::string imagespec){
+    return ImageReference();
+}

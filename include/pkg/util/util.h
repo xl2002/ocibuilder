@@ -2,6 +2,7 @@
 #define UTIL_UTIL_H
 #include <string>
 #include "cobra/error.h"
+#include "types/types.h"
 #include <fstream>
 bool MirrorToTempFileIfPathIsDescriptor(std::string file ,std::string &authfile);
 std::string joinPath(const std::string& path1, const std::string& path2);

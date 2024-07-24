@@ -20,7 +20,10 @@
 // #include <stdexcept> // For runtime_error
 #include <fstream>   // For ifstream
 #include <sstream>   // For stringstream
-using namespace std;
+#include <memory>
+using std::string;
+using std::map;
+using std::vector;
 /**
  * @brief 记录镜像存储方面的信息
  * 
@@ -73,5 +76,5 @@ StoreOptions loadStoreOptionsFromConfFile(const std::string& storageConf);
 StoreOptions loadStoreOptions();
 bool  ReloadConfigurationFileIfNeeded(string configFile, StoreOptions* storeOptions);
 ///<ReloadConfigurationFileIfNeeded这个函数负责一些初始化变量的赋值
-shared_ptr<store> GetStore(StoreOptions options);
+std::shared_ptr<store> GetStore(StoreOptions options);
 #endif // MACRO

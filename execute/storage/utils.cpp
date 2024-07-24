@@ -215,7 +215,7 @@ StoreOptions loadStoreOptionsFromConfFile(const std::string& storageConf){
     defaultStoreOptions.graph_root=storageConf;
     return defaultStoreOptions;
 }
-shared_ptr<store> GetStore(StoreOptions options){
+std::shared_ptr<store> GetStore(StoreOptions options){
     if(loadDefaultStoreOptions()){
         cerr << "Error loading default store options" << endl;
         return nullptr;

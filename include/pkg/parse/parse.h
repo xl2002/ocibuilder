@@ -20,4 +20,8 @@ void parseSecurityOpts(vector<string> securityOpts,shared_ptr<CommonBuildOptions
 shared_ptr<NamespaceOptions> Namespaceoptions(Command* cmd,NetworkConfigurationPolicy& networkPolicy);
 shared_ptr<NamespaceOptions> idmappingOptions(Command* cmd,shared_ptr<Isolation> isolation,shared_ptr<IDMappingOptions>idmapOptions);
 std::vector<platforms> PlatformsFromOptions(Command* cmd);
+void Volumes( std::vector<std::string> volumes);
+
+
+
 #endif // PARSE_PARSE_H
