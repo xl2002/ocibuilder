@@ -42,9 +42,42 @@ struct LayerOptions{
 
 class store:public Store{
     public:
-    string runRoot;
-    string graphDriverName;
-    vector<string> graphDriverPriority;
+    string run_root;
+    string graph_driver_name;
+    vector<string> graph_driver_priority;
+    
+    // shared_ptr<lockfile::LockFile> graph_lock;
+    // shared_ptr<lockfile::LockFile> userns_lock;
+
+    string graph_root;
+    vector<string> graph_options;
+    string image_store_dir;
+    map<string, string> pull_options;
+
+    // vector<idtools::IDMap> uid_map;
+    // vector<idtools::IDMap> gid_map;
+
+    string auto_userns_user;
+    uint32_t auto_ns_min_size;
+    uint32_t auto_ns_max_size;
+
+    // rwImageStore image_store;
+    // vector<rwImageStore> rw_image_stores;
+    // vector<roImageStore> ro_image_stores;
+    // rwContainerStore container_store;
+
+    string digest_lock_root;
+    bool disable_volatile;
+    bool transient_store;
+
+    // lockfile::LastWrite graph_lock_last_write;
+    // drivers::Driver graph_driver;
+    // rwLayerStore layer_store_use_getters;
+    // vector<roLayerStore> ro_layer_stores_use_getters;
+
+    // shared_ptr<idSet> additional_uids;
+    // shared_ptr<idSet> additional_gids;
+    //注释部分目前还未用到
 
     public:
     string RunRoot() override;

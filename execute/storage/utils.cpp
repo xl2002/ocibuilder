@@ -15,7 +15,6 @@
 #include <windows.h>
 #include <mutex>
 #include <iostream>
-#define PATH_MAX 4096
 using namespace std;
 /**
  * @brief 
@@ -230,43 +229,83 @@ shared_ptr<store> GetStore(StoreOptions options){
     if (!storeOptions.run_root.empty()) {
         storeOptions.run_root = Abspath(storeOptions.run_root);
     }
-    // std::lock_guard<std::mutex> lock(storesLock);
+    lock_guard<mutex> lock(storesLock);
 
-    // for (const auto& s : stores) {
-    //     if (s->graph_root == storeOptions.graph_root && s->run_root == storeOptions.run_root &&
-    //         (storeOptions.graph_driver_name.empty() || s->graph_driver_name == storeOptions.graph_driver_name)) {
-    //         return s;
-    //     }
-    // }
+    for (const auto& s : stores) {
+        if (s->graph_root == storeOptions.graph_root && s->run_root == storeOptions.run_root &&
+            (storeOptions.graph_driver_name.empty() || s->graph_driver_name == storeOptions.graph_driver_name)) {
+            return s;
+        }
+    }
 
-    // if (storeOptions.run_root.empty() || storeOptions.graph_root.empty()) {
-    //     cerr << "Error: runroot or graphroot must be set" << endl;
-    //     return nullptr;
-    // }
+    if (storeOptions.run_root.empty() || storeOptions.graph_root.empty()) {
+        cerr << "Error: runroot or graphroot must be set" << endl;
+        return nullptr;
+    }
 
-    // // 创建目录
-    // if (!CreateDirectory(storeOptions.run_root.c_str(), NULL) && GetLastError() != ERROR_ALREADY_EXISTS) {
-    //     cerr << "Error creating run root directory: " << storeOptions.run_root << endl;
-    //     return nullptr;
-    // }
-    // if (!CreateDirectory(storeOptions.graph_root.c_str(), NULL) && GetLastError() != ERROR_ALREADY_EXISTS) {
-    //     cerr << "Error creating graph root directory: " << storeOptions.graph_root << endl;
-    //     return nullptr;
-    // }
+    // 创建目录
+     if (!MkdirAll(storeOptions.run_root)) {
+        cerr << "Error creating run root directory: " << storeOptions.run_root << endl;
+        return nullptr;
+    }
+    if (!MkdirAll(storeOptions.graph_root)) {
+        cerr << "Error creating graph root directory: " << storeOptions.graph_root << endl;
+        return nullptr;
+    }
 
-    // // 创建新的 Store 对象
-    // auto newStore = std::make_shared<Store>();
-    // newStore->run_root = storeOptions.run_root;
-    // newStore->graph_root = storeOptions.graph_root;
-    // newStore->graph_driver_name = storeOptions.graph_driver_name;
-    // newStore->graph_driver_options = storeOptions.graph_driver_options;
+    // 创建新的 Store 对象
+    auto newStore = std::make_shared<store>();
+    newStore->run_root = storeOptions.run_root;
+    newStore->graph_root = storeOptions.graph_root;
+    newStore->graph_driver_name = storeOptions.graph_driver_name;
+    newStore->graph_options = storeOptions.graph_driver_options;
 
-    // // 将新创建的 Store 对象添加到 stores 列表中
-    // stores.push_back(newStore);
+    // 将新创建的 Store 对象添加到 stores 列表中
+    stores.push_back(newStore);
 
-    // return newStore;
-    return make_shared<store>();
+    return newStore;
 }
 bool  ReloadConfigurationFileIfNeeded(string configFile, StoreOptions* storeOptions){
+    return true;
+}
+// 将 std::string 转换为 std::wstring
+std::wstring s2ws(const std::string& s) {
+    std::wstring ws(s.begin(), s.end());
+    return ws;
+}
+
+// 判断路径是否存在以及是否为目录
+bool DirectoryExists(const std::string& path) {
+    std::wstring wpath = s2ws(path);
+    DWORD attribs = GetFileAttributesW(wpath.c_str());
+    if (attribs == INVALID_FILE_ATTRIBUTES) {
+        return false;
+    }
+    return (attribs & FILE_ATTRIBUTE_DIRECTORY);
+}
+
+// 递归创建路径上的所有目录
+bool MkdirAll(const std::string& path) {
+    if (DirectoryExists(path)) {
+        return true;
+    }
+
+    // 查找最后一个路径分隔符
+    size_t pos = path.find_last_of("\\/");
+    if (pos != std::string::npos) {
+        std::string parentPath = path.substr(0, pos);
+
+        // 递归创建父目录
+        if (!MkdirAll(parentPath)) {
+            return false;
+        }
+    }
+
+    // 创建当前目录
+    std::wstring wpath = s2ws(path);
+    if (!CreateDirectoryW(wpath.c_str(), NULL) && GetLastError() != ERROR_ALREADY_EXISTS) {
+        std::cerr << "Error creating directory: " << path << std::endl;
+        return false;
+    }
     return true;
 }

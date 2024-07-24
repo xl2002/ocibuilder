@@ -74,4 +74,5 @@ StoreOptions loadStoreOptions();
 bool  ReloadConfigurationFileIfNeeded(string configFile, StoreOptions* storeOptions);
 ///<ReloadConfigurationFileIfNeeded这个函数负责一些初始化变量的赋值
 shared_ptr<store> GetStore(StoreOptions options);
+bool loadDefaultStoreOptions();
 #endif // MACRO
