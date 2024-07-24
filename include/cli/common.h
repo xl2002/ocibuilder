@@ -22,7 +22,7 @@
 #include "define/types.h"
 // #include "storage/runtime.h"
 // #include "storage/image.h"
-#include "storage/Utils.h"
+#include "types/options.h"
 #include "config/config.h"
 using std::vector;
 using std::string;

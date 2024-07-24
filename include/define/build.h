@@ -16,12 +16,12 @@
 #include <vector>
 #include <functional>
 #include "define/pull.h"
-#include "docker/reference.h"
+#include "reference/reference.h"
 #include "config/config.h"
 #include "define/namespace.h"
 #include "define/types.h"
 #include <memory>
-// #include "pkg/parse/parse.h"
+// #include "parse/parse.h"
 #include <chrono>
 using std::string;
 using std::map;

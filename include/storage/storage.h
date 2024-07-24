@@ -5,8 +5,8 @@
 #include <map>
 #include <iostream>
 #include <memory>
-#include "pkg/idtools/idtools.h"
-#include "storage/driver/driver.h"
+#include "idtools/idtools.h"
+#include "graphdriver/driver.h"
 #include "storage/layers.h"
 using std::string;
 using std::vector;

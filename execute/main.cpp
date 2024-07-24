@@ -8,10 +8,10 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#include "cmd/root.h"
+#include "main/root.h"
 #include "cobra/flag.h"
 #include "cobra/command.h"
-#include "cmd/build.h"
+#include "main/build.h"
 #include <iostream>
 
 using namespace std;

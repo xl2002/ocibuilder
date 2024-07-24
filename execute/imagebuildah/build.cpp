@@ -2,10 +2,8 @@
 #include <mutex>
 #include <future>
 #include "cli/common.h"
-#include "pkg/parse/parse.h"
+#include "parse/parse.h"
 #include "logrus/logger.h"
-#include "io/io.h"
-#include "src/strings.h"
 #include <fstream>
 string BuildDockerfiles(shared_ptr<store> stores, shared_ptr<define_BuildOptions> options,vector<string> paths,shared_ptr<Canonical> ret_ref){
     // auto ctx = getContext();
