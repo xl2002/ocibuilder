@@ -75,4 +75,7 @@ bool  ReloadConfigurationFileIfNeeded(string configFile, StoreOptions* storeOpti
 ///<ReloadConfigurationFileIfNeeded这个函数负责一些初始化变量的赋值
 shared_ptr<store> GetStore(StoreOptions options);
 bool loadDefaultStoreOptions();
+bool MkdirAll(const std::string& path);
+std::wstring s2ws(const std::string& s);
+bool DirectoryExists(const std::string& path);
 #endif // MACRO

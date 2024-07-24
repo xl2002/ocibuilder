@@ -212,6 +212,46 @@ StoreOptions loadStoreOptionsFromConfFile(const std::string& storageConf){
     defaultStoreOptions.graph_root=storageConf;
     return defaultStoreOptions;
 }
+// 将 std::string 转换为 std::wstring
+std::wstring s2ws(const std::string& s) {
+    std::wstring ws(s.begin(), s.end());
+    return ws;
+}
+
+// 判断路径是否存在以及是否为目录
+bool DirectoryExists(const std::string& path) {
+    std::wstring wpath = s2ws(path);
+    DWORD attribs = GetFileAttributesW(wpath.c_str());
+    if (attribs == INVALID_FILE_ATTRIBUTES) {
+        return false;
+    }
+    return (attribs & FILE_ATTRIBUTE_DIRECTORY);
+}
+// 递归创建路径上的所有目录
+bool MkdirAll(const std::string& path) {
+    if (DirectoryExists(path)) {
+        return true;
+    }
+
+    // 查找最后一个路径分隔符
+    size_t pos = path.find_last_of("\\/");
+    if (pos != std::string::npos) {
+        std::string parentPath = path.substr(0, pos);
+
+        // 递归创建父目录
+        if (!MkdirAll(parentPath)) {
+            return false;
+        }
+    }
+
+    // 创建当前目录
+    std::wstring wpath = s2ws(path);
+    if (!CreateDirectoryW(wpath.c_str(), NULL) && GetLastError() != ERROR_ALREADY_EXISTS) {
+        std::cerr << "Error creating directory: " << path << std::endl;
+        return false;
+    }
+    return true;
+}
 shared_ptr<store> GetStore(StoreOptions options){
     if(loadDefaultStoreOptions()){
         cerr << "Error loading default store options" << endl;
@@ -266,46 +306,5 @@ shared_ptr<store> GetStore(StoreOptions options){
     return newStore;
 }
 bool  ReloadConfigurationFileIfNeeded(string configFile, StoreOptions* storeOptions){
-    return true;
-}
-// 将 std::string 转换为 std::wstring
-std::wstring s2ws(const std::string& s) {
-    std::wstring ws(s.begin(), s.end());
-    return ws;
-}
-
-// 判断路径是否存在以及是否为目录
-bool DirectoryExists(const std::string& path) {
-    std::wstring wpath = s2ws(path);
-    DWORD attribs = GetFileAttributesW(wpath.c_str());
-    if (attribs == INVALID_FILE_ATTRIBUTES) {
-        return false;
-    }
-    return (attribs & FILE_ATTRIBUTE_DIRECTORY);
-}
-
-// 递归创建路径上的所有目录
-bool MkdirAll(const std::string& path) {
-    if (DirectoryExists(path)) {
-        return true;
-    }
-
-    // 查找最后一个路径分隔符
-    size_t pos = path.find_last_of("\\/");
-    if (pos != std::string::npos) {
-        std::string parentPath = path.substr(0, pos);
-
-        // 递归创建父目录
-        if (!MkdirAll(parentPath)) {
-            return false;
-        }
-    }
-
-    // 创建当前目录
-    std::wstring wpath = s2ws(path);
-    if (!CreateDirectoryW(wpath.c_str(), NULL) && GetLastError() != ERROR_ALREADY_EXISTS) {
-        std::cerr << "Error creating directory: " << path << std::endl;
-        return false;
-    }
     return true;
 }
