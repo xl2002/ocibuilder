@@ -25,10 +25,13 @@ const string overlay2       = "overlay2";
 const string storageConfEnv = "CONTAINERS_STORAGE_CONF";
 const string defaultRunRoot = "/run/containers/storage";
 const string defaultGraphRoot = "/var/lib/containers/storage";
+const int AutoUserNsMinSize=1024;
+const int AutoUserNsMaxSize=65536;
 /**
  * @brief 检查是否已经设置了默认配置文件
  * 
  */
+std::once_flag defaultStoreOptionsFlag;
 bool defaultConfigFileSet = false;
 /// @brief defaultConfigFile 系统范围的 storage.conf 文件的路径
 std::string defaultConfigFile = "D:/share/containers/storage.conf";
@@ -79,7 +82,7 @@ bool loadDefaultStoreOptions() {
     }
 
     if (!fileExists(defaultConfigFile)) {
-        std::cerr << "Attempting to use " << defaultConfigFile << std::endl;
+        return false;
     }
     if (!ReloadConfigurationFileIfNeeded(defaultConfigFile, &defaultStoreOptions) && std::make_error_code(std::errc::no_such_file_or_directory) != std::errc::no_such_file_or_directory) {
         return false;
@@ -93,13 +96,16 @@ bool loadDefaultStoreOptions() {
  * @return StoreOptions 
  */
 StoreOptions DefaultStoreOptions() {
-    StoreOptions ret;
-    try{
-        ret=loadStoreOptions();
-    }catch(const myerror& e){
-        throw ;
-    }
-    return ret;
+    StoreOptions result;
+    auto loadoptions = [&result]() {
+        try{
+            result=loadStoreOptions();
+        }catch(const myerror& e){
+            throw ;
+        }
+    };
+    call_once(defaultStoreOptionsFlag, loadDefaultStoreOptions);
+    return result;
 }
 /**
  * @brief 获取默认配置文件路径
@@ -201,6 +207,16 @@ StoreOptions loadStoreOptions() {
     ///<加载存储选项
     return loadStoreOptionsFromConfFile(storageConf);
 }
+/// @brief 包装了 std::call_once 调用，确保 loadDefaultStoreOptions 只执行一次。
+bool loadDefaultStoreOptionsIfNeeded() {
+    try {
+        std::call_once(defaultStoreOptionsFlag, loadDefaultStoreOptions);
+        return true;
+    } catch (const std::exception& e) {
+        std::cerr << "Error loading default store options: " << e.what() << std::endl;
+        return false;
+    }
+}
 /**
  * @brief 从配置文件加载存储选项，配置文件路径为参数storageConf，
  * 并将存储选项的GraphRoot设置为storageConf，然后返回这个存储选项对象。
@@ -209,7 +225,10 @@ StoreOptions loadStoreOptions() {
  * @return StoreOptions 存储选项对象
  */
 StoreOptions loadStoreOptionsFromConfFile(const std::string& storageConf){
-    defaultStoreOptions.graph_root=storageConf;
+    if (!loadDefaultStoreOptionsIfNeeded()) {
+        // 如果加载失败，返回空指针或者合适的错误处理
+        return StoreOptions();
+    }
     return defaultStoreOptions;
 }
 // 将 std::string 转换为 std::wstring
@@ -247,15 +266,13 @@ bool MkdirAll(const std::string& path) {
     // 创建当前目录
     std::wstring wpath = s2ws(path);
     if (!CreateDirectoryW(wpath.c_str(), NULL) && GetLastError() != ERROR_ALREADY_EXISTS) {
-        std::cerr << "Error creating directory: " << path << std::endl;
         return false;
     }
     return true;
 }
 shared_ptr<store> GetStore(StoreOptions options){
-    if(loadDefaultStoreOptions()){
-        cerr << "Error loading default store options" << endl;
-        return nullptr;
+    if(!loadDefaultStoreOptionsIfNeeded()){
+        throw myerror("Error loading default store options");
     }
     StoreOptions storeOptions = options;
     if (storeOptions.run_root.empty() && storeOptions.graph_root.empty() && storeOptions.graph_driver_name.empty() && storeOptions.graph_driver_options.empty()) {
@@ -278,20 +295,39 @@ shared_ptr<store> GetStore(StoreOptions options){
         }
     }
 
+    // 检查必需的字段
     if (storeOptions.run_root.empty() || storeOptions.graph_root.empty()) {
-        cerr << "Error: runroot or graphroot must be set" << endl;
-        return nullptr;
+        throw myerror("Error: runroot or graphroot must be set");
     }
 
     // 创建目录
-     if (!MkdirAll(storeOptions.run_root)) {
-        cerr << "Error creating run root directory: " << storeOptions.run_root << endl;
-        return nullptr;
+    try {
+        if (!MkdirAll(storeOptions.run_root)) {
+            throw myerror("Error creating run root directory: " + storeOptions.run_root);
+        }
+        if (!MkdirAll(storeOptions.graph_root)) {
+            throw myerror("Error creating graph root directory: " + storeOptions.graph_root);
+        }
+
+        // if (!storeOptions.image_store.empty()) {
+        //     if (!MkdirAll(storeOptions.image_store)) {
+        //         throw myerror("Error creating image store directory: " + storeOptions.image_store);
+        //     }
+        // }
+
+        // 创建指定目录
+        if (!MkdirAll(storeOptions.graph_root + "\\" + storeOptions.graph_driver_name)) {
+            throw myerror("Error creating graph driver directory: " + storeOptions.graph_root + "\\" + storeOptions.graph_driver_name);
+        }
+        // if (!storeOptions.image_store.empty()) {
+        //     if (!MkdirAll(storeOptions.image_store + "\\" + storeOptions.graph_driver_name)) {
+        //         throw myerror("Error creating image store graph driver directory: " + storeOptions.image_store + "\\" + storeOptions.graph_driver_name);
+        //     }
+        // }
+    } catch (const myerror& e) {
+        throw;
     }
-    if (!MkdirAll(storeOptions.graph_root)) {
-        cerr << "Error creating graph root directory: " << storeOptions.graph_root << endl;
-        return nullptr;
-    }
+    //todo 加载锁文件。。。
 
     // 创建新的 Store 对象
     auto newStore = std::make_shared<store>();
@@ -299,7 +335,21 @@ shared_ptr<store> GetStore(StoreOptions options){
     newStore->graph_root = storeOptions.graph_root;
     newStore->graph_driver_name = storeOptions.graph_driver_name;
     newStore->graph_options = storeOptions.graph_driver_options;
+    newStore->image_store_dir = storeOptions.image_store;
+    newStore->pull_options = storeOptions.pull_options;
+    //以下两个变量是关于用户命名空间映射的暂时还没用到
+    // newStore->uid_map = storeOptions.uid_map;
+    // newStore->gid_map = storeOptions.gid_map;
+    newStore->auto_userns_user = storeOptions.root_auto_ns_user;
 
+    // 初始化默认值
+    newStore->auto_ns_min_size = storeOptions.auto_ns_min_size != 0 ? storeOptions.auto_ns_min_size : AutoUserNsMinSize;
+    newStore->auto_ns_max_size = storeOptions.auto_ns_max_size != 0 ? storeOptions.auto_ns_max_size : AutoUserNsMaxSize;
+    newStore->disable_volatile = storeOptions.disable_volatile;
+    newStore->transient_store = storeOptions.transient_store;
+
+    // 执行加载函数
+    // newStore->load();
     // 将新创建的 Store 对象添加到 stores 列表中
     stores.push_back(newStore);
 

@@ -63,6 +63,8 @@ extern const string overlayDriver;
 extern const string overlay2;
 extern const string storageConfEnv;
 //函数声明
+//包装loaddefaultoptions的函数，确保该函数只进行一次加载
+bool loadDefaultStoreOptionsIfNeeded();
 StoreOptions DefaultStoreOptions();
 bool usePerUserStorage();
 std::string getConfigHome();
