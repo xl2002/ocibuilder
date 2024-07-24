@@ -1,33 +1,30 @@
-package multierror
+std::vector<std::unique_ptr<std::istream>> dockerfiles;
+auto deleter = [](std::istream* d) { d->close(); };
+for (auto& d : dockerfiles) {
+    std::unique_ptr<std::istream, decltype(deleter)> up(d, deleter);
 
-import "sync"
-
-// Group is a collection of goroutines which return errors that need to be
-// coalesced.
-class Group {
-public:
-    std::mutex mutex;
-    std::shared_ptr<Error> err;
-    std::condition_variable cv;
-    std::atomic<int> wg;
-};
-
-void Group::Go(std::function<std::string()> f) {
-    std::lock_guard<std::mutex> lock(mutex_);
-    futures_.emplace_back(std::async(std::launch::async, [this, f]() {
-        std::string err = f();
-        if (!err.empty()) {
-            std::lock_guard<std::mutex> lock(mutex_);
-            err_->AddError(err);
-        }
-    }));
-    ++wg_;
-}
-
-// Wait方法阻塞，直到Go方法的所有函数调用返回，然后返回multierror。
-std::shared_ptr<myerror> Group::Wait() {
-    for (auto& future : futures_) {
-        future.wait();
+    var dockerfiles []io.ReadCloser
+defer func(dockerfiles ...io.ReadCloser) {
+    for _, d := range dockerfiles {
+        d.Close()
     }
-    return err_;
+}(dockerfiles...)
+
+for _, tag := range append([]string{options.Output}, options.AdditionalTags...) {
+    if tag == "" {
+        continue
+    }
+    if _, err := util.VerifyTagName(tag); err != nil {
+        return "", nil, fmt.Errorf("tag %s: %w", tag, err)
+    }
 }
+
+for (const auto& tag : {options.Output, options.AdditionalTags.begin(), options.AdditionalTags.end()}) {
+    if (tag.empty()) {
+        continue;
+    }
+    try {
+        util::VerifyTagName(tag);
+    } catch (const std::exception& e) {
+        return "", nullptr, fmt::format("tag {} error: {}", tag, e.what());
+    }

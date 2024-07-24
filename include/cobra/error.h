@@ -31,7 +31,7 @@ class myerror:public std::exception {
         cerr<<"Error: "<<what()<<endl;
     }
     void AddError(const std::string& err) {
-        message_ += err;
+        message_ += "\n"+err;
     }
     private:
     std::string message_;

@@ -22,7 +22,7 @@
 #include "define/types.h"
 // #include "storage/runtime.h"
 // #include "storage/image.h"
-#include "storage/Utils.h"
+#include "types/options.h"
 #include "config/config.h"
 using std::vector;
 using std::string;
@@ -35,4 +35,14 @@ std::string JoinPath(const std::string& path1, const std::string& path2);
 shared_ptr<DecryptConfig> DecryptConfigs(vector<string>decryptionKeys);
 std::vector<std::string> LookupEnvVarReferences(const std::vector<std::string>& specs);
 string Abspath(string path);
+
+// class Context {
+// public:
+//     virtual ~Context() = default;
+// };
+// class emptyCtx : public Context {
+// };
+// std::shared_ptr<Context> TODO();
+// std::shared_ptr<Context> getContext();
+
 #endif

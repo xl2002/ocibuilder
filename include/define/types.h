@@ -1,10 +1,10 @@
 #if !defined(DEFINE_TYPES_H)
 #define DEFINE_TYPES_H
 #include <string>
-#include "docker/reference.h"
-#include "pkg/internal/types.h"
-#include "define/specs.h"
-#include "pkg/idtools/idtools.h"
+#include "reference/reference.h"
+#include "internal/types.h"
+#include "specs/specs.h"
+#include "idtools/idtools.h"
 #include "define/pull.h"
 using std::string;
 typedef string TeeType;
@@ -19,7 +19,7 @@ const std::string
 	SEV="sev",
 	SNP="snp";
 
-bool hasPrefix(const std::string& str, const std::string& prefix);
+
 void TempDirForURL(std::string dir,std::string prefix, std::string url,std::string& name, std::string& subdir);
 enum ShortNameMode {
     ShortNameModeInvalid = 0,

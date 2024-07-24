@@ -1,7 +1,7 @@
 #include "cli/build.h"
-#include "pkg/auth/auth.h"
-#include "pkg/util/util.h"
-#include "pkg/parse/parse.h"
+#include "auth/auth.h"
+#include "util/util.h"
+#include "parse/parse.h"
 #include "cli/common.h"
 #include "define/types.h"
 #include <windows.h>
@@ -9,6 +9,7 @@
 #include <iostream>
 #include <memory>
 #include <chrono>
+#include "go/file.h"
 vector<string> getContainerfiles(vector<string> files);
 
 /**
