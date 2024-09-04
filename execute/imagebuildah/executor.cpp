@@ -156,250 +156,250 @@ newExecutor(
 // Build takes care of the details of running Prepare/Execute/Commit/Delete
 // over each of the one or more parsed Dockerfiles and stages.
 std::tuple<string,std::shared_ptr<canonical>> Executor::Build(std::shared_ptr<Stages> stages){
-    if(stages->Stages.size()==0){
-        throw myerror("building: no stages to build");
-    }
-    std::vector<std::string> cleanupImages;
-    std::map<int, std::shared_ptr<StageExecutor>> cleanupStages;
+    // if(stages->Stages.size()==0){
+    //     throw myerror("building: no stages to build");
+    // }
+    // std::vector<std::string> cleanupImages;
+    // std::map<int, std::shared_ptr<StageExecutor>> cleanupStages;
 
-    auto Stdout = out;
-    if (quiet) {
-        out = &std::ostringstream(); // 类似于io.Discard
-    }
+    // auto Stdout = out;
+    // if (quiet) {
+    //     out = &std::ostringstream(); // 类似于io.Discard
+    // }
 
-    auto cleanup = [this, &cleanupImages, &cleanupStages]() {
-        // std::exception_ptr lastErr;
+    // auto cleanup = [this, &cleanupImages, &cleanupStages]() {
+    //     // std::exception_ptr lastErr;
 
-        // 清理阶段容器
-        {
-            std::lock_guard<std::mutex> lock(b.stagesLock);
-            for (const auto& stage : cleanupStages) {
-                try {
-                    stage.second->Delete();
-                } catch (const std::exception& e) {
-                    logrus::Debugf("Failed to cleanup stage containers: %s", e.what());
-                    lastErr = std::current_exception();
-                }
-            }
-            cleanupStages.clear();
-        }
+    //     // 清理阶段容器
+    //     {
+    //         std::lock_guard<std::mutex> lock(b.stagesLock);
+    //         for (const auto& stage : cleanupStages) {
+    //             try {
+    //                 stage.second->Delete();
+    //             } catch (const std::exception& e) {
+    //                 logrus::Debugf("Failed to cleanup stage containers: %s", e.what());
+    //                 lastErr = std::current_exception();
+    //             }
+    //         }
+    //         cleanupStages.clear();
+    //     }
 
-        // 清理使用的构建器
-        for (const auto& builder : b.containerMap) {
-            try {
-                builder.second->Delete();
-            } catch (const std::exception& e) {
-                logrus::Debugf("Failed to cleanup image containers: %s", e.what());
-                lastErr = std::current_exception();
-            }
-        }
-        b.containerMap.clear();
+    //     // 清理使用的构建器
+    //     for (const auto& builder : b.containerMap) {
+    //         try {
+    //             builder.second->Delete();
+    //         } catch (const std::exception& e) {
+    //             logrus::Debugf("Failed to cleanup image containers: %s", e.what());
+    //             lastErr = std::current_exception();
+    //         }
+    //     }
+    //     b.containerMap.clear();
 
-        // 清理中间容器
-        if (b.removeIntermediateCtrs) {
-            try {
-                b.deleteSuccessfulIntermediateCtrs();
-            } catch (const std::exception& e) {
-                logrus::Debugf("Failed to cleanup intermediate containers: %s", e.what());
-                lastErr = std::current_exception();
-            }
-        }
+    //     // 清理中间容器
+    //     if (b.removeIntermediateCtrs) {
+    //         try {
+    //             b.deleteSuccessfulIntermediateCtrs();
+    //         } catch (const std::exception& e) {
+    //             logrus::Debugf("Failed to cleanup intermediate containers: %s", e.what());
+    //             lastErr = std::current_exception();
+    //         }
+    //     }
 
-        // 删除阶段产生的镜像
-        for (size_t i = 0; i < cleanupImages.size(); ++i) {
-            std::string removeID = cleanupImages[cleanupImages.size() - i - 1];
-            if (removeID == imageID) {
-                continue;
-            }
-            try {
-                b.store->DeleteImage(removeID, true);
-            } catch (const std::exception& e) {
-                logrus::Debugf("failed to remove intermediate image %s: %s", removeID.c_str(), e.what());
-                if (b.forceRmIntermediateCtrs || !dynamic_cast<const storage::ErrImageUsedByContainer*>(&e)) {
-                    lastErr = std::current_exception();
-                }
-            }
-        }
-        cleanupImages.clear();
+    //     // 删除阶段产生的镜像
+    //     for (size_t i = 0; i < cleanupImages.size(); ++i) {
+    //         std::string removeID = cleanupImages[cleanupImages.size() - i - 1];
+    //         if (removeID == imageID) {
+    //             continue;
+    //         }
+    //         try {
+    //             b.store->DeleteImage(removeID, true);
+    //         } catch (const std::exception& e) {
+    //             logrus::Debugf("failed to remove intermediate image %s: %s", removeID.c_str(), e.what());
+    //             if (b.forceRmIntermediateCtrs || !dynamic_cast<const storage::ErrImageUsedByContainer*>(&e)) {
+    //                 lastErr = std::current_exception();
+    //             }
+    //         }
+    //     }
+    //     cleanupImages.clear();
 
-        if (b.rusageLogFile && b.rusageLogFile != b.out) {
-            try {
-                if (auto closer = dynamic_cast<std::ofstream*>(b.rusageLogFile)) {
-                    closer->close();
-                }
-            } catch (...) {
-                // 忽略错误
-            }
-        }
-        return lastErr;
-    };
+    //     if (b.rusageLogFile && b.rusageLogFile != b.out) {
+    //         try {
+    //             if (auto closer = dynamic_cast<std::ofstream*>(b.rusageLogFile)) {
+    //                 closer->close();
+    //             }
+    //         } catch (...) {
+    //             // 忽略错误
+    //         }
+    //     }
+    //     return lastErr;
+    // };
 
-    auto cleanupGuard = std::unique_ptr<void, std::function<void(void*)>>(
-        nullptr, [&](void*) {
-            if (auto cleanupErr = cleanup()) {
-                if (err == nullptr) {
-                    err = cleanupErr;
-                } else {
-                    try {
-                        std::rethrow_exception(cleanupErr);
-                    } catch (const std::exception& e) {
-                        err = std::make_exception_ptr(std::runtime_error(e.what()));
-                    }
-                }
-            }
-        });
+    // auto cleanupGuard = std::unique_ptr<void, std::function<void(void*)>>(
+    //     nullptr, [&](void*) {
+    //         if (auto cleanupErr = cleanup()) {
+    //             if (err == nullptr) {
+    //                 err = cleanupErr;
+    //             } else {
+    //                 try {
+    //                     std::rethrow_exception(cleanupErr);
+    //                 } catch (const std::exception& e) {
+    //                     err = std::make_exception_ptr(std::runtime_error(e.what()));
+    //                 }
+    //             }
+    //         }
+    //     });
 
-    std::map<std::string, std::shared_ptr<stageDependencyInfo>> dependencyMap;
+    // std::map<std::string, std::shared_ptr<stageDependencyInfo>> dependencyMap;
 
-    for (size_t stageIndex = 0; stageIndex < stages.size(); ++stageIndex) {
-        const auto& stage = stages[stageIndex];
-        dependencyMap[stage.Name] = std::make_shared<stageDependencyInfo>(stage.Name, stage.Position);
+    // for (size_t stageIndex = 0; stageIndex < stages.size(); ++stageIndex) {
+    //     const auto& stage = stages[stageIndex];
+    //     dependencyMap[stage.Name] = std::make_shared<stageDependencyInfo>(stage.Name, stage.Position);
 
-        auto* node = stage.Node;
-        while (node != nullptr) {
-            for (const auto& child : node->Children) {
-                if (child.Value == "FROM") {
-                    if (child.Next) {
-                        std::string base = child.Next->Value;
-                        if (!base.empty() && base != buildah::BaseImageFakeName) {
-                            if (b.additionalBuildContexts.find(child.Next->Value) != b.additionalBuildContexts.end()) {
-                                if (b.additionalBuildContexts[child.Next->Value].IsImage) {
-                                    child.Next->Value = b.additionalBuildContexts[child.Next->Value].Value;
-                                    base = child.Next->Value;
-                                }
-                            }
+    //     auto* node = stage.Node;
+    //     while (node != nullptr) {
+    //         for (const auto& child : node->Children) {
+    //             if (child.Value == "FROM") {
+    //                 if (child.Next) {
+    //                     std::string base = child.Next->Value;
+    //                     if (!base.empty() && base != buildah::BaseImageFakeName) {
+    //                         if (b.additionalBuildContexts.find(child.Next->Value) != b.additionalBuildContexts.end()) {
+    //                             if (b.additionalBuildContexts[child.Next->Value].IsImage) {
+    //                                 child.Next->Value = b.additionalBuildContexts[child.Next->Value].Value;
+    //                                 base = child.Next->Value;
+    //                             }
+    //                         }
 
-                            std::vector<std::string> userArgs = argsMapToSlice(stage.Builder.HeadingArgs);
-                            userArgs.insert(userArgs.end(), argsMapToSlice(stage.Builder.Args).begin(), argsMapToSlice(stage.Builder.Args).end());
+    //                         std::vector<std::string> userArgs = argsMapToSlice(stage.Builder.HeadingArgs);
+    //                         userArgs.insert(userArgs.end(), argsMapToSlice(stage.Builder.Args).begin(), argsMapToSlice(stage.Builder.Args).end());
 
-                            auto baseWithArg = imagebuilder::ProcessWord(base, userArgs);
-                            b.baseMap[baseWithArg] = {};
+    //                         auto baseWithArg = imagebuilder::ProcessWord(base, userArgs);
+    //                         b.baseMap[baseWithArg] = {};
 
-                            if (b.additionalBuildContexts.find(baseWithArg) == b.additionalBuildContexts.end()) {
-                                if (dependencyMap.find(baseWithArg) != dependencyMap.end()) {
-                                    dependencyMap[stage.Name]->Needs.push_back(baseWithArg);
-                                }
-                            }
-                        }
-                    }
-                }
-                // 处理 ADD 和 COPY 指令
-                else if (child.Value == "ADD" || child.Value == "COPY") {
-                    for (const auto& flag : child.Flags) {
-                        if (flag.find("--from=") == 0) {
-                            std::string rootfs = flag.substr(7);
-                            b.rootfsMap[rootfs] = {};
-                            std::string stageName = rootfs;
+    //                         if (b.additionalBuildContexts.find(baseWithArg) == b.additionalBuildContexts.end()) {
+    //                             if (dependencyMap.find(baseWithArg) != dependencyMap.end()) {
+    //                                 dependencyMap[stage.Name]->Needs.push_back(baseWithArg);
+    //                             }
+    //                         }
+    //                     }
+    //                 }
+    //             }
+    //             // 处理 ADD 和 COPY 指令
+    //             else if (child.Value == "ADD" || child.Value == "COPY") {
+    //                 for (const auto& flag : child.Flags) {
+    //                     if (flag.find("--from=") == 0) {
+    //                         std::string rootfs = flag.substr(7);
+    //                         b.rootfsMap[rootfs] = {};
+    //                         std::string stageName = rootfs;
 
-                            std::vector<std::string> userArgs = argsMapToSlice(stage.Builder.HeadingArgs);
-                            userArgs.insert(userArgs.end(), argsMapToSlice(stage.Builder.Args).begin(), argsMapToSlice(stage.Builder.Args).end());
+    //                         std::vector<std::string> userArgs = argsMapToSlice(stage.Builder.HeadingArgs);
+    //                         userArgs.insert(userArgs.end(), argsMapToSlice(stage.Builder.Args).begin(), argsMapToSlice(stage.Builder.Args).end());
 
-                            auto baseWithArg = imagebuilder::ProcessWord(stageName, userArgs);
-                            stageName = baseWithArg;
+    //                         auto baseWithArg = imagebuilder::ProcessWord(stageName, userArgs);
+    //                         stageName = baseWithArg;
 
-                            int index;
-                            if (std::istringstream(stageName) >> index) {
-                                stageName = stages[index].Name;
-                            }
+    //                         int index;
+    //                         if (std::istringstream(stageName) >> index) {
+    //                             stageName = stages[index].Name;
+    //                         }
 
-                            if (b.additionalBuildContexts.find(stageName) == b.additionalBuildContexts.end()) {
-                                if (dependencyMap.find(stageName) != dependencyMap.end()) {
-                                    dependencyMap[stage.Name]->Needs.push_back(stageName);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            node = node->Next;
-        }
-        if (stage.Position == (stages.size() - 1)) {
-            markDependencyStagesForTarget(dependencyMap, stage.Name);
-        }
-    }
-    b.warnOnUnsetBuildArgs(stages, dependencyMap, b.args);
+    //                         if (b.additionalBuildContexts.find(stageName) == b.additionalBuildContexts.end()) {
+    //                             if (dependencyMap.find(stageName) != dependencyMap.end()) {
+    //                                 dependencyMap[stage.Name]->Needs.push_back(stageName);
+    //                             }
+    //                         }
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //         node = node->Next;
+    //     }
+    //     if (stage.Position == (stages.size() - 1)) {
+    //         markDependencyStagesForTarget(dependencyMap, stage.Name);
+    //     }
+    // }
+    // b.warnOnUnsetBuildArgs(stages, dependencyMap, b.args);
 
-    struct Result {
-        int Index;
-        std::string ImageID;
-        bool OnlyBaseImage;
-        std::shared_ptr<reference::Canonical> Ref;
-        std::exception_ptr Error;
-    };
+    // struct Result {
+    //     int Index;
+    //     std::string ImageID;
+    //     bool OnlyBaseImage;
+    //     std::shared_ptr<reference::Canonical> Ref;
+    //     std::exception_ptr Error;
+    // };
 
-    std::vector<std::future<Result>> futures;
+    // std::vector<std::future<Result>> futures;
 
-    if (!b.stagesSemaphore) {
-        b.stagesSemaphore = std::make_shared<semaphore::Semaphore>(stages.size());
-    }
+    // if (!b.stagesSemaphore) {
+    //     b.stagesSemaphore = std::make_shared<semaphore::Semaphore>(stages.size());
+    // }
 
-    for (size_t stageIndex = 0; stageIndex < stages.size(); ++stageIndex) {
-        futures.push_back(std::async(std::launch::async, [this, stageIndex, &cleanupStages, &stages, &dependencyMap]() -> Result {
-            Result res;
-            res.Index = stageIndex;
+    // for (size_t stageIndex = 0; stageIndex < stages.size(); ++stageIndex) {
+    //     futures.push_back(std::async(std::launch::async, [this, stageIndex, &cleanupStages, &stages, &dependencyMap]() -> Result {
+    //         Result res;
+    //         res.Index = stageIndex;
 
-            if (b.stagesSemaphore->Acquire(ctx, 1)) {
-                return res;
-            }
+    //         if (b.stagesSemaphore->Acquire(ctx, 1)) {
+    //             return res;
+    //         }
 
-            {
-                std::lock_guard<std::mutex> lock(b.stagesLock);
-                if (!cleanupStages.empty()) {
-                    res.Error = std::make_exception_ptr(std::runtime_error("build canceled"));
-                    return res;
-                }
-            }
+    //         {
+    //             std::lock_guard<std::mutex> lock(b.stagesLock);
+    //             if (!cleanupStages.empty()) {
+    //                 res.Error = std::make_exception_ptr(std::runtime_error("build canceled"));
+    //                 return res;
+    //             }
+    //         }
 
-            if (dependencyMap[stages[stageIndex].Name]->NeededByTarget || b.skipUnusedStages != types::OptionalBoolFalse) {
-                res.Error = std::make_exception_ptr(std::runtime_error("not building stage"));
-                return res;
-            }
+    //         if (dependencyMap[stages[stageIndex].Name]->NeededByTarget || b.skipUnusedStages != types::OptionalBoolFalse) {
+    //             res.Error = std::make_exception_ptr(std::runtime_error("not building stage"));
+    //             return res;
+    //         }
 
-            auto stageID = b.buildStage(ctx, cleanupStages, stages, stageIndex);
-            if (stageID.second) {
-                res.Error = std::make_exception_ptr(std::runtime_error("build stage failed"));
-            } else {
-                res.ImageID = stageID.first;
-                res.Ref = stageID.second;
-            }
+    //         auto stageID = b.buildStage(ctx, cleanupStages, stages, stageIndex);
+    //         if (stageID.second) {
+    //             res.Error = std::make_exception_ptr(std::runtime_error("build stage failed"));
+    //         } else {
+    //             res.ImageID = stageID.first;
+    //             res.Ref = stageID.second;
+    //         }
 
-            return res;
-        }));
-    }
+    //         return res;
+    //     }));
+    // }
 
-    std::string imageID;
-    std::shared_ptr<reference::Canonical> ref;
-    for (auto& future : futures) {
-        Result res = future.get();
+    // std::string imageID;
+    // std::shared_ptr<reference::Canonical> ref;
+    // for (auto& future : futures) {
+    //     Result res = future.get();
 
-        if (res.Error) {
-            b.lastError = res.Error;
-            std::rethrow_exception(res.Error);
-        }
+    //     if (res.Error) {
+    //         b.lastError = res.Error;
+    //         std::rethrow_exception(res.Error);
+    //     }
 
-        if (res.Index < stages.size() - 1 && !res.ImageID.empty()) {
-            b.imageMap[stages[res.Index].Name] = res.ImageID;
-            if (!b.layers && !res.OnlyBaseImage) {
-                cleanupImages.push_back(res.ImageID);
-            }
-        }
+    //     if (res.Index < stages.size() - 1 && !res.ImageID.empty()) {
+    //         b.imageMap[stages[res.Index].Name] = res.ImageID;
+    //         if (!b.layers && !res.OnlyBaseImage) {
+    //             cleanupImages.push_back(res.ImageID);
+    //         }
+    //     }
 
-        if (res.Index == stages.size() - 1) {
-            imageID = res.ImageID;
-            ref = res.Ref;
-        }
-    }
+    //     if (res.Index == stages.size() - 1) {
+    //         imageID = res.ImageID;
+    //         ref = res.Ref;
+    //     }
+    // }
 
-    if (!b.unusedArgs.empty()) {
-        std::vector<std::string> unusedList(b.unusedArgs.begin(), b.unusedArgs.end());
-        std::sort(unusedList.begin(), unusedList.end());
-        logrus::Warnf("build: unused build args: %s", joinStrings(unusedList, ", ").c_str());
-    }
+    // if (!b.unusedArgs.empty()) {
+    //     std::vector<std::string> unusedList(b.unusedArgs.begin(), b.unusedArgs.end());
+    //     std::sort(unusedList.begin(), unusedList.end());
+    //     logrus::Warnf("build: unused build args: %s", joinStrings(unusedList, ", ").c_str());
+    // }
 
-    if (b.quiet) {
-        b.out = stdout;
-    }
+    // if (b.quiet) {
+    //     b.out = stdout;
+    // }
 
-    return std::make_tuple(imageID, ref, nullptr);
-    // return std::make_tuple("",std::shared_ptr<canonical>(nullptr));
+    // return std::make_tuple(imageID, ref, nullptr);
+    return std::make_tuple("",std::shared_ptr<canonical>(nullptr));
 }
