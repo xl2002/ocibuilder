@@ -1,0 +1,147 @@
+#if !defined(IMAGEBUILDAH_EXECUTOR_H)
+#define IMAGEBUILDAH_EXECUTOR_H
+#include <string>
+#include <vector>
+#include <map>
+#include <set>
+#include <ctime>
+#include <memory>
+#include <mutex>
+#include <tuple>
+#include <iostream>
+#include <fstream>
+#include <functional>
+#include "reference/reference.h"
+#include "storage/storage.h"
+#include "define/pull.h"
+#include "specs/specs.h"
+#include "define/build.h"
+#include "define/types.h"
+#include "define/namespace.h"
+#include "semaphore/semaphore.h"
+#include "imagebuildah/stage_executor.h"
+#include "define/types_unix.h"
+#include "digest/digest.h"
+#include "v1/config.h"
+#include "sshagent/sshagent.h"
+#include "parse/dockerfileparse.h"
+#include "buildah/buildah.h"
+#include "imagebuilder/builder.h"
+class imageTypeAndHistoryAndDiffIDs {
+    public:
+    std::string manifestType;
+    std::shared_ptr<History> history;
+    std::vector<Digest> diffIDs;
+    std::string err;
+};
+class StageExecutor;
+struct Executor {
+    std::vector<named> cacheFrom;
+    std::vector<named> cacheTo;
+    std::chrono::duration<int> cacheTTL;
+    std::string containerSuffix;
+    // std::shared_ptr<Logger> logger;
+    std::map<std::string, std::shared_ptr<StageExecutor>> stages;
+    std::shared_ptr<store> store=nullptr;
+    std::string contextDir;
+    std::shared_ptr<PullPolicy> pullPolicy=nullptr;
+    std::string registry;
+    bool ignoreUnrecognizedInstructions=false;
+    bool quiet=false;
+    std::string runtime;
+    std::vector<std::string> runtimeArgs;
+    std::vector<Mount> transientMounts;
+    std::shared_ptr<Compression> compression=nullptr;
+    std::string output;
+    std::string outputFormat;
+    std::vector<std::string> additionalTags;
+    std::function<void(string format,vector<string>args)> log; // can be nullptr
+    std::istream* in=nullptr;
+    std::ostream* out=nullptr;
+    std::ostream* err=nullptr;
+    std::string signaturePolicyPath;
+    std::shared_ptr<OptionalBool> skipUnusedStages=nullptr;
+    std::shared_ptr<SystemContext> systemContext=nullptr;
+    std::ostream* reportWriter=nullptr;
+    std::shared_ptr<Isolation> isolation=nullptr;
+    std::vector<NamespaceOption> namespaceOptions;
+    std::shared_ptr<NetworkConfigurationPolicy> configureNetwork=nullptr;
+    std::string cniPluginPath;
+    std::string cniConfigDir;
+    // NetworkInterface is the libnetwork network interface used to setup CNI or netavark networks.
+    // ContainerNetwork networkInterface;
+    std::shared_ptr<IDMappingOptions> idmappingOptions=nullptr;
+    std::shared_ptr<CommonBuildOptions> commonBuildOptions=nullptr;
+    std::string defaultMountsFilePath;
+    std::string iidfile;
+    bool squash=false;
+    std::vector<std::string> labels;
+    std::vector<std::string> layerLabels;
+    std::vector<std::string> annotations;
+    bool layers=false;
+    bool noHostname=false;
+    bool noHosts=false;
+    bool useCache=false;
+    bool removeIntermediateCtrs=false;
+    bool forceRmIntermediateCtrs=false;
+    std::map<std::string, std::string> imageMap; // Used to map images that we create to handle the AS construct.
+    std::map<std::string, std::shared_ptr<Builder>> containerMap; // Used to map from image names to only-created-for-the-rootfs containers.
+    std::set<std::string> baseMap; // Holds the names of every base image, as given.
+    std::set<std::string> rootfsMap; // Holds the names of every stage whose rootfs is referenced in a COPY or ADD instruction.
+    std::string blobDirectory;
+    std::vector<std::string> excludes;
+    std::vector<std::string> groupAdd;
+    std::string ignoreFile;
+    std::map<std::string, std::string> args;
+    std::map<std::string, std::string> globalArgs;
+    std::set<std::string> unusedArgs;
+    std::vector<std::string> capabilities;
+    std::shared_ptr<ContainerDevices> devices=nullptr;
+    std::vector<std::string> deviceSpecs;
+    std::string signBy;
+    std::string architecture;
+    std::shared_ptr<std::chrono::system_clock::time_point> timestamp=nullptr; // Uses `std::tm` instead of `*time.Time`
+    std::string os;
+    int maxPullPushRetries=0;
+    std::chrono::duration<int> retryPullPushDelay;
+    std::shared_ptr<DecryptConfig> ociDecryptConfig=nullptr;
+    std::string lastError;
+    std::map<std::string, std::string> terminatedStage;
+    std::mutex stagesMutex;
+    std::shared_ptr<Weighted> stagesSemaphore=nullptr;
+    bool logRusage=false;
+    std::ostream* rusageLogFile=nullptr;
+    std::mutex imageInfoMutex;
+    std::map<std::string, imageTypeAndHistoryAndDiffIDs> imageInfoCache;
+    std::string fromOverride;
+    std::map<std::string, std::shared_ptr<AdditionalBuildContext>> additionalBuildContexts;
+    std::string manifest;
+    std::map<std::string, std::shared_ptr<Secret>> secrets;
+    std::map<std::string, std::shared_ptr<Source>> sshsources;
+    std::string logPrefix;
+    std::vector<std::string> unsetEnvs;
+    std::vector<std::string> unsetLabels;
+    std::string processLabel; // Shares processLabel of first stage container with containers of other stages in same build
+    std::string mountLabel; // Shares mountLabel of first stage container with containers of other stages in same build
+    std::string buildOutput; // Specifies instructions for any custom build output
+    std::string osVersion;
+    std::vector<std::string> osFeatures;
+    std::vector<std::string> envs;
+    std::shared_ptr<ConfidentialWorkloadOptions> confidentialWorkload=nullptr;
+    std::vector<SBOMScanOptions> sbomScanOptions;
+    std::string cdiConfigDir;
+    Executor()=default;
+    std::tuple<string,std::shared_ptr<canonical>> Build(std::shared_ptr<Stages> stages);
+};
+std::shared_ptr<Executor> 
+newExecutor(
+    std::string logPrefix,
+    std::shared_ptr<store> stores,
+    std::shared_ptr<define_BuildOptions> options,
+    std::shared_ptr<Node> mainNode,
+    std::vector<std::string> containerFiles);
+    
+
+
+
+#endif // IMAGEBUILDAH_EXECUTOR_H

@@ -1,0 +1,32 @@
+{
+    "tasks": [
+        {
+            "type": "cppbuild",
+            "label": "build",
+            // "command": "D:\\Softwares\\mingw64\\bin\\mingw32-make.exe",
+            "command": "mingw32-make",
+            "args": [
+                "-j"
+                // "all"
+                // "-fdiagnostics-color=always",
+                // "-g",
+                // "${file}",
+                // "-std=c++11",
+                // // "-stdlib=libc++",
+                // "-I","${workspaceFolder}\\include",
+                // "${workspaceFolder}\\execute\\*.cpp",
+                // "-o",
+                // "${fileDirname}\\${fileBasenameNoExtension}.exe"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": "build",
+            "detail": "编译器: D:\\Softwares\\mingw64\\bin\\g++.exe"
+        }
+    ],
+    "version": "2.0.0"
+}
