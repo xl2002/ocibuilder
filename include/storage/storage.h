@@ -18,6 +18,7 @@ class Store{
     // RunRoot、GraphRoot、GraphDriverName 和 GraphOptions 检索
 	//创建对象时传递给 GetStore() 的设置。
     virtual string RunRoot()=0;
+    virtual void DeleteContainer(std::string id)=0;
     // virtual string GraphRoot()=0;
     // virtual string ImageStore()=0;
 	// virtual bool ransientStore()=0;
@@ -48,6 +49,7 @@ class store:public Store{
 
     public:
     string RunRoot() override;
+    void DeleteContainer(std::string id) override;
 };
 
 #endif // STORAGE_STIRAGE_H

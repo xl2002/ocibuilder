@@ -47,6 +47,7 @@ public:
 
     // 构造函数
     StageExecutor()=default;
+    void Delete();
 };
 
 #endif // IMAGEBUILDAH_STAGE_EXECUTOR_H)

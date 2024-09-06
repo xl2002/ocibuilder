@@ -2,13 +2,17 @@
 #define TYPES_TYPES_H
 #include <string>
 #include <memory>
-
+#include <vector>
+#include <map>
 class ImageTransport;
 class ImageReference{
     public:
     ~ImageReference()=default;
     virtual std::shared_ptr<ImageTransport> Transport() const = 0;
-
+    virtual std::string StringWithinTransport() const = 0;
+    virtual std::string PolicyConfigurationIdentity() const = 0;
+    virtual std::vector<std::string> PolicyConfigurationNamespaces() const = 0;
+    
 };
 // ImageTransport基类
 class ImageTransport {

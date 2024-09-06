@@ -9,6 +9,7 @@
 #include <mutex>
 #include <tuple>
 #include <iostream>
+#include <future>
 #include <fstream>
 #include <functional>
 #include "reference/reference.h"
@@ -27,6 +28,11 @@
 #include "parse/dockerfileparse.h"
 #include "buildah/buildah.h"
 #include "imagebuilder/builder.h"
+#include "types/types.h"
+#include "alltransports/alltransports.h"
+#include <list>
+#include <boost/optional.hpp>
+#include <boost/thread/thread.hpp> // 使用 boost::thread
 class imageTypeAndHistoryAndDiffIDs {
     public:
     std::string manifestType;
@@ -35,6 +41,7 @@ class imageTypeAndHistoryAndDiffIDs {
     std::string err;
 };
 class StageExecutor;
+struct stageDependencyInfo;
 struct Executor {
     std::vector<named> cacheFrom;
     std::vector<named> cacheTo;
@@ -107,7 +114,7 @@ struct Executor {
     std::shared_ptr<DecryptConfig> ociDecryptConfig=nullptr;
     std::string lastError;
     std::map<std::string, std::string> terminatedStage;
-    std::mutex stagesMutex;
+    std::mutex stagesLock;
     std::shared_ptr<Weighted> stagesSemaphore=nullptr;
     bool logRusage=false;
     std::ostream* rusageLogFile=nullptr;
@@ -132,6 +139,28 @@ struct Executor {
     std::string cdiConfigDir;
     Executor()=default;
     std::tuple<string,std::shared_ptr<canonical>> Build(std::shared_ptr<Stages> stages);
+    void warnOnUnsetBuildArgs(
+        const std::vector<Stage>& stages,
+        const std::map<std::string, std::shared_ptr<stageDependencyInfo>>& dependencyMap,
+        const std::map<std::string, std::string>& args
+    );
+    std::shared_ptr<ImageReference> resolveNameToImageRef(const std::string& output);
+    std::tuple<std::string,std::shared_ptr<canonical>,bool,std::string> buildStage(
+        std::map<int,std::shared_ptr<StageExecutor>> cleanupStages,
+        std::shared_ptr<Stages> stages,
+        int stageIndex
+    );
+};
+
+struct stageDependencyInfo{
+    std::string Name;
+    int Position=0;
+    std::vector<std::string> Needs;
+    bool NeededByTarget=false;
+    stageDependencyInfo()=default;
+    stageDependencyInfo(std::string name, int position):Name(name),Position(position){};
+    
+
 };
 std::shared_ptr<Executor> 
 newExecutor(
@@ -141,7 +170,10 @@ newExecutor(
     std::shared_ptr<Node> mainNode,
     std::vector<std::string> containerFiles);
     
-
+void markDependencyStagesForTarget(
+    std::map<std::string, std::shared_ptr<stageDependencyInfo>>& dependencyMap,
+    const std::string& stage
+);
 
 
 #endif // IMAGEBUILDAH_EXECUTOR_H

@@ -34,8 +34,8 @@ std::tuple<std::string, std::vector<std::string>> Lex::process(std::string word,
     auto sw=init(word,env);
     return sw->process(word);
 }
-std::shared_ptr<shellWord> Lex::init(std::string word, std::map<std::string, std::string> env) {
-    auto sw=std::make_shared<shellWord>();
+std::shared_ptr<shellWord_lex> Lex::init(std::string word, std::map<std::string, std::string> env) {
+    auto sw=std::make_shared<shellWord_lex>();
     sw->envs=env;
     sw->escapeToken=escapeToken;
     sw->rawEscapes=RawEscapes;
@@ -46,7 +46,7 @@ std::shared_ptr<shellWord> Lex::init(std::string word, std::map<std::string, std
     return sw;
 }
 
-std::tuple<std::string,std::vector<std::string>> shellWord::process(std::string source){
+std::tuple<std::string,std::vector<std::string>> shellWord_lex::process(std::string source){
     std::string word;
     std::vector<std::string> words;
     try
@@ -59,9 +59,9 @@ std::tuple<std::string,std::vector<std::string>> shellWord::process(std::string 
         throw myerror(std::string(e.what())+"\nfailed to process "+source);
     }
 }
-std::tuple<std::string, std::vector<std::string>> shellWord::processStopOn(char stopChar) {
+std::tuple<std::string, std::vector<std::string>> shellWord_lex::processStopOn(char stopChar) {
     std::ostringstream result;
-    wordsStruct words;
+    wordsStruct_lex words;
 
     // 映射字符到对应的处理函数
     std::map<char, std::function<std::string()>> charFuncMapping = {
@@ -124,7 +124,7 @@ std::tuple<std::string, std::vector<std::string>> shellWord::processStopOn(char 
 
     return std::make_tuple(result.str(), words.getWords());
 }
-std::string shellWord::processDollar() {
+std::string shellWord_lex::processDollar() {
     ss.get(); // Consume $
 
     if (ss.peek() != '{') {
@@ -221,7 +221,7 @@ bool isSpecialParam(char ch) {
             return false;
     }
 }
-std::string shellWord::processName() {
+std::string shellWord_lex::processName() {
     std::string name;
     char ch;
 
@@ -248,7 +248,7 @@ std::string shellWord::processName() {
     return name;
 }
 // 处理单引号内的内容
-std::string shellWord::processSingleQuote() {
+std::string shellWord_lex::processSingleQuote() {
     std::ostringstream result;
     char ch;
 
@@ -272,7 +272,7 @@ std::string shellWord::processSingleQuote() {
     throw myerror("unexpected end of statement while looking for matching single-quote");
 }
 
-std::string shellWord::processDoubleQuote() {
+std::string shellWord_lex::processDoubleQuote() {
     std::ostringstream result;
     char ch;
 
@@ -315,7 +315,7 @@ std::string shellWord::processDoubleQuote() {
     throw myerror("unexpected end of statement while looking for matching double-quote");
 }
 // 添加单个字符到当前单词中
-void wordsStruct::addChar(char ch) {
+void wordsStruct_lex::addChar(char ch) {
     if (std::isspace(ch) && inWord) {
         // 遇到空格时，如果正在处理一个单词，则将当前单词添加到列表中
         if (!word.empty()) {
@@ -328,21 +328,21 @@ void wordsStruct::addChar(char ch) {
         addRawChar(ch);
     }
 }
-void wordsStruct:: addRawChar(char ch) {
+void wordsStruct_lex:: addRawChar(char ch) {
     word+=ch;
     inWord = true;
 }
 
-void wordsStruct::addString(const std::string& str) {
+void wordsStruct_lex::addString(const std::string& str) {
     for(auto& ch:str){
         addChar(ch);
     }
 }
-void wordsStruct::addRawString(const std::string& str) {
+void wordsStruct_lex::addRawString(const std::string& str) {
     word+=str;
     inWord = true;
 }
-std::vector<std::string> wordsStruct::getWords(){
+std::vector<std::string> wordsStruct_lex::getWords(){
     if(word.size()>0){
         words.push_back(word);
         word="";

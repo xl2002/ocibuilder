@@ -52,3 +52,20 @@ std::string TrimSpace(const std::string& str) {
     const auto end = str.find_last_not_of(" \t\n\r");
     return str.substr(start, end - start + 1);
 }
+std::vector<std::string> split(const std::string& str, char delimiter) {
+    std::vector<std::string> tokens;
+    std::stringstream ss(str);
+    std::string token;
+    while (std::getline(ss, token, delimiter)) {
+        tokens.push_back(token);
+    }
+    return tokens;
+}
+
+bool cutPrefix(const std::string& str, const std::string& prefix, std::string& result) {
+    if (str.find(prefix) == 0) {
+        result = str.substr(prefix.length());
+        return true;
+    }
+    return false;
+}

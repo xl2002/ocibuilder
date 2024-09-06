@@ -6,6 +6,7 @@
 #include <memory>
 #include <windows.h>
 #include <sys/stat.h>
+#include <fstream>
 
 std::string joinPath(const std::string& path1, const std::string& path2);
 
@@ -16,4 +17,6 @@ bool isDirectory(const std::string& path);
 bool isRegularFile(const std::string& path);
 
 std::string getDirectory(const std::string& path);
+
+void  WriteFile(const std::string& iidfile, const std::string& imageID);
 #endif // GO_FILE_H

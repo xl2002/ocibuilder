@@ -4,3 +4,6 @@ string store:: RunRoot()
 {
     return "";
 }
+void store::DeleteContainer(std::string id){
+
+}

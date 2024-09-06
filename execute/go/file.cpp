@@ -1,4 +1,5 @@
 #include "go/file.h"
+#include <cobra/error.h>
 /**
  * @brief 将两个路径字符串连接在一起
  * 
@@ -78,4 +79,24 @@ std::string getDirectory(const std::string& path) {
         return "";
     }
     return path.substr(0, pos);
+}
+void  WriteFile(const std::string& iidfile, const std::string& imageID) {
+    try {
+        // 创建文件并写入内容
+        std::ofstream file(iidfile, std::ios::out | std::ios::trunc);
+        if (!file.is_open()) {
+            throw std::runtime_error("failed to open file: " + iidfile);
+        }
+
+        // 写入 "sha256:" + imageID
+        file << "sha256:" << imageID;
+        file.close();
+
+        // 返回成功的 imageID 和 ref
+        // return std::make_tuple(imageID, ref, nullptr);
+    } catch (...) {
+        throw;
+        // 如果写入失败，返回捕获的异常
+        // return std::make_tuple(imageID, ref, std::current_exception());
+    }
 }

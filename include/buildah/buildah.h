@@ -122,5 +122,8 @@ struct Builder {
 
     // CDIConfigDir 是 CDI 配置文件的位置，如果不使用默认配置位置中的文件。
     std::string CDIConfigDir;
+
+
+    void Delete();
 };
 #endif // BUILDAH_BUILAH_H

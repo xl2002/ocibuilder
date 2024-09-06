@@ -12,7 +12,7 @@
 #include <functional>
 #include "cobra/error.h"
 
-struct shellWord;
+struct shellWord_lex;
 class Lex{
     public:
     // 公共成员变量，与 Go 结构体中的字段对应
@@ -23,13 +23,13 @@ class Lex{
     bool SkipUnsetEnv=false;
 
     std::tuple<std::string, std::vector<std::string>> process(std::string word, std::map<std::string, std::string> env);
-    std::shared_ptr<shellWord> init(std::string word, std::map<std::string, std::string> env);
+    std::shared_ptr<shellWord_lex> init(std::string word, std::map<std::string, std::string> env);
     std::vector<std::string>ProcessWords(std::string word,std::vector<std::string> env);
 
 
 };
 
-struct shellWord {
+struct shellWord_lex {
     std::stringstream ss;
     // 因为 C++ 没有直接对应的 scanner 类型，这里可能需要自定义一个 scanner 类或使用现有的解析器
     std::map<std::string, std::string> envs;   // 环境变量
@@ -39,7 +39,7 @@ struct shellWord {
     bool skipUnsetEnv=false;                         // 是否跳过未设置的环境变量
     bool skipProcessQuotes=false;                    // 是否跳过处理引号
     std::map<std::string, std::string> matches;             // 匹配的字符串集合
-    shellWord() = default;
+    shellWord_lex() = default;
 
     std::tuple<std::string,std::vector<std::string>>process(std::string source);
     std::tuple<std::string, std::vector<std::string>> processStopOn(char stopChar);
@@ -51,13 +51,13 @@ struct shellWord {
 std::shared_ptr<Lex> NewLex(const char& escapeToken);
 std::map<std::string, std::string> BuildEnvs(const std::vector<std::string>& env);
 
-class wordsStruct{
+class wordsStruct_lex{
 
     public:
     std::string word;
     std::vector<std::string> words;
     bool inWord;
-    wordsStruct() = default;
+    wordsStruct_lex() = default;
     void addChar(char ch);
     void addRawChar(char ch);
     void addString(const std::string& str);
