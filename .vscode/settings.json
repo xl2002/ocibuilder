@@ -102,5 +102,6 @@
     ],
     "CodeGPT.apiKey": "CodeGPT Plus Beta",
     "makefile.configureOnOpen": false,
-    "cmake.ignoreCMakeListsMissing": true
+    "cmake.ignoreCMakeListsMissing": true,
+    "commentTranslate.hover.enabled": true
 }
