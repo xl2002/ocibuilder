@@ -10,3 +10,10 @@ void StageExecutor::Delete(){
         }
     }
 }
+
+std::tuple<std::string,std::shared_ptr<canonical>,bool> StageExecutor::Execute(std::string base){
+
+
+
+    return std::make_tuple("",std::shared_ptr<canonical>(nullptr),false);
+}

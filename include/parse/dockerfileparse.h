@@ -48,6 +48,8 @@ class Directive{
     void setPlatformToken(const std::string& s);
     void possibleParserDirective(const std::string& line);
 };
+
+
 extern std::shared_ptr<Regexp> tokenEscapeCommand;
 extern std::shared_ptr<Regexp> tokenPlatformCommand;
 extern std::shared_ptr<Regexp> tokenWhitespace;
@@ -56,6 +58,29 @@ extern std::map<std::string, bool> heredocDirectives;
 extern std::string defaultPlatformToken;
 extern const char DefaultEscapeToken;
 extern std::map<std::string, bool> heredocCompoundDirectives;
+// extern const std::string    Add;
+// extern const std::string 	Arg;
+// extern const std::string 	Cmd;
+// extern const std::string 	Copy;
+// extern const std::string 	Entrypoint;
+// extern const std::string 	Env;
+// extern const std::string 	Expose;
+// extern const std::string 	From;
+// extern const std::string 	Healthcheck;
+// extern const std::string 	Label;
+// extern const std::string 	Maintainer;
+// extern const std::string 	Onbuild;
+// extern const std::string 	Run;
+// extern const std::string 	Shell;
+// extern const std::string 	StopSignal;
+// extern const std::string 	User;
+// extern const std::string 	Volume;
+// extern const std::string 	Workdir;
+
+
+
+
+
 std::shared_ptr<Result> Parse(std::stringstream& rwc);
 std::shared_ptr<Node> newNodeFromLine(const std::string& line, std::shared_ptr<Directive> directive);
 std::string trimComments(const std::string& src);

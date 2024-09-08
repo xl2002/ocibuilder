@@ -11,6 +11,7 @@
 #include "multierror/group.h"
 #include "storage/storage_transport.h"
 #include "go/file.h"
+// #include "alltransports/alltransports.h"
 // #include "docker/container.h"
 // newExecutor creates a new instance of the imagebuilder.Executor interface.
 std::shared_ptr<Executor> 
@@ -520,98 +521,153 @@ std::tuple<std::string,std::shared_ptr<canonical>,bool,std::string> Executor::bu
     int stageIndex
 ){
 
-    return std::make_tuple("",std::shared_ptr<canonical>(nullptr),false,"");
-    // StageExecutor* stage = stages[stageIndex];
-    // std::string base;
+    // return std::make_tuple("",std::shared_ptr<canonical>(nullptr),false,"");
+    auto stage = stages->Stages[stageIndex];
+    auto ib=stage.image_builder;
+    auto node=stage.Node;
 
-    // try {
-    //     base = stage->from();  // 假设 `from()` 方法存在
-    // } catch (const std::exception& e) {
-    //     // 打印调试信息并返回错误
-    //     std::cerr << "buildStage: Error while calling from() " << e.what() << std::endl;
-    //     return std::make_tuple("", "", false, std::make_exception_ptr(e));
-    // }
+    std::string base;
+    try {
+        base = ib->From(node);  // 假设 `from()` 方法存在
+    } catch (const std::exception& e) {
+        // 打印调试信息并返回错误
+        throw myerror("buildStage: Error while calling from() "+std::string(e.what()) );
+        // return std::make_tuple("", "", false, std::make_exception_ptr(e));
+    }
 
-    // std::string output = "";
-    // if (stageIndex == stages.size() - 1) {
-    //     output = this->output;
-    //     if (!labels.empty()) {
-    //         std::string labelLine;
-    //         for (const auto& labelSpec : labels) {
-    //             size_t pos = labelSpec.find('=');
-    //             if (pos != std::string::npos) {
-    //                 std::string key = labelSpec.substr(0, pos);
-    //                 std::string value = labelSpec.substr(pos + 1);
-    //                 if (!key.empty()) {
-    //                     labelLine += " \"" + key + "\"=\"" + value + "\"";
-    //                 }
-    //             }
-    //         }
-    //         if (!labelLine.empty()) {
-    //             // 假设 ParseDockerfile 方法存在
-    //             auto additionalNode = stage->parseDockerfile("LABEL " + labelLine + "\n");
-    //             stage->appendNode(additionalNode);
-    //         }
-    //     }
-    // }
+    std::string output = "";
+    if (stageIndex == stages->Stages.size() - 1) {
+        output = this->output;
+        if (!labels.empty()) {
+            std::string labelLine;
+            for (const auto& labelSpec : labels) {
+                std::string key;
+                std::string value;
+                bool flag;
+                std::tie(key, value, flag) = Cut(labelSpec,'=');
+                // size_t pos = labelSpec.find('=');
+                // if (pos != std::string::npos) {
+                //     std::string key = labelSpec.substr(0, pos);
+                //     std::string value = labelSpec.substr(pos + 1);
+                if (!key.empty()) {
+                    labelLine += " \"" + key + "\"=\"" + value + "\"";
+                }
+                // }
+            }
+            if (!labelLine.empty()) {
+                // 假设 ParseDockerfile 方法存在
+                auto labelLines="LABEL " + labelLine + "\n";
+                std::vector<uint8_t> vec(labelLines.begin(), labelLines.end());
+                vec.push_back('\0');  // 添加空终止符
+                auto additionalNode = ParseDockerfile(vec);
+                // stage->appendNode(additionalNode);
+                stage.Node->Children.insert(stage.Node->Children.end(),additionalNode->Children.begin(), additionalNode->Children.end());
+            }
+        }
+    }
 
-    // if (!envs.empty()) {
-    //     std::string envLine;
-    //     for (const auto& envSpec : envs) {
-    //         size_t pos = envSpec.find('=');
-    //         if (pos != std::string::npos) {
-    //             std::string key = envSpec.substr(0, pos);
-    //             std::string value = envSpec.substr(pos + 1);
-    //             if (!key.empty()) {
-    //                 envLine += " \"" + key + "\"=\"" + value + "\"";
-    //             }
-    //         } else {
-    //             return std::make_tuple("", "", false, std::make_exception_ptr(std::runtime_error("BUG: unresolved environment variable: " + envSpec)));
-    //         }
-    //     }
-    //     if (!envLine.empty()) {
-    //         auto additionalNode = stage->parseDockerfile("ENV " + envLine + "\n");
-    //         stage->prependNode(additionalNode);
-    //     }
-    // }
+    if (!envs.empty()) {
+        std::string envLine;
+        for (const auto& envSpec : envs) {
+            std::string key;
+            std::string value;
+            bool flag;
+            std::tie(key, value, flag) = Cut(envSpec,'=');
+            // size_t pos = envSpec.find('=');
+            // if (pos != std::string::npos) {
+            //     std::string key = envSpec.substr(0, pos);
+            //     std::string value = envSpec.substr(pos + 1);
+            if (flag) {
+                envLine += " \"" + key + "\"=\"" + value + "\"";
+            }
+            else {
+                return std::make_tuple("", nullptr, false, std::string("BUG: unresolved environment variable: " + envSpec));
+            }
+        }
+        if (!envLine.empty()) {
+            auto envLines="ENV " + envLine + "\n";
+            std::vector<uint8_t> vec(envLines.begin(), envLines.end());
+            vec.push_back('\0');  // 添加空终止符
+            auto additionalNode = ParseDockerfile(vec);
+            // stage->appendNode(additionalNode);
+            // auto additionalNode = ParseDockerfile("ENV " + envLine + "\n");
+            // stage->prependNode(additionalNode);
+            stage.Node->Children.insert(stage.Node->Children.begin(),additionalNode->Children.begin(), additionalNode->Children.end());
+        }
+    }
 
-    // std::lock_guard<std::mutex> lock(this->stagesLock);
-    // StageExecutor* stageExecutor = stage->startStage(output);
+    std::unique_lock<std::mutex> lock(this->stagesLock);
+    std::shared_ptr<StageExecutor> stageExecutor = startStage(std::shared_ptr<Stage>(&stage),stages,output);
 
-    // if (!stageExecutor->log) {
-    //     int stepCounter = 0;
-    //     stageExecutor->log = [this, &stepCounter, stageIndex, stages](const std::string& format, const std::vector<std::string>& args) {
-    //         std::string prefix = this->logPrefix;
-    //         if (stages.size() > 1) {
-    //             prefix += "[" + std::to_string(stageIndex + 1) + "/" + std::to_string(stages.size()) + "] ";
-    //         }
-    //         if (format.find("COMMIT") == std::string::npos) {
-    //             stepCounter++;
-    //             prefix += "STEP " + std::to_string(stepCounter) + "/" + std::to_string(stages[stageIndex]->getChildrenCount() + 1) + ": ";
-    //         }
-    //         std::string message = prefix + format + "\n";
-    //         std::printf(message.c_str(), args);
-    //     };
-    // }
+    if (!stageExecutor->log) {
+        int stepCounter = 0;
+        stageExecutor->log = [this, &stepCounter, stageIndex, stages,stage,stageExecutor](std::string format,std::vector<std::string>args) {
+            std::string prefix = this->logPrefix;
+            if (stages->Stages.size() > 1) {
+                prefix += "[" + std::to_string(stageIndex + 1) + "/" + std::to_string(stages->Stages.size()) + "] ";
+            }
+            if (hasPrefix(format, "COMMIT")) {
+                stepCounter++;
+                prefix += "STEP " + std::to_string(stepCounter);
+                if(stepCounter<=stage.Node->Children.size()+1){
+                    prefix +="/" + std::to_string(stage.Node->Children.size() + 1) ;
+                }
+                prefix += ": ";
+            }
+            std::string suffix="\n";
+            auto message = prefix + format + suffix;
+            *stageExecutor->executor->out<< message << vectorToString(args)<<std::endl;
+            // std::printf(message.c_str(), args);
+        };
+    }
+    lock.unlock();
 
-    // if (forceRmIntermediateCtrs || !layers) {
-    //     cleanupStages[stage->getPosition()] = stageExecutor;
-    // }
+    if (forceRmIntermediateCtrs || !layers) {
+        std::lock_guard<std::mutex> lock(this->stagesLock);
+        cleanupStages[stage.Position] = stageExecutor;
+    }
 
-    // std::string imageID, ref;
-    // bool onlyBaseImage;
-    // try {
-    //     std::tie(imageID, ref, onlyBaseImage) = stageExecutor->execute(base);
-    // } catch (const std::exception& e) {
-    //     return std::make_tuple("", "", onlyBaseImage, std::make_exception_ptr(e));
-    // }
+    std::string imageID;
+    std::shared_ptr<canonical> ref;
+    bool onlyBaseImage;
+    try {
+        std::tie(imageID, ref, onlyBaseImage) = stageExecutor->Execute(base);
+    } catch (const myerror& e) {
+        return std::make_tuple("", nullptr, onlyBaseImage, std::string(e.what()));
+    }
 
-    // if (removeIntermediateCtrs && stage->hasChildren()) {
-    //     cleanupStages[stage->getPosition()] = stageExecutor;
-    // }
+    if (removeIntermediateCtrs && stage.Node->Children.size() > 0) {
+        std::lock_guard<std::mutex> lock(this->stagesLock);
+        cleanupStages[stage.Position] = stageExecutor;
+    }
 
-    // return std::make_tuple(imageID, ref, onlyBaseImage, nullptr);
+    return std::make_tuple(imageID, ref, onlyBaseImage, "");
 }
+
+std::shared_ptr<StageExecutor> Executor::startStage(
+    std::shared_ptr<Stage> stage,
+    std::shared_ptr<Stages> stages,
+    std::string output
+){
+    auto stageExec=std::make_shared<StageExecutor>();
+    stageExec->executor = std::shared_ptr<Executor>(this); // this;
+    stageExec->log=log;
+    stageExec->index=stage->Position;
+    stageExec->stages=stages;
+    stageExec->name=stage->Name;
+    stageExec->volumeCache=std::map<std::string, std::string>();
+    stageExec->volumeCacheInfo=std::map<std::string, struct stat>();
+    stageExec->output=output;
+    stageExec->stage=stage;
+    this->stages[stage->Name]=stageExec;
+    auto idx=to_string(stage->Position);
+    if(idx!=stage->Name){
+        this->stages[idx]=stageExec;
+    }
+    return stageExec;
+
+}
+
 void markDependencyStagesForTarget(
     std::map<std::string, std::shared_ptr<stageDependencyInfo>>& dependencyMap,
     const std::string& stage

@@ -29,7 +29,7 @@ public:
     // 成员变量
     // std::shared_ptr<void> ctx; // 假设context类型的实现，以void指针代替。可以换为合适的C++ context类型或自定义实现
     std::shared_ptr<Executor> executor;
-    std::function<void(const std::string& format)> log;;
+    std::function<void(std::string format,std::vector<std::string>args)> log;
     int index=0;
     std::shared_ptr<Stages> stages=nullptr;
     std::string name;
@@ -48,6 +48,7 @@ public:
     // 构造函数
     StageExecutor()=default;
     void Delete();
+    std::tuple<std::string,std::shared_ptr<canonical>,bool>Execute(std::string base);
 };
 
 #endif // IMAGEBUILDAH_STAGE_EXECUTOR_H)

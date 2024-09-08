@@ -23,5 +23,5 @@ std::string TrimSpace(const std::string& str);
 std::string toUpper(const std::string& str);
 std::vector<std::string> split(const std::string& str, char delimiter);
 bool cutPrefix(const std::string& str, const std::string& prefix, std::string& result);
-
+std::tuple<std::string, std::string, bool> Cut(const std::string &str, char delimiter);
 #endif // GO_STRING_H

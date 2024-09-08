@@ -145,10 +145,16 @@ struct Executor {
         const std::map<std::string, std::string>& args
     );
     std::shared_ptr<ImageReference> resolveNameToImageRef(const std::string& output);
-    std::tuple<std::string,std::shared_ptr<canonical>,bool,std::string> buildStage(
+    std::tuple<std::string,std::shared_ptr<canonical>,bool,std::string> 
+    buildStage(
         std::map<int,std::shared_ptr<StageExecutor>> cleanupStages,
         std::shared_ptr<Stages> stages,
         int stageIndex
+    );
+    std::shared_ptr<StageExecutor> startStage(
+        std::shared_ptr<Stage> stage,
+        std::shared_ptr<Stages> stages,
+        std::string output
     );
 };
 

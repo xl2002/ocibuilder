@@ -16,6 +16,7 @@
 #include <stdexcept>
 #include "parse/dockerfileparse.h"
 #include "docker/container.h"
+#include "imagebuilder/evaluator.h"
 struct File{
     std::string Name;
     std::string Data;
@@ -66,7 +67,21 @@ public:
 
     std::vector<std::string> Warnings;
     std::string Platform;
+
+
+    std::string From(std::shared_ptr<Node> node);
+    void extractHeadingArgsFromNode(std::shared_ptr<Node> node);
+    std::shared_ptr<Image_Builder> builderForStage(std::vector<std::string> globalArgsList);
+    std::shared_ptr<Step> Step_new();
+    bool RequiresStart(std::shared_ptr<Node> node);
+    std::vector<std::string> Arguments();
 };
+
+std::vector<std::shared_ptr<Node>> SplitBy(std::shared_ptr<Node>node,std::string value);
+std::tuple<std::string,bool> extractNameFromNode(std::shared_ptr<Node>node);
+std::vector<std::shared_ptr<Node>> SplitChildren(std::shared_ptr<Node>node,std::string value);
+
+
 
 class Stage {
 public:

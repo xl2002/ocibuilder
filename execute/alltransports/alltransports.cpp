@@ -1,12 +1,12 @@
 #include "alltransports/alltransports.h"
-
-std::tuple<std::string, std::string, bool> Cut(const std::string &str, char delimiter) {
-    size_t pos = str.find(delimiter);
-    if (pos == std::string::npos) {
-        return std::make_tuple(str, "", false);
-    }
-    return std::make_tuple(str.substr(0, pos), str.substr(pos + 1), true);
-}
+#include "go/string.h"
+// std::tuple<std::string, std::string, bool> Cut(const std::string &str, char delimiter) {
+//     size_t pos = str.find(delimiter);
+//     if (pos == std::string::npos) {
+//         return std::make_tuple(str, "", false);
+//     }
+//     return std::make_tuple(str.substr(0, pos), str.substr(pos + 1), true);
+// }
 std::shared_ptr<ImageReference> ParseImageName(std::string imgName){
     std::string transportName, withinTransport;
     bool valid;

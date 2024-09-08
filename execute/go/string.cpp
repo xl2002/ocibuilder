@@ -69,3 +69,10 @@ bool cutPrefix(const std::string& str, const std::string& prefix, std::string& r
     }
     return false;
 }
+std::tuple<std::string, std::string, bool> Cut(const std::string &str, char delimiter) {
+    size_t pos = str.find(delimiter);
+    if (pos == std::string::npos) {
+        return std::make_tuple(str, "", false);
+    }
+    return std::make_tuple(str.substr(0, pos), str.substr(pos + 1), true);
+}
