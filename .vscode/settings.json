@@ -88,11 +88,16 @@
         "stacktrace": "cpp",
         "stop_token": "cpp",
         "syncstream": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "strstream": "cpp",
+        "rope": "cpp",
+        "slist": "cpp",
+        "*.ipp": "cpp"
     },
     "C_Cpp.errorSquiggles": "enabled",
     "cSpell.words": [
         "xiongkang"
     ],
-    "CodeGPT.apiKey": "CodeGPT Plus Beta"
+    "CodeGPT.apiKey": "CodeGPT Plus Beta",
+    "cmake.sourceDirectory": "E:/Projects/VScodeProjects/ocibuilder/include/boost/safe_numerics"
 }

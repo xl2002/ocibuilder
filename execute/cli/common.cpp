@@ -13,6 +13,7 @@
 #include <cstdlib>
 #include <algorithm>
 #include <windows.h>
+std::shared_ptr<store> GetStore(StoreOptions options);
 /**
  * @brief 根据分隔符对字符串进行拆分，最多拆分max_splits-1次，返回一个包含拆分结果的vector<string>。
  * 
@@ -62,82 +63,79 @@ string ParseBool(string str){
  * @param cmd 命令
  * @return shared_ptr<store> store 对象
  */
-shared_ptr<store> getStore(Command* cmd){
-    auto needToShutdownStore =false;
-    // if (!setXDGRuntimeDir()) {
-    //     cerr << "Failed to set XDG runtime directory" << endl;
-    //     return nullptr;
-    // }
-    //todo
+// 主函数
+std::shared_ptr<store> getStore(Command* cmd) {
+    bool needToShutdownStore = false;
+    std::shared_ptr<store> store = nullptr;
 
-    StoreOptions options = DefaultStoreOptions();
-    
-    // if (cmd->Flag_find("root")->changed || cmd->Flag_find("runroot")->changed) {    
-    // }
+    try {
+        StoreOptions options = DefaultStoreOptions();
+        
+        // 处理存储驱动相关的选项
+        if (cmd->Flag_find("storage-driver")->changed) {
+            // 处理 storage-driver 的选项
+        }
 
-    if (cmd->Flag_find("storage-driver")->changed) {
+        if (cmd->Flag_find("storage-opt")->changed) {
+            // 处理 storage-opt 的选项
+        }
+
+        // // 检查用户是否为 root 且存储引擎设置是否为 vfs
+        // if (geteuid() != 0 && options.graph_driver_name != "vfs") {
+        //     throw myerror("Cannot mount using driver " + options.graph_driver_name + " in rootless mode. You need to run it in a `buildah unshare` session");
+        // }
+
+        // // 处理用户命名空间映射
+        // if (!globalFlagOptions.UserNSUID.empty()) {
+        //     std::vector<std::string> uopts = globalFlagResults.UserNSUID;
+        //     std::vector<std::string> gopts = globalFlagResults.UserNSGID;
+
+        //     if (gopts.empty()) {
+        //         gopts = uopts;
+        //     }
+
+        //     try {
+        //         std::tie(options.UIDMap, options.GIDMap) = ParseIDMappings(uopts, gopts);
+        //     } catch (const std::exception& e) {
+        //         throw myerror("Error parsing ID mappings: " + std::string(e.what()));
+        //     }
+        // } else if (!globalFlagResults.UserNSGID.empty()) {
+        //     throw myerror("option --userns-gid-map cannot be used without --userns-uid-map");
+        // }
+
+        // if (cmd->Flags()->Lookup("userns-uid-map")->changed) {
+        //     std::vector<std::string> uopts = cmd->GetStringSlice("userns-uid-map");
+        //     std::vector<std::string> gopts = cmd->GetStringSlice("userns-gid-map");
+
+        //     if (gopts.empty()) {
+        //         gopts = uopts;
+        //     }
+
+        //     try {
+        //         std::tie(options.UIDMap, options.GIDMap) = ParseIDMappings(uopts, gopts);
+        //     } catch (const std::exception& e) {
+        //         throw myerror("Error parsing ID mappings: " + std::string(e.what()));
+        //     }
+        // } else if (cmd->Flags()->Lookup("userns-gid-map")->changed) {
+        //     throw myerror("option --userns-gid-map cannot be used without --userns-uid-map");
+        // }
+
+        umask(0);
+
+        store = GetStore(options);
+        if (store) {
+            // 假设 is::Transport::SetStore(store) 的替代实现
+            // is.Transport.SetStore(store);
+        }
+        needToShutdownStore = true;
+    } catch (const myerror& e) {
+        // 处理 myerror 类型的异常
+        std::cerr << e.what() << std::endl;
+    } catch (const std::exception& e) {
+        // 捕获其他异常
+        std::cerr << "An unexpected error occurred: " << e.what() << std::endl;
     }
 
-    if (cmd->Flag_find("storage-opt")->changed) {
-    }
-
-    // if (geteuid() != 0 && options.graph_driver_name != "vfs") {
-    //     cerr << "Cannot mount using driver " << options.graph_driver_name << " in rootless mode. You need to run it in a `buildah unshare` session" << endl;
-    //     return nullptr;
-    // }
-    ///<检查用户是否为root且存储引擎设置是否为vfs
-
-    // if (!globalFlagOptions.UserNSUID.empty()) {
-    //     vector<string> uopts = globalFlagResults.UserNSUID;
-    //     vector<string> gopts = globalFlagResults.UserNSGID;
-
-    //     if (gopts.empty()) {
-    //         gopts = uopts;
-    //     }
-
-    //     try {
-    //         tie(options.UIDMap, options.GIDMap) = ParseIDMappings(uopts, gopts);
-    //     } catch (const exception& e) {
-    //         cerr << e.what() << endl;
-    //         return nullptr;
-    //     }
-    // } else if (!globalFlagResults.UserNSGID.empty()) {
-    //     cerr << "option --userns-gid-map cannot be used without --userns-uid-map" << endl;
-    //     return nullptr;
-    // }
-    ///<以上注释代码处理用户命名空间映射，用户命名空间映射的目的和意义：
-    ///<用户命名空间（User Namespace）是Linux内核的一项功能，
-    ///<它允许进程在容器或隔离环境中拥有不同于宿主系统的用户和组ID（UID和GID）。
-    ///<这意味着在容器内，进程可以运行为“root”，而在宿主系统上它们的UID和GID实际上是非特权用户的ID。
-
-    // if (cmd->Flags()->Lookup("userns-uid-map")->changed) {
-    //     vector<string> uopts = cmd->GetStringSlice("userns-uid-map");
-    //     vector<string> gopts = cmd->GetStringSlice("userns-gid-map");
-
-    //     if (gopts.empty()) {
-    //         gopts = uopts;
-    //     }
-
-    //     try {
-    //         tie(options.UIDMap, options.GIDMap) = ParseIDMappings(uopts, gopts);
-    //     } catch (const exception& e) {
-    //         cerr << e.what() << endl;
-    //         return nullptr;
-    //     }
-    // } else if (cmd->Flags()->Lookup("userns-gid-map")->changed) {
-    //     cerr << "option --userns-gid-map cannot be used without --userns-uid-map" << endl;
-    //     return nullptr;
-    // }
-    ///<这段代码与上面处理用户命名空间原理相同，只不过是处理CMD下面的子命令如何使用
-
-    umask(0);
-
-    shared_ptr<store> store = GetStore(options);
-    if (store) {
-        // 假设 is::Transport::SetStore(store) 的替代实现
-        // is.Transport.SetStore(store);
-    }
-    needToShutdownStore = true;
     return store;
 }
 
@@ -160,7 +158,7 @@ string GetFormat(string format){
 }
 
 bool UseLayers(){
-    const char* layersEnv=std::getenv("BUILDAH_LAYERS");
+    const char* layersEnv=boost::compute::detail::getenv("BUILDAH_LAYERS");
     if (!layersEnv) {
         return false;
     }
@@ -268,16 +266,28 @@ std::vector<std::string> LookupEnvVarReferences(const std::vector<std::string>& 
  * @return 绝对路径
  * @throws myerror 如果获取绝对路径失败
  */
-string Abspath(string path){
-    // 定义一个大小为 MAX_PATH 的字符数组，用于存储绝对路径
-    char fullPath[MAX_PATH];
-    // 使用 _fullpath 函数来获取给定路径的绝对路径，并将结果存储在 fullPath 中
-    // 如果获取绝对路径失败，_fullpath 返回 nullptr
-    if(_fullpath(fullPath,path.c_str(),MAX_PATH)==nullptr){
-        // 如果获取绝对路径失败，抛出一个 myerror 异常，并提供错误信息
-        throw myerror ("Failed to obtain the absolute path. ");
-    }
-    // 返回绝对路径
-    return string(fullPath);
-}
+// 获取绝对路径的函数
+std::string Abspath(const std::string& path) {
+    try {
+        // 使用 Boost 文件系统库获取绝对路径
+        boost::filesystem::path boostPath(path);
+        boost::filesystem::path absolutePath = boost::filesystem::absolute(boostPath);
 
+        // 检查路径是否存在
+        if (!boost::filesystem::exists(absolutePath)) {
+            throw myerror("Path does not exist.");
+        }
+
+        // 返回绝对路径
+        return absolutePath.string();
+    } catch (const boost::filesystem::filesystem_error& e) {
+        // 捕获 Boost 文件系统库相关的异常
+        throw myerror("Failed to obtain the absolute path: " + std::string(e.what()));
+    } catch (const std::exception& e) {
+        // 捕获其他异常
+        throw myerror("An error occurred: " + std::string(e.what()));
+    } catch (...) {
+        // 捕获未知异常
+        throw myerror("Unknown error occurred.");
+    }
+}

@@ -12,7 +12,7 @@ CXXFLAGS	:= -std=c++11 -Wall -Wextra -g
 # define library paths in addition to /usr/lib
 #   if I wanted to include libraries not in /usr/lib I'd specify
 #   their path using -Lpath, something like:
-LFLAGS =
+LFLAGS = -lboost_filesystem-mgw12-mt-x64-1_75 -lboost_system-mgw12-mt-x64-1_75 -lws2_32
 
 # define output directory
 OUTPUT	:= output
@@ -24,7 +24,7 @@ SRC		:= execute
 INCLUDE	:= include
 
 # define lib directory
-LIB		:= lib
+LIB		:= lib/lib64-MinGW
 
 ifeq ($(OS),Windows_NT)
 MAIN	:= main.exe
@@ -77,7 +77,7 @@ $(OUTPUT):
 	$(MD) $(OUTPUT)
 
 $(MAIN): $(OBJECTS)
-	$(CXX) $(CXXFLAGS) $(INCLUDES) -o $(OUTPUTMAIN) $(OBJECTS) $(LFLAGS) $(LIBS)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -o $(OUTPUTMAIN) $(OBJECTS) $(LIBS) $(LFLAGS) 
 
 # include all .d files
 -include $(DEPS)

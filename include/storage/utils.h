@@ -20,6 +20,11 @@
 // #include <stdexcept> // For runtime_error
 #include <fstream>   // For ifstream
 #include <sstream>   // For stringstream
+#include <boost/compute/detail/getenv.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/process/environment.hpp>
+#include <boost/system/error_code.hpp>
+#include <boost/algorithm/string/replace.hpp>
 using namespace std;
 /**
  * @brief 记录镜像存储方面的信息
@@ -33,6 +38,7 @@ class StoreOptions{
     string graph_root;
     // 如果需要与容器存储分开的位置，这是镜像存储的替代位置。
     string image_store;
+    string image_store_dir;
     // 无根用户的存储路径，默认为 $HOME/.local/share/containers/storage。
     string rootless_storage_path;
     // 如果未指定驱动程序，将从 GraphDriverPriority 或平台相关的优先级列表中选择最适合的驱动程序。
@@ -61,7 +67,6 @@ class StoreOptions{
 };
 extern const string overlayDriver;
 extern const string overlay2;
-extern const string storageConfEnv;
 //函数声明
 //包装loaddefaultoptions的函数，确保该函数只进行一次加载
 bool loadDefaultStoreOptionsIfNeeded();
@@ -73,10 +78,8 @@ std::string getHomeDir();
 std::string DefaultConfigFile();
 StoreOptions loadStoreOptionsFromConfFile(const std::string& storageConf);
 StoreOptions loadStoreOptions();
-bool  ReloadConfigurationFileIfNeeded(string configFile, StoreOptions* storeOptions);
 ///<ReloadConfigurationFileIfNeeded这个函数负责一些初始化变量的赋值
-shared_ptr<store> GetStore(StoreOptions options);
-bool loadDefaultStoreOptions();
+void loadDefaultStoreOptions(); 
 bool MkdirAll(const std::string& path);
 std::wstring s2ws(const std::string& s);
 bool DirectoryExists(const std::string& path);

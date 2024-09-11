@@ -13,6 +13,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <unordered_map>
 using std::map;
 using std::string;
 using std::vector;
@@ -64,5 +65,55 @@ class Configdetails{
 Configdetails ConfigdetailsDefault();
 struct DecryptConfig{
     map<string,vector<vector<uint8_t>>>Parameters;
+};
+struct AufsOptionsConfig {};
+struct BtrfsOptionsConfig {};
+struct ThinpoolOptionsConfig {};
+struct OverlayOptionsConfig {};
+struct VfsOptionsConfig {};
+struct ZfsOptionsConfig {};
+// OptionsConfig structure
+struct OptionsConfig {
+    std::vector<std::string> AdditionalImageStores;
+    std::string ImageStore;
+    std::vector<std::string> AdditionalLayerStores;
+    std::string Size;
+    std::string RemapUIDs;
+    std::string RemapGIDs;
+    std::string IgnoreChownErrors;
+    std::string UseComposefs;
+    std::string ForceMask;  // Use string for file mode representation
+    std::string RemapUser;
+    std::string RemapGroup;
+    std::string RootAutoUsernsUser;
+    uint32_t AutoUsernsMinSize;
+    uint32_t AutoUsernsMaxSize;
+
+    AufsOptionsConfig Aufs;
+    BtrfsOptionsConfig Btrfs;
+    ThinpoolOptionsConfig Thinpool;
+    OverlayOptionsConfig Overlay;
+    VfsOptionsConfig Vfs;
+    ZfsOptionsConfig Zfs;
+
+    std::string SkipMountHome;
+    std::string MountProgram;
+    std::string MountOpt;
+    std::unordered_map<std::string, std::string> PullOptions;
+    bool DisableVolatile;
+};
+
+// TomlConfig structure
+struct TomlConfig {
+    struct Storage {
+        std::string Driver;
+        std::vector<std::string> DriverPriority;
+        std::string RunRoot;
+        std::string ImageStore;
+        std::string GraphRoot;
+        std::string RootlessStoragePath;
+        bool TransientStore;
+        OptionsConfig Options;
+    } Storage;
 };
 #endif

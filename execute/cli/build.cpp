@@ -10,6 +10,7 @@
 #include <memory>
 #include <chrono>
 vector<string> getContainerfiles(vector<string> files);
+std::string Abspath(const std::string& path);
 
 /**
  * @brief 生成给定命令的构建选项。
