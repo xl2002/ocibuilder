@@ -7,7 +7,7 @@
 //     }
 //     return std::make_tuple(str.substr(0, pos), str.substr(pos + 1), true);
 // }
-std::shared_ptr<ImageReference> ParseImageName(std::string imgName){
+std::shared_ptr<ImageReference_interface> ParseImageName(std::string imgName){
     std::string transportName, withinTransport;
     bool valid;
     std::tie(transportName, withinTransport, valid) = Cut(imgName, ':');

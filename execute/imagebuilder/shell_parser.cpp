@@ -16,6 +16,22 @@ std::string ProcessWord(std::string word,std::vector<std::string>env){
     
     return processedWord;
 }
+std::vector<std::string> ProcessWords(std::string word,std::vector<std::string>env){
+    auto sw=std::make_shared<shellWord>();
+    sw->word=word;
+    sw->envs=env;
+    sw->pos=0;
+    std::vector<std::string> words;
+    // std::string err;
+    sw->scanner.str(word);
+    try {
+        std::tie(std::ignore,words) = sw->process();
+    } catch (const myerror& e) {
+        throw;
+    }
+    
+    return words;
+}
 // process函数，返回处理后的字符串、环境变量列表和错误信息
 std::tuple<std::string, std::vector<std::string>> shellWord::process() {
     // 这里假设调用processStopOn方法，参数为EOF

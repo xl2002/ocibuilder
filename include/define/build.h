@@ -127,7 +127,7 @@ struct CommonBuildOptions  {
 	//HTTPProxy 确定来自构建主机的 *_proxy 环境变量是否传递到容器中。
 	bool HTTPProxy;
 	//IdentityLabel 如果设置，可确保默认的 `io.buildah.version` 标签不会应用于构建映像。
-	int8_t IdentityLabel;
+	OptionalBool IdentityLabel;
 	//内存是运行容器可以使用多少内存的上限（以字节为单位）。
 	int64_t Memory;
 	//DNSSearch 是要添加到构建容器的 /etc/resolv.conf 的 DNS 搜索域列表

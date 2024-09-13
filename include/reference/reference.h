@@ -6,45 +6,46 @@
 using std::string;
 using std::vector;
 
-class Reference{
+class Reference_interface{
     public:
-    ~Reference()=default;
+    ~Reference_interface()=default;
     virtual string String()=0;
 };
-class Named:public Reference{
+class Named_interface:public Reference_interface{
     public:
-    ~Named()=default;
+    ~Named_interface()=default;
     virtual string Name()=0;
 };
-class named:public Named{
+
+class Canonical_interface:public Named_interface{
+    public:
+    ~Canonical_interface()=default;
+    virtual Digest Digests()=0;
+};
+class named:public Named_interface{
     public:
     ~named()=default;
     string String() override;
     string Name() override;
 };
-class Canonical:public Named{
-    public:
-    ~Canonical()=default;
-    virtual Digest Digests()=0;
-};
-class canonical:public Canonical{
+class canonical:public Canonical_interface{
     public:
     string String() override;
     string Name() override;
     Digest Digests() override;
 };
-class NamedTagged:public Named{
+class NamedTagged:public Named_interface{
     public:
     ~NamedTagged()=default;
     string Tag();
     string Name() override;
     string String() override;
 };
-class Tagged:public Reference{
+class Tagged:public Reference_interface{
     public:
     string Tag();
     string String() override;
 };
-// class 
+std::shared_ptr<Canonical_interface> WithDigest(std::shared_ptr<Named_interface> name,std::shared_ptr<Digest> digest);
 
 #endif // DOCKER_REFERENCE_H

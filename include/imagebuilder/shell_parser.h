@@ -39,5 +39,5 @@ struct wordsStruct{
     void addRawString(const std::string& str);
 };
 std::string ProcessWord(std::string word,std::vector<std::string>env);
-
+std::vector<std::string> ProcessWords(std::string word,std::vector<std::string>env);
 #endif // IMAGEBUILDER_SHELL_PARSER_H)

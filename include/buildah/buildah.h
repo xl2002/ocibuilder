@@ -6,8 +6,15 @@
 #include <memory>
 #include "storage/storage.h"
 #include "v1/config.h"
-#include "buildah/digest.h"
+#include "buildah/digester.h"
 #include "define/types_unix.h"
+#include "docker/types.h"
+#include "define/types.h"
+#include "types/types.h"
+#include "buildah/commit.h"
+#include "define/build.h"
+#include "signature/policy_config.h"
+#include "buildah/image.h"
 struct Builder {
     std::shared_ptr<store> store=nullptr;
 
@@ -61,7 +68,7 @@ struct Builder {
 
     // 镜像元数据和运行时设置，支持多种格式。
     std::shared_ptr<Image> OCIv1=nullptr;
-    // docker::V2Image Docker;
+    std::shared_ptr<V1Image> Docker;
 
     // DefaultMountsFilePath 是保存挂载点的文件路径，以 "host-path:container-path" 格式。
     std::string DefaultMountsFilePath;
@@ -125,5 +132,35 @@ struct Builder {
 
 
     void Delete();
+    void AddPrependedEmptyLayer(std::shared_ptr<std::chrono::system_clock::time_point> created, std::string createdBy,std::string author, std::string comment);
+    void SetCreatedBy(std::string how);
+    std::string CreatedBy();
+    void ClearAnnotations();
+    std::string OS();
+    void SetHostname(std::string name);
+    void SetDomainname(std::string name);
+    void SetUser(std::string spec);
+    void ClearPorts();
+    void SetEnv(std::string k,std::string v);
+    void SetCmd(std::vector<std::string> cmd);
+    void ClearVolumes();
+    void ClearOnBuild();
+    void SetWorkDir(std::string there);
+    void SetEntrypoint(std::vector<std::string> ep);
+    void SetShell(std::vector<std::string> shell);
+    void SetStopSignal(std::string sig);
+    void SetHealthcheck(std::shared_ptr<HealthConfig> config);
+    void ClearLabels();
+    std::string Architecture();
+    void SetLabel(std::string k,std::string v);
+    std::tuple<std::string,std::shared_ptr<Canonical_interface>,std::shared_ptr<Digest>> Commit(
+        std::shared_ptr<ImageReference_interface> dest,
+        std::shared_ptr<CommitOptions> options
+    );
+    std::shared_ptr<containerImageRef> makeContainerImageRef(std::shared_ptr<CommitOptions> options);
 };
-#endif // BUILDAH_BUILAH_H
+
+auto storageAllowedPolicyScopes=std::make_shared<PolicyTransportScopes>();
+bool checkRegistrySourcesAllows(std::string forWhat,std::shared_ptr<ImageReference_interface> dest);
+
+#endif

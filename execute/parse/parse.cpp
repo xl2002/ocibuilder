@@ -129,7 +129,7 @@ shared_ptr< SystemContext> SystemContextFromOptions(Command* c){
         if(c->Flag_find("short-name-alias-conf")->changed){
 
         }
-        ctx->DockerRegistryUserAgent="Buildah/"+Version;
+        ctx->DockerRegistryUserAgent="Buildah/"+version;
         if(c->Flag_find("os")!=nullptr && c->Flag_find("os")->changed){
 
         }
@@ -265,7 +265,7 @@ shared_ptr<CommonBuildOptions> CommonbuildOptions(Command* cmd){
     commonOpts->DNSSearch=dnsSearch;
     commonOpts->DNSServers=dnsServers;
     commonOpts->HTTPProxy=httpProxy;
-    commonOpts->IdentityLabel=static_cast<int8_t>(NewOptionalBool(identityLabel));
+    commonOpts->IdentityLabel=NewOptionalBool(identityLabel);
     commonOpts->Memory=memoryLimit;
     commonOpts->MemorySwap=memorySwap;
     commonOpts->NoHostname=noHostname;

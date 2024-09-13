@@ -4,6 +4,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <chrono>
 #include <ctime> // For std::time_t
 #include "digest/digest.h"
 #include "v1/descriptor.h"
@@ -59,7 +60,7 @@ struct RootFS {
 };
 struct History {
     // Created is the combined date and time at which the layer was created, formatted as defined by RFC 3339, section 5.6.
-    std::shared_ptr<std::time_t> created=nullptr;  // Using std::time_t for time representation, pointer indicates it can be null
+    std::shared_ptr<std::chrono::system_clock::time_point> created=nullptr;  // Using std::time_t for time representation, pointer indicates it can be null
 
     // CreatedBy is the command which created the layer.
     std::string createdBy;
@@ -74,7 +75,7 @@ struct History {
     bool emptyLayer=false;
 };
 struct Image {
-    std::shared_ptr<std::time_t> created=nullptr; // Using std::time_t as a placeholder for date and time
+    std::shared_ptr<std::chrono::system_clock::time_point> created=nullptr; // Using std::time_t as a placeholder for date and time
     std::string author;
     std::shared_ptr<Platform> platform=nullptr;
     std::shared_ptr<ImageConfig> config=nullptr;

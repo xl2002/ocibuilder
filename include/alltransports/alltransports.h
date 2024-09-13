@@ -8,6 +8,6 @@
 #include <cobra/error.h>
 #include "transports/transports.h"
 
-std::shared_ptr<ImageReference> ParseImageName(std::string imgName);
+std::shared_ptr<ImageReference_interface> ParseImageName(std::string imgName);
 
 #endif // ALLTRANS_ALLTRANSPORTS_H

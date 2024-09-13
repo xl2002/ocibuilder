@@ -162,7 +162,7 @@ newExecutor(
 
 // Build takes care of the details of running Prepare/Execute/Commit/Delete
 // over each of the one or more parsed Dockerfiles and stages.
-std::tuple<string,std::shared_ptr<canonical>> Executor::Build(std::shared_ptr<Stages> stages){
+std::tuple<string,std::shared_ptr<Canonical_interface>> Executor::Build(std::shared_ptr<Stages> stages){
     std::string imageID;
     if(stages->Stages.size()==0){
         throw myerror("building: no stages to build");
@@ -337,10 +337,10 @@ std::tuple<string,std::shared_ptr<canonical>> Executor::Build(std::shared_ptr<St
         int Index;
         std::string ImageID;
         bool OnlyBaseImage;
-        std::shared_ptr<canonical> Ref=nullptr;
+        std::shared_ptr<Canonical_interface> Ref=nullptr;
         std::string Error;
         Result() = default;
-        Result(int index, std::string imageID, bool onlyBaseImage, std::shared_ptr<canonical> ref, std::string error) 
+        Result(int index, std::string imageID, bool onlyBaseImage, std::shared_ptr<Canonical_interface> ref, std::string error) 
         : Index(index), ImageID(imageID), OnlyBaseImage(onlyBaseImage), Ref(ref), Error(error) {}
     };
 
@@ -430,7 +430,7 @@ std::tuple<string,std::shared_ptr<canonical>> Executor::Build(std::shared_ptr<St
 
                     // 模拟构建阶段
                     std::string stageID,stageErr;
-                    std::shared_ptr<canonical> stageRef;
+                    std::shared_ptr<Canonical_interface> stageRef;
                     bool stageOnlyBaseImage;
                     std::tie (stageID, stageRef, stageOnlyBaseImage, stageErr) = buildStage(cleanupStages, stages, index);
 
@@ -456,7 +456,7 @@ std::tuple<string,std::shared_ptr<canonical>> Executor::Build(std::shared_ptr<St
     }
     threads.join_all();  // 等待所有线程完成
     
-    std::shared_ptr<canonical> ref;
+    std::shared_ptr<Canonical_interface> ref;
     for (auto& r : results) {
         auto stage=stages->Stages[r.Index];
         std::unique_lock<std::mutex> lock(stagesLock);
@@ -483,7 +483,7 @@ std::tuple<string,std::shared_ptr<canonical>> Executor::Build(std::shared_ptr<St
         std::sort(unusedList.begin(), unusedList.end());
         // logrus::Warnf("build: unused build args: %s", joinStrings(unusedList, ", ").c_str());
     }
-    std::shared_ptr<ImageReference> dest;
+    std::shared_ptr<ImageReference_interface> dest;
     try{
         dest=resolveNameToImageRef(output);
         if(dest->Transport()->Name()==Transport->Name()){
@@ -512,16 +512,16 @@ std::tuple<string,std::shared_ptr<canonical>> Executor::Build(std::shared_ptr<St
         
     }
     return std::make_tuple(imageID, ref);
-    // return std::make_tuple("",std::shared_ptr<canonical>(nullptr));
+    // return std::make_tuple("",std::shared_ptr<Canonical_interface>(nullptr));
 }
 
-std::tuple<std::string,std::shared_ptr<canonical>,bool,std::string> Executor::buildStage(
+std::tuple<std::string,std::shared_ptr<Canonical_interface>,bool,std::string> Executor::buildStage(
     std::map<int,std::shared_ptr<StageExecutor>> cleanupStages,
     std::shared_ptr<Stages> stages,
     int stageIndex
 ){
 
-    // return std::make_tuple("",std::shared_ptr<canonical>(nullptr),false,"");
+    // return std::make_tuple("",std::shared_ptr<Canonical_interface>(nullptr),false,"");
     auto stage = stages->Stages[stageIndex];
     auto ib=stage.image_builder;
     auto node=stage.Node;
@@ -628,7 +628,7 @@ std::tuple<std::string,std::shared_ptr<canonical>,bool,std::string> Executor::bu
     }
 
     std::string imageID;
-    std::shared_ptr<canonical> ref;
+    std::shared_ptr<Canonical_interface> ref;
     bool onlyBaseImage;
     try {
         std::tie(imageID, ref, onlyBaseImage) = stageExecutor->Execute(base);
@@ -739,8 +739,8 @@ void Executor::warnOnUnsetBuildArgs(
     }
 }
 
-// 解析输出名称并返回对应的 ImageReference
-std::shared_ptr<ImageReference> Executor::resolveNameToImageRef(const std::string& output) {
+// 解析输出名称并返回对应的 ImageReference_interface
+std::shared_ptr<ImageReference_interface> Executor::resolveNameToImageRef(const std::string& output) {
     try {
         // 尝试解析 ImageName
         auto imageRef = ParseImageName(output);
@@ -761,4 +761,54 @@ std::shared_ptr<ImageReference> Executor::resolveNameToImageRef(const std::strin
         }
     }
 
+}
+
+// waitForStage 函数等待指定的 stage 完成
+std::pair<bool, std::string> Executor::waitForStage(const std::string& name, std::shared_ptr<Stages> stages) {
+    bool found = false;
+    for (const auto stageEntry : stages->Stages) {
+        // const Stage& otherStage = stageEntry.second;
+        if (stageEntry.Name == name || std::to_string(stageEntry.Position) == name) {
+            found = true;
+            break;
+        }
+    }
+
+    if (!found) {
+        return {false, ""};  // 没有找到相应的 stage
+    }
+
+    while (true) {
+        if (lastError != "") {
+            return {true, lastError};
+        }
+
+        std::unique_lock<std::mutex> lock(stagesLock);
+        auto it = terminatedStage.find(name);
+        lock.unlock();
+        if(it!=terminatedStage.end()){
+            return {true, ""};
+        }
+        if(it->second!=""){
+            return {false, it->second};
+        }
+        // if (it != terminatedStage.end()) {
+        //     auto& terminationError = it->second.first;
+        //     auto& terminated = it->second.second;
+        //     if (terminationError != nullptr) {
+        //         return {false, terminationError};
+        //     }
+        //     if (terminated) {
+        //         return {true, nullptr};
+        //     }
+        // }
+
+        stagesSemaphore->Release(1);
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        try {
+            stagesSemaphore->Acquire(1);
+        } catch (const myerror& e) {
+            return {true, "reacquiring job semaphore: "+std::string(e.what())};
+        }
+    }
 }

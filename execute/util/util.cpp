@@ -3,6 +3,10 @@
 #include <sys/stat.h>
 #include <vector>
 #include "go/file.h"
+#include <minwindef.h>
+#include <fileapi.h>
+#include <windows.hpp>
+#include <pthread.h>
 /**
  * @brief 如果给定的文件是指向Windows系统的文件描述符，
  *        则将其内容复制到一个临时文件中，并将临时文件的路径
@@ -86,7 +90,7 @@ std::string resolveSymlinks(const std::string& path) {
     return std::string(buffer.data());
 }
 
-std::shared_ptr<ImageReference> VerifyTagName(std::string imagespec){
+std::shared_ptr<ImageReference_interface> VerifyTagName(std::string imagespec){
     try
     {
         return ParseImageName(imagespec);
@@ -103,5 +107,11 @@ std::shared_ptr<ImageReference> VerifyTagName(std::string imagespec){
 }
 
 Platform NormalizePlatform(Platform platform){
+
     return platform;
 }
+
+bool SetHas(std::set<std::string> m,std::string k){
+    return m.find(k)!=m.end();
+}
+

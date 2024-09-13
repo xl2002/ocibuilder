@@ -9,14 +9,14 @@
 #include <mutex>
 class knownTransports{
     public:
-    std::map<std::string,std::shared_ptr<ImageTransport>> transports;
+    std::map<std::string,std::shared_ptr<ImageTransport_interface>> transports;
     std::mutex mu;
-    std::shared_ptr<ImageTransport> Get(std::string name);
+    std::shared_ptr<ImageTransport_interface> Get(std::string name);
     void Remove(std::string k);
-    void Add(std::shared_ptr<ImageTransport> t);
+    void Add(std::shared_ptr<ImageTransport_interface> t);
 };
 
 
-std::shared_ptr<ImageTransport> Get(std::string name);
-
+std::shared_ptr<ImageTransport_interface> Get(std::string name);
+std::string ImageName(std::shared_ptr<ImageReference_interface> ref);
 #endif // TRANS_TRANSPORTS_H

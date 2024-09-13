@@ -1,0 +1,17 @@
+"filename", "language", "C++", "comment", "blank", "total"
+"d:\BaiduSyncdisk\OCI\execute\imagebuildah\executor.cpp", "C++", 33, 12, 4, 49
+"d:\BaiduSyncdisk\OCI\execute\imagebuildah\stage_executor.cpp", "C++", 143, 2, 36, 181
+"d:\BaiduSyncdisk\OCI\execute\imagebuilder\builder.cpp", "C++", 6, 0, -3, 3
+"d:\BaiduSyncdisk\OCI\execute\imagebuilder\evaluator.cpp", "C++", 15, 1, 1, 17
+"d:\BaiduSyncdisk\OCI\execute\imagebuilder\shell_parser.cpp", "C++", 14, 1, 1, 16
+"d:\BaiduSyncdisk\OCI\execute\util\util.cpp", "C++", 7, 0, 4, 11
+"d:\BaiduSyncdisk\OCI\include\imagebuildah\executor.h", "C++", 4, 0, 1, 5
+"d:\BaiduSyncdisk\OCI\include\imagebuildah\stage_executor.h", "C++", 1, 0, 0, 1
+"d:\BaiduSyncdisk\OCI\include\imagebuilder\builder.h", "C++", 10, 1, 0, 11
+"d:\BaiduSyncdisk\OCI\include\imagebuilder\evaluator.h", "C++", 72, 5, 8, 85
+"d:\BaiduSyncdisk\OCI\include\imagebuilder\internals.h", "C++", 9, 3, 0, 12
+"d:\BaiduSyncdisk\OCI\include\imagebuilder\shell_parser.h", "C++", 1, 0, -1, 0
+"d:\BaiduSyncdisk\OCI\include\rusage\rusage.h", "C++", 56, 10, 3, 69
+"d:\BaiduSyncdisk\OCI\include\rusage\rusage_unix.h", "C++", 58, 12, 9, 79
+"d:\BaiduSyncdisk\OCI\include\util\util.h", "C++", 2, 0, 1, 3
+"Total", "-", 431, 47, 64, 542

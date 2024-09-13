@@ -11,6 +11,11 @@
 bool hasPrefix(const std::string& str, const std::string& prefix) {
     return str.compare(0, prefix.length(), prefix) == 0;
 }
+// 判断字符串 s 是否以 suffix 结尾的函数
+bool hasSuffix(const std::string& s, const std::string& suffix) {
+    // 检查字符串长度，并比较后缀
+    return s.size() >= suffix.size() && s.compare(s.size() - suffix.size(), suffix.size(), suffix) == 0;
+}
 std::string toLower(const std::string& str) {
         std::string lower_str = str;
         std::transform(lower_str.begin(), lower_str.end(), lower_str.begin(), ::tolower);
@@ -44,7 +49,22 @@ std::string Join(const std::vector<std::string>& vec, const std::string& delimit
     }
     return oss.str();
 }
+// 实现 strings.TrimSuffix
+std::string TrimSuffix(const std::string& str, const std::string& suffix) {
+    if (suffix.empty() || str.size() < suffix.size()) {
+        // 如果后缀为空，或者字符串长度小于后缀长度，直接返回原字符串
+        return str;
+    }
 
+    // 检查字符串是否以指定的后缀结尾
+    if (str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0) {
+        // 去除后缀
+        return str.substr(0, str.size() - suffix.size());
+    }
+
+    // 如果字符串不以指定后缀结尾，返回原字符串
+    return str;
+}
 // Helper function to trim leading and trailing whitespace
 std::string TrimSpace(const std::string& str) {
     const auto start = str.find_first_not_of(" \t\n\r");
@@ -75,4 +95,18 @@ std::tuple<std::string, std::string, bool> Cut(const std::string &str, char deli
         return std::make_tuple(str, "", false);
     }
     return std::make_tuple(str.substr(0, pos), str.substr(pos + 1), true);
+}
+
+#ifdef _WIN32
+const char pathSeparator = '\\';
+#else
+const char pathSeparator = '/';
+#endif
+
+std::string FromSlash(const std::string& path) {
+    std::string result = path;
+#ifdef _WIN32
+    std::replace(result.begin(), result.end(), '/', pathSeparator);
+#endif
+    return result;
 }

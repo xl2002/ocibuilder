@@ -25,7 +25,7 @@ class Lex{
     std::tuple<std::string, std::vector<std::string>> process(std::string word, std::map<std::string, std::string> env);
     std::shared_ptr<shellWord_lex> init(std::string word, std::map<std::string, std::string> env);
     std::vector<std::string>ProcessWords(std::string word,std::vector<std::string> env);
-
+    std::string ProcessWord(std::string word,std::vector<std::string> env);
 
 };
 

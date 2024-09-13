@@ -24,6 +24,12 @@ std::map<std::string, std::string> BuildEnvs(const std::vector<std::string>& env
 
     return envs;
 }
+std::string Lex::ProcessWord(std::string word,std::vector<std::string> env){
+    std::string w;
+    std::vector<std::string> words;
+    std::tie(w,words)=process(word,BuildEnvs(env));
+    return w;
+}
 std::vector<std::string>Lex::ProcessWords(std::string word,std::vector<std::string> env){
     std::string w;
     std::vector<std::string> words;

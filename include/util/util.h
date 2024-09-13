@@ -1,6 +1,7 @@
 #if !defined(UTIL_UTIL_H)
 #define UTIL_UTIL_H
 #include <string>
+#include <set>
 #include "cobra/error.h"
 #include "types/types.h"
 #include <fstream>
@@ -16,7 +17,9 @@ std::string DiscoverContainerfile(std::string path);
 
 std::string resolveSymlinks(const std::string& path);
 
-std::shared_ptr<ImageReference> VerifyTagName(std::string imagespec);
+std::shared_ptr<ImageReference_interface> VerifyTagName(std::string imagespec);
 
 Platform NormalizePlatform(Platform platform);
+
+bool SetHas(std::set<std::string> m,std::string k);
 #endif // UTIL_UTIL_H

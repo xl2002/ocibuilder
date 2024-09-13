@@ -6,11 +6,13 @@
 #include "specs/specs.h"
 #include "idtools/idtools.h"
 #include "define/pull.h"
+#include "internal/types.h"
 using std::string;
 typedef string TeeType;
 const std::string
+	BuilderIdentityAnnotation = "io.buildah.version",
     Package="buildah",
-    Version="1.0",
+    version="1.0",
     DefaultRuntime="runc",
     OCIv1ImageManifest="application/vnd.oci.image.manifest.v1+json",
     Dockerv2ImageManifest="application/vnd.docker.distribution.manifest.v2+json",
@@ -210,6 +212,30 @@ struct SBOMScanOptions {
     std::string ImageSBOMOutput;      // 在图像中存储的 SBOM 扫描器输出
     std::string ImagePURLOutput;      // 在图像中存储的 PURL 列表
     SBOMMergeStrategy MergeStrategy;  // 多次扫描的输出合并方式
+};
+struct BlobInfo{
+	std::shared_ptr<Digest> Digest=nullptr;
+	int64_t Size=0;
+	std::vector<std::string> URLs;
+	std::map<std::string, std::string> Annotations;
+	std::string MediaType;
+	std::shared_ptr<Algorithm> CompressionAlgorithm=nullptr;
+};
+enum class progressevent:uint8_t{
+	ProgressEventNewArtifact,
+	ProgressEventRead,
+	ProgressEventDone,
+	ProgressEventSkipped
+};
+struct ProgressProperties{
+	progressevent value;
+};
+
+struct ProgressProperties{
+	std::shared_ptr<ProgressProperties> Event=nullptr;
+	std::shared_ptr<BlobInfo> Artifact=nullptr;
+	uint64_t Offset=0;
+	uint64_t OffsetUpdate=0;
 };
 
 #endif // DEFINE_TYPES_H

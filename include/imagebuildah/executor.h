@@ -138,14 +138,14 @@ struct Executor {
     std::vector<SBOMScanOptions> sbomScanOptions;
     std::string cdiConfigDir;
     Executor()=default;
-    std::tuple<string,std::shared_ptr<canonical>> Build(std::shared_ptr<Stages> stages);
+    std::tuple<string,std::shared_ptr<Canonical_interface>> Build(std::shared_ptr<Stages> stages);
     void warnOnUnsetBuildArgs(
         const std::vector<Stage>& stages,
         const std::map<std::string, std::shared_ptr<stageDependencyInfo>>& dependencyMap,
         const std::map<std::string, std::string>& args
     );
-    std::shared_ptr<ImageReference> resolveNameToImageRef(const std::string& output);
-    std::tuple<std::string,std::shared_ptr<canonical>,bool,std::string> 
+    std::shared_ptr<ImageReference_interface> resolveNameToImageRef(const std::string& output);
+    std::tuple<std::string,std::shared_ptr<Canonical_interface>,bool,std::string> 
     buildStage(
         std::map<int,std::shared_ptr<StageExecutor>> cleanupStages,
         std::shared_ptr<Stages> stages,
@@ -156,6 +156,11 @@ struct Executor {
         std::shared_ptr<Stages> stages,
         std::string output
     );
+    std::pair<bool, std::string> waitForStage(
+        const std::string& name, 
+        std::shared_ptr<Stages> stages
+    );
+
 };
 
 struct stageDependencyInfo{

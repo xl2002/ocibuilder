@@ -17,7 +17,7 @@
 #include "config/config.h"
 #include "config/new.h"
 std::tuple<std::string,std::shared_ptr<canonical>> buildDockerfilesOnce(shared_ptr<store> stores,string logPrefix,shared_ptr<define_BuildOptions> options,vector<string>& containerFiles,vector<vector<byte>>& dockerfilecontents);
-string BuildDockerfiles(shared_ptr<store> stores, shared_ptr<define_BuildOptions> options,vector<string> paths,shared_ptr<Canonical> ret_ref){
+string BuildDockerfiles(shared_ptr<store> stores, shared_ptr<define_BuildOptions> options,vector<string> paths,shared_ptr<Canonical_interface> ret_ref){
     // auto ctx = getContext();
 
     if (options->CommonBuildOpts == nullptr)

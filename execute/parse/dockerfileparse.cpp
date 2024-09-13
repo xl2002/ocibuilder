@@ -92,37 +92,38 @@ void Node::AddChild(std::shared_ptr<Node> child, int startLine, int endLine) {
     // Add the child to the list of children
     Children.push_back(child);
 }
-const std::string
-	Add         = "add",
-	Arg         = "arg",
-	Cmd         = "cmd",
-	Copy        = "copy",
-	Entrypoint  = "entrypoint",
-	Env         = "env",
-	Expose      = "expose",
-	From        = "from",
-	Healthcheck = "healthcheck",
-	Label       = "label",
-	Maintainer  = "maintainer",
-	Onbuild     = "onbuild",
-	Run         = "run",
-	Shell       = "shell",
-	StopSignal  = "stopsignal",
-	User        = "user",
-	Volume      = "volume",
-	Workdir     = "workdir";
 
+namespace dockerfilecommand {
+    const std::string Add = "add";
+    const std::string Arg = "arg";
+    const std::string Cmd = "cmd";
+    const std::string Copy = "copy";
+    const std::string Entrypoint = "entrypoint";
+    const std::string Env = "env";
+    const std::string Expose = "expose";
+    const std::string From = "from";
+    const std::string Healthcheck = "healthcheck";
+    const std::string Label = "label";
+    const std::string Maintainer = "maintainer";
+    const std::string Onbuild = "onbuild";
+    const std::string Run = "run";
+    const std::string Shell = "shell";
+    const std::string StopSignal = "stopsignal";
+    const std::string User = "user";
+    const std::string Volume = "volume";
+    const std::string Workdir = "workdir";
+}
 // Function to handle possible parser directives
 // 定义用于存储指令的映射
 using DispatchFunction=std::function<std::tuple<std::shared_ptr<Node>,std::map<std::string,bool>>(std::string,std::shared_ptr<Directive>)>;
 std::map<std::string, DispatchFunction> dispatch={
-    {From,parseStringsWhitespaceDelimited},
-    {Label,parseLabel},
-    {Copy,parseMaybeJSONToList},
-    {Env,parseEnv},
-    {Expose,parseStringsWhitespaceDelimited},
-    {Entrypoint,parseMaybeJSON},
-    {Volume,parseMaybeJSONToList}
+    {dockerfilecommand::From,parseStringsWhitespaceDelimited},
+    {dockerfilecommand::Label,parseLabel},
+    {dockerfilecommand::Copy,parseMaybeJSONToList},
+    {dockerfilecommand::Env,parseEnv},
+    {dockerfilecommand::Expose,parseStringsWhitespaceDelimited},
+    {dockerfilecommand::Entrypoint,parseMaybeJSON},
+    {dockerfilecommand::Volume,parseMaybeJSONToList}
 };
 
 std::shared_ptr<Regexp> tokenEscapeCommand=Delayed(R"(^#[ \t]*escape[ \t]*=[ \t]*(?P<escapechar>.).*$)");

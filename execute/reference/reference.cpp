@@ -31,3 +31,8 @@ string named::String(){
 string named::Name(){
     return "";
 }
+
+std::shared_ptr<Canonical_interface> WithDigest(std::shared_ptr<Named_interface> name,std::shared_ptr<Digest> digest){
+
+    return nullptr;
+}

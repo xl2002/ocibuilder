@@ -4,50 +4,31 @@
 #include <memory>
 #include <vector>
 #include <map>
-class ImageTransport;
-class ImageReference{
+#include "reference/reference.h"
+class ImageTransport_interface;
+class ImageReference_interface{
     public:
-    ~ImageReference()=default;
-    virtual std::shared_ptr<ImageTransport> Transport() const = 0;
-    virtual std::string StringWithinTransport() const = 0;
-    virtual std::string PolicyConfigurationIdentity() const = 0;
-    virtual std::vector<std::string> PolicyConfigurationNamespaces() const = 0;
-    
+    ~ImageReference_interface()=default;
+    virtual std::shared_ptr<ImageTransport_interface> Transport() = 0;
+    virtual std::string StringWithinTransport() = 0;
+    virtual std::string PolicyConfigurationIdentity() = 0;
+    virtual std::vector<std::string> PolicyConfigurationNamespaces() = 0;
+    virtual std::shared_ptr<Named_interface> DockerReference() = 0;
 };
 // ImageTransport基类
-class ImageTransport {
+class ImageTransport_interface {
 public:
-    virtual ~ImageTransport() {}
+    virtual ~ImageTransport_interface() {}
 
     // 返回传输名称
-    virtual std::string Name() const = 0;
+    virtual std::string Name()  = 0;
 
     // 将字符串转换为ImageReference
-    virtual std::shared_ptr<ImageReference> ParseReference(const std::string &reference) const = 0;
+    virtual std::shared_ptr<ImageReference_interface> ParseReference(const std::string &reference)  = 0;
 
     // 验证策略配置范围
-    virtual void ValidatePolicyConfigurationScope(const std::string &scope) const = 0;
+    virtual void ValidatePolicyConfigurationScope(const std::string &scope)  = 0;
 };
 
-// class imageTransport : public ImageTransport {
-// public:
-//     virtual ~imageTransport() {}
-
-//     // 返回传输名称 
-//     std::string Name() const override {
-//         return "image";
-//     }
-
-//     // 将字符串转换为ImageReference 
-//     std::shared_ptr<ImageReference> ParseReference(const std::string &reference) const override {
-//         return std::make_shared<ImageReference>();
-//     }
-
-//     // 验证策略配置范围
-//     void ValidatePolicyConfigurationScope(const std::string &scope) const override {
-//         // TODO
-//     }   
-
-// };
 
 #endif // TYPES_TYPES_H

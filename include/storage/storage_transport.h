@@ -7,22 +7,26 @@
 #include "transports/transports.h"
 #include "storage/storage.h"
 #include "storage/storage_reference.h"
-class StoreTransport:public ImageTransport{
+#include "idtools/idtools.h"
+class StoreTransport_interface:public ImageTransport_interface{
     public:
-    virtual std::shared_ptr<storageReference>ParseStoreReference(std::shared_ptr<store> store,const std::string &reference) const= 0;
+    virtual std::shared_ptr<storageReference>ParseStoreReference(std::shared_ptr<Store> store,const std::string &reference)= 0;
 };
 
-struct storageTransport: public StoreTransport{
-    std::shared_ptr<storageReference>ParseStoreReference(std::shared_ptr<store> store,const std::string &reference) const override;
+struct storageTransport: public StoreTransport_interface{
+    std::shared_ptr<Store> store=nullptr;
+    std::vector<IDMap> defaultUIDMap;
+    std::vector<IDMap> defaultGIDMap;
+    std::shared_ptr<storageReference>ParseStoreReference(std::shared_ptr<Store> store,const std::string &reference)override;
         // 返回传输名称
-    std::string Name() const override;;
+    std::string Name() override;
 
     // 将字符串转换为ImageReference
-    std::shared_ptr<ImageReference> ParseReference(const std::string &reference) const override;
+    std::shared_ptr<ImageReference_interface> ParseReference(const std::string &reference) override;
 
     // 验证策略配置范围
-    void ValidatePolicyConfigurationScope(const std::string &scope) const override;
+    void ValidatePolicyConfigurationScope(const std::string &scope) override;
 };
-extern const std::shared_ptr<StoreTransport> Transport;
+extern const std::shared_ptr<StoreTransport_interface> Transport;
 
 #endif // STORAGE_STORAGE_TRANSPORT_H)

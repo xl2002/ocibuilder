@@ -3,6 +3,46 @@
 #include "cobra/error.h"
 #include "cli/common.h"
 #include "imagebuilder/internals.h"
+#include "imagebuilder/dispatchers.h"
+
+void logExecutor::UnrecognizedInstruction(std::shared_ptr<Step> step){
+    return;
+}
+void logExecutor::Preserve(std::string path){
+    return;
+}
+void logExecutor::EnsureContainerPath(std::string path){
+    return;
+}
+void logExecutor::EnsureContainerPathAs(std::string path,std::string user,const mode_t* mode) {
+    return;
+}
+void logExecutor::COPY(std::vector<std::string> excludes,std::vector<Copy> copies) {
+    return;
+}
+void logExecutor::RUN(std::shared_ptr<Run> run) {
+    return;
+}
+
+
+void noopExecutor::UnrecognizedInstruction(std::shared_ptr<Step> step){
+    return;
+}
+void noopExecutor::Preserve(std::string path){
+    return;
+}
+void noopExecutor::EnsureContainerPath(std::string path){
+    return;
+}
+void noopExecutor::EnsureContainerPathAs(std::string path,std::string user,const mode_t* mode) {
+    return;
+}
+void noopExecutor::COPY(std::vector<std::string> excludes,std::vector<Copy> copies) {
+    return;
+}
+void noopExecutor::RUN(std::shared_ptr<Run> run) {
+    return;
+}
 // ParseIgnore returns a tuple containing a list of excludes and an error message
 // path should be a file with the .dockerignore format
 // extracted from fsouza/go-dockerclient and modified to drop comments and
@@ -131,8 +171,13 @@ std::string Image_Builder::From(std::shared_ptr<Node> node){
     }else if(children.size()>1){
         throw myerror("multiple FROM statements are not supported");
     }else{
-        auto step=Step();
-
+        auto step=Step_new();
+        auto NoopExecutor=std::shared_ptr<noopExecutor>();
+        try{
+            Run(step,NoopExecutor,false);
+        }catch(const myerror& e){
+            throw;
+        }
         return RunConfig->Image;
     }
 }
@@ -243,6 +288,116 @@ std::shared_ptr<Step> Image_Builder::Step_new(){
     step->Env=mergeEnv(Arguments(),mergeEnv(Env,RunConfig->Env));
     return step;
 }
+using StepFunc=std::function<void(std::shared_ptr<Image_Builder>,std::vector<std::string>,std::map<std::string,bool>,std::vector<std::string>,std::string,std::vector<Heredoc>)>;
+const map<std::string,StepFunc> evaluateTable={
+    {dockerfilecommand::Env,env},
+    {dockerfilecommand::From,from},
+    {dockerfilecommand::Label,label},
+    {dockerfilecommand::Copy,dispatchCopy},
+    {dockerfilecommand::Expose,expose},
+    {dockerfilecommand::Entrypoint,entrypoint},
+    {dockerfilecommand::Volume,Volume}
+};
+void Image_Builder::Run(std::shared_ptr<Step> step,std::shared_ptr<Executor_Interface> exec,bool noRunsRemaining ){
+    auto fn=evaluateTable.find(step->Command);
+    if(fn==evaluateTable.end()){
+        return exec->UnrecognizedInstruction(step);
+    }
+    try{
+        fn->second(std::shared_ptr<Image_Builder>(this),step->Args,step->Attrs,step->Flags,step->Original,step->Heredocs);
+    }catch(const myerror& e){
+        throw;
+    }
+    auto copies = this->PendingCopies;
+	this->PendingCopies.clear();
+	auto runs = this->PendingRuns;
+	this->PendingRuns.clear();
+
+    for (auto& path : this->PendingVolumes->Volumes){
+
+    }
+    try{
+        exec->COPY(this->Excludes,copies);
+    }catch(const myerror& e){
+        throw;
+    }
+    if(this->RunConfig->WorkingDir.size()>0){
+        try{
+            exec->EnsureContainerPathAs(this->RunConfig->WorkingDir,this->RunConfig->User,nullptr);
+        }catch(const myerror& e){
+            throw;
+        }
+    }
+    for (auto& run:runs){
+
+    }
+    return;
+}
+std::shared_ptr<container_Config> Image_Builder::Config(){
+    auto config=this->RunConfig;
+    if(config->OnBuild.empty()){
+        config->OnBuild=std::vector<std::string>();
+    }
+    if(config->Entrypoint.empty()){
+        config->Entrypoint=std::vector<std::string>();
+    }
+    config->Image="";
+    return config;
+}
+
+// Add 方法：添加路径并返回是否成功
+bool VolumeSet::Add( const std::string& path) {
+    if (path == "/") {
+        bool set = Volumes.size() != 1 || (Volumes.size() == 1 && Volumes[0] != "");
+        Volumes = {""};
+        return set;
+    }
+
+    std::string trimmedPath = TrimSuffix(path,"/");
+    std::vector<std::string> adjusted;
+
+    for (const auto& p : Volumes) {
+        if (p == trimmedPath || hasPrefix(trimmedPath ,p + "/") == 0) {
+            return false;
+        }
+        if (hasPrefix(p,trimmedPath + "/") == 0) {
+            continue;
+        }
+        adjusted.push_back(p);
+    }
+
+    adjusted.push_back(trimmedPath);
+    Volumes = adjusted;
+    return true;
+}
+
+bool VolumeSet::Has(std::string path){
+    if(path=="/"){
+        return Volumes.size()==1 && Volumes[0]=="";
+    }
+    path=TrimSuffix(path,"/");
+    for(const auto& p:Volumes){
+        if(p==path ){
+            return true;
+        }
+    }
+    return false;
+}
+
+bool VolumeSet::Covers(std::string path){
+    if(path=="/"){
+        return Volumes.size()==1 && Volumes[0]=="";
+    }
+    path=TrimSuffix(path,"/");
+    for(const auto& p:Volumes){
+        if(p==path||hasPrefix(path,p+"/")==0){
+            return true;
+        }
+    }
+    return false;
+}
+
+
 
 
 

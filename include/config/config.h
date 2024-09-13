@@ -541,5 +541,12 @@ class Config{
 struct DecryptConfig{
     map<string,vector<vector<uint8_t>>>Parameters;
 };
-
+struct EncryptConfig{
+    std::map<std::string,std::vector<std::vector<uint8_t>>> Parameters;
+    std::shared_ptr<DecryptConfig> DecryptConfig=nullptr;
+};
+struct CryptoConfig{
+    std::shared_ptr<EncryptConfig> EncryptConfig=nullptr;
+    std::shared_ptr<DecryptConfig> DecryptConfig=nullptr;
+};
 #endif
