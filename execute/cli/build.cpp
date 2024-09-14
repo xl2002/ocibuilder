@@ -4,6 +4,7 @@
 #include "parse/parse.h"
 #include "cli/common.h"
 #include "define/types.h"
+#include <winsock2.h>
 #include <windows.h>
 #include <cstdio>
 #include <iostream>

@@ -17,7 +17,7 @@ struct PolicyReferenceMatch_interface{
 struct policyContextState{
     std::string policycontextstate;
 };
-
+class Policy;
 struct PolicyContext{
     std::shared_ptr<Policy> Policy=nullptr;
     std::shared_ptr<policyContextState> state=nullptr;
@@ -25,4 +25,4 @@ struct PolicyContext{
     void Destroy();
 };
 std::shared_ptr <PolicyContext>NewPolicyContext(std::shared_ptr<Policy> policy);
-#endif // SIGNATURE_POLICY_EVAL_H)
+#endif // SIGNATURE_POLICY_EVAL_H

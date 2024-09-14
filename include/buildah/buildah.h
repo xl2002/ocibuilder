@@ -1,5 +1,5 @@
-#if !defined(BUILDAH_BUILAH_H)
-#define BUILDAH_BUILAH_H
+#if !defined(BUILDAH_BUILDAH_H)
+#define BUILDAH_BUILDAH_H
 #include <string>
 #include <map>
 #include <vector>
@@ -160,7 +160,7 @@ struct Builder {
     std::shared_ptr<containerImageRef> makeContainerImageRef(std::shared_ptr<CommitOptions> options);
 };
 
-auto storageAllowedPolicyScopes=std::make_shared<PolicyTransportScopes>();
+extern std::shared_ptr<PolicyTransportScopes> storageAllowedPolicyScopes;
 bool checkRegistrySourcesAllows(std::string forWhat,std::shared_ptr<ImageReference_interface> dest);
 
 #endif

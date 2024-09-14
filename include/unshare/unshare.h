@@ -1,4 +1,4 @@
-#if !defined(UNSHARE_UNSHARE_H)q
+#if !defined(UNSHARE_UNSHARE_H)
 #define UNSHARE_UNSHARE_H
 #include <string>
 #include <map>

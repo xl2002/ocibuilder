@@ -227,7 +227,8 @@ std::vector<std::shared_ptr<Node>> SplitBy(std::shared_ptr<Node>node,std::string
             auto  copied = *node;  // 复制当前 node
             copied.Children.clear();        // 清空 children 列表
             copied.Next = nullptr;          // 清空 next 指针
-            current = std::make_shared<Node>(&copied);
+            std::shared_ptr<Node> next(&copied);
+            current = next;
             split.push_back(current);        // 添加到分割列表中
         }
         // 将当前子节点添加到 current 的 children 列表中

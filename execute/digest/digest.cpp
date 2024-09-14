@@ -19,8 +19,3 @@ std::string Digest::Hex(){
 std::string Digest::String(){
     return digest;
 }
-
-std::shared_ptr<Hash_256>digester:: Hash(){
-    
-    return nullptr;
-}

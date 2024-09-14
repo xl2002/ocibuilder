@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include <memory>
+#include <winsock2.h>
 #include <windows.h>
 #include <sys/stat.h>
 #include <fstream>

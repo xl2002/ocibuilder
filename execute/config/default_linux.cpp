@@ -4,6 +4,7 @@
 #include <boost/lexical_cast.hpp>
 
 #ifdef _WIN32
+#include <winsock2.h>
 #include <windows.h>
 using rlim_t = size_t; // 在Windows中使用size_t作为rlim_t的替代
 #else

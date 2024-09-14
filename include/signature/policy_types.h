@@ -8,6 +8,7 @@
 #include <chrono>
 #include <iostream>
 #include "signature/policy_eval.h"
+class PolicyRequirement_interface;
 struct PolicyRequirements{
     std::vector<PolicyRequirement_interface> policyrequirements;
 };

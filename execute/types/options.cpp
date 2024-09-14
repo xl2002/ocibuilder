@@ -12,6 +12,7 @@
 #include "util/util.h"
 #include "cli/common.h"
 #include <stdlib.h> 
+#include <winsock2.h>
 #include <windows.h>
 #include <mutex>
 #include <iostream>

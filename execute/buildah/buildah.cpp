@@ -5,7 +5,7 @@
 #include "transports/transports.h"
 #include "storage/storage_transport.h"
 #include "manifest/manifest.h"
-
+std::shared_ptr<PolicyTransportScopes> storageAllowedPolicyScopes=std::make_shared<PolicyTransportScopes>();
 void Builder::Delete(){
     try{
         store->DeleteContainer(ContainerID);

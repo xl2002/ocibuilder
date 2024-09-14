@@ -1,11 +1,12 @@
 #include "util/util.h"
+#include <winsock2.h>
 #include <windows.h>
 #include <sys/stat.h>
 #include <vector>
 #include "go/file.h"
 #include <minwindef.h>
 #include <fileapi.h>
-#include <windows.hpp>
+#include <windows.h>
 #include <pthread.h>
 /**
  * @brief 如果给定的文件是指向Windows系统的文件描述符，

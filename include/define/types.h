@@ -227,7 +227,7 @@ enum class progressevent:uint8_t{
 	ProgressEventDone,
 	ProgressEventSkipped
 };
-struct ProgressProperties{
+struct ProgressEvent{
 	progressevent value;
 };
 

@@ -13,6 +13,7 @@
 #include <cstdlib>
 #include <stdlib.h>
 #include <algorithm>
+#include <winsock2.h>
 #include <windows.h>
 #include <minwindef.h>
 #include <boost/filesystem.hpp>

@@ -16,7 +16,7 @@
 #include "imagebuildah/executor.h"
 #include "config/config.h"
 #include "config/new.h"
-std::tuple<std::string,std::shared_ptr<canonical>> buildDockerfilesOnce(shared_ptr<store> stores,string logPrefix,shared_ptr<define_BuildOptions> options,vector<string>& containerFiles,vector<vector<byte>>& dockerfilecontents);
+std::tuple<std::string,std::shared_ptr<Canonical_interface>> buildDockerfilesOnce(shared_ptr<store> stores,string logPrefix,shared_ptr<define_BuildOptions> options,vector<string>& containerFiles,vector<vector<byte>>& dockerfilecontents);
 string BuildDockerfiles(shared_ptr<store> stores, shared_ptr<define_BuildOptions> options,vector<string> paths,shared_ptr<Canonical_interface> ret_ref){
     // auto ctx = getContext();
 
@@ -125,7 +125,7 @@ string BuildDockerfiles(shared_ptr<store> stores, shared_ptr<define_BuildOptions
         public:
         Platform platform;
         std::string ID;
-        canonical Ref;
+        std::shared_ptr<Canonical_interface> Ref=nullptr;
     };
     std::vector<instance> instances;
     std::mutex instancesLock;
@@ -169,12 +169,12 @@ string BuildDockerfiles(shared_ptr<store> stores, shared_ptr<define_BuildOptions
 
             }
             std::string thisID;
-            std::shared_ptr<canonical> thisRef;
+            std::shared_ptr<Canonical_interface> thisRef;
             std::tie(thisID,thisRef)=buildDockerfilesOnce(stores,logPrefix,platformOptions,paths,files);
             instancesLock.lock();
             auto ins=instance();
             ins.ID=thisID;
-            ins.Ref=*thisRef;
+            ins.Ref=thisRef;
             ins.platform=platformSpec;
             instances.emplace_back(ins);
             instancesLock.unlock();
@@ -185,13 +185,13 @@ string BuildDockerfiles(shared_ptr<store> stores, shared_ptr<define_BuildOptions
         throw myerror("failed to build: "+string(merr->what()));
     }
     string id=instances[0].ID;
-    ret_ref=make_shared<canonical>(instances[0].Ref);
+    ret_ref=instances[0].Ref;
     deleter();
     return id;
 
 }
 
-std::tuple<std::string,std::shared_ptr<canonical>> buildDockerfilesOnce(shared_ptr<store> stores,string logPrefix,shared_ptr<define_BuildOptions> options,vector<string>& containerFiles,vector<vector<byte>>& dockerfilecontents){
+std::tuple<std::string,std::shared_ptr<Canonical_interface>> buildDockerfilesOnce(shared_ptr<store> stores,string logPrefix,shared_ptr<define_BuildOptions> options,vector<string>& containerFiles,vector<vector<byte>>& dockerfilecontents){
     auto mainNode=std::make_shared<Node>();
     try
     {

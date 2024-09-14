@@ -42,6 +42,8 @@ class imageTypeAndHistoryAndDiffIDs {
 };
 class StageExecutor;
 struct stageDependencyInfo;
+class Stages;
+class Stage;
 struct Executor {
     std::vector<named> cacheFrom;
     std::vector<named> cacheTo;

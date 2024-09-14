@@ -8,6 +8,7 @@
 #include "storage/storage.h"
 #include "storage/storage_reference.h"
 #include "idtools/idtools.h"
+struct storageReference;
 class StoreTransport_interface:public ImageTransport_interface{
     public:
     virtual std::shared_ptr<storageReference>ParseStoreReference(std::shared_ptr<Store> store,const std::string &reference)= 0;

@@ -6,7 +6,8 @@
 #include <utility> // For std::pair
 #include "rusage/rusage.h"
 #ifdef _WIN32
-#include <Windows.h>
+#include <winsock2.h>
+#include <windows.h>
 #else
 #include <sys/resource.h>
 #include <sys/time.h>

@@ -17,6 +17,9 @@ struct Algorithm_sha256 {
     Algorithm_sha256() = default;
     Algorithm_sha256(std::string v) : value(v) {};
     std::shared_ptr<Digest> FromString(const std::string& data);
+    bool operator< (const Algorithm_sha256& other) const {
+        return value < other.value;
+    }
 };
 extern  Algorithm_sha256 SHA256;
 extern  Algorithm_sha256 Canonical_sha256;

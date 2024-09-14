@@ -29,7 +29,7 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,bool> StageExecutor:
     auto checkForLayers=executor->layers && executor->useCache;
     auto moreStages=index< this->stages->Stages.size()-1;
     auto lastStage=!moreStages;
-    auto onlyBaseImage=false;
+    // auto onlyBaseImage=false;
     auto imageIsUsedLater=moreStages && (SetHas(this->executor->baseMap,stage->Name) || SetHas(this->executor->baseMap,std::to_string(stage->Position)));
     auto rootfsIsUsedLater=moreStages && (SetHas(this->executor->rootfsMap,stage->Name) || SetHas(this->executor->rootfsMap,std::to_string(stage->Position)));
     
@@ -172,7 +172,8 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,bool> StageExecutor:
         if(!this->executor->layers){
             this->didExecute=true;
             try{
-                ib->Run(step,std::shared_ptr<StageExecutor>(this),noRunsRemaining);
+                std::shared_ptr<StageExecutor>stage_p(this);
+                ib->Run(step,stage_p,noRunsRemaining);
             }catch(const myerror& e){
                 throw myerror("building at STEP \""+step->Message+"\": "+std::string(e.what()));
             }
@@ -344,7 +345,7 @@ std::pair<std::string,std::shared_ptr<Canonical_interface>> StageExecutor::commi
     }catch(const myerror& e){
         throw;
     }
-    auto ref=std::make_shared<Canonical_interface>();
+    std::shared_ptr<Canonical_interface> ref;
     if(imageRef!=nullptr){
         auto dref=imageRef->DockerReference();
         if(dref!=nullptr){

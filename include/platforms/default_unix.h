@@ -6,7 +6,8 @@
 #include <memory>
 #include "v1/descriptor.h"
 #ifdef _WIN32
-    #include <windows.h>
+    #include <winsock2.h>
+#include <windows.h>
     const std::string GOOS = "windows";
 #else
     #include <unistd.h>

@@ -17,12 +17,13 @@
 #include "parse/dockerfileparse.h"
 #include "docker/types.h"
 #include "imagebuilder/evaluator.h"
-#include "imagebuildah/stage_executor.h"
+// #include "imagebuildah/stage_executor.h"
 #include <boost/filesystem.hpp>
 // #include <boost/system/error_code.hpp>
 #include <sys/stat.h>
 
 #ifdef _WIN32
+#include <winsock2.h>
 #include <windows.h>
 #else
 #include <unistd.h>
@@ -60,6 +61,7 @@ public:
     bool Has(std::string path);
     bool Covers(std::string path);
 };
+class Executor_Interface;
 class Image_Builder {
 public:
     std::shared_ptr<container_Config> RunConfig=nullptr;

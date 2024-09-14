@@ -4,6 +4,7 @@
 #include <system_error>
 #include <tuple>
 #ifdef _WIN32
+#include <winsock2.h>
 #include <windows.h>
 #else
 #include <sys/vfs.h> // 或者 <sys/statfs.h> 在Linux/Unix系统上
