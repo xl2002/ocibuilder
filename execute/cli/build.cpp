@@ -10,7 +10,7 @@
 #include <memory>
 #include <chrono>
 vector<string> getContainerfiles(vector<string> files);
-std::string Abspath(const std::string& path);
+
 
 /**
  * @brief 生成给定命令的构建选项。
@@ -24,6 +24,7 @@ std::string Abspath(const std::string& path);
  *
  *@throws myerror 如果发生错误。
  */
+std::string Abspath(const std::string& path);
 void GenBuildOptions(Command* cmd, vector<string> inputArgs,BuildOptions* iopts, shared_ptr<define_BuildOptions> options, vector<string>& ret_containerfiles,vector<string>& removeAll){
     string output;
     vector<string> tags;
