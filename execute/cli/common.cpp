@@ -273,23 +273,28 @@ std::vector<std::string> LookupEnvVarReferences(const std::vector<std::string>& 
  * @return 绝对路径
  * @throws myerror 如果获取绝对路径失败
  */
-string Abspath(string path){
-    // 定义一个大小为 MAX_PATH 的字符数组，用于存储绝对路径
-    // char fullPath[MAX_PATH];
-    // 使用 _fullpath 函数来获取给定路径的绝对路径，并将结果存储在 fullPath 中
-    // 如果获取绝对路径失败，_fullpath 返回 nullptr
-     // 相对路径
-    boost::filesystem::path relativePath(path);
+// 获取绝对路径的函数
+std::string Abspath(const std::string& path) {
+    try {
+        // 使用 Boost 文件系统库获取绝对路径
+        boost::filesystem::path boostPath(path);
+        boost::filesystem::path absolutePath = boost::filesystem::absolute(boostPath);
 
-    // 获取绝对路径
-    boost::filesystem::path absolutePath = boost::filesystem::absolute(relativePath);
-    // if(_fullpath(fullPath,path.c_str(),MAX_PATH)==nullptr){
-    if(absolutePath.string().empty()){
-        // 如果获取绝对路径失败，抛出一个 myerror 异常，并提供错误信息
-        throw myerror ("Failed to obtain the absolute path. ");
+        // 检查路径是否存在
+        if (!boost::filesystem::exists(absolutePath)) {
+            throw myerror("Path does not exist.");
+        }
+
+        // 返回绝对路径
+        return absolutePath.string();
+    } catch (const boost::filesystem::filesystem_error& e) {
+        // 捕获 Boost 文件系统库相关的异常
+        throw myerror("Failed to obtain the absolute path: " + std::string(e.what()));
+    } catch (const std::exception& e) {
+        // 捕获其他异常
+        throw myerror("An error occurred: " + std::string(e.what()));
+    } catch (...) {
+        // 捕获未知异常
+        throw myerror("Unknown error occurred.");
     }
-    // 返回绝对路径
-    return absolutePath.string();
-    // return string(fullPath);
 }
-

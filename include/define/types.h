@@ -21,7 +21,6 @@ const std::string
 	SEV="sev",
 	SNP="snp";
 
-
 void TempDirForURL(std::string dir,std::string prefix, std::string url,std::string& name, std::string& subdir);
 enum ShortNameMode {
     ShortNameModeInvalid = 0,
