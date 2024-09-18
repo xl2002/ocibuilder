@@ -6,29 +6,26 @@
 #include <unordered_map>
 #include <memory>
 #include "logrus/logrus.h"
-//定义 Level 枚举类型
-//using Level = uint32_t;
-// enum class Level : uint32_t {
-//     Debug = 0,
-//     Info,
-//     Warn,
-//     Error,
-//     Fatal
-// };
-// // 定义 LevelHooks 接口
-// using Hook = std::function<void()>;
-// using LevelHooks = std::unordered_map<Level, std::vector<Hook>>;
+#include "logrus/entry.h"
+
+//using LevelHooks = std::unordered_map<Level, std::vector<Hook>>;
 class Hook{
 public:
-    virtual std::vector<Level> Levels() = 0;
-    virtual void Fire()=0;
     virtual ~Hook() = default;
-
+    //返回Hook应用的日志级别
+    virtual std::vector<Level> Levels() = 0;
+    virtual int Fire(std::shared_ptr<Entry> entry)=0;
+    
 };
-// // 定义 AddHook
-// void AddHook(Level level, const std::function<void()>& hook) {
-//     levelHooks[level].push_back(hook);
-// }
+//int Fire(LevelHooks& hooks, const Level& level, std::shared_ptr<Entry> entry);
 
+class LevelHooks {
+private:
+    std::map<Level, std::vector<std::shared_ptr<Hook>>> hooks;
+
+public:
+    void Add(const std::shared_ptr<Hook>& hook);
+    void Fire(Level level, std::shared_ptr<Entry> entry);
+};
 #endif // LOGRUS_HOOKS_H
 

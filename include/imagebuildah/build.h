@@ -8,6 +8,10 @@
 #include "reference/reference.h"
 #include "storage/storage.h"
 #include "define/build.h"
+#include "go/string.h"
+#include "go/file.h"
+#include "semaphore/semaphore.h"
+#include "multierror/group.h"
 using std::string;
 using std::vector;
 

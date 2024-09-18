@@ -10,3 +10,9 @@
 bool hasPrefix(const std::string& str, const std::string& prefix) {
     return str.compare(0, prefix.length(), prefix) == 0;
 }
+
+//data是否以suffix结尾
+bool hasSuffix(const std::string& data, const std::string& suffix)
+{
+    return data.size() >= suffix.size() && data.compare(data.size() - suffix.size(), suffix.size(), suffix) == 0;
+}

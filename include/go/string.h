@@ -15,4 +15,5 @@
 #include <map>
 #include <memory>
 bool hasPrefix(const std::string& str, const std::string& prefix);
+bool hasSuffix(const std::string& data, const std::string& suffix);
 #endif // GO_STRING_H

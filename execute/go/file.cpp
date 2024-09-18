@@ -7,6 +7,12 @@
  * @return 连接后的路径字符串
  */
 std::string joinPath(const std::string& path1, const std::string& path2) {
+    if (path1.empty()) {
+        return path2;
+    }
+    if (path2.empty()) {
+        return path1;
+    }
     // 如果path1以反斜杠结尾，则直接拼接
     if (path1.back() == '\\') {
         return path1 + path2;
