@@ -1,7 +1,7 @@
 #include "buildah/common.h"
 
 std::shared_ptr<SystemContext> getSystemContext(
-    std::shared_ptr<Store> store,
+    std::shared_ptr<Store_interface> store,
     std::shared_ptr<SystemContext> defaults,
     std::string signaturePolicyPath
 ){
@@ -22,7 +22,7 @@ std::shared_ptr<SystemContext> getSystemContext(
 }
 
 std::shared_ptr<copy::Options> getCopyOptions(
-    std::shared_ptr<Store> store,
+    std::shared_ptr<Store_interface> store,
     std::ostream* reportWriter,
     std::shared_ptr<SystemContext> sourceSystemContext,
     std::shared_ptr<SystemContext> destinationSystemContext,

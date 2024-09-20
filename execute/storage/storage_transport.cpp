@@ -5,7 +5,7 @@ const std::shared_ptr<StoreTransport_interface> Transport= std::make_shared<stor
 std::string storageTransport::Name(){
     return "containers-storage";
 }
-std::shared_ptr<storageReference>storageTransport::ParseStoreReference(std::shared_ptr<Store> store,const std::string &reference){
+std::shared_ptr<storageReference>storageTransport::ParseStoreReference(std::shared_ptr<Store_interface> store,const std::string &reference){
 
     return nullptr;
 }

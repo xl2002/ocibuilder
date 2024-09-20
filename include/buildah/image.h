@@ -16,7 +16,7 @@
 struct containerImageRef: public ImageReference_interface{
     std::string fromImageName;                  // 源镜像的名称
     std::string fromImageID;                    // 源镜像的ID
-    std::shared_ptr<Store> store=nullptr;                        // 存储库
+    std::shared_ptr<Store_interface> store=nullptr;                        // 存储库
     std::shared_ptr<Compression> compression=nullptr;             // 压缩类型
     std::string name;                           // 镜像名称
     std::vector<std::string> names;             // 镜像的别名

@@ -1,7 +1,8 @@
 #include "storage/storage.h"
+#include "go/time.h"
 namespace fs = boost::filesystem;
 
-extern std::unordered_map<std::string, std::function<std::shared_ptr<Driver>(const std::string&, const Options&)>> drivers;
+extern std::unordered_map<std::string, std::function<std::shared_ptr<Driver>(const std::string&, const driver_Options&)>> drivers;
 // 计算 numContainerLocationIndex
 constexpr unsigned int numContainerLocationIndex = 2; // 这里的 2 是因为我们有两个容器位置的标志
 string store:: RunRoot()
@@ -23,7 +24,7 @@ string Join(const vector<string>& elem) {
     return join(elem);
 }
 
-shared_ptr<Driver> store:: New(const string& name, const Options& config) {
+shared_ptr<Driver> store:: New(const string& name, const driver_Options& config) {
     if (!name.empty()) {
         // 如果指定了驱动名称，尝试加载指定的驱动，并记录到日志中,日志系统先不考虑
         // logDebug("[graphdriver] trying provided driver \"" + name + "\"");
@@ -62,7 +63,7 @@ shared_ptr<Driver> store:: New(const string& name, const Options& config) {
                 }
 
                 throw myerror(config.root + " contains several valid graphdrivers: " +
-                              "; Please cleanup or explicitly choose storage driver (-s <DRIVER>)");
+                                "; Please cleanup or explicitly choose storage driver (-s <DRIVER>)");
             }
 
             // logInfo("[graphdriver] using prior storage driver: " + name);
@@ -82,7 +83,7 @@ shared_ptr<Driver> store:: New(const string& name, const Options& config) {
     for (auto& kv : drivers) {
         std::vector<std::string> pathComponents = {config.root, kv.first}; // 创建路径组件的向量
         std::string path = Join(pathComponents); // 连接路径
-        Options opts;
+        driver_Options opts;
         opts.driverOptions = config.driverOptions; // 将现有的 vector<string> 分配给 Options 对象的 driverOptions
         auto driver = kv.second(path, opts); // 使用 Options 对象作为参数
         if (driver) {
@@ -95,7 +96,7 @@ shared_ptr<Driver> store:: New(const string& name, const Options& config) {
 }
 
 shared_ptr<Driver> store::createGraphDriverLocked() {
-    Options config{
+    driver_Options config{
         root: graph_root,
         runRoot: run_root,
         imageStore: image_store_dir,
@@ -113,13 +114,6 @@ shared_ptr<Driver> store::createGraphDriverLocked() {
 }
 
 
-
-
-
-
-
-
-
 bool imageStore::checkModified(lastwrite& lastWrite) {
     // 从 lockfile 中获取是否修改过的状态以及当前的 lastwrite
     auto [currentLW, modified] = lockfile->ModifiedSince(lastWrite);
@@ -135,7 +129,7 @@ std::string imageStore::imagespath(){
     return Join({dir, "images.json"}); // Join 函数用于拼接路径，dir 是 imageStore 的成员变量
 }
 //parseJson 函数的实现
-bool parseJson(const vector<uint8_t>& data, vector<shared_ptr<Image>>& images) {
+bool parseJson(const vector<uint8_t>& data, vector<shared_ptr<storage::Image>>& images) {
     try {
         // Create a string from the binary data
         std::string json_str(data.begin(), data.end());
@@ -148,19 +142,19 @@ bool parseJson(const vector<uint8_t>& data, vector<shared_ptr<Image>>& images) {
         read_json(ss, root);
 
         for (const auto& item : root) {
-            auto image = std::make_shared<Image>();
-            image->id = item.second.get<std::string>("id");
+            auto image = std::make_shared<storage::Image>();
+            image->ID = item.second.get<std::string>("id");
 
             // Parse names
             for (const auto& name : item.second.get_child("names")) {
-                image->names.push_back(name.second.data());
+                image->Names.push_back(name.second.data());
             }
 
             // Parse digests
             for (const auto& digest : item.second.get_child("digests")) {
                 Digest d;
                 d.digest = digest.second.data();
-                image->digests.push_back(d);
+                image->Digests.push_back(d);
             }
 
             images.push_back(image);
@@ -181,73 +175,25 @@ std::vector<std::string> imageStore::stringSliceWithoutValue(const std::vector<s
     return modified;
 }
 // 实现 removeName 函数
-void imageStore::removeName(std::shared_ptr<Image> image, const std::string& name) {
+void imageStore::removeName(std::shared_ptr<storage::Image> image, const std::string& name) {
     // 确保持有写锁
     boost::unique_lock<boost::shared_mutex> lock(inProcessLock);
-    image->names = stringSliceWithoutValue(image->names, name);
+    image->Names = stringSliceWithoutValue(image->Names, name);
 }
-// 判断大数据项的名称是否代表图像
-bool bigDataNameIsManifest(const std::string& name) {
-    // 这里 ImageDigestManifestBigDataNamePrefix 是定义为大数据名称的前缀
-    const std::string ImageDigestManifestBigDataNamePrefix = "manifest"; 
-    return name.find(ImageDigestManifestBigDataNamePrefix) == 0;
-}
-//recomputeDigests 函数的实现
-void Image::recomputeDigests() {
-    try {
-        // 存储唯一的有效摘要
-        std::vector<Digest> validDigests;
-        std::set<Digest> uniqueDigests;
 
-        // 处理固定的摘要
-        if (!digest.digest.empty()) {
-            if (!digest.Validate()) {
-                throw myerror("Validating image digest failed.");
-            }
-            uniqueDigests.insert(digest);
-            validDigests.push_back(digest);
-        }
-
-        // 处理大数据摘要
-        for (const auto& [name, bigDataDigest] : bigDataDigests) {
-            if (!bigDataNameIsManifest(name)) {
-                continue;
-            }
-            if (!bigDataDigest.Validate()) {
-                throw myerror("Validating digest failed for big data item.");
-            }
-            // 去重
-            if (uniqueDigests.find(bigDataDigest) == uniqueDigests.end()) {
-                uniqueDigests.insert(bigDataDigest);
-                validDigests.push_back(bigDataDigest);
-            }
-        }
-
-        // 如果固定摘要为空且有效摘要不为空，设置第一个有效摘要
-        if (digest.digest.empty() && !validDigests.empty()) {
-            digest = validDigests[0];
-        }
-
-        // 设置计算出的摘要列表
-        digests = validDigests;
-    } catch (const myerror& e) {
-        // 捕获并重新抛出 myerror 类型的异常
-        throw;
-    }
-}
 //将image将 Image 对象转换为 boost::property_tree::ptree 对象
-boost::property_tree::ptree imageToPtree(const std::shared_ptr<Image>& image) {
+boost::property_tree::ptree imageToPtree(const std::shared_ptr<storage::Image>& image) {
     boost::property_tree::ptree pt;
     
-    pt.put("id", image->id);
-    pt.put("digest", image->digest.digest); // 假设 Digest 结构有一个 `digest` 字段
-    pt.put("topLayer", image->topLayer);
-    pt.put("metadata", image->metadata);
-    pt.put("created", static_cast<long long>(image->created)); // 使用 long long 以处理大时间戳
+    pt.put("id", image->ID);
+    pt.put("digest", image->digest->digest); // 假设 Digest 结构有一个 `digest` 字段
+    pt.put("topLayer", image->TopLayer);
+    pt.put("metadata", image->Metadata);
+    pt.put("created", time_point_to_string(image->Created)); // 使用 long long 以处理大时间戳
 
     // Convert vectors to ptree
     boost::property_tree::ptree digests_ptree;
-    for (const auto& digest : image->digests) {
+    for (const auto& digest : image->Digests) {
         boost::property_tree::ptree item;
         item.put("", digest.digest); // 假设 Digest 结构有一个 `digest` 字段
         digests_ptree.push_back(std::make_pair("", item));
@@ -255,7 +201,7 @@ boost::property_tree::ptree imageToPtree(const std::shared_ptr<Image>& image) {
     pt.add_child("digests", digests_ptree);
 
     boost::property_tree::ptree names_ptree;
-    for (const auto& name : image->names) {
+    for (const auto& name : image->Names) {
         boost::property_tree::ptree item;
         item.put("", name);
         names_ptree.push_back(std::make_pair("", item));
@@ -265,7 +211,7 @@ boost::property_tree::ptree imageToPtree(const std::shared_ptr<Image>& image) {
     // Similarly handle namesHistory, mappedTopLayers, bigDataNames
     // For map<string, int64_t> and map<string, Digest>
     boost::property_tree::ptree bigDataSizes_ptree;
-    for (const auto& pair : image->bigDataSizes) {
+    for (const auto& pair : image->BigDataSizes) {
         boost::property_tree::ptree item;
         item.put("", pair.second); // size
         bigDataSizes_ptree.add_child(pair.first, item);
@@ -273,7 +219,7 @@ boost::property_tree::ptree imageToPtree(const std::shared_ptr<Image>& image) {
     pt.add_child("bigDataSizes", bigDataSizes_ptree);
 
     boost::property_tree::ptree bigDataDigests_ptree;
-    for (const auto& pair : image->bigDataDigests) {
+    for (const auto& pair : image->BigDataDigests) {
         boost::property_tree::ptree item;
         item.put("", pair.second.digest); // digest
         bigDataDigests_ptree.add_child(pair.first, item);
@@ -282,7 +228,7 @@ boost::property_tree::ptree imageToPtree(const std::shared_ptr<Image>& image) {
 
     // Handle flags (assuming the flag values are serializable to JSON)
     boost::property_tree::ptree flags_ptree;
-    for (const auto& pair : image->flags) {
+    for (const auto& pair : image->Flags) {
         boost::property_tree::ptree item;
         // Serialize item based on actual type
         // Example below assumes void* is not directly serializable
@@ -290,7 +236,7 @@ boost::property_tree::ptree imageToPtree(const std::shared_ptr<Image>& image) {
     }
     pt.add_child("flags", flags_ptree);
 
-    pt.put("readOnly", image->readOnly);
+    pt.put("readOnly", image->ReadOnly);
 
     return pt;
 }
@@ -299,7 +245,7 @@ void imageStore::Save() {
     try {
         // 检查是否允许修改
         if (!lockfile->IsReadWrite()) {
-            throw myerror("Not allowed to modify the image store: Store is read-only.");
+            throw myerror("Not allowed to modify the image store: Store_interface is read-only.");
         }
         lockfile->AssertLockedForWriting();
 
@@ -354,7 +300,7 @@ bool imageStore::load(bool lockedForWriting) {
         // 读取镜像文件内容
         std::vector<uint8_t> data((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 
-        std::vector<std::shared_ptr<Image>> images;
+        std::vector<std::shared_ptr<storage::Image>> images;
         if (!data.empty()) {
             // 使用 parseJson 函数解析数据
             if (!parseJson(data, images)) {
@@ -363,19 +309,19 @@ bool imageStore::load(bool lockedForWriting) {
         }
 
         vector<string> idlist;
-        map<string, shared_ptr<Image>> ids;
-        map<string, shared_ptr<Image>> names;
-        map<Digest, vector<shared_ptr<Image>>> digests;
+        map<string, shared_ptr<storage::Image>> ids;
+        map<string, shared_ptr<storage::Image>> names;
+        map<Digest, vector<shared_ptr<storage::Image>>> digests;
         std::error_code errorToResolveBySaving;
 
         // 处理每个镜像
         for (size_t n = 0; n < images.size(); ++n) {
             auto& image = images[n];
-            ids[image->id] = images[n];
-            idlist.push_back(image->id);
+            ids[image->ID] = images[n];
+            idlist.push_back(image->ID);
 
             // 检查是否有名称冲突
-            for (const auto& name : image->names) {
+            for (const auto& name : image->Names) {
                 auto it = names.find(name);
                 if (it != names.end()) {
                     removeName(it->second, name);
@@ -387,18 +333,18 @@ bool imageStore::load(bool lockedForWriting) {
             try {
                 image->recomputeDigests(); 
             } catch (const std::exception& e) {
-                throw myerror("Computing digests for image with ID " + image->id + ": " + std::string(e.what()));
+                throw myerror("Computing digests for image with ID " + image->ID + ": " + std::string(e.what()));
             }
 
-            for (const auto& name : image->names) {
+            for (const auto& name : image->Names) {
                 names[name] = image;
             }
 
-            for (const auto& digest : image->digests) {
+            for (const auto& digest : image->Digests) {
                 digests[digest].push_back(image);
             }
 
-            image->readOnly = !lockfile->IsReadWrite();
+            image->ReadOnly = !lockfile->IsReadWrite();
         }
 
         // 错误处理，如果需要保存镜像信息
@@ -507,10 +453,10 @@ shared_ptr<rwImageStore> newImageStore(const string& dir) {
         istore->dir = dir;
 
         // 初始化 imageStore 的其他成员
-        istore->images = vector<shared_ptr<Image>>();
-        istore->byid = map<string, shared_ptr<Image>>();
-        istore->byname = map<string, shared_ptr<Image>>();
-        istore->bydigest = map<Digest, vector<shared_ptr<Image>>>();
+        istore->images = vector<shared_ptr<storage::Image>>();
+        istore->byid = map<string, shared_ptr<storage::Image>>();
+        istore->byname = map<string, shared_ptr<storage::Image>>();
+        istore->bydigest = map<Digest, vector<shared_ptr<storage::Image>>>();
 
         // 开始写入操作
         if (!istore->startWritingWithReload(false)) {
@@ -606,7 +552,7 @@ void containerStore::Save(containerLocations saveLocations) {
     try {
         // 确保持有写锁
         if (!lockfile->IsReadWrite()) {
-            throw myerror("Not allowed to modify the container store: Store is read-only.");
+            throw myerror("Not allowed to modify the container store: Store_interface is read-only.");
         }
         lockfile->AssertLockedForWriting();
 
@@ -1060,4 +1006,7 @@ void store::load() {
     } catch (const myerror& e) {
         throw; // 重新抛出 myerror 类型的异常
     }
+}
+void store::DeleteContainer(std::string id){
+    return;
 }

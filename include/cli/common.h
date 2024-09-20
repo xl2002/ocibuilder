@@ -23,7 +23,7 @@
 // #include "storage/runtime.h"
 // #include "storage/image.h"
 #include "types/options.h"
-#include "storage/utils.h"
+// #include "storage/utils.h"
 #include "config/config.h"
 using std::vector;
 using std::string;
@@ -35,4 +35,5 @@ bool UseLayers();
 std::string JoinPath(const std::string& path1, const std::string& path2);
 shared_ptr<DecryptConfig> DecryptConfigs(vector<string>decryptionKeys);
 std::vector<std::string> LookupEnvVarReferences(const std::vector<std::string>& specs);
+std::string Abspath(const std::string& path);
 #endif

@@ -8,8 +8,8 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#if !defined(STIRAGE_UTILS_H)
-#define STIRAGE_UTILS_H
+#if !defined(TYPES_OPTIONS_H)
+#define TYPES_OPTIONS_H
 #include <string>
 #include <map>
 #include <vector>
@@ -21,6 +21,11 @@
 #include <fstream>   // For ifstream
 #include <sstream>   // For stringstream
 #include <memory>
+#include <boost/compute/detail/getenv.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/process/environment.hpp>
+#include <boost/system/error_code.hpp>
+#include <boost/algorithm/string/replace.hpp>
 using std::string;
 using std::map;
 using std::vector;
@@ -28,6 +33,7 @@ using std::vector;
  * @brief 记录镜像存储方面的信息
  * 
  */
+class store;
 class StoreOptions{
     public:
     // 文件系统路径，用于存储运行时信息，如活动挂载点的位置，这些信息在主机重启后将丢失。
@@ -36,11 +42,12 @@ class StoreOptions{
     string graph_root;
     // 如果需要与容器存储分开的位置，这是镜像存储的替代位置。
     string image_store;
+    string image_store_dir;
     // 无根用户的存储路径，默认为 $HOME/.local/share/containers/storage。
     string rootless_storage_path;
     // 如果未指定驱动程序，将从 GraphDriverPriority 或平台相关的优先级列表中选择最适合的驱动程序。
     string graph_driver_name;
-    // 要尝试初始化 Store 的存储驱动程序列表，除非设置了 GraphDriverName。
+    // 要尝试初始化 Store_interface 的存储驱动程序列表，除非设置了 GraphDriverName。
     // 该列表可用于定义尝试驱动程序的自定义顺序。
     vector<string> graph_driver_priority;
     // 驱动程序特定的选项。
@@ -62,10 +69,17 @@ class StoreOptions{
     // 如果为瞬态，则在引导时不保留容器（在 runroot 中存储数据库）。
     bool transient_store;
 };
+struct ReloadConfig {
+    std::shared_ptr<StoreOptions> storeOptions;
+    std::time_t mod;  // Use std::time_t to store modification time
+    std::mutex mutex;
+    std::string configFile;
+};
 extern const string overlayDriver;
 extern const string overlay2;
 extern const string storageConfEnv;
 //函数声明
+bool loadDefaultStoreOptionsIfNeeded();
 StoreOptions DefaultStoreOptions();
 bool usePerUserStorage();
 std::string getConfigHome();
@@ -74,7 +88,13 @@ std::string getHomeDir();
 std::string DefaultConfigFile();
 StoreOptions loadStoreOptionsFromConfFile(const std::string& storageConf);
 StoreOptions loadStoreOptions();
-bool  ReloadConfigurationFileIfNeeded(string configFile, StoreOptions* storeOptions);
+///<ReloadConfigurationFileIfNeeded这个函数负责一些初始化变量的赋值
+void loadDefaultStoreOptions(); 
+bool MkdirAll(const std::string& path);
+std::wstring s2ws(const std::string& s);
+bool DirectoryExists(const std::string& path);
+
+bool ReloadConfigurationFileIfNeeded(const std::string& configFile, StoreOptions* storeOptions);
 ///<ReloadConfigurationFileIfNeeded这个函数负责一些初始化变量的赋值
 std::shared_ptr<store> GetStore(StoreOptions options);
 #endif // MACRO

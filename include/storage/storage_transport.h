@@ -11,14 +11,14 @@
 struct storageReference;
 class StoreTransport_interface:public ImageTransport_interface{
     public:
-    virtual std::shared_ptr<storageReference>ParseStoreReference(std::shared_ptr<Store> store,const std::string &reference)= 0;
+    virtual std::shared_ptr<storageReference>ParseStoreReference(std::shared_ptr<Store_interface> store,const std::string &reference)= 0;
 };
 
 struct storageTransport: public StoreTransport_interface{
-    std::shared_ptr<Store> store=nullptr;
+    std::shared_ptr<Store_interface> store=nullptr;
     std::vector<IDMap> defaultUIDMap;
     std::vector<IDMap> defaultGIDMap;
-    std::shared_ptr<storageReference>ParseStoreReference(std::shared_ptr<Store> store,const std::string &reference)override;
+    std::shared_ptr<storageReference>ParseStoreReference(std::shared_ptr<Store_interface> store,const std::string &reference)override;
         // 返回传输名称
     std::string Name() override;
 

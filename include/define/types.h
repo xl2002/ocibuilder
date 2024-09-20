@@ -58,9 +58,9 @@ struct SystemContext  {
 	string SystemRegistriesConfDirPath;
 	// Path to the user-specific short-names configuration file
 	string UserShortNameAliasConfPath;
-	// If set, short-name resolution in pkg/shortnames must follow the specified mode
+	// If set, short-name resolution in shortnames must follow the specified mode
 	std::shared_ptr<ShortNameMode> shortNameMode=nullptr;
-	// If set, short names will resolve in pkg/shortnames to docker.io only, and unqualified-search registries and
+	// If set, short names will resolve in shortnames to docker.io only, and unqualified-search registries and
 	// short-name aliases in registries.conf are ignored.  Note that this field is only intended to help enforce
 	// resolving to Docker Hub in the Docker-compatible REST API of Podman; it should never be used outside this
 	// specific context.

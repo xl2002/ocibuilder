@@ -1,5 +1,6 @@
 #if !defined(PKG_LOCKFILE_LOCKFILE_H)
 #define PKG_LOCKFILE_LOCKFILE_H
+#include <winsock2.h>
 #include <windows.h>
 #include <string>
 #include <mutex>
@@ -17,9 +18,9 @@
 #include <boost/interprocess/sync/file_lock.hpp>
 #include <boost/iostreams/device/file_descriptor.hpp>
 #include <boost/iostreams/filtering_streambuf.hpp>
-#include "pkg/lockfile/lastwrite.h"
+#include "lockfile/lastwrite.h"
 #include "cobra/error.h"
-#include "storage/utils.h"
+#include "types/options.h"
 using namespace std;
 
 enum class LockType { ReadLock, WriteLock };

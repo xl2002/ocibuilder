@@ -5,6 +5,8 @@
 #include <map>
 #include <vector>
 #include <chrono>
+#include "cobra/error.h"
+#include <set>
 #include "digest/digest.h"
 namespace storage{
     // 表示一个镜像和相关的元数据的结构体
@@ -51,6 +53,7 @@ namespace storage{
 
         // Flags 是一个可以存储任意键值对的标志集合
         std::map<std::string, std::string> Flags;
+        void recomputeDigests();
     };
 
 

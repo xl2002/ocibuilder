@@ -1,12 +1,12 @@
 #if !defined(STORAGE_STIRAGE_H)
 #define STORAGE_STIRAGE_H
-#include "pkg/lockfile/lockfile.h"
+#include "lockfile/lockfile.h"
 #include "idtools/idtools.h"
-#include "storage/driver/driver.h"
+#include "graphdriver/driver.h"
 #include "storage/layers.h"
 #include "cobra/error.h"
 #include "digest/digest.h"
-#include "storage/utils.h"
+#include "types/options.h"
 #include <cstdint> 
 #include <set>
 #include <string>
@@ -17,18 +17,18 @@
 #include "idtools/idtools.h"
 #include "graphdriver/driver.h"
 #include "storage/layers.h"
-using std::string;
-using std::vector;
-using std::map;
-
-struct LayerOptions;
+#include "storage/images.h"
 #include <mutex>
 #include <filesystem>
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/thread/locks.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+using std::string;
+using std::vector;
+using std::map;
 
+struct LayerOptions;
 using namespace std;
 using namespace boost::property_tree;
 // 定义 containerLocations 类型
@@ -38,7 +38,7 @@ constexpr containerLocations stableContainerLocation = 1 << 0; // 1 << 0 => 1
 constexpr containerLocations volatileContainerLocation = 1 << 1; // 1 << 1 => 2
 struct LayerOptions;
 class lockFile;
-class Store{
+class Store_interface{
     public:
     // RunRoot、GraphRoot、GraphDriverName 和 GraphOptions 检索
 	//创建对象时传递给 GetStore() 的设置。
@@ -102,38 +102,7 @@ struct ImageOptions {
     // Flags 是存储在图像中的标志及其值的集合
     map<string, shared_ptr<void>> flags;
 };
-// Image 结构体定义
-struct Image {
-    // ID 是创建时指定的 ID 或库生成的随机值
-    string id;
-    // Digest 是用来定位图像的摘要值（如果创建时指定了）
-    Digest digest;
-    // Digests 是图像清单的摘要值列表
-    vector<Digest> digests;
-    // Names 是用户定义的便利值集合，图像可以通过其 ID 或任何名称来引用
-    vector<string> names;
-    // NamesHistory 是图像过去拥有的名称集合，最新的条目是第一个
-    vector<string> namesHistory;
-    // TopLayer 是图像本身的顶层 ID（如果图像包含一个或多个层）
-    string topLayer;
-    // MappedTopLayers 是顶层的替代版本 ID，这些版本具有相同的内容和父层
-    vector<string> mappedTopLayers;
-    // Metadata 是为调用者提供的便利数据
-    string metadata;
-    // BigDataNames 是存储的数据显示项名称的列表
-    vector<string> bigDataNames;
-    // BigDataSizes 映射 BigDataNames 中的名称到已存储数据的大小
-    map<string, int64_t> bigDataSizes;
-    // BigDataDigests 映射 BigDataNames 中的名称到已存储数据的摘要
-    map<string, Digest> bigDataDigests;
-    // Created 是图像创建的时间戳
-    time_t created;
-    // ReadOnly 如果图像位于只读层存储中，则为真
-    bool readOnly;
-    // Flags 是图像的标志集合
-    map<string, shared_ptr<void>> flags;
-    void recomputeDigests();
-};
+
 
 class ChildList;
 // Define Trie
@@ -253,13 +222,13 @@ public:
     virtual bool Exists(const std::string& id) const = 0;
 
     // 获取指定 ID 或名称的图像信息
-    virtual std::shared_ptr<Image> Get(const std::string& id) const = 0;
+    virtual std::shared_ptr<storage::Image> Get(const std::string& id) const = 0;
 
     // 返回已知图像的列表
-    virtual std::vector<Image> Images() const = 0;
+    virtual std::vector<storage::Image> Images() const = 0;
 
     // 根据摘要返回图像列表
-    virtual std::vector<std::shared_ptr<Image>> ByDigest(const Digest& digest) const = 0;
+    virtual std::vector<std::shared_ptr<storage::Image>> ByDigest(const Digest& digest) const = 0;
 };
 // rwImageStore 接口
 class rwImageStore : public roImageStore, public rwMetadataStore, public rwImageBigDataStore, public flaggableStore {
@@ -273,12 +242,12 @@ public:
     virtual void stopWriting() = 0;
 
     // 创建具有指定 ID 和可选名称的图像
-    virtual std::shared_ptr<Image> create(const std::string& id, const std::vector<std::string>& names, 
-                                          const std::string& layer, const ImageOptions& options) = 0;
+    virtual std::shared_ptr<storage::Image> create(const std::string& id, const std::vector<std::string>& names, 
+                                            const std::string& layer, const ImageOptions& options) = 0;
 
     // 修改与图像关联的名称
     virtual void updateNames(const std::string& id, const std::vector<std::string>& names, 
-                             updateNameOperation op) = 0;
+                                updateNameOperation op) = 0;
 
     // 删除图像记录
     virtual void Delete(const std::string& id) = 0;
@@ -305,7 +274,7 @@ struct imageStore:public rwImageStore{
         // 空实现
     }
 
-    std::shared_ptr<Image> create(const std::string& id, const std::vector<std::string>& names, 
+    std::shared_ptr<storage::Image> create(const std::string& id, const std::vector<std::string>& names, 
                                 const std::string& layer, const ImageOptions& options) override {
         return nullptr; // 空实现
     }
@@ -347,15 +316,15 @@ struct imageStore:public rwImageStore{
         return false; // 空实现
     }
 
-    std::shared_ptr<Image> Get(const std::string& id) const override {
+    std::shared_ptr<storage::Image> Get(const std::string& id) const override {
         return nullptr; // 空实现
     }
 
-    std::vector<Image> Images() const override {
+    std::vector<storage::Image> Images() const override {
         return {}; // 空实现
     }
 
-    std::vector<std::shared_ptr<Image>> ByDigest(const Digest& digest) const override {
+    std::vector<std::shared_ptr<storage::Image>> ByDigest(const Digest& digest) const override {
         return {}; // 空实现
     }
 
@@ -406,12 +375,12 @@ struct imageStore:public rwImageStore{
     // 以下字段只能在持有 inProcessLock 的读写所有权时读取/写入。
     // 几乎所有用户都应使用 startReading() 或 startWriting()。
     lastwrite lastWrite;
-    vector<shared_ptr<Image>> images;
+    vector<shared_ptr<storage::Image>> images;
     shared_ptr<TruncIndex> idindex;
     //目前没用到
-    map<string, shared_ptr<Image>> byid;
-    map<string, shared_ptr<Image>> byname;
-    map<Digest, vector<shared_ptr<Image>>> bydigest;
+    map<string, shared_ptr<storage::Image>> byid;
+    map<string, shared_ptr<storage::Image>> byname;
+    map<Digest, vector<shared_ptr<storage::Image>>> bydigest;
 
 
     bool checkModified(lastwrite& lastWrite);
@@ -419,7 +388,7 @@ struct imageStore:public rwImageStore{
     bool reloadIfChanged(bool lockedForWriting, bool& tryLockedForWriting);
     bool startWritingWithReload(bool canReload);
     std::string imagespath();
-    void removeName(std::shared_ptr<Image> image, const std::string& name);
+    void removeName(std::shared_ptr<storage::Image> image, const std::string& name);
     std::vector<std::string> stringSliceWithoutValue(const std::vector<std::string>& slice, const std::string& value);
     void Save();
 };
@@ -522,11 +491,11 @@ public:
     virtual void stopReading() = 0;
     // 创建容器
     virtual std::shared_ptr<Container> create(const std::string& id, const std::vector<std::string>& names, 
-                                              const std::string& image, const std::string& layer, 
-                                              const ContainerOptions& options) = 0;
+                                                const std::string& image, const std::string& layer, 
+                                                const ContainerOptions& options) = 0;
     // 修改容器的名称
     virtual void updateNames(const std::string& id, const std::vector<std::string>& names, 
-                             updateNameOperation op) = 0;
+                                updateNameOperation op) = 0;
     // 获取容器信息
     virtual std::shared_ptr<Container> Get(const std::string& id) = 0;
     // 检查容器是否存在
@@ -557,12 +526,12 @@ public:
         // 空实现
     }
     std::shared_ptr<Container> create(const std::string& id, const std::vector<std::string>& names, 
-                                      const std::string& image, const std::string& layer, 
-                                      const ContainerOptions& options) override {
+                                        const std::string& image, const std::string& layer, 
+                                        const ContainerOptions& options) override {
         return nullptr; // 空实现
     }
     void updateNames(const std::string& id, const std::vector<std::string>& names, 
-                     updateNameOperation op) override {
+                        updateNameOperation op) override {
         // 空实现
     }
     std::shared_ptr<Container> Get(const std::string& id) override {
@@ -636,13 +605,7 @@ public:
 };
 
 
-
-
-
-
-
-
-class store:public Store{
+class store:public Store_interface{
     public:
     string run_root;
     string graph_driver_name;
@@ -684,8 +647,9 @@ class store:public Store{
     public:
     string RunRoot() override;
     void load() override;
+    void DeleteContainer(std::string id) override;
     shared_ptr<Driver> createGraphDriverLocked();
-    shared_ptr<Driver> New(const string& name, const Options& config);
+    shared_ptr<Driver> New(const string& name, const driver_Options& config);
 };
 
 #endif //

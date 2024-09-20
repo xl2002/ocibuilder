@@ -20,6 +20,10 @@ struct Algorithm_sha256 {
     bool operator< (const Algorithm_sha256& other) const {
         return value < other.value;
     }
+    std::shared_ptr<Hash_256>Hash();
+    bool Available();
+    void Validate(const std::string& encoded);
+    int Size();
 };
 extern  Algorithm_sha256 SHA256;
 extern  Algorithm_sha256 Canonical_sha256;

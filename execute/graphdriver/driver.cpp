@@ -1,13 +1,13 @@
-#include "storage/driver/driver.h"
+#include "graphdriver/driver.h"
 
 using namespace std;
 const char Separator = '/';
 // 清理路径，确保路径规范化
-std::unordered_map<std::string, std::function<std::shared_ptr<Driver>(const std::string&, const Options&)>> drivers;
+std::unordered_map<std::string, std::function<std::shared_ptr<Driver>(const std::string&, const driver_Options&)>> drivers;
 string Clean(const string& path);
 string join(const vector<string>& elem);
 string Join(const vector<string>& elem);
-shared_ptr<Driver> GetDriver(const string& name, const Options& config) {
+shared_ptr<Driver> GetDriver(const string& name, const driver_Options& config) {
     // GetDriver 初始化并返回已注册的驱动程序
     vector<string> pathElements = { config.root, name };
 
@@ -44,7 +44,7 @@ unordered_map<string, bool> ScanPriorDrivers(const string& root) {
     return driversMap;
 }
 // getBuiltinDriver 函数实现
-shared_ptr<Driver> getBuiltinDriver(const std::string& name, const std::string& home, const Options& options) {
+shared_ptr<Driver> getBuiltinDriver(const std::string& name, const std::string& home, const driver_Options& options) {
     auto it = drivers.find(name);
     if (it != drivers.end()) {
         // 使用 Join 函数连接路径，并调用驱动程序初始化函数

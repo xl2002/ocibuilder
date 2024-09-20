@@ -6,7 +6,7 @@
 #include "go/file.h"
 #include <minwindef.h>
 #include <fileapi.h>
-#include <windows.h>
+// #include <windows.h>
 #include <pthread.h>
 /**
  * @brief 如果给定的文件是指向Windows系统的文件描述符，
