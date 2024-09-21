@@ -21,6 +21,13 @@ public:
     readOp lastRead = readOp::NONE; // last read operation
 
     Buffer() = default;
+
+    // Reset 方法将缓冲区重置为空状态，但保留底层存储
+    void Reset() {
+        buf.clear();            // 清空缓冲区但保留内存
+        off = 0;                // 重置偏移量
+        lastRead = readOp::NONE; // 重置最后的读操作
+    }
 };
 
 

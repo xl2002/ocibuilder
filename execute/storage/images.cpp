@@ -23,7 +23,9 @@ void storage::Image::recomputeDigests() {
         }
 
         // 处理大数据摘要
-        for ( auto& [name, bigDataDigest] : BigDataDigests) {
+        for ( auto& bs : BigDataDigests) {
+            auto name=bs.first;
+            auto bigDataDigest=bs.second;
             if (!bigDataNameIsManifest(name)) {
                 continue;
             }

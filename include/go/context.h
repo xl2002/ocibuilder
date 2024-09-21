@@ -56,7 +56,7 @@ public:
         return cv.wait_for(lock, timeout, [this]() { return canceled.load(); });
     }
 
-private:
+public:
     std::atomic<bool> canceled;                // 表示是否已经取消
     std::mutex mu;                             // 互斥锁，用于保护取消状态
     std::condition_variable cv;                // 条件变量，用于通知等待的线程

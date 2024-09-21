@@ -35,7 +35,7 @@ class Flag{
     // string  shorthand;           ///<单字母缩写标志
     string  usage_help;             ///<帮助信息
     Value*  value=nullptr;          ///<用来保存标签从参数列表中分析得到值
-    // unique_ptr<Value> value;
+    // shared_ptr<Value> value;
     string  default_value;          ///<标签的默认值
     string  NoOptDefVal;            ///< 默认值（作为文本）；如果该标志位于命令行上且没有任何选项
     map<string,vector<string>> Annotations; ///< 由 bash 自动完成代码使用

@@ -379,7 +379,7 @@ struct EngineConfig {
     std::string CompressionFormat;
 
     //CompressionLevel 是用于压缩图像层的压缩级别。
-    std::unique_ptr<int> CompressionLevel=nullptr;
+    std::shared_ptr<int> CompressionLevel=nullptr;
 
     //PodmanshTimeout 是等待 podmansh 登录的秒数。
     uint32_t PodmanshTimeout=0;

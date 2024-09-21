@@ -20,7 +20,7 @@
  * @param values 标签的默认值
  */
 Flag::Flag(string name,string usage,Value* v,string values):name(name),usage_help(usage),value(v),default_value(values) {}
-// Flag::Flag(string name,string usage,Value* v,string values):name(name),usage_help(usage),value(std::make_unique<Value>(v)),default_value(values) {}
+// Flag::Flag(string name,string usage,Value* v,string values):name(name),usage_help(usage),value(std::make_shared<Value>(v)),default_value(values) {}
 /**
  * @brief 销毁Flag::Flag对象
  * 

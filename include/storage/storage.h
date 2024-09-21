@@ -195,16 +195,16 @@ public:
     virtual ~roBigDataStore() = default;
 
     // 检索与 ID 和键相关的大数据
-    virtual std::vector<uint8_t> BigData(const std::string& id, const std::string& key) const = 0;
+    virtual std::vector<uint8_t> BigData(const std::string& id, const std::string& key)  = 0;
 
     // 检索大数据的大小
-    virtual int64_t BigDataSize(const std::string& id, const std::string& key) const = 0;
+    virtual int64_t BigDataSize(const std::string& id, const std::string& key)  = 0;
 
     // 检索大数据的摘要
-    virtual Digest BigDataDigest(const std::string& id, const std::string& key) const = 0;
+    virtual Digest BigDataDigest(const std::string& id, const std::string& key)  = 0;
 
     // 返回已存储数据的名称列表
-    virtual std::vector<std::string> BigDataNames(const std::string& id) const = 0;
+    virtual std::vector<std::string> BigDataNames(const std::string& id)  = 0;
 };
 
 // roImageStore 接口
@@ -219,16 +219,16 @@ public:
     virtual void stopReading() = 0;
 
     // 检查是否存在指定 ID 或名称的图像
-    virtual bool Exists(const std::string& id) const = 0;
+    virtual bool Exists(const std::string& id)  = 0;
 
     // 获取指定 ID 或名称的图像信息
-    virtual std::shared_ptr<storage::Image> Get(const std::string& id) const = 0;
+    virtual std::shared_ptr<storage::Image> Get(const std::string& id)  = 0;
 
     // 返回已知图像的列表
-    virtual std::vector<storage::Image> Images() const = 0;
+    virtual std::vector<storage::Image> Images()  = 0;
 
     // 根据摘要返回图像列表
-    virtual std::vector<std::shared_ptr<storage::Image>> ByDigest(const Digest& digest) const = 0;
+    virtual std::vector<std::shared_ptr<storage::Image>> ByDigest(const Digest& digest)  = 0;
 };
 // rwImageStore 接口
 class rwImageStore : public roImageStore, public rwMetadataStore, public rwImageBigDataStore, public flaggableStore {
@@ -312,36 +312,36 @@ struct imageStore:public rwImageStore{
         // 空实现
     }
 
-    bool Exists(const std::string& id) const override {
+    bool Exists(const std::string& id)  override {
         return false; // 空实现
     }
 
-    std::shared_ptr<storage::Image> Get(const std::string& id) const override {
+    std::shared_ptr<storage::Image> Get(const std::string& id)  override {
         return nullptr; // 空实现
     }
 
-    std::vector<storage::Image> Images() const override {
+    std::vector<storage::Image> Images()  override {
         return {}; // 空实现
     }
 
-    std::vector<std::shared_ptr<storage::Image>> ByDigest(const Digest& digest) const override {
+    std::vector<std::shared_ptr<storage::Image>> ByDigest(const Digest& digest)  override {
         return {}; // 空实现
     }
 
     // metadataStore 和 bigDataStore 方法的空实现
-    std::vector<uint8_t> BigData(const std::string& id, const std::string& key) const override {
+    std::vector<uint8_t> BigData(const std::string& id, const std::string& key)  override {
         return {}; // 空实现
     }
 
-    int64_t BigDataSize(const std::string& id, const std::string& key) const override {
+    int64_t BigDataSize(const std::string& id, const std::string& key)  override {
         return 0; // 空实现
     }
 
-    Digest BigDataDigest(const std::string& id, const std::string& key) const override {
+    Digest BigDataDigest(const std::string& id, const std::string& key)  override {
         return {}; // 空实现
     }
 
-    std::vector<std::string> BigDataNames(const std::string& id) const override {
+    std::vector<std::string> BigDataNames(const std::string& id)  override {
         return {}; // 空实现
     }
 
@@ -562,16 +562,16 @@ public:
     void SetBigData(const std::string& id, const std::string& key, const std::vector<uint8_t>& data) override {
         // 空实现
     }
-    std::vector<uint8_t> BigData(const std::string& id, const std::string& key) const override {
+    std::vector<uint8_t> BigData(const std::string& id, const std::string& key)  override {
         return {}; // 空实现
     }
-    int64_t BigDataSize(const std::string& id, const std::string& key) const override {
+    int64_t BigDataSize(const std::string& id, const std::string& key)  override {
         return 0; // 空实现
     }
-    Digest BigDataDigest(const std::string& id, const std::string& key) const override {
+    Digest BigDataDigest(const std::string& id, const std::string& key)  override {
         return {}; // 空实现
     }
-    std::vector<std::string> BigDataNames(const std::string& id) const override {
+    std::vector<std::string> BigDataNames(const std::string& id)  override {
         return {}; // 空实现
     }
     // flaggableStore 方法的空实现

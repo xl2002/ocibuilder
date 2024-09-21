@@ -116,7 +116,10 @@ shared_ptr<Driver> store::createGraphDriverLocked() {
 
 bool imageStore::checkModified(lastwrite& lastWrite) {
     // 从 lockfile 中获取是否修改过的状态以及当前的 lastwrite
-    auto [currentLW, modified] = lockfile->ModifiedSince(lastWrite);
+    auto ret=lockfile->ModifiedSince(lastWrite);
+    auto currentLW = ret.first;
+    auto modified = ret.second;
+    // auto [currentLW, modified] = lockfile->ModifiedSince(lastWrite);
     
     if (modified) {
         lastWrite = currentLW; // 更新传入的 lastWrite 变量
@@ -764,7 +767,10 @@ bool containerStore::load(bool lockedForWriting) {
 }
 bool containerStore::checkModified(lastwrite& lastWrite) {
     // 从 lockfile 中获取是否修改过的状态以及当前的 lastwrite
-    auto [currentLW, modified] = lockfile->ModifiedSince(lastWrite);
+    auto ret=lockfile->ModifiedSince(lastWrite);
+    auto currentLW = ret.first;
+    auto modified = ret.second;
+    // auto [currentLW, modified] = lockfile->ModifiedSince(lastWrite);
 
     if (modified) {
         lastWrite = currentLW; // 更新传入的 lastWrite 变量

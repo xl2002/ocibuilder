@@ -6,28 +6,55 @@
 #include <unordered_map>
 #include <memory>
 #include "sync/cond.h"
-
+#include "logrus/entry.h"
 // 定义 ArbitraryType 类型
-using ArbitraryType = int;
+// using ArbitraryType = int;
 
-// 定义 Pointer 类型
-using Pointer = ArbitraryType*;
+// 定义 std::shared_ptr<int> 类型
+// using std::shared_ptr<int>=std::shared_ptr<int> ;
+// typedef std::shared_ptr<int>=int*;
 
 // 定义 Pool 类
+class Entry;
 class Pool {
 public:
     noCopy noCopy;
 
-    Pointer local = nullptr;   // 用 Pointer 模拟 Go 的 Pointer
-    size_t localSize = 0;      // 用 size_t 模拟 uintptr
+    std::shared_ptr<int> local = nullptr;   
+    size_t localSize = 0;      
 
-    Pointer victim = nullptr;  // 用 Pointer 模拟 Go 的 Pointer
-    size_t victimSize = 0;     // 用 size_t 模拟 uintptr
+    std::shared_ptr<int> victim = nullptr;  
+    size_t victimSize = 0;     
 
-    // 用 std::function<void()> 模拟 func() any
+    
     std::function<void()> New;
 
     Pool() = default;
+
+    bool empty() const {
+        return pool.empty();
+    }
+
+    std::shared_ptr<Entry> front() {
+        if (!pool.empty()) {
+            return pool.back();
+        }
+        return nullptr;
+    }
+
+    void pop() {
+        if (!pool.empty()) {
+            pool.pop_back();
+        }
+    }
+
+    void push(std::shared_ptr<Entry> entry) {
+        pool.push_back(entry);
+    }
+
+public:
+    std::vector<std::shared_ptr<Entry>> pool;  // 使用 vector 存储 Entry 对象的指针
 };
+
 
 #endif // SYNC_POOL_H

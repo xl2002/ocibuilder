@@ -33,12 +33,12 @@ class myerror:public std::exception {
     void AddError(const std::string& err) {
         message_ += "\n"+err;
     }
-    private:
+    public:
     std::string message_;
 };
 
 // class error{
-//     private:
+//     public:
 //     std::string error_str;
 
 //     public:

@@ -28,7 +28,7 @@ public:
 //         flag.clear(std::memory_order_release);
 //     }
 
-// private:
+// public:
 //     std::atomic_flag flag;
 // };
 

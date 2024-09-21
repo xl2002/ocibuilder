@@ -6,11 +6,8 @@
 #include "go/file.h"
 #include <minwindef.h>
 #include <fileapi.h>
-// #include <windows.h>
 #include <pthread.h>
 /**
- * @brief 如果给定的文件是指向Windows系统的文件描述符，
- *        则将其内容复制到一个临时文件中，并将临时文件的路径
  *        保存在authfile中
  * @param file  需要被复制的文件
  * @param authfile 保存临时文件的路径

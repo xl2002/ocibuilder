@@ -37,7 +37,7 @@ public:
 class DiffDriver {
 public:
     virtual ~DiffDriver() {}
-    virtual void Diff(string& id, string& parent) = 0;
+    virtual void Method2() = 0;
 };
 
 // 定义LayerIDMapUpdater抽象基类
@@ -117,4 +117,5 @@ typedef struct driver_Options {
 shared_ptr<Driver> GetDriver(const string& name, const driver_Options& config);
 unordered_map<string, bool> ScanPriorDrivers(const string& root);
 shared_ptr<Driver> getBuiltinDriver(const std::string& name, const std::string& home, const driver_Options& options);
+
 #endif // SORAGE_DRIVER_H

@@ -33,7 +33,8 @@ bool exists(const string& path) {
 unordered_map<string, bool> ScanPriorDrivers(const string& root) {
     unordered_map<string, bool> driversMap;
 
-    for (const auto& [driver, _] : drivers) {
+    for (const auto& ds : drivers) {
+        auto driver = ds.first;
         vector<string> pathParts = {root, driver}; // 将 root 和 driver 分为路径部分
         string p = join(pathParts); // 使用 join 函数拼接路径
         if (exists(p)) {

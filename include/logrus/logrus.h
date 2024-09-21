@@ -14,14 +14,40 @@ enum class level : uint32_t {
     TraceLevel
 };
 class Level {
-    public:
+public:
     level lvl;
+
     Level() = default;
     Level(level lvl) : lvl(lvl) {};
+
     std::string String();
     std::vector<uint8_t> MarshalText();
     void UnmarshalText(std::vector<uint8_t> text);
+
+    // 重载比较运算符
+    bool operator>=(const Level& other) const {
+        return static_cast<uint32_t>(lvl) >= static_cast<uint32_t>(other.lvl);
+    }
+    bool operator==(const Level& other) const {
+        return static_cast<uint32_t>(lvl) == static_cast<uint32_t>(other.lvl);
+    }
+    bool operator<=(const Level& other) const {
+        return static_cast<uint32_t>(lvl) <= static_cast<uint32_t>(other.lvl);
+    }
+    bool operator<(const Level& other) const {
+        return static_cast<uint32_t>(lvl) < static_cast<uint32_t>(other.lvl);
+    }
 };
+
+// // 为 Level 类型提供哈希函数
+// namespace std {
+//     template <>
+//     struct hash<Level> {
+//         std::size_t operator()(const Level& level) const {
+//             return hash<uint32_t>()(static_cast<uint32_t>(level.lvl));
+//         }
+//     };
+// }
 
 // std::vector<Level> AllLevels{
 //     Level(level::PanicLevel),
