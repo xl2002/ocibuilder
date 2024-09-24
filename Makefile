@@ -70,8 +70,8 @@ DEPS		:= $(OBJECTS:.o=.d)
 OUTPUTMAIN	:= $(call FIXPATH,$(OUTPUT)/$(MAIN))
 
 all: $(OUTPUT) $(MAIN)
-	$(RM) $(call FIXPATH,$(OBJECTS))
-	$(RM) $(call FIXPATH,$(DEPS))
+# $(RM) $(call FIXPATH,$(OBJECTS))
+# $(RM) $(call FIXPATH,$(DEPS))
 	@echo Executing 'all' complete!
 
 $(OUTPUT):

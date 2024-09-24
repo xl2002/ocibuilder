@@ -16,7 +16,7 @@
 #include "signature/policy_config.h"
 #include "buildah/image.h"
 struct Builder {
-    std::shared_ptr<store> store=nullptr;
+    std::shared_ptr<Store> store=std::make_shared<Store>();
 
     // Logger is the logrus logger to write log messages with
     // Logger* logger; // std::shared_ptr<int> to Logger
@@ -67,20 +67,20 @@ struct Builder {
     std::string ImageHistoryComment;
 
     // 镜像元数据和运行时设置，支持多种格式。
-    std::shared_ptr<Image> OCIv1=nullptr;
+    std::shared_ptr<Image> OCIv1=std::make_shared<Image>();
     std::shared_ptr<V1Image> Docker;
 
     // DefaultMountsFilePath 是保存挂载点的文件路径，以 "host-path:container-path" 格式。
     std::string DefaultMountsFilePath;
 
     // Isolation 控制我们如何处理 "RUN" 语句和 Run() 方法。
-    std::shared_ptr<Isolation> Isolation=nullptr;
+    std::shared_ptr<Isolation> Isolation=std::make_shared<::Isolation>();
 
     // NamespaceOptions 控制如何设置我们 Run() 的进程的命名空间。
     std::vector<NamespaceOption> Namespaceoptions;
 
     // ConfigureNetwork 控制是否配置新的网络命名空间的网络接口和路由。
-    std::shared_ptr<NetworkConfigurationPolicy> ConfigureNetwork=nullptr;
+    std::shared_ptr<NetworkConfigurationPolicy> ConfigureNetwork=std::make_shared<NetworkConfigurationPolicy>();
 
     // CNIPluginPath 是 CNI 插件助手的位置，如果它们应该从默认位置以外的地方运行。
     std::string CNIPluginPath;
@@ -89,13 +89,13 @@ struct Builder {
     std::string CNIConfigDir;
 
     // NetworkInterface 是用于设置 CNI 或 netavark 网络的 libnetwork 网络接口。
-    std::shared_ptr<ContainerNetwork> NetworkInterface=nullptr;
+    std::shared_ptr<ContainerNetwork> NetworkInterface=std::make_shared<ContainerNetwork>();
 
     // GroupAdd 是在调用 Run() 时添加到主进程的组列表。魔法值 'keep-groups' 表示进程应继承当前的补充组集。
     std::vector<std::string> GroupAdd;
 
     // IDMappingOptions 用于在运行进程时的非主机用户命名空间。
-    std::shared_ptr<IDMappingOptions > IDMappingoptions=nullptr;
+    std::shared_ptr<IDMappingOptions > IDMappingoptions=std::make_shared<IDMappingOptions>();
 
     // Capabilities 是在容器中运行命令时使用的能力列表。
     std::vector<std::string> Capabilities;
@@ -107,7 +107,7 @@ struct Builder {
     std::vector<History> AppendedEmptyLayers;
 
     // CommonBuildOpts 是常见构建选项。
-    std::shared_ptr<CommonBuildOptions> CommonBuildOpts=nullptr;
+    std::shared_ptr<CommonBuildOptions> CommonBuildOpts=std::make_shared<CommonBuildOptions>();
 
     // TopLayer 是镜像的顶层。
     std::string TopLayer;
@@ -119,10 +119,10 @@ struct Builder {
     std::map<std::string, bool> TempVolumes;
 
     // ContentDigester 计算自上次重启以来所有 Add() 内容的 digest。
-    std::shared_ptr<CompositeDigester> ContentDigester=nullptr;
+    std::shared_ptr<CompositeDigester> ContentDigester=std::make_shared<CompositeDigester>();
 
     // Devices 是提供给 Run() 调用的额外设备。
-    std::shared_ptr<ContainerDevices> Devices=nullptr;
+    std::shared_ptr<ContainerDevices> Devices=std::make_shared<ContainerDevices>();
 
     // DeviceSpecs 是提供给 Run() 调用的未解析的额外设备。
     std::vector<std::string> DeviceSpecs;

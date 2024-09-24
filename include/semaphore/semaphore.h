@@ -27,6 +27,7 @@ class Weighted{
     int64_t cur=0;
     std::mutex mu;
     std::list<waiter> waiters;
+    Weighted()=default;
     Weighted(int64_t n):size(n),cur(0){};
     bool Acquire(int64_t n);
     void notifyWaiters();

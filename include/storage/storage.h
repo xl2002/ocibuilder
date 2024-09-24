@@ -28,6 +28,8 @@ using std::string;
 using std::vector;
 using std::map;
 
+// extern std::unordered_map<std::string, std::function<std::shared_ptr<Driver>(const std::string&, const driver_Options&)>> drivers;
+
 struct LayerOptions;
 using namespace std;
 using namespace boost::property_tree;
@@ -605,7 +607,7 @@ public:
 };
 
 
-class store:public Store_interface{
+class Store :public Store_interface{
     public:
     string run_root;
     string graph_driver_name;
@@ -632,8 +634,8 @@ class store:public Store_interface{
     shared_ptr<rwContainerStore> container_store;
 
     string digest_lock_root;
-    bool disable_volatile;
-    bool transient_store;
+    bool disable_volatile=false;
+    bool transient_store=false;
 
     lastwrite graph_lock_last_write;
     shared_ptr<Driver> graph_driver;
@@ -649,7 +651,7 @@ class store:public Store_interface{
     void load() override;
     void DeleteContainer(std::string id) override;
     shared_ptr<Driver> createGraphDriverLocked();
-    shared_ptr<Driver> New(const string& name, const driver_Options& config);
+    // shared_ptr<Driver> New(const string& name, const driver_Options& config);
 };
 
 #endif //

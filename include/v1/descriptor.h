@@ -28,7 +28,7 @@ class Descriptor{
     std::vector<string> URLs;
     std::map<string,string> Annotations;
     std::vector<byte> Data;
-    std::shared_ptr<Platform> Platforms=nullptr;
+    std::shared_ptr<Platform> Platforms=std::make_shared<Platform>();
     std::string ArtifactType;
     Descriptor()=default;
     Descriptor(std::string m,std::string d,int64_t s,std::vector<byte> da):

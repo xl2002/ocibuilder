@@ -13,8 +13,8 @@ std::vector<std::string> getDefaultMachineVolumes();
 std::vector<std::string> getDefaultProcessLimits();
 bool selinuxEnabled();
 
-extern const std::string OverrideContainersConfig;
-extern const std::string DefaultContainersConfig;
-extern const std::string DefaultSignaturePolicyPath;
+extern std::string OverrideContainersConfig;
+extern std::string DefaultContainersConfig;
+extern std::string DefaultSignaturePolicyPath;
 
 #endif // CONFIG_DEFAULT_LINUX_H

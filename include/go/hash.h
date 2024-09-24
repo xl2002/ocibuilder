@@ -13,7 +13,7 @@
 #include "go/sha256.h"
 
 struct Hash_256 {
-    std::shared_ptr<SHA256_CTX> sha256=nullptr;
+    std::shared_ptr<SHA256_CTX> sha256=std::make_shared<SHA256_CTX>();
 
 };
 

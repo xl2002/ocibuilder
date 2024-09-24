@@ -16,14 +16,19 @@ Level SetLelvel()
     return Level();
 }
 std::shared_ptr<Logger> New() {
-    // auto logger = std::make_shared<Logger>();
-    // logger->Out = std::make_shared<std::ofstream>();  // 默认指向文件流，可以设置为其他流
-    // logger->Formatter = std::make_shared<TextFormatter>();  // 默认格式化器
-    // logger->Hooks = LevelHooks();  // 初始化Hooks
-    // logger->Level = level::InfoLevel;  // 设置默认日志级别为Info
-    // logger->ReportCaller = false;  // 默认不记录调用者信息
-    // logger->ExitFunc = []() { std::exit(0); };  // 默认退出函数
-    return std::make_shared<Logger>();
+    auto logger = std::make_shared<Logger>();
+    logger->Out = std::make_shared<std::ofstream>();  // 默认指向文件流，可以设置为其他流
+    logger->FormatterPtr = std::make_shared<TextFormatter>();  // 默认格式化器
+    logger->Hooks = std::make_shared<LevelHooks>();  // 初始化Hooks
+    logger->currentLevel->lvl = level::InfoLevel;  // 设置默认日志级别为Info
+    logger->atomicLevel = static_cast<uint32_t>(level::InfoLevel);
+    logger->ReportCaller = false;  // 默认不记录调用者信息
+    logger->ExitFunc = [](int code) { std::exit(code); };  // 默认退出函数
+    logger->mu = std::make_shared<MutexWrap>();
+    logger->entryPool = std::make_shared<Pool>();
+    // logger->BufferPoolPtr = std::make_shared<BufferPool_interface>();
+    return logger;
+    // return std::make_shared<Logger>();
 }
 
 std::shared_ptr<Entry> Logger::newEntry() {
@@ -395,7 +400,7 @@ std::shared_ptr<LevelHooks> Logger::ReplaceHooks(const LevelHooks& newHooks){
     mu->Unlock();
     return oldHooks;
 }
-void Logger::SetBufferPool(const std::shared_ptr<BufferPool>& pool){
+void Logger::SetBufferPool(const std::shared_ptr<BufferPool_interface>& pool){
     mu->Lock();
     BufferPoolPtr = pool;
     mu->Unlock();

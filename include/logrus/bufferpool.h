@@ -8,18 +8,18 @@
 #include <condition_variable>
 #include "bytes/buffer.h"
 
-// 定义 BufferPool 接口
-class BufferPool {
+// 定义 BufferPool_interface 接口
+class BufferPool_interface {
 public:
-    virtual ~BufferPool() = default;
+    virtual ~BufferPool_interface() = default;
 
     virtual void Put(std::shared_ptr<Buffer> buffer) = 0;
     virtual std::shared_ptr<Buffer> Get() = 0;
 };
 
 
-// 实现 BufferPool 的具体类 SimpleBufferPool
-class SimpleBufferPool : public BufferPool {
+// 实现 BufferPool_interface 的具体类 SimpleBufferPool
+class SimpleBufferPool : public BufferPool_interface {
 public:
     std::queue<std::shared_ptr<Buffer>> pool; // 存储 Buffer 的队列
     std::mutex mtx; // 用于线程安全
@@ -47,6 +47,6 @@ public:
         return buffer;
     }
 };
-extern std::shared_ptr<BufferPool> globalBufferPool;
+extern std::shared_ptr<BufferPool_interface> globalBufferPool;
 
 #endif // LOGRUS_BUFFERPOOL_H

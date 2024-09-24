@@ -15,13 +15,13 @@
 #include <unistd.h> // For access function
 using namespace std;
 // 定义ProtoDriver抽象基类
-
+// class Driver;
 
 // 定义错误信息
-const string ErrNotSupported = "driver not supported";
-const string ErrPrerequisites = "prerequisites for driver not satisfied (wrong filesystem?)";
-const string ErrIncompatibleFS = "backing file system is unsupported for this graph driver";
-const string ErrLayerUnknown = "unknown layer";
+extern string ErrNotSupported;
+extern string ErrPrerequisites;
+extern string ErrIncompatibleFS;
+extern string ErrLayerUnknown;
 // const myerror ErrNotSupported = myerror("driver not supported");
 // const myerror ErrPrerequisites = myerror("prerequisites for driver not satisfied (wrong filesystem?)");
 // const myerror ErrIncompatibleFS = myerror("backing file system is unsupported for this graph driver");
@@ -114,8 +114,9 @@ typedef struct driver_Options {
     bool experimentalEnabled;     // 是否启用实验特性
 }driver_Options;
 // 使用unordered_map存储所有注册的驱动程序
+extern std::unordered_map<std::string, std::function<std::shared_ptr<Driver>(const std::string&, const driver_Options&)>> drivers;
 shared_ptr<Driver> GetDriver(const string& name, const driver_Options& config);
 unordered_map<string, bool> ScanPriorDrivers(const string& root);
 shared_ptr<Driver> getBuiltinDriver(const std::string& name, const std::string& home, const driver_Options& options);
-
+shared_ptr<Driver> New(const string& name, const driver_Options& config);
 #endif // SORAGE_DRIVER_H

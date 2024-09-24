@@ -6,7 +6,7 @@
 struct Slice{
     std::vector<std::string> Values;
     struct {
-        std::shared_ptr<bool> Append=nullptr;
+        std::shared_ptr<bool> Append=std::make_shared<bool>(false);
     }Attributes;
     void Set(std::vector<std::string> values);
     std::vector<std::string> Get();

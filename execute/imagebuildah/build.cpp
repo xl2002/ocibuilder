@@ -16,8 +16,8 @@
 #include "imagebuildah/executor.h"
 #include "config/config.h"
 #include "config/new.h"
-std::tuple<std::string,std::shared_ptr<Canonical_interface>> buildDockerfilesOnce(shared_ptr<store> stores,string logPrefix,shared_ptr<define_BuildOptions> options,vector<string>& containerFiles,vector<vector<byte>>& dockerfilecontents);
-string BuildDockerfiles(shared_ptr<store> stores, shared_ptr<define_BuildOptions> options,vector<string> paths,shared_ptr<Canonical_interface> ret_ref){
+std::tuple<std::string,std::shared_ptr<Canonical_interface>> buildDockerfilesOnce(shared_ptr<Store> stores,string logPrefix,shared_ptr<define_BuildOptions> options,vector<string>& containerFiles,vector<vector<byte>>& dockerfilecontents);
+string BuildDockerfiles(shared_ptr<Store> stores, shared_ptr<define_BuildOptions> options,vector<string> paths,shared_ptr<Canonical_interface> ret_ref){
     // auto ctx = getContext();
 
     if (options->CommonBuildOpts == nullptr)
@@ -191,7 +191,7 @@ string BuildDockerfiles(shared_ptr<store> stores, shared_ptr<define_BuildOptions
 
 }
 
-std::tuple<std::string,std::shared_ptr<Canonical_interface>> buildDockerfilesOnce(shared_ptr<store> stores,string logPrefix,shared_ptr<define_BuildOptions> options,vector<string>& containerFiles,vector<vector<byte>>& dockerfilecontents){
+std::tuple<std::string,std::shared_ptr<Canonical_interface>> buildDockerfilesOnce(shared_ptr<Store> stores,string logPrefix,shared_ptr<define_BuildOptions> options,vector<string>& containerFiles,vector<vector<byte>>& dockerfilecontents){
     auto mainNode=std::make_shared<Node>();
     try
     {

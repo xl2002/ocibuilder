@@ -28,6 +28,6 @@ struct storageTransport: public StoreTransport_interface{
     // 验证策略配置范围
     void ValidatePolicyConfigurationScope(const std::string &scope) override;
 };
-extern const std::shared_ptr<StoreTransport_interface> Transport;
+extern std::shared_ptr<StoreTransport_interface> Transport;
 
 #endif // STORAGE_STORAGE_TRANSPORT_H)

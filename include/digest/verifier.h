@@ -12,8 +12,8 @@ struct Verifier_interface
     virtual bool Verified() = 0;
 };
 struct hashVerifier: public Verifier_interface{
-    std::shared_ptr<Digest> digest=nullptr;
-    std::shared_ptr<Hash_256> hash=nullptr;
+    std::shared_ptr<Digest> digest=std::make_shared<Digest>();
+    std::shared_ptr<Hash_256> hash=std::make_shared<Hash_256>();
     int write(std::vector<char> p) override;
     bool Verified() override;
 };

@@ -7,7 +7,7 @@
 #include "storage/images.h"
 class storageTransport;
 struct storageReference: public ImageReference_interface{
-    std::shared_ptr<storageTransport> transport=nullptr;
+    std::shared_ptr<storageTransport> transport=std::make_shared<storageTransport>();
     std::shared_ptr<Named_interface> named=nullptr;
     std::string id;
     std::shared_ptr<ImageTransport_interface> Transport() override;

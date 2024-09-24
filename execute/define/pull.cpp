@@ -24,9 +24,9 @@ string PullPolicy::String(){
         }
 }
 
-map<string,Pull_Policy>PolicyMap ={
-	{"missing",PullIfMissing},
-	{"always", PullAlways},
-	{"never",  PullNever},
-	{"ifnewer", PullIfNewer}
-};
+// map<string,Pull_Policy>PolicyMap ={
+// 	{"missing",PullIfMissing},
+// 	{"always", PullAlways},
+// 	{"never",  PullNever},
+// 	{"ifnewer", PullIfNewer}
+// };

@@ -19,8 +19,8 @@ struct policyContextState{
 };
 class Policy;
 struct PolicyContext{
-    std::shared_ptr<Policy> Policy=nullptr;
-    std::shared_ptr<policyContextState> state=nullptr;
+    std::shared_ptr<Policy> Policy=std::make_shared<::Policy>();
+    std::shared_ptr<policyContextState> state=std::make_shared<policyContextState>();
 
     void Destroy();
 };

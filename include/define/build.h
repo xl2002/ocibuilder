@@ -111,25 +111,25 @@ struct CommonBuildOptions  {
 	//OmitHistory 告诉构建器忽略构建层的历史记录
 	//准备 image-spec 时的基础，将其设置为 true 将确保没有历史记录
 	//添加到图像规范中。 （默认为假）
-	bool OmitHistory;
+	bool OmitHistory=false;
 	//Cgroup Parent 是 cgroup 的路径，将在该路径下创建容器的 cgroup。
 	string CgroupParent;
 	// CPUPeriod 限制CPU CFS（完全公平调度器）周期
-	uint64_t CPUPeriod;
+	uint64_t CPUPeriod=0;
 	// CPUQuota限制CPU CFS（Completely Fair Scheduler）配额
-	int64_t CPUQuota ;
+	int64_t CPUQuota=0;
 	// CPUShares（相对权重
-	uint64_t CPUShares;
+	uint64_t CPUShares=0;
 	// CPUSet 允许执行的 CPU (0-3, 0,1)
 	string CPUSetCPUs;
 	// CPUSetMems 允许执行的内存节点 (MEM) (0-3, 0,1)。仅对 NUMA 系统有效。
 	string CPUSetMems;
 	//HTTPProxy 确定来自构建主机的 *_proxy 环境变量是否传递到容器中。
-	bool HTTPProxy;
+	bool HTTPProxy=false;
 	//IdentityLabel 如果设置，可确保默认的 `io.buildah.version` 标签不会应用于构建映像。
 	OptionalBool IdentityLabel;
 	//内存是运行容器可以使用多少内存的上限（以字节为单位）。
-	int64_t Memory;
+	int64_t Memory=0;
 	//DNSSearch 是要添加到构建容器的 /etc/resolv.conf 的 DNS 搜索域列表
 	vector<string> DNSSearch;
 	//DNS Servers 是要添加到构建容器 /etc/resolv.conf 的 DNS 服务器列表
@@ -140,18 +140,18 @@ struct CommonBuildOptions  {
 	//可识别的字段名称为“角色”、“类型”和“级别”。
 	vector<string> LabelOpts;
 	//MemorySwap 限制内存和交换的数量。
-	int64_t MemorySwap;
+	int64_t MemorySwap=0;
 	//NoHostname 告诉构建器在运行时不要创建 /etc/hostname 内容
 	//容器。
-	bool NoHostname ;
+	bool NoHostname=false; ;
 	//NoHosts 告诉构建器在运行时不要创建 /etc/hosts 内容
 	//容器。
-	bool NoHosts;
+	bool NoHosts=false;
 	//NoNewPrivileges 删除容器获取权限的能力
-	bool NoNewPrivileges;
+	bool NoNewPrivileges=false;
 	// OmitTimestamp 强制纪元 0 作为创建的时间戳以允许
 	//确定性、内容可寻址的构建。
-	bool OmitTimestamp;
+	bool OmitTimestamp=false;
 	// SeccompProfilePath 是 seccomp 配置文件的路径名。
 	string SeccompProfilePath;
 	// ApparmorProfile 是apparmor 配置文件的名称。
@@ -224,20 +224,20 @@ class define_BuildOptions{
 	// ContextDirectory 是 COPY 和 ADD 命令的默认源位置。
 	string ContextDirectory;
 	// PullPolicy 控制我们是否拉取镜像。  它应该是 PullIfMissing、PullAlways、PullIfNewer 或 PullNever 之一。
-	std::shared_ptr<PullPolicy> PullPolicy=nullptr;
+	std::shared_ptr<PullPolicy> PullPolicy=std::make_shared<::PullPolicy>();
     //注册表是一个附加在图像名称前面的值（如果它是）
 	//需要拉取，并且图像名称单独无法解析为
 	//对源图像的引用。  没有隐式添加分隔符。
 	string Registry;
 	//IgnoreUnrecognizedInstructions 告诉我们只记录我们的指令
 	//不认识，并尝试继续前进。
-	bool IgnoreUnrecognizedInstructions;
+	bool IgnoreUnrecognizedInstructions=false;
 	// 将添加图像的Manifest名称。
 	string Manifest;
 	// Quiet告诉我们是否在执行步骤时宣布这些步骤。
-	bool Quiet;
+	bool Quiet=false;
 	// Isolation控制 Run() 如何运行事物。
-	shared_ptr<Isolation> Isolation=nullptr;
+	shared_ptr<Isolation> Isolation=std::make_shared<::Isolation>();
 	//Runtime 是 RUN 指令运行时的命令名称
 	//隔离是 IsolationDefault 或 IsolationOCI。  它应该
 	//接受与 runc 相同的参数和标志。
@@ -260,7 +260,7 @@ class define_BuildOptions{
 	//压缩指定应用的压缩类型
 	//图层斑点。  默认不使用压缩，但是
 	//建议使用 archive.Gzip。
-	std::shared_ptr<Compression> Compression=nullptr;
+	std::shared_ptr<Compression> Compression=std::make_shared<::Compression>();
 	//可以插入到 Dockerfile 中的参数
 	map<string,string>Args;
 	//外部附加构建上下文的映射
@@ -283,7 +283,7 @@ class define_BuildOptions{
 	string LogFile;
 	// LogByPlatform 告诉 imagebuildah 将日志拆分到不同的日志文件
 	//对于每个平台（如果选择了记录到外部文件）。
-	bool LogSplitByPlatform ;
+	bool LogSplitByPlatform =false;
 	// Log 是一个将打印进度消息的回调。  如果没有值
 	//提供后，消息将被发送到 Err（或 os.Stderr，如果 Err
 	//为零）默认情况下。
@@ -303,7 +303,7 @@ class define_BuildOptions{
 	//SkipUnusedStages 允许用户在多阶段构建中跳过阶段
 	//对目标阶段没有任何贡献。预期违约
 	//值为真。
-	std::shared_ptr<OptionalBool> SkipUnusedStages=nullptr;
+	std::shared_ptr<OptionalBool> SkipUnusedStages=std::make_shared<OptionalBool>();
 	//ReportWriter 是一个 io.Writer，用于报告
 	//（可能的）拉动源图像和
 	//写入新图像。
@@ -322,7 +322,7 @@ class define_BuildOptions{
 	//加入另一个名称空间而不仅仅是使用主机的名称空间
 	//命名空间），有效地决定进程是否有
 	//可用网络。
-	std::shared_ptr<NetworkConfigurationPolicy> ConfigureNetwork=nullptr; ;
+	std::shared_ptr<NetworkConfigurationPolicy> ConfigureNetwork=std::make_shared<NetworkConfigurationPolicy>() ;
 	//CNIPluginPath 是 CNI 插件助手的位置（如果它们应该是）
 	//从默认位置以外的位置运行。
 	string CNIPluginPath ;
@@ -334,7 +334,7 @@ class define_BuildOptions{
 
 	//如果我们要设置自己的用户命名空间，则使用 ID 映射选项
 	//处理 RUN 指令时。
-	shared_ptr<IDMappingOptions> IDMappingoptions=nullptr;
+	shared_ptr<IDMappingOptions> IDMappingoptions=std::make_shared<IDMappingOptions>() ;
 	//AddCapability 是添加到默认集的功能列表
 	//处理 RUN 指令。
 	vector<string> AddCapabilities  ;
@@ -343,7 +343,7 @@ class define_BuildOptions{
 	//将被丢弃。
 	vector<string> DropCapabilities  ;
 	// CommonBuildOpts 是*必需的*。
-	shared_ptr<CommonBuildOptions> CommonBuildOpts =nullptr;
+	shared_ptr<CommonBuildOptions> CommonBuildOpts = std::make_shared<CommonBuildOptions>() ;
 	// CPPFlags 是传递给 C 预处理器 (cpp) 的附加参数。
 	vector<string> CPPFlags ;
 	//DefaultMountsFilePath 是保存要挂载的 RUN 挂载的文件路径
@@ -354,7 +354,7 @@ class define_BuildOptions{
 	//Squash 告诉构建器生成带有单层而不是带有层的图像
 	//可能不止一层，通过在处理后仅提交一个新层
 	//最终指令。
-	bool Squash  ;
+	bool Squash=false ;
 	//在提交的图像中设置的标签。
 	vector<string> Labels ;
 	// 中间图像的 LayerLabels 元数据
@@ -364,16 +364,16 @@ class define_BuildOptions{
 	// OnBuild 命令由使用我们将提交作为基础映像的映像的构建运行。
 	vector<string> OnBuild  ;
 	// Layers 告诉构建器为 Dockerfile 中的每个步骤提交一个镜像。
-	bool Layers ;
+	bool Layers=false;
 	//NoCache 告诉构建器从头开始构建图像，而不检查缓存。
 	//它为构建创建一组新的缓存图像。
-	bool NoCache  ;
+	bool NoCache=false ;
 	//RemoveIntermediateCtrs 告诉构建器是否删除使用的中间容器
 	//在构建过程中。默认为 true。
-	bool RemoveIntermediateCtrs ;
+	bool RemoveIntermediateCtrs=false;
 	//ForceRmIntermediateCtrs 告诉构建器删除所有中间容器，即使
 	//构建失败。
-	bool ForceRmIntermediateCtrs;
+	bool ForceRmIntermediateCtrs=false;
 	//BlobDirectory 是我们将用于缓存层 blob 的目录。
 	string BlobDirectory ;
 	//以 Dockerfile 中的目标 FROM 为目标进行构建。
@@ -386,22 +386,22 @@ class define_BuildOptions{
 	string Architecture ;
 	//Timestamp 将创建的时间戳设置为指定时间，允许
 	//用于确定性、内容可寻址的构建。
-	std::shared_ptr<std::chrono::system_clock::time_point> Timestamp=nullptr;
+	std::shared_ptr<std::chrono::system_clock::time_point> Timestamp=std::make_shared<std::chrono::system_clock::time_point>();
 	//OS 指定要构建的镜像的操作系统。
 	string OS ;
 	//MaxPullPushRetries 是我们拉或推任何一个的最大尝试次数
 	//如果第一次尝试失败，则将图像从外部注册表发送到外部注册表。
-	int MaxPullPushRetries;
+	int MaxPullPushRetries=0;
 	//PullPushRetryDelay 是重试拉或推尝试之前等待的时间。
 	std::chrono::duration<int> PullPushRetryDelay;
 	//OciDecryptConfig 包含可用于解密图像的配置（如果是）
 	//如果非零则加密。如果为零，则不会尝试解密图像。
-	shared_ptr<DecryptConfig> OciDecryptConfig=nullptr;
+	shared_ptr<DecryptConfig> OciDecryptConfig=std::make_shared<DecryptConfig>();
 	//Jobs 是并行运行的阶段数。  如果未指定，则默认为 1。
 	//如果提供了 JobSemaphore，则忽略。
-	shared_ptr<int> Jobs=nullptr;
+	shared_ptr<int> Jobs=std::make_shared<int>(0);
 	//JobSemaphore，当您希望与更多构建共享作业时。
-	shared_ptr<Weighted>JobSemaphore=nullptr;
+	shared_ptr<Weighted>JobSemaphore=std::make_shared<Weighted>();
 	//LogRusage 记录每个步骤的资源使用情况。
 	bool LogRusage ;
 	//Rusage 日志将被保存到的文件，而不是 stdout。
@@ -424,7 +424,7 @@ class define_BuildOptions{
 	//AllPlatforms 告诉构建器设置目标平台列表
 	//匹配所有构建基础的平台集
 	//图像可用。  如果设置此字段，则平台将被忽略。
-	bool AllPlatforms ;
+	bool AllPlatforms=false;
 	//UnsetEnvs 是不添加到最终图像的环境列表。
 	vector<string> UnsetEnvs ;
 	//UnsetLabels 是不从基础图像添加到最终图像的标签列表。

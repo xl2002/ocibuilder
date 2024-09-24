@@ -19,8 +19,8 @@ namespace copy{
         int imagelistselection=0;
     };
     struct OptionCompressionVariant{
-        std::shared_ptr<Algorithm> Algorithm=nullptr;
-        std::shared_ptr<int> Level=nullptr;
+        std::shared_ptr<Algorithm> Algorithm=std::make_shared<::Algorithm>();
+        std::shared_ptr<int> Level=std::make_shared<int>();
     };
     // CopyImage的选项结构体
     struct Options {
@@ -33,14 +33,14 @@ namespace copy{
         std::shared_ptr<Named_interface> signIdentity=nullptr;                         // 签名时的标识
 
         std::ostream* reportWriter=nullptr;                           // 报告输出流
-        std::shared_ptr<SystemContext> sourceCtx=nullptr;                             // 源上下文
-        std::shared_ptr<SystemContext> destinationCtx=nullptr;                        // 目标上下文
+        std::shared_ptr<SystemContext> sourceCtx=std::make_shared<SystemContext>();                             // 源上下文
+        std::shared_ptr<SystemContext> destinationCtx=std::make_shared<SystemContext>();                        // 目标上下文
         std::chrono::duration<int64_t> progressInterval;      // 进度报告间隔时间
         std::shared_ptr<std::vector<ProgressProperties>> progress; // 进度报告的通道
 
         bool preserveDigests=false;                                 // 是否保留摘要，并在失败时中止
         std::string forceManifestMIMEType;                    // 用户设置的镜像manifest MIME类型
-        std::shared_ptr<ImageListSelection> imageListSelection=nullptr;                // 镜像列表选择
+        std::shared_ptr<ImageListSelection> imageListSelection=std::make_shared<ImageListSelection>();                // 镜像列表选择
         std::vector<Digest> instances;                        // 当选择具体镜像时，要复制的实例列表
 
         // 优先使用gzip压缩实例
@@ -50,7 +50,7 @@ namespace copy{
         std::vector<int> ociEncryptLayers;                   // 指定要加密的层
         std::shared_ptr<DecryptConfig> ociDecryptConfig;                      // 用于解密镜像的配置
 
-        std::shared_ptr<Weighted> concurrentBlobCopiesSemaphore=nullptr;                 // 限制并发复制层和配置的信号量
+        std::shared_ptr<Weighted> concurrentBlobCopiesSemaphore=std::make_shared<Weighted>();                 // 限制并发复制层和配置的信号量
         uint32_t maxParallelDownloads=0;                        // 最大并行下载数
 
         bool optimizeDestinationImageAlreadyExists=false;           // 优化复制操作，假设目标镜像已存在
@@ -59,8 +59,5 @@ namespace copy{
         std::vector<OptionCompressionVariant> ensureCompressionVariantsExist; // 确保压缩变体存在
         bool forceCompressionFormat=false;                          // 强制使用指定的压缩格式
     };
-
-
-
 }
 #endif // COPY_COPY_H

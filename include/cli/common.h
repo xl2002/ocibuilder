@@ -29,7 +29,7 @@ using std::vector;
 using std::string;
 vector<string> SplitN(const string& str, const string& delimiter, size_t max_splits);
 string ParseBool(string str);
-shared_ptr<store> getStore(Command* cmd);
+shared_ptr<Store> getStore(Command* cmd);
 string GetFormat(string format);
 bool UseLayers();
 std::string JoinPath(const std::string& path1, const std::string& path2);

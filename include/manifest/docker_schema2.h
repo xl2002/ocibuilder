@@ -44,7 +44,7 @@ struct Schema2Config{
     bool AttachStdin=false;                   // 是否附加标准输入
     bool AttachStdout=false;                  // 是否附加标准输出
     bool AttachStderr=false;                  // 是否附加标准错误
-    std::shared_ptr<Schema2PortSet> ExposedPorts=nullptr;        // 暴露的端口列表
+    std::shared_ptr<Schema2PortSet> ExposedPorts=std::make_shared<Schema2PortSet>();        // 暴露的端口列表
     bool Tty=false;                           // 附加到 TTY
     bool OpenStdin=false;                     // 打开标准输入
     bool StdinOnce=false;                     // 如果为真，连接的客户端断开后关闭标准输入
@@ -61,7 +61,7 @@ struct Schema2Config{
     std::vector<std::string> OnBuild;   // 镜像 Dockerfile 中定义的 ONBUILD 元数据
     std::map<std::string, std::string> Labels; // 容器设置的标签列表
     std::string StopSignal;             // 停止容器时的信号
-    std::shared_ptr<int> StopTimeout=nullptr;   // 停止容器的超时时间（秒）
+    std::shared_ptr<int> StopTimeout=std::make_shared<int>(0);   // 停止容器的超时时间（秒）
     std::vector<std::string> Shell;                     // RUN、CMD、ENTRYPOINT 的 shell 格式
 };
 #endif // MANIFEST_DOCKER_SCHEMA_H

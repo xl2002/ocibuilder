@@ -113,7 +113,7 @@ struct V1Image {
     std::string Container;
     
     // ContainerConfig 是提交到镜像中的容器配置
-    std::shared_ptr<container_Config> ContainerConfig=nullptr;
+    std::shared_ptr<container_Config> ContainerConfig=std::make_shared<container_Config>();
     
     // DockerVersion 指定用于构建镜像的 Docker 版本
     std::string DockerVersion;
@@ -122,7 +122,7 @@ struct V1Image {
     std::string Author;
     
     // Config 是从客户端收到的容器配置
-    std::shared_ptr<container_Config> config=nullptr;  // 使用 boost::optional 来表示可选字段
+    std::shared_ptr<container_Config> config=std::make_shared<container_Config>();  // 使用 boost::optional 来表示可选字段
     
     // Architecture 是镜像构建和运行的硬件架构
     std::string Architecture;

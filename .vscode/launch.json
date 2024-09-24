@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug",
+            "name": "Debug_nobuild",
             "type": "cppdbg",
             "request": "launch",
             "args": ["build","--tag","busybox-image","."],
@@ -22,7 +22,7 @@
             },
             "windows": {
                 "MIMode": "gdb",
-                "miDebuggerPath": "D:/Softwares/mingw64/bin/gdb.exe",
+                "miDebuggerPath": "D:\\softwares\\mingw64\\bin\\gdb.exe",
                 "program": "${workspaceFolder}/output/main.exe"
             },
             "setupCommands": [
@@ -32,6 +32,41 @@
                     "ignoreFailures": true
                 }
             ],
+            "preLaunchTask": ""
+            // "preLaunchTask": "build"
+        },
+        {
+            "name": "Debugandbuild",
+            "type": "cppdbg",
+            "request": "launch",
+            "args": ["build","--tag","busybox-image","."],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "linux": {
+                "MIMode": "gdb",
+                "miDebuggerPath": "gdb",
+                "program": "${workspaceFolder}/output/main"
+            },
+            "osx": {
+                "MIMode": "lldb",
+                "miDebuggerPath": "lldb-mi",
+                "program": "${workspaceFolder}/output/main"
+            },
+            "windows": {
+                "MIMode": "gdb",
+                "miDebuggerPath": "D:\\softwares\\mingw64\\bin\\gdb.exe",
+                "program": "${workspaceFolder}/output/main.exe"
+            },
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            // "preLaunchTask": ""
             "preLaunchTask": "build"
         }
     ]

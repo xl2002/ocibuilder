@@ -13,7 +13,7 @@
 class Regexp{
     public:
     std::once_flag once;
-    std::shared_ptr<std::regex> regexp=nullptr;
+    std::shared_ptr<std::regex> regexp=std::make_shared<std::regex>();
     std::string val;
     Regexp()=default;
     Regexp(const std::string& value) : val(value) {};
@@ -40,6 +40,6 @@ class Regexp{
     std::vector<std::string> Split(const std::string& s, int n);
     std::string String();
 };
-extern const bool precompile;
+extern bool precompile;
 std::shared_ptr<Regexp> Delayed(const std::string& val);
 #endif // REGEXP_REGEXP_H

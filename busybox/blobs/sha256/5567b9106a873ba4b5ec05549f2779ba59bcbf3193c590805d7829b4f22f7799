@@ -1,1 +1,19 @@
-{"schemaVersion":2,"config":{"mediaType":"application/vnd.oci.image.config.v1+json","digest":"sha256:65ad0d468eb1c558bf7f4e64e790f586e9eda649ee9f130cd0e835b292bbc5ac","size":372},"layers":[{"mediaType":"application/vnd.oci.image.layer.v1.tar+gzip","digest":"sha256:245138d33fa700ae64870060c812b993a839add59c7b694aa835d998a329c958","size":2278434}],"annotations":{"org.opencontainers.image.url":"https://github.com/docker-library/busybox","org.opencontainers.image.version":"1.36.1-glibc"}}
+{
+    "schemaVersion": 2,
+    "config": {
+        "mediaType": "application/vnd.oci.image.config.v1+json",
+        "digest": "sha256:65ad0d468eb1c558bf7f4e64e790f586e9eda649ee9f130cd0e835b292bbc5ac",
+        "size": 372
+    },
+    "layers": [
+        {
+            "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+            "digest": "sha256:245138d33fa700ae64870060c812b993a839add59c7b694aa835d998a329c958",
+            "size": 2278434
+        }
+    ],
+    "annotations": {
+        "org.opencontainers.image.url": "https://github.com/docker-library/busybox",
+        "org.opencontainers.image.version": "1.36.1-glibc"
+    }
+}
