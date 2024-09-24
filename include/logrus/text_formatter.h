@@ -7,7 +7,7 @@
 #include "logrus/json_formatter.h"
 #include "logrus/formatter.h"
 #include "sync/once.h"
-struct TextFormatter : public Formatter{
+struct TextFormatter : public Formatter_interface{
 public:
     bool ForceColors = false;             // 强制输出颜色
     bool DisableColors = false;           // 禁用颜色

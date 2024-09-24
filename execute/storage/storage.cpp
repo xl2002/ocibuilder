@@ -428,7 +428,7 @@ bool imageStore::startWritingWithReload(bool canReload) {
         throw myerror("startWritingWithReload failed: " + std::string(e.what()));
     }
 }
-shared_ptr<rwImageStore> newImageStore(const string& dir) {
+shared_ptr<rwImageStore_interface> newImageStore(const string& dir) {
     try {
         // 创建目录
         if (!MkdirAll(dir)) {
@@ -829,7 +829,7 @@ bool containerStore::startWritingWithReload(bool canReload) {
     }
 }
 //newContainerStore的实现
-std::shared_ptr<rwContainerStore> newContainerStore(const std::string& dir, const std::string& runDir, bool transient) {
+std::shared_ptr<rwContainerStore_interface> newContainerStore(const std::string& dir, const std::string& runDir, bool transient) {
     try {
         // 创建目录
         if (!MkdirAll(dir)) {
@@ -929,7 +929,7 @@ void load(Store* s) {
         }
 
         // 创建 ImageStore
-        shared_ptr<rwImageStore> imageStore = newImageStore(gipath);
+        shared_ptr<rwImageStore_interface> imageStore = newImageStore(gipath);
         if (!imageStore) {
             throw myerror("Failed to create ImageStore at: " + gipath);
         }
@@ -948,7 +948,7 @@ void load(Store* s) {
         }
 
         // 创建 ContainerStore
-        shared_ptr<rwContainerStore> rcs = newContainerStore(gcpath, rcpath, s->transient_store);
+        shared_ptr<rwContainerStore_interface> rcs = newContainerStore(gcpath, rcpath, s->transient_store);
         if (!rcs) {
             throw myerror("Failed to create ContainerStore.");
 

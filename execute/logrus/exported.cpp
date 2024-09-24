@@ -21,7 +21,7 @@ std::shared_ptr<Logger> StandardLogger(){
 void SetOutput(const std::shared_ptr<std::ofstream>& output) {
     Std->SetOutput(output);
 }
-void SetFormatter(std::shared_ptr<Formatter>& formatter) {
+void SetFormatter(std::shared_ptr<Formatter_interface>& formatter) {
     Std->SetFormatter(formatter);
 }
 void SetBufferPool(const std::shared_ptr<BufferPool_interface>& pool) {

@@ -20,9 +20,9 @@ using std::vector;
  * @brief 抽象基类
  * <p>为了能够适用不同标签对值类型不同的需求
  */
-class Value {
+class Value_interface {
     public:
-    ~Value()=default;
+    ~Value_interface()=default;
     virtual string String()=0;
     virtual void Set(string value)=0;
     virtual string Type()=0;
@@ -31,7 +31,7 @@ class Value {
  * @brief 保存字符串数组的抽象基类的子类
  * 
  */
-class StringArrayValue:public Value{
+class StringArrayValue:public Value_interface{
     public:
     vector<string>* value;
     bool changed=false;
@@ -47,7 +47,7 @@ class StringArrayValue:public Value{
  * @brief 保存字符串的抽象基类的子类
  * 
  */
-class StringValue: public Value{
+class StringValue: public Value_interface{
     public:
     string* value;
     StringValue(string* s):value(s){};
@@ -59,7 +59,7 @@ class StringValue: public Value{
  * @brief 保存布尔类型的抽象基类的子类
  * 
  */
-class BoolValue:public Value{
+class BoolValue:public Value_interface{
     public:
     bool* value=nullptr;
     BoolValue(bool* newval):value(newval){};
@@ -72,7 +72,7 @@ class BoolValue:public Value{
  * @brief 保存int类型的抽象基类的子类
  * 
  */
-class IntValue:public Value{
+class IntValue:public Value_interface{
     public:
     int* value=nullptr;
     IntValue(int* new_val):value(new_val){};
@@ -84,7 +84,7 @@ class IntValue:public Value{
  * @brief 保存int64类型的抽象基类的子类
  * 
  */
-class int64Value:public Value{
+class int64Value:public Value_interface{
     public:
     int64_t* value=nullptr;
     int64Value(int64_t* new_val):value(new_val){};
@@ -96,7 +96,7 @@ class int64Value:public Value{
  * @brief 保存uint64类型的抽象基类的子类
  * 
  */
-class uint64Value:public Value{
+class uint64Value:public Value_interface{
     public:
     uint64_t* value=nullptr;
     uint64Value(uint64_t* new_val):value(new_val){};
@@ -108,7 +108,7 @@ class uint64Value:public Value{
  * @brief 保存字符串和bool类型的抽象基类的子类
  * 
  */
-class stringSliceValue:public Value{
+class stringSliceValue:public Value_interface{
     public:
     vector<string>* value;
     bool changed=false;

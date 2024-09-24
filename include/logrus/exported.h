@@ -10,7 +10,7 @@ std::shared_ptr<Level> GetLevel();
 std::shared_ptr<Logger> StandardLogger();
 void SetOutput(const std::shared_ptr<std::ofstream>& output);
 void SetBufferPool(const std::shared_ptr<BufferPool_interface>& pool);
-void SetFormatter(std::shared_ptr<Formatter>& formatter);
+void SetFormatter(std::shared_ptr<Formatter_interface>& formatter);
 void SetReportCaller(bool reportCaller);
 bool IsLevelEnabled(const std::shared_ptr<Level>& level);
 void AddHook(const std::shared_ptr<Hook_interface>& hook);

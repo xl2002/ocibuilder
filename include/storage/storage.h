@@ -106,7 +106,7 @@ struct ImageOptions {
 };
 
 
-class ChildList;
+class ChildList_interface;
 // Define Trie
 class Trie {
 public:
@@ -116,12 +116,12 @@ public:
     int maxPrefixPerNode;
     int maxChildrenPerSparseNode;
 
-    std::shared_ptr<ChildList> children;
+    std::shared_ptr<ChildList_interface> children;
 };
-// Define the ChildList interface
-class ChildList {
+// Define the ChildList_interface interface
+class ChildList_interface {
 public:
-    virtual ~ChildList() = default;
+    virtual ~ChildList_interface() = default;
 
     virtual size_t length() const = 0;
     virtual std::shared_ptr<Trie> head() const = 0;
@@ -131,7 +131,7 @@ public:
     virtual std::shared_ptr<Trie> next(char byte) const = 0;
     virtual void walk(const std::vector<char>& prefix, void(*visitor)(const std::vector<char>&, const std::shared_ptr<Trie>&)) const = 0;
     virtual void print(std::ostream& os, int indent) const = 0;
-    virtual std::shared_ptr<ChildList> clone() const = 0;
+    virtual std::shared_ptr<ChildList_interface> clone() const = 0;
     virtual size_t total() const = 0;
 };
 
@@ -154,28 +154,28 @@ public:
         trie = std::make_shared<Trie>();
     }
 };
-// rwMetadataStore 接口
-class rwMetadataStore {
+// rwMetadataStore_interface 接口
+class rwMetadataStore_interface {
 public:
-    virtual ~rwMetadataStore() = default;
+    virtual ~rwMetadataStore_interface() = default;
 
     // 更新指定 ID 的元数据
     virtual void SetMetadata(const std::string& id, const std::string& metadata) = 0;
 };
-// rwImageBigDataStore 接口
-class rwImageBigDataStore {
+// rwImageBigDataStore_interface 接口
+class rwImageBigDataStore_interface {
 public:
-    virtual ~rwImageBigDataStore() = default;
+    virtual ~rwImageBigDataStore_interface() = default;
 
     // 存储与 ID 相关的大数据
     virtual void SetBigData(const std::string& id, const std::string& key, 
                             const std::vector<uint8_t>& data, 
                             std::function<std::string(const std::vector<uint8_t>&)> digestManifest) = 0;
 };
-// flaggableStore 接口
-class flaggableStore {
+// flaggableStore_interface 接口
+class flaggableStore_interface {
 public:
-    virtual ~flaggableStore() = default;
+    virtual ~flaggableStore_interface() = default;
 
     // 移除指定项的标志
     virtual void ClearFlag(const std::string& id, const std::string& flag) = 0;
@@ -183,18 +183,18 @@ public:
     // 设置项的标志和值
     virtual void SetFlag(const std::string& id, const std::string& flag, const std::string& value) = 0;
 };
-// roMetadataStore 接口
-class roMetadataStore {
+// roMetadataStore_interface 接口
+class roMetadataStore_interface {
 public:
-    virtual ~roMetadataStore() = default;
+    virtual ~roMetadataStore_interface() = default;
 
     // //读取与 ID 相关的元数据
     // virtual std::string Metadata(const std::string& id) const = 0;
 };
-// roBigDataStore 接口
-class roBigDataStore {
+// roBigDataStore_interface 接口
+class roBigDataStore_interface {
 public:
-    virtual ~roBigDataStore() = default;
+    virtual ~roBigDataStore_interface() = default;
 
     // 检索与 ID 和键相关的大数据
     virtual std::vector<uint8_t> BigData(const std::string& id, const std::string& key)  = 0;
@@ -209,10 +209,10 @@ public:
     virtual std::vector<std::string> BigDataNames(const std::string& id)  = 0;
 };
 
-// roImageStore 接口
-class roImageStore : public roMetadataStore, public roBigDataStore {
+// roImageStore_interface 接口
+class roImageStore_interface : public roMetadataStore_interface, public roBigDataStore_interface {
 public:
-    virtual ~roImageStore() = default;
+    virtual ~roImageStore_interface() = default;
 
     // 开始读取，锁定存储以进行读取
     virtual void startReading() = 0;
@@ -232,10 +232,10 @@ public:
     // 根据摘要返回图像列表
     virtual std::vector<std::shared_ptr<storage::Image>> ByDigest(const Digest& digest)  = 0;
 };
-// rwImageStore 接口
-class rwImageStore : public roImageStore, public rwMetadataStore, public rwImageBigDataStore, public flaggableStore {
+// rwImageStore_interface 接口
+class rwImageStore_interface : public roImageStore_interface, public rwMetadataStore_interface, public rwImageBigDataStore_interface, public flaggableStore_interface {
 public:
-    virtual ~rwImageStore() = default;
+    virtual ~rwImageStore_interface() = default;
 
     // 开始写入，锁定存储以进行写入
     virtual void startWriting() = 0;
@@ -266,8 +266,8 @@ public:
     // 清除所有图像记录
     virtual void Wipe() = 0;
 };
-struct imageStore:public rwImageStore{
-        // rwImageStore 方法的空实现
+struct imageStore:public rwImageStore_interface{
+        // rwImageStore_interface 方法的空实现
     void startWriting() override {
         // 空实现
     }
@@ -357,7 +357,7 @@ struct imageStore:public rwImageStore{
         // 空实现
     }
 
-    // flaggableStore 方法的空实现
+    // flaggableStore_interface 方法的空实现
     void ClearFlag(const std::string& id, const std::string& flag) override {
         // 空实现
     }
@@ -399,14 +399,14 @@ struct imageStore:public rwImageStore{
 
 
 //metadataStore 接口
-class metadataStore : public roMetadataStore, public rwMetadataStore {
+class metadataStore : public roMetadataStore_interface, public rwMetadataStore_interface {
 public:
     // 实现roMetadataStore接口
 };
-//containerBigDataStore 接口
-class containerBigDataStore : public roBigDataStore {
+//containerBigDataStore_interface 接口
+class containerBigDataStore_interface : public roBigDataStore_interface {
 public:
-    virtual ~containerBigDataStore() = default;
+    virtual ~containerBigDataStore_interface() = default;
     // 定义读写大数据存储的方法
     virtual void SetBigData(const std::string& id, const std::string& key, const std::vector<uint8_t>& data) = 0;
 };
@@ -481,10 +481,10 @@ public:
     // BigData 是应为容器存储的一组项。
     std::vector<ContainerBigDataOption> bigData;
 };
-//rwContainerStore 接口
-class rwContainerStore : public metadataStore, public containerBigDataStore, public flaggableStore {
+//rwContainerStore_interface 接口
+class rwContainerStore_interface : public metadataStore, public containerBigDataStore_interface, public flaggableStore_interface {
 public:
-    virtual ~rwContainerStore() = default;
+    virtual ~rwContainerStore_interface() = default;
     // 开始写入并锁定存储
     virtual void startWriting() = 0;
     virtual void stopWriting() = 0;
@@ -513,7 +513,7 @@ public:
     // 清理未引用的数据目录
     virtual void GarbageCollect() = 0;
 };
-struct containerStore : public rwContainerStore {
+struct containerStore : public rwContainerStore_interface {
 public:
     void startWriting() override {
         // 空实现
@@ -576,7 +576,7 @@ public:
     std::vector<std::string> BigDataNames(const std::string& id)  override {
         return {}; // 空实现
     }
-    // flaggableStore 方法的空实现
+    // flaggableStore_interface 方法的空实现
     void ClearFlag(const std::string& id, const std::string& flag) override {
         // 空实现
     }
@@ -628,10 +628,10 @@ class Store :public Store_interface{
     uint32_t auto_ns_min_size;
     uint32_t auto_ns_max_size;
 
-    shared_ptr<rwImageStore> image_store;
-    vector<shared_ptr<rwImageStore>> rw_image_stores;
-    vector<shared_ptr<roImageStore>> ro_image_stores;
-    shared_ptr<rwContainerStore> container_store;
+    shared_ptr<rwImageStore_interface> image_store;
+    vector<shared_ptr<rwImageStore_interface>> rw_image_stores;
+    vector<shared_ptr<roImageStore_interface>> ro_image_stores;
+    shared_ptr<rwContainerStore_interface> container_store;
 
     string digest_lock_root;
     bool disable_volatile=false;

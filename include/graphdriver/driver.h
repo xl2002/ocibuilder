@@ -27,23 +27,23 @@ extern string ErrLayerUnknown;
 // const myerror ErrIncompatibleFS = myerror("backing file system is unsupported for this graph driver");
 // const myerror ErrLayerUnknown = myerror("unknown layer");
 
-class ProtoDriver {
+class ProtoDriver_interface {
 public:
-    virtual ~ProtoDriver() {}
+    virtual ~ProtoDriver_interface() {}
     virtual string String() = 0;
 };
 
 // 定义DiffDriver抽象基类
-class DiffDriver {
+class DiffDriver_interface {
 public:
-    virtual ~DiffDriver() {}
+    virtual ~DiffDriver_interface() {}
     virtual void Method2() = 0;
 };
 
 // 定义LayerIDMapUpdater抽象基类
-class LayerIDMapUpdater {
+class LayerIDMapUpdater_interface {
 public:
-    virtual ~LayerIDMapUpdater() {}
+    virtual ~LayerIDMapUpdater_interface() {}
     virtual void UpdateLayerIDMap(string& id) = 0;
 };
 // Quota 类
@@ -77,11 +77,11 @@ public:
     bool useComposefs;                                // 是否使用 composefs
 };
 // Driver 类定义
-class Driver : public ProtoDriver, public DiffDriver, public LayerIDMapUpdater {
+class Driver : public ProtoDriver_interface, public DiffDriver_interface, public LayerIDMapUpdater_interface {
 public:
     virtual ~Driver() {}
 
-    // ProtoDriver 的实现
+    // ProtoDriver_interface 的实现
     std::string String() override {
         return "MyDriver"; // 示例实现
     }
@@ -96,7 +96,7 @@ public:
     // std::shared_ptr<RefCounter> ctr; // RefCounter
     // std::shared_ptr<Control> quotaCtl; // Control
     OverlayOptions options; // overlayOptions
-    std::shared_ptr<DiffDriver> naiveDiff; // DiffDriver
+    std::shared_ptr<DiffDriver_interface> naiveDiff; // DiffDriver_interface
     bool supportsDType; // 是否支持 DType
     std::shared_ptr<bool> supportsVolatile; // 是否支持 Volatile
     bool usingMetacopy; // 是否使用 Metacopy

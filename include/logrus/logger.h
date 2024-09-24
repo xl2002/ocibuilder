@@ -77,7 +77,7 @@ public:
     // 内置的格式化器有 `TextFormatter` 和 `JSONFormatter`，其中 `TextFormatter` 是默认格式化器。
     // 在开发环境中（当附加了 TTY 时），它会使用颜色记录日志，但在记录到文件时不会。
     // 你可以轻松实现自己的 `Formatter` 接口，示例请参见 `README` 或内置格式化器。
-    std::shared_ptr<Formatter> FormatterPtr=std::make_shared<TextFormatter>();
+    std::shared_ptr<Formatter_interface> FormatterPtr=std::make_shared<TextFormatter>();
 
     // 是否记录调用者信息的标志（默认关闭）
     bool ReportCaller=false;
@@ -170,7 +170,7 @@ public:
     std::shared_ptr<Level> GetLevel() const;
     void AddHook(std::shared_ptr<Hook_interface> hook);
     bool IsLevelEnabled(const Level& level) const ;
-    void SetFormatter(std::shared_ptr<Formatter>& formatter);
+    void SetFormatter(std::shared_ptr<Formatter_interface>& formatter);
     void SetOutput(const std::shared_ptr<std::ofstream>& output);
     void SetReportCaller(bool reportCaller);
 

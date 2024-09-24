@@ -377,7 +377,7 @@ bool Logger::IsLevelEnabled(const Level& level) const {
     return *lvl >= level;
 }
 
-void Logger::SetFormatter(std::shared_ptr<Formatter>& formatter){
+void Logger::SetFormatter(std::shared_ptr<Formatter_interface>& formatter){
     mu->Lock();
     FormatterPtr = formatter;
     mu->Unlock();
