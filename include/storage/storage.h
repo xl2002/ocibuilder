@@ -435,7 +435,9 @@ public:
     map<string, shared_ptr<void>> Flags;
     // volatileStore 如果容器来自临时 JSON 文件，则为 true。
     bool volatileStore;
-
+    std::string GetID() const {
+        return ID;
+    }
 };
 class ContainerBigDataOption {
 public:
@@ -505,7 +507,7 @@ public:
     // 清除所有容器记录
     virtual void Wipe() = 0;
     // 查找容器的ID
-    virtual std::string Lookup(const std::string& name) = 0;
+    virtual   std::tuple<std::shared_ptr<Container>, bool> Lookup(const std::string& id) = 0;
     // 列出所有容器
     virtual std::vector<std::shared_ptr<Container>> Containers() = 0;
     // 清理未引用的数据目录
@@ -519,12 +521,63 @@ public:
     void stopWriting() override {
         // 空实现
     }
-    void startReading() override {
-        // 空实现
+    void startReading() {
+    try {
+        // 获取读锁
+        boost::shared_lock<boost::shared_mutex> lock(lockfile->rwMutex);
+
+        // 保持 inProcessLock 为写入状态的 lambda
+        auto inProcessLocked = [this](std::function<void()> fn) {
+            boost::unique_lock<boost::shared_mutex> lock(inProcessLock);
+            fn();
+        };
+
+        // 检查是否需要重新加载
+        lastwrite currentLastWrite;
+        bool modified = checkModified(currentLastWrite); // 检查修改状态
+
+        if (modified) {
+            // 如果需要重新加载
+            inProcessLock.unlock(); // 释放读锁，注意：这里使用自动释放机制
+
+            // 尝试用写锁重新加载
+            boost::unique_lock<boost::shared_mutex> writeLock(lockfile->rwMutex);
+            
+            // 尝试重新加载
+            bool reloadSuccess = reloadIfChanged(false);
+            if (!reloadSuccess) {
+                reloadSuccess = reloadIfChanged(true);
+                if (!reloadSuccess) {
+                    throw myerror("Failed to reload container store after acquiring write lock.");
+                }
+            }
+
+            // 再次获取读锁
+            lock = boost::shared_lock<boost::shared_mutex>(lockfile->rwMutex);
+        }
+
+        // 再次持有 inProcessLock 的读状态
+        boost::shared_lock<boost::shared_mutex> inProcessLockGuard(inProcessLock);
+    } catch (const myerror& e) {
+        // 处理 myerror 类型的异常
+        throw myerror("Error in startReading: " + std::string(e.what()));
+    } catch (const std::exception& e) {
+        // 处理其他异常，如果需要的话
+        throw myerror("Unexpected error in startReading: " + std::string(e.what()));
     }
-    void stopReading() override {
-        // 空实现
+}
+    void stopReading() override{
+    try {
+        // 释放 inProcessLock 的读锁
+        inProcessLock.unlock(); // 使用 RAII 管理
+    } catch (const myerror& e) {
+        // 处理 myerror 类型的异常
+        throw myerror("Error in stopReading: " + std::string(e.what()));
+    } catch (const std::exception& e) {
+        // 处理其他异常，如果需要的话
+        throw myerror("Unexpected error in stopReading: " + std::string(e.what()));
     }
+}
     std::shared_ptr<Container> create(const std::string& id, const std::vector<std::string>& names, 
                                         const std::string& image, const std::string& layer, 
                                         const ContainerOptions& options) override {
@@ -546,8 +599,36 @@ public:
     void Wipe() override {
         // 空实现
     }
-    std::string Lookup(const std::string& name) override {
-        return ""; // 空实现
+    // Lookup 函数实现
+    std::tuple<std::shared_ptr<Container>, bool> Lookup(const std::string& id) {
+        // 尝试通过 ID 查找
+        auto it = byid.find(id);
+        if (it != byid.end()) {
+            return std::make_tuple(it->second, true);
+        }
+
+        // 尝试通过名称查找
+        it = byname.find(id);
+        if (it != byname.end()) {
+            return std::make_tuple(it->second, true);
+        }
+
+        // 尝试通过层查找
+        it = bylayer.find(id);
+        if (it != bylayer.end()) {
+            return std::make_tuple(it->second, true);
+        }
+
+        // 尝试通过 ID 索引查找
+        std::string longid;
+        // if (idindex.Get(id, longid)) { // 假设 Get 方法会返回一个 bool
+        //     it = byid.find(longid);
+        //     if (it != byid.end()) {
+        //         return std::make_tuple(it->second, true);
+        //     }
+        // }
+
+        return std::make_tuple(nullptr, false); // 找不到容器，返回 nullptr 和 false
     }
     std::vector<std::shared_ptr<Container>> Containers() override {
         return {}; // 空实现
@@ -650,6 +731,7 @@ class store:public Store_interface{
     void DeleteContainer(std::string id) override;
     shared_ptr<Driver> createGraphDriverLocked();
     shared_ptr<Driver> New(const string& name, const driver_Options& config);
+    std::string ContainerDirectory(const std::string& id);
 };
 
 #endif //

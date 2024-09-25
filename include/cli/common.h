@@ -20,6 +20,7 @@
 #include <memory>
 #include "cobra/command.h"
 #include "define/types.h"
+#include "buildah/buildah.h"
 // #include "storage/runtime.h"
 // #include "storage/image.h"
 #include "types/options.h"

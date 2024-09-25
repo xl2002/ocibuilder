@@ -146,6 +146,45 @@ shared_ptr<store> getStore(Command* cmd){
     return store;
 }
 
+
+
+
+std::shared_ptr<Builder> OpenBuilder(std::shared_ptr<store> store, const std::string& container);
+// openBuilder 函数的实现
+std::shared_ptr<Builder> openBuilder(std::shared_ptr<store> store, const std::string& name) {
+    std::shared_ptr<Builder> builder = nullptr;
+
+    try {
+        // 如果名称不为空，尝试打开现有的构建器
+        if (!name.empty()) {
+            builder = OpenBuilder(store, name);
+
+            // 如果找不到该构建器，尝试导入
+            if (!builder) {
+                builder = ImportBuilder(store, name);
+            }
+        }
+
+        // 如果构建器仍然为空，抛出找不到容器的错误
+        if (!builder) {
+            throw myerror("无法找到构建容器");
+        }
+
+    } catch (const myerror& e) {
+        // 处理 myerror 类型的错误
+        std::cerr << "错误: " << e.what() << std::endl;
+        throw; // 重新抛出错误
+    }
+
+    return builder;
+}
+
+
+
+
+
+
+
 /**
  * @brief 根据镜像类型获取对应的 manifest 类型
  * 

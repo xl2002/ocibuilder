@@ -13,7 +13,12 @@
 #include <string>
 #include <vector>
 #include "cobra/command.h"
+#include "cli/common.h"
 #include "main/root.h"
+#include "cobra/args.h"
+#include "cobra/error.h"
+#include "define/build.h"
+#include "buildah/buildah.h"
 using std::string;
 using std::vector;
 /**

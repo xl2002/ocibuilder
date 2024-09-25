@@ -270,3 +270,163 @@ bool checkRegistrySourcesAllows(std::string forWhat,std::shared_ptr<ImageReferen
     
     return false;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void fixupConfig(std::shared_ptr<Builder> b, const std::shared_ptr<SystemContext>& sys) {
+    try {
+        // Prefer image-level settings over those from the container it was built from.
+        if (b->Docker && b->Docker->config) {
+            b->Docker->ContainerConfig = b->Docker->config;  // 解引用shared_ptr
+        }
+        // 如果ContainerConfig为空，则初始化为新的config对象
+        if (!b->Docker->ContainerConfig) {
+            b->Docker->ContainerConfig = std::make_shared<container_Config>();
+        }
+        b->Docker->config = std::make_shared<container_Config>(*b->Docker->ContainerConfig); // 复制ContainerConfig
+
+        b->Docker->DockerVersion = "";
+
+        // 使用boost获取当前UTC时间
+        auto now = std::chrono::system_clock::now();
+
+        // 如果Created为空，则设置当前时间
+        if (b->Docker->Created.time_since_epoch().count() == 0) {
+            b->Docker->Created = now;
+        }
+
+        // 如果OCIv1的Created为空，则设置当前时间
+        if (!b->OCIv1 || (b->OCIv1->created && b->OCIv1->created->time_since_epoch().count() == 0)) {
+            b->OCIv1->created = std::make_shared<std::chrono::system_clock::time_point>(now);
+        }
+
+        // 如果没有设置OS，基于系统上下文或环境变量设置
+        if (b->OS().empty()) {
+            if (sys && !sys->OSChoice.empty()) {
+                b->SetOS(sys->OSChoice);
+            } else {
+                b->SetOS(boost::process::environment()["OSTYPE"]);  // 使用boost::process获取操作系统信息
+            }
+        }
+
+        // 如果没有设置Architecture，基于系统上下文或环境变量设置
+        if (b->Architecture().empty()) {
+            if (sys && !sys->ArchitectureChoice.empty()) {
+                b->SetArchitecture(sys->ArchitectureChoice);
+            } else {
+                b->SetArchitecture(boost::process::environment()["HOSTTYPE"]);  // 使用boost::process获取体系结构信息
+            }
+
+            // 归一化架构和变体
+            auto ps = internalUtil::NormalizePlatform(b->OS(), b->Architecture(), b->Variant());
+            b->SetArchitecture(ps.Architecture);
+            b->SetVariant(ps.Variant);
+        }
+
+        // 如果没有设置Variant，则检查是否在系统上下文中定义
+        if (b->Variant().empty()) {
+            if (sys && !sys->VariantChoice.empty()) {
+                b->SetVariant(sys->VariantChoice);
+            }
+
+            // 归一化架构和变体
+            auto ps = internalUtil::NormalizePlatform(b->OS(), b->Architecture(), b->Variant());
+            b->SetArchitecture(ps.Architecture);
+            b->SetVariant(ps.Variant);
+        }
+
+        // 如果Docker格式并且没有设置主机名，生成随机ID作为主机名
+        if (b->Format == "docker" && b->Hostname().empty()) {
+            b->SetHostname(generateRandomID());
+        }
+
+    } catch (const myerror& e) {
+        // 处理myerror类型的异常
+        std::cerr << "Error: " << e.what() << std::endl;
+        throw;
+
+    } catch (const std::exception& e) {
+        // 将其他异常转换为myerror重新抛出
+        throw myerror("fixupConfig中的未知错误: " + std::string(e.what()));
+    }
+}
+// OpenBuilder 函数的 C++ 实现
+std::shared_ptr<Builder> OpenBuilder(std::shared_ptr<store> store, const std::string& container) {
+    std::shared_ptr<Builder> b = std::make_shared<Builder>();
+    
+    try {
+        // 获取构建容器的目录
+        boost::filesystem::path cdir = store->ContainerDirectory(container);
+
+        // 读取构建容器的状态文件
+        boost::filesystem::path stateFilePath = cdir / "state.json";  // 假设stateFile是 "state.json"
+        if (!boost::filesystem::exists(stateFilePath)) {
+            throw myerror("找不到状态文件: " + stateFilePath.string());
+        }
+
+        // 读取状态文件内容
+        boost::filesystem::ifstream stateFileStream(stateFilePath);
+        std::string buildstate((std::istreambuf_iterator<char>(stateFileStream)),
+                               std::istreambuf_iterator<char>());
+        stateFileStream.close();
+
+        // 解析JSON数据到Builder对象
+        boost::json::value parsedState = boost::json::parse(buildstate);
+        b = boost::json::value_to<std::shared_ptr<Builder>>(parsedState);
+
+        // 检查容器类型是否正确
+        if (b->Type != "containerType") {  // 假设containerType是 "containerType"
+            throw myerror("容器 " + container + " 不是有效的容器类型 (它是 " + b->Type + ")");
+        }
+
+        // 获取网络接口
+        //如果在容器构建的过程中需要网络支持（如连接外部资源或设置虚拟网络），这函数是必要的
+        // b->NetworkInterface = getNetworkInterface(store, b->CNIConfigDir, b->CNIPluginPath);
+
+        // 设置 store
+        b->store = store;
+
+        // 修正配置和设置日志
+        fixupConfig(b, nullptr);
+        // setupLogger(b);
+
+        // 如果CommonBuildOpts为空，初始化它
+        if (!b->CommonBuildOpts) {
+            b->CommonBuildOpts = std::make_shared<CommonBuildOptions>();
+        }
+
+    } catch (const myerror& e) {
+        // 处理 myerror 类型的错误
+        std::cerr << "错误: " << e.what() << std::endl;
+        throw;
+
+    } catch (const boost::json::error& e) {
+        // 处理 JSON 解析错误
+        throw myerror("解析JSON文件时发生错误: " + std::string(e.what()));
+
+    } catch (const boost::filesystem::filesystem_error& e) {
+        // 处理文件系统错误
+        throw myerror("文件系统操作失败: " + std::string(e.what()));
+
+    }
+    return b;
+}
+
+
+

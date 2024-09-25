@@ -1016,3 +1016,56 @@ void store::load() {
 void store::DeleteContainer(std::string id){
     return;
 }
+
+
+
+
+
+template <typename T>
+std::tuple<T, bool, std::exception_ptr> readContainerStore(store* s, std::function<std::tuple<T, bool>()> fn) {
+    // 尝试开始读取容器存储
+    if (s->container_store->startReading() != 0) {
+        return std::make_tuple(T{}, true, std::make_exception_ptr(std::runtime_error("Failed to start reading")));
+    }
+    
+    // 使用 RAII 机制在函数结束时停止读取
+    auto stopReading = [&]() { s->container_store->stopReading(); };
+    std::unique_ptr<void, decltype(stopReading)> guard(nullptr, stopReading);
+
+    // 调用传入的函数并返回其结果
+    return fn();
+}
+
+
+std::string store::ContainerDirectory(const std::string& id) {
+    std::string gcpath;
+    try {
+        // 调用 readContainerStore
+        auto [containerPtr, found, err] = readContainerStore<std::shared_ptr<Container>>(this, [&]() {
+            return container_store->Lookup(id); // 使用 lookup 方法查找容器
+        });
+
+        // 检查容器是否找到
+        if (!found || !containerPtr) {
+            throw myerror("Container not found");
+        }
+
+        std::string middleDir = graph_driver_name + "-containers";
+        gcpath = Join({graph_root, middleDir, containerPtr->GetID(), "userdata"});
+
+        // 创建目录
+        if (!MkdirAll(gcpath)) {
+            throw myerror("Failed to create directory: " + gcpath);
+        }
+    } catch (const myerror& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        throw; // 重新抛出 myerror 类型的错误
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        throw myerror("Unexpected error: " + std::string(e.what())); // 转换为 myerror
+    }
+    return gcpath;
+}
+
+
+
