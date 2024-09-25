@@ -133,7 +133,7 @@ struct ContainersConfig {
     bool NoHosts = false;
 
     // OOMScoreAdj tunes the host's OOM preferences for containers
-    std::shared_ptr<int> OOMScoreAdj;
+    std::shared_ptr<int> OOMScoreAdj=std::make_shared<int>(0);
 
     // PidsLimit is the number of processes each container is restricted to
     int64_t PidsLimit = 0;

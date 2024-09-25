@@ -105,7 +105,7 @@ void init_global(){
     DefaultContainersConfig = "/usr/share/" + _configPath;
 	// DefaultSignaturePolicyPath is the default value for the
 	// policy.json file.
-    DefaultSignaturePolicyPath = "/etc/containers/policy.json";
+    DefaultSignaturePolicyPath = "D:\\oci_images\\policy.json";
     PolicyMap ={
         {"missing",PullIfMissing},
         {"always", PullAlways},

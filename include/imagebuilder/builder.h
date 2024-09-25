@@ -111,8 +111,8 @@ public:
     // Members
     int Position=0;
     std::string Name;
-    std::shared_ptr<Image_Builder> image_builder;  // Use std::shared_ptr for managing dynamic memory
-    std::shared_ptr<Node> Node;
+    std::shared_ptr<Image_Builder> image_builder=std::make_shared<Image_Builder>();  // Use std::shared_ptr for managing dynamic memory
+    std::shared_ptr<Node> Node=std::make_shared<::Node>();
 };
 class Stages {
 public:

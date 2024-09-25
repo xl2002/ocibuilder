@@ -68,7 +68,7 @@ struct Builder {
 
     // 镜像元数据和运行时设置，支持多种格式。
     std::shared_ptr<Image> OCIv1=std::make_shared<Image>();
-    std::shared_ptr<V1Image> Docker;
+    std::shared_ptr<V1Image> Docker=std::make_shared<V1Image>();
 
     // DefaultMountsFilePath 是保存挂载点的文件路径，以 "host-path:container-path" 格式。
     std::string DefaultMountsFilePath;

@@ -139,9 +139,9 @@ public:
 class TruncIndex {
 public:
     mutable boost::shared_mutex mutex; // Read/Write lock
-    std::shared_ptr<Trie> trie;
+    std::shared_ptr<Trie> trie=std::make_shared<Trie>();
     std::unordered_map<std::string, bool> ids; // Simple map for illustration
-
+    TruncIndex() = default;
     // Implement additional methods as needed
        // 构造函数，接受一个 std::vector<std::string> 参数并初始化 ids 映射
     TruncIndex(const std::vector<std::string>& idList) {
@@ -368,7 +368,7 @@ struct imageStore:public rwImageStore_interface{
 
     // 以下字段在构建 imageStore 时设置，之后不能再修改。
     // 它们可以在没有其他锁定的情况下安全地访问。
-    shared_ptr<lockFile> lockfile; // LockFile 用于区分读写和只读 image store。
+    shared_ptr<lockFile> lockfile=std::make_shared<lockFile>(); // LockFile 用于区分读写和只读 image store。
     string dir;
 
     // inProcessLock 只能在持有 lockfile 的情况下获得。
@@ -378,7 +378,7 @@ struct imageStore:public rwImageStore_interface{
     // 几乎所有用户都应使用 startReading() 或 startWriting()。
     lastwrite lastWrite;
     vector<shared_ptr<storage::Image>> images;
-    shared_ptr<TruncIndex> idindex;
+    shared_ptr<TruncIndex> idindex=std::make_shared<TruncIndex>();
     //目前没用到
     map<string, shared_ptr<storage::Image>> byid;
     map<string, shared_ptr<storage::Image>> byname;
@@ -593,14 +593,14 @@ public:
     containerLocations containerLocation(const std::shared_ptr<Container>& container);
     void Save(containerLocations saveLocations);
 public:
-    std::shared_ptr<lockFile> lockfile;
+    std::shared_ptr<lockFile> lockfile=std::make_shared<lockFile>();
     std::string dir;
     std::vector<std::string> jsonPath;
 
     boost::shared_mutex inProcessLock; // 使用 boost::shared_mutex 替代 sync.RWMutex
     lastwrite lastWrite;
     std::vector<std::shared_ptr<Container>> containers;
-    std::shared_ptr<TruncIndex> idindex;
+    std::shared_ptr<TruncIndex> idindex=std::make_shared<TruncIndex>();
     std::map<std::string, std::shared_ptr<Container>> byid;
     std::map<std::string, std::shared_ptr<Container>> bylayer;
     std::map<std::string, std::shared_ptr<Container>> byname;
@@ -613,8 +613,8 @@ class Store :public Store_interface{
     string graph_driver_name;
     vector<string> graph_driver_priority;
     
-    shared_ptr<lockFile> graph_lock;
-    shared_ptr<lockFile> userns_lock;
+    shared_ptr<lockFile> graph_lock=std::make_shared<lockFile>();
+    shared_ptr<lockFile> userns_lock=std::make_shared<lockFile>();
 
     string graph_root;
     vector<string> graph_options;
@@ -638,7 +638,7 @@ class Store :public Store_interface{
     bool transient_store=false;
 
     lastwrite graph_lock_last_write;
-    shared_ptr<Driver> graph_driver;
+    shared_ptr<Driver> graph_driver=std::make_shared<Driver>();
     // rwLayerStore layer_store_use_getters;
     // vector<roLayerStore> ro_layer_stores_use_getters;
 

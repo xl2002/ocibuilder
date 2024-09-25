@@ -10,7 +10,7 @@ struct Digester_interface{
 };
 struct digester:public Digester_interface{
     std::shared_ptr<Algorithm_sha256> alg;
-    std::shared_ptr<Hash_256> hash;
+    std::shared_ptr<Hash_256> hash=std::make_shared<Hash_256>();
     std::shared_ptr<Hash_256> Hash() override;
     // std::shared_ptr<Digest> Digest() override;
 };

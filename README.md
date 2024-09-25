@@ -14,3 +14,6 @@ oci规范的镜像构建工具，适用于windows系统
 4.如果C++代码对于linux和window系统实现不同，则用编译宏给出跨平台写法
 5.C++代码不用给出main测试代码
 6.错误处理时，采用抛出的方法，不使用boost::system::error_code
+
+test.cpp 运行
+g++ -std=c++11 -Wall -Wextra -g -I include -o test.exe test.cpp -L lib\lib64-MinGW -lboost_filesystem-mgw12-mt-x64-1_75

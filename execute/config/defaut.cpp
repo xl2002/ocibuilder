@@ -312,7 +312,7 @@ std::tuple<std::shared_ptr<EngineConfig>,boost::optional<myerror>> defaultEngine
     // if(storeOpts.GraphRoot=""){
         
     // }
-    // c->graphRoot=storeOpts.GraphRoot;、
+    c->graphRoot=storeOpts.graph_root;
     c->ImageCopyTmpDir=getDefaultTmpDir();
     c->VolumePluginTimeout=DefaultVolumePluginTimeout;
     c->CompressionFormat="gzip";
@@ -428,7 +428,7 @@ std::tuple<std::shared_ptr<EngineConfig>,boost::optional<myerror>> defaultEngine
     c->InfraImage=DefaultInfraImage;
     c->EnablePortReservation=true;
     c->NumLocks=2048;
-    // c->EventsLogger=defaultEventsLogger();
+    c->EventsLogger=defaultEventsLogger();
     c->DetachKeys=DefaultDetachKeys;
     c->SDNotify=false;
     c->ChownCopiedFiles=true;

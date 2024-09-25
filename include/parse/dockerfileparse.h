@@ -11,7 +11,7 @@
 class Node{
     public:
     std::string Value;
-    std::shared_ptr<Node> Next=std::shared_ptr<Node>();
+    std::shared_ptr<Node> Next=std::make_shared<Node>();
     std::vector<std::shared_ptr<Node>> Children;
     std::vector<Heredoc> Heredocs;
     std::map<std::string,bool> Attributes;
@@ -29,7 +29,7 @@ class Node{
 // using rune=int32_t;
 class Result{
     public:
-    std::shared_ptr<Node> AST=std::shared_ptr<Node>();
+    std::shared_ptr<Node> AST=std::make_shared<Node>();
     char EscapeToken=0;
     std::string Platform;
     std::vector<std::string> Warnings;
@@ -39,7 +39,7 @@ class Directive{
     public:
     char escapeToken=0;//记录跳过的token
     std::string platformToken;
-    std::shared_ptr<std::regex> lineContinuationRegex=std::shared_ptr<std::regex>(); // 当前行延续正则表达式
+    std::shared_ptr<std::regex> lineContinuationRegex=std::make_shared<std::regex>(); // 当前行延续正则表达式
     bool processingComplete=false;         // 是否完成指令处理
     bool escapeSeen=false;                 // 是否看到转义指令
     bool platformSeen=false;               // 是否看到平台指令

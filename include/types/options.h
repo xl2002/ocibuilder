@@ -70,7 +70,7 @@ class StoreOptions{
     bool transient_store;
 };
 struct ReloadConfig {
-    std::shared_ptr<StoreOptions> storeOptions;
+    std::shared_ptr<StoreOptions> storeOptions=std::make_shared<StoreOptions>();
     std::time_t mod;  // Use std::time_t to store modification time
     std::mutex mutex;
     std::string configFile;

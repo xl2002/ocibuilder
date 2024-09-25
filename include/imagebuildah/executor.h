@@ -36,7 +36,7 @@
 class imageTypeAndHistoryAndDiffIDs {
     public:
     std::string manifestType;
-    std::shared_ptr<History> history;
+    std::shared_ptr<History> history=std::make_shared<History>();
     std::vector<Digest> diffIDs;
     std::string err;
 };

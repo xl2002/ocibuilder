@@ -87,16 +87,22 @@ string Join(const vector<string>& elem) {
 // }
 
 shared_ptr<Driver> Store::createGraphDriverLocked() {
-    driver_Options config{
-        root: graph_root,
-        runRoot: run_root,
-        imageStore: image_store_dir,
-        driverPriority: graph_driver_priority,
-        driverOptions: graph_options,
-        // uidMaps: uidMap,
-        // gidMaps: gidMap 
-    };
-
+    // driver_Options config{
+    //     root: graph_root,
+    //     runRoot: run_root,
+    //     imageStore: image_store_dir,
+    //     driverPriority: graph_driver_priority,
+    //     driverOptions: graph_options,
+    //     // uidMaps: uidMap,
+    //     // gidMaps: gidMap 
+    //     experimentalEnabled:false
+    // };
+    driver_Options config;
+    config.root = graph_root;
+    config.runRoot = run_root;
+    config.imageStore = image_store_dir;
+    config.driverPriority = graph_driver_priority;
+    config.driverOptions = graph_options;
     auto driver = New(graph_driver_name, config);
     if (!driver) {
         throw myerror("Failed to create graph driver.");

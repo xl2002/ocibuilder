@@ -40,7 +40,7 @@ struct containerImageRef: public ImageReference_interface{
     std::vector<History> preEmptyLayers;    // 空层（操作前）
     std::vector<History> postEmptyLayers;   // 空层（操作后）
     std::vector<std::string> overrideChanges;   // 覆盖配置的更改
-    std::shared_ptr<Schema2Config> overrideConfig;              // 覆盖配置
+    std::shared_ptr<Schema2Config> overrideConfig=std::make_shared<Schema2Config>();              // 覆盖配置
     std::map<std::string, std::string> extraImageContent; // 额外的镜像内容
 
     std::shared_ptr<ImageTransport_interface> Transport() override;

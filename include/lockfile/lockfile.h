@@ -27,6 +27,7 @@ enum class LockType { ReadLock, WriteLock };
 typedef std::shared_ptr<boost::filesystem::ofstream> fileHandle;
 class lockFile {
 public:
+    lockFile() = default;
     // The following fields are only set when constructing *LockFile, and must never be modified afterwards.
     // They are safe to access without any other locking.
     // 构造函数

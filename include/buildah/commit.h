@@ -28,7 +28,7 @@ struct CommitOptions {
     std::ostream* ReportWriter=nullptr;
 
     // HistoryTimestamp 是创建图片历史项目时使用的时间戳
-    std::shared_ptr<std::chrono::system_clock::time_point> HistoryTimestamp;
+    std::shared_ptr<std::chrono::system_clock::time_point> HistoryTimestamp=std::make_shared<std::chrono::system_clock::time_point>();
 
     // SystemContext 用于持有凭据和其他身份验证信息
     std::shared_ptr<SystemContext> SystemContext=std::make_shared<::SystemContext>();  // 根据实际定义进行类型替换

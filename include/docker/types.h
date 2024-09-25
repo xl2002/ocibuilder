@@ -73,7 +73,7 @@ public:
     std::vector<std::string> Env;
     std::vector<std::string> Cmd;
     std::vector<std::string> Shell;
-    std::shared_ptr<HealthConfig> Healthcheck = nullptr; // 使用指针以处理可选的HealthConfig
+    std::shared_ptr<HealthConfig> Healthcheck = std::make_shared<HealthConfig>(); // 使用指针以处理可选的HealthConfig
     std::vector<std::string> DNS;
     std::string Image;
     std::map<std::string, std::string> Volumes; // 这里也将struct{}替换为std::string

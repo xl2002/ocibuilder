@@ -50,7 +50,7 @@ struct Schema2Config{
     bool StdinOnce=false;                     // 如果为真，连接的客户端断开后关闭标准输入
     std::vector<std::string> Env;       // 容器内设置的环境变量列表
     std::vector<std::string> Cmd;                       // 启动容器时运行的命令
-    std::shared_ptr<Schema2HealthConfig> Healthcheck; // 容器的健康检查配置
+    std::shared_ptr<Schema2HealthConfig> Healthcheck=std::make_shared<Schema2HealthConfig>(); // 容器的健康检查配置
     bool ArgsEscaped=false;                   // 如果命令已经被转义，设置为真 (特定于 Windows)
     std::string Image;                  // 镜像名称
     std::set<std::string> Volumes; // 容器使用的卷列表

@@ -20,6 +20,7 @@
 #include "go/file.h"
 #include "logrus/exported.h"
 #include <boost/compute/detail/getenv.hpp>
+#include <pthread.h>
 // #define PATH_MAX 4096
 using std::string;
 /**
@@ -29,10 +30,28 @@ using std::string;
 // const string overlayDriver  = "overlay";
 // const string overlay2       = "overlay2";
 // const string storageConfEnv = "CONTAINERS_STORAGE_CONF";
+#ifdef WIN32
+/// @brief defaultConfigFile 系统范围的 storage.conf 文件的路径
+std::string defaultConfigFile = "D:\\oci_images\\storage.conf";
+// std::string storageConfEnv = "STORAGE_CONF_ENV";
+/// @brief 
+std::string defaultOverrideConfigFile = "D:\\storage.conf";
+const string defaultRunRoot = "D:\\oci_images";
+// const string defaultRunRoot = "/run/containers/storage";
+const string defaultGraphRoot = "D:\\oci_images";
+// const string defaultGraphRoot = "/var/lib/containers/storage";
+#else
+/// @brief defaultConfigFile 系统范围的 storage.conf 文件的路径
+std::string defaultConfigFile = "D:/oci_images/storage.conf";
+// std::string storageConfEnv = "STORAGE_CONF_ENV";
+/// @brief 
+std::string defaultOverrideConfigFile = "D:/storage.conf";
 const string defaultRunRoot = "D:/oci_images";
 // const string defaultRunRoot = "/run/containers/storage";
 const string defaultGraphRoot = "D:/oci_images";
 // const string defaultGraphRoot = "/var/lib/containers/storage";
+#endif
+
 const int AutoUserNsMinSize=1024;
 const int AutoUserNsMaxSize=65536;
 /**
@@ -42,11 +61,7 @@ const int AutoUserNsMaxSize=65536;
 std::once_flag defaultStoreOptionsFlag;
 std::once_flag defaultloadoptions;
 bool defaultConfigFileSet = false;
-/// @brief defaultConfigFile 系统范围的 storage.conf 文件的路径
-std::string defaultConfigFile = "D:/storage.conf";
-// std::string storageConfEnv = "STORAGE_CONF_ENV";
-/// @brief 
-std::string defaultOverrideConfigFile = "D:/storage.conf";
+StoreOptions storeptions;
 StoreOptions defaultStoreOptions;
 std::mutex storesLock;
 vector<std::shared_ptr<Store>> stores;
@@ -60,12 +75,14 @@ bool ReloadConfigurationFileIfNeeded(const std::string& configFile, StoreOptions
     std::lock_guard<std::mutex> lock(prevReloadConfig.mutex);
 
     boost::filesystem::file_status fs;
-    try {
-        fs = boost::filesystem::status(configFile);
-    } catch (const boost::filesystem::filesystem_error& e) {
-        // 文件状态检查失败，返回错误
-        throw myerror("检查配置文件状态失败: " + std::string(e.what()));
-    }
+    fs=boost::filesystem::status(configFile);
+    if(fs.type()!=boost::filesystem::regular_file) return false;
+    // try {
+    //     fs = boost::filesystem::status(configFile);
+    // } catch (const boost::filesystem::filesystem_error& e) {
+    //     // 文件状态检查失败，返回错误
+    //     throw myerror("检查配置文件状态失败: " + std::string(e.what()));
+    // }
     auto mtime = boost::filesystem::last_write_time(configFile);
 
     if (prevReloadConfig.storeOptions && prevReloadConfig.mod == mtime && prevReloadConfig.configFile == configFile) {
@@ -136,24 +153,27 @@ void loadDefaultStoreOptions() {
                 throw myerror("重新加载配置文件失败: " + defaultOverrideConfigFile);
             }
             setDefaults(defaultStoreOptions);
+            // Warningf("Attempting to use %s, %s", defaultConfigFile, strerror(errno));
             return;
         }
 
         // 默认配置文件路径
-        if (boost::filesystem::exists(defaultConfigFile)) {
-            if (!ReloadConfigurationFileIfNeeded(defaultConfigFile, &defaultStoreOptions)) {
-                throw myerror("重新加载配置文件失败: " + defaultConfigFile);
-            }
-            setDefaults(defaultStoreOptions);
-            
-            return;
-        }
-        Warningf("Attempting to use %s, %s", defaultConfigFile, strerror(errno));
+        // if (boost::filesystem::exists(defaultConfigFile)) {
+        //     if (!ReloadConfigurationFileIfNeeded(defaultConfigFile, &defaultStoreOptions)) {
+        //         throw myerror("重新加载配置文件失败: " + defaultConfigFile);
+        //     }
+        //     setDefaults(defaultStoreOptions);
+        //     Warningf("Attempting to use %s, %s", defaultConfigFile, strerror(errno));
+        //     return;
+        // }
+        
         // 处理警告
 
         // std::cerr << "尝试使用 " << defaultConfigFile << ", 错误信息: " << std::strerror(errno) << std::endl;
         if (!ReloadConfigurationFileIfNeeded(defaultConfigFile, &defaultStoreOptions)) {
-            throw myerror("重新加载配置文件失败: " + defaultConfigFile);
+            if(boost::filesystem::exists(defaultConfigFile)) {
+                throw myerror("重新加载配置文件失败: " + defaultConfigFile);
+            }
         }
         setDefaults(defaultStoreOptions);
 
@@ -216,7 +236,8 @@ int getRootlessUID() {
             }
         }
         // 如果环境变量为空，Windows 上无法直接获取 UID，可以考虑其他方法
-        throw myerror("UID retrieval not supported on this platform");
+        // throw myerror("UID retrieval not supported on this platform");
+        return 0;
     } catch (const myerror&) {
         // 仅捕获 myerror 类型的异常，不输出错误信息
         throw;
@@ -236,6 +257,7 @@ StoreOptions DefaultStoreOptions() {
         auto loadoptions = [&result]() {
             try {
                 result = loadStoreOptions();
+                storeptions=result;
             } catch (const myerror& e) {
                 throw; // 重新抛出 myerror 类型的异常
             }
@@ -244,7 +266,7 @@ StoreOptions DefaultStoreOptions() {
     } catch (const myerror& e) {
         throw; // 重新抛出 myerror 类型的异常
     }
-    return result;
+    return storeptions;
 }
 
 /**
@@ -431,21 +453,22 @@ StoreOptions loadStoreOptionsFromConfFile(const std::string& storageConf) {
 
         // 检查配置文件是否存在
         if (boost::filesystem::exists(storageConf)) {
-            if (!defaultConfigFileSet) {
-                defaultRootlessRunRoot = storageOpts.run_root;
-                defaultRootlessGraphRoot = storageOpts.graph_root;
-                storageOpts = StoreOptions{};
-                ReloadConfigurationFileIfNeeded(storageConf, &storageOpts);
+            auto s=boost::filesystem::status(storageConf);
+            if (s.type() == boost::filesystem::regular_file && !defaultConfigFileSet) {
+                // defaultRootlessRunRoot = storageOpts.run_root;
+                // defaultRootlessGraphRoot = storageOpts.graph_root;
+                // storageOpts = StoreOptions{};
+                // ReloadConfigurationFileIfNeeded(storageConf, &storageOpts);
 
-                // 如果配置文件没有指定图形根目录或运行根目录，设置合理的默认值
-                if (storageOpts.run_root.empty()) {
-                    storageOpts.run_root = defaultRootlessRunRoot;
-                }
-                if (storageOpts.graph_root.empty()) {
-                    storageOpts.graph_root = !storageOpts.rootless_storage_path.empty() 
-                                                ? storageOpts.rootless_storage_path 
-                                                : defaultRootlessGraphRoot;
-                }
+                // // 如果配置文件没有指定图形根目录或运行根目录，设置合理的默认值
+                // if (storageOpts.run_root.empty()) {
+                //     storageOpts.run_root = defaultRootlessRunRoot;
+                // }
+                // if (storageOpts.graph_root.empty()) {
+                //     storageOpts.graph_root = !storageOpts.rootless_storage_path.empty() 
+                //                                 ? storageOpts.rootless_storage_path 
+                //                                 : defaultRootlessGraphRoot;
+                // }
             }
         }
 

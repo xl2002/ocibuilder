@@ -57,7 +57,7 @@ public:
 class AdditionalLayerStore {
 public:
     std::string path;          // 存储目录的路径
-    bool withReference;        // 是否包含图像引用信息
+    bool withReference=false;        // 是否包含图像引用信息
 };
 
 // FileMode 类型别名
@@ -70,20 +70,26 @@ public:
     std::vector<AdditionalLayerStore> layerStores;    // 额外的层存储列表
     Quota quota;                                      // 配额
     std::string mountProgram;                         // 挂载程序
-    bool skipMountHome;                               // 是否跳过挂载主目录
+    bool skipMountHome=false;                               // 是否跳过挂载主目录
     std::string mountOptions;                         // 挂载选项
-    bool ignoreChownErrors;                           // 是否忽略 chown 错误
-    std::shared_ptr<FileMode> forceMask;              // 强制掩码（文件权限模式）
-    bool useComposefs;                                // 是否使用 composefs
+    bool ignoreChownErrors=false;                           // 是否忽略 chown 错误
+    std::shared_ptr<FileMode> forceMask=std::make_shared<FileMode>();              // 强制掩码（文件权限模式）
+    bool useComposefs=false;                                // 是否使用 composefs
 };
 // Driver 类定义
 class Driver : public ProtoDriver_interface, public DiffDriver_interface, public LayerIDMapUpdater_interface {
 public:
-    virtual ~Driver() {}
-
+    // ~Driver()=default;
+    Driver()=default;
     // ProtoDriver_interface 的实现
     std::string String() override {
         return "MyDriver"; // 示例实现
+    }
+    void Method2()override {
+
+    }
+    void UpdateLayerIDMap(string& id)override {
+
     }
     std::vector<std::string> AdditionalImageStores();
 public:
@@ -97,11 +103,11 @@ public:
     // std::shared_ptr<Control> quotaCtl; // Control
     OverlayOptions options; // overlayOptions
     std::shared_ptr<DiffDriver_interface> naiveDiff; // DiffDriver_interface
-    bool supportsDType; // 是否支持 DType
-    std::shared_ptr<bool> supportsVolatile; // 是否支持 Volatile
-    bool usingMetacopy; // 是否使用 Metacopy
-    bool usingComposefs; // 是否使用 Composefs
-    std::shared_ptr<bool> supportsIDMappedMounts; // 是否支持 ID 映射挂载
+    bool supportsDType=false; // 是否支持 DType
+    std::shared_ptr<bool> supportsVolatile=std::make_shared<bool>(false); // 是否支持 Volatile
+    bool usingMetacopy=false; // 是否使用 Metacopy
+    bool usingComposefs=false; // 是否使用 Composefs
+    std::shared_ptr<bool> supportsIDMappedMounts=std::make_shared<bool>(false); // 是否支持 ID 映射挂载
 };
 typedef struct driver_Options {
     string root;                  // 根目录
@@ -111,7 +117,8 @@ typedef struct driver_Options {
     vector<string> driverOptions;  // 驱动选项
     // vector<IDMap> uidMaps;         // UID 映射
     // vector<IDMap> gidMaps;         // GID 映射
-    bool experimentalEnabled;     // 是否启用实验特性
+    bool experimentalEnabled=false;     // 是否启用实验特性
+    driver_Options() = default;
 }driver_Options;
 // 使用unordered_map存储所有注册的驱动程序
 extern std::unordered_map<std::string, std::function<std::shared_ptr<Driver>(const std::string&, const driver_Options&)>> drivers;

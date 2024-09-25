@@ -36,7 +36,7 @@ namespace copy{
         std::shared_ptr<SystemContext> sourceCtx=std::make_shared<SystemContext>();                             // 源上下文
         std::shared_ptr<SystemContext> destinationCtx=std::make_shared<SystemContext>();                        // 目标上下文
         std::chrono::duration<int64_t> progressInterval;      // 进度报告间隔时间
-        std::shared_ptr<std::vector<ProgressProperties>> progress; // 进度报告的通道
+        std::shared_ptr<std::vector<ProgressProperties>> progress=std::make_shared<std::vector<ProgressProperties>>(); // 进度报告的通道
 
         bool preserveDigests=false;                                 // 是否保留摘要，并在失败时中止
         std::string forceManifestMIMEType;                    // 用户设置的镜像manifest MIME类型
@@ -44,11 +44,11 @@ namespace copy{
         std::vector<Digest> instances;                        // 当选择具体镜像时，要复制的实例列表
 
         // 优先使用gzip压缩实例
-        std::shared_ptr<OptionalBool> preferGzipInstances; 
+        std::shared_ptr<OptionalBool> preferGzipInstances=std::make_shared<OptionalBool>(); 
 
-        std::shared_ptr<EncryptConfig> ociEncryptConfig;                      // 用于加密镜像的配置
+        std::shared_ptr<EncryptConfig> ociEncryptConfig=std::make_shared<EncryptConfig>();                      // 用于加密镜像的配置
         std::vector<int> ociEncryptLayers;                   // 指定要加密的层
-        std::shared_ptr<DecryptConfig> ociDecryptConfig;                      // 用于解密镜像的配置
+        std::shared_ptr<DecryptConfig> ociDecryptConfig=std::make_shared<DecryptConfig>();                      // 用于解密镜像的配置
 
         std::shared_ptr<Weighted> concurrentBlobCopiesSemaphore=std::make_shared<Weighted>();                 // 限制并发复制层和配置的信号量
         uint32_t maxParallelDownloads=0;                        // 最大并行下载数

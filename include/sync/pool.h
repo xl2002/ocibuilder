@@ -20,10 +20,10 @@ class Pool {
 public:
     noCopy noCopy;
 
-    std::shared_ptr<int> local = nullptr;   
+    std::shared_ptr<int> local = std::make_shared<int>();   
     size_t localSize = 0;      
 
-    std::shared_ptr<int> victim = nullptr;  
+    std::shared_ptr<int> victim = std::make_shared<int>();  
     size_t victimSize = 0;     
 
     

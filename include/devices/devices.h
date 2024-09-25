@@ -16,7 +16,7 @@ class Rule {
     public:
     // Type of device ('c' for char, 'b' for block). If set to 'a', this rule
     // acts as a wildcard and all fields other than Allow are ignored.
-    std::shared_ptr<Type> type;
+    std::shared_ptr<Type> type=std::make_shared<Type>();
 
     // Major is the device's major number.
     int64_t major=0;
@@ -41,10 +41,10 @@ class Device : public Rule {
     mode_t fileMode;
 
     // Uid of the device.
-    uint32_t uid;
+    uint32_t uid=0;
 
     // Gid of the device.
-    uint32_t gid;
+    uint32_t gid=0;
 };
 
 #endif // DEVICES_DEVICES_H)

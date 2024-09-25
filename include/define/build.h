@@ -274,7 +274,7 @@ class define_BuildOptions{
 	//ConfidentialWorkload 控制我们是否生成一个
 	//使用 krun 作为虚拟机而不是传统的虚拟机来运行的映像
 	//进程类型容器。
-	std::shared_ptr<ConfidentialWorkloadOptions> ConfidentialWorkload ;
+	std::shared_ptr<ConfidentialWorkloadOptions> ConfidentialWorkload=std::make_shared<::ConfidentialWorkloadOptions>(); ;
 	//添加到我们编写的图像中的附加标签（如果我们知道）
 	//添加它们的方法。
 	vector<string> AdditionalTags;
@@ -313,7 +313,7 @@ class define_BuildOptions{
 	//接受的值为 buildah.OCIv1ImageManifest 和 buildah.Dockerv2ImageManifest。
 	string OutputFormat ;
 	// SystemContext 保存用于身份验证的参数。
-	shared_ptr< SystemContext> systemContext;
+	shared_ptr< SystemContext> systemContext=std::make_shared<SystemContext>();
 	//NamespaceOptions 控制我们如何设置命名空间进程
 	//处理 RUN 指令时可能需要。
 	std::vector<NamespaceOption> Namespaceoptions;

@@ -125,16 +125,19 @@ void Entry::log(const Level& level, const std::string& msg) {
     auto buffer = bufPool->Get();
     // 使用智能指针管理缓冲区，并在作用域结束时自动将缓冲区放回缓冲池
     struct BufferGuard {
-        std::shared_ptr<Entry> entry;
-        std::shared_ptr<Buffer> buffer;
-        std::shared_ptr<BufferPool_interface> pool;
+        std::shared_ptr<Entry> entry=std::make_shared<Entry>();
+        std::shared_ptr<Buffer> buffer=std::make_shared<Buffer>();
+        std::shared_ptr<BufferPool_interface> pool=nullptr;
 
-        ~BufferGuard() {
-            // 延迟执行逻辑
-            entry->BufferPtr = nullptr;
-            buffer->Reset();
-            pool->Put(std::move(buffer));
-        }
+        // ~BufferGuard() {
+        //     // 延迟执行逻辑
+        //     entry->BufferPtr = nullptr;
+        //     buffer->Reset();
+        //     pool->Put(std::move(buffer));
+        // }
+        ~BufferGuard()=default;
+        BufferGuard(std::shared_ptr<Entry> entry, std::shared_ptr<Buffer> buffer, std::shared_ptr<BufferPool_interface> pool) 
+                    : entry{std::move(entry)}, buffer{std::move(buffer)}, pool{std::move(pool)} {}
     };
     // 创建 BufferGuard 对象，确保在作用域结束时执行延迟操作
     BufferGuard guard{newEntry, std::move(buffer), bufPool};

@@ -9,7 +9,7 @@
  * 
  */
 #include "main/build.h"
-
+#include "config/new.h"
 /**
  * @brief 返回build命令的标志
  * <p>根据BuildOptions结构体中的标志名，创建并初始化每个flag
@@ -104,7 +104,9 @@ Flagset* GetLayerFlags(LayerResults* lr){
 }
 
 Flagset* GetFromAndBudFlags(FromAndBudResults* fr){
+
     Flagset* flags=new Flagset();
+    auto defaultContainerConfig=Config_defaut();
     flags->StringSliceVar(fr->AddHost, "add-host", vector<string>(), "add a custom host-to-IP mapping (`host:ip`) (default [])");
 	flags->StringVar(fr->BlobCache, "blob-cache", "", "assume image blobs in the specified directory will be available for pushing");
 	flags->MarkHidden("blob-cache"); 

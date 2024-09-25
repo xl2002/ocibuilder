@@ -68,7 +68,7 @@ public:
     // 日志在互斥锁中通过 `io.Copy` 写入此处。通常将其设置为文件，
     // 或保留默认值 `os.Stderr`。你也可以将其设置为更具冒险性的目标，
     // 比如记录到 Kafka。
-    std::shared_ptr<std::ofstream> Out;
+    std::shared_ptr<std::ofstream> Out=std::make_shared<std::ofstream>();
     // 日志实例的钩子。这些钩子允许基于日志级别和日志条目触发事件。
     // 例如，可以将错误发送到错误跟踪服务、记录到 StatsD，
     // 或在致命错误时转储核心。
