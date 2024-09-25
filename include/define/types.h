@@ -59,7 +59,7 @@ struct SystemContext  {
 	// Path to the user-specific short-names configuration file
 	string UserShortNameAliasConfPath;
 	// If set, short-name resolution in shortnames must follow the specified mode
-	std::shared_ptr<ShortNameMode> shortNameMode=nullptr;
+	std::shared_ptr<ShortNameMode> shortNameMode=std::make_shared<ShortNameMode>();
 	// If set, short names will resolve in shortnames to docker.io only, and unqualified-search registries and
 	// short-name aliases in registries.conf are ignored.  Note that this field is only intended to help enforce
 	// resolving to Docker Hub in the Docker-compatible REST API of Podman; it should never be used outside this
@@ -115,7 +115,7 @@ struct SystemContext  {
 	OptionalBool DockerInsecureSkipTLSVerify ;
 	// if nil, the library tries to parse ~/.docker/config.json to retrieve credentials
 	// Ignored if DockerBearerRegistryToken is non-empty.
-	std::shared_ptr<DockerAuthConfig> dockerAuthConfig =nullptr;
+	std::shared_ptr<DockerAuthConfig> dockerAuthConfig = std::make_shared<DockerAuthConfig>();
 	// if not "", the library uses this registry token to authenticate to the registry
 	string DockerBearerRegistryToken;
 	// if not "", an User-Agent header is added to each request when contacting a registry.
@@ -152,9 +152,9 @@ struct SystemContext  {
 	bool DirForceDecompress=false;
 
 	// CompressionFormat is the format to use for the compression of the blobs
-	std::shared_ptr<Algorithm> CompressionFormat=nullptr;
+	std::shared_ptr<Algorithm> CompressionFormat=std::make_shared<::Algorithm>();
 	// CompressionLevel specifies what compression level is used
-	std::shared_ptr<int> CompressionLevel=nullptr;
+	std::shared_ptr<int> CompressionLevel=std::make_shared<int>(0);
 	SystemContext()= default;
 	~SystemContext()= default;
 };
@@ -213,12 +213,12 @@ struct SBOMScanOptions {
     SBOMMergeStrategy MergeStrategy;  // 多次扫描的输出合并方式
 };
 struct BlobInfo{
-	std::shared_ptr<Digest> Digest=nullptr;
+	std::shared_ptr<Digest> Digest=std::make_shared<::Digest>();
 	int64_t Size=0;
 	std::vector<std::string> URLs;
 	std::map<std::string, std::string> Annotations;
 	std::string MediaType;
-	std::shared_ptr<Algorithm> CompressionAlgorithm=nullptr;
+	std::shared_ptr<Algorithm> CompressionAlgorithm=std::make_shared<::Algorithm>();
 };
 enum class progressevent:uint8_t{
 	ProgressEventNewArtifact,
@@ -231,8 +231,8 @@ struct ProgressEvent{
 };
 
 struct ProgressProperties{
-	std::shared_ptr<ProgressProperties> Event=nullptr;
-	std::shared_ptr<BlobInfo> Artifact=nullptr;
+	std::shared_ptr<ProgressProperties> Event=std::make_shared<ProgressProperties>();
+	std::shared_ptr<BlobInfo> Artifact=std::make_shared<BlobInfo>();
 	uint64_t Offset=0;
 	uint64_t OffsetUpdate=0;
 };

@@ -32,20 +32,20 @@ class StageExecutor:public Executor_Interface {
 public:
     // 成员变量
     // std::shared_ptr<void> ctx; // 假设context类型的实现，以void指针代替。可以换为合适的C++ context类型或自定义实现
-    std::shared_ptr<Executor> executor=nullptr;
+    std::shared_ptr<Executor> executor=std::shared_ptr<Executor>();
     std::function<void(std::string format,std::vector<std::string>args)> log;
     int index=0;
-    std::shared_ptr<Stages> stages=nullptr;
+    std::shared_ptr<Stages> stages=std::shared_ptr<Stages>();
     std::string name;
-    std::shared_ptr<Builder> builder=nullptr;
+    std::shared_ptr<Builder> builder=std::shared_ptr<Builder>();
     int preserved=0;
-    std::shared_ptr<VolumeSet> volumes=nullptr;
+    std::shared_ptr<VolumeSet> volumes=std::shared_ptr<VolumeSet>();
     std::map<std::string, std::string> volumeCache;
     std::map<std::string, struct stat> volumeCacheInfo; // Use `struct stat` to hold file info
     std::string mountPoint;
     std::string output;
     std::vector<std::string> containerIDs;
-    std::shared_ptr<Stage> stage=nullptr;
+    std::shared_ptr<Stage> stage=std::shared_ptr<Stage>();
     bool didExecute=false;
     std::vector<std::string> argsFromContainerfile;
 

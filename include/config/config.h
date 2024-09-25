@@ -24,24 +24,24 @@ using std::vector;
 
 
 
-extern const std::string _configPath;
-extern const std::string UserOverrideContainersConfig;
-extern const std::string bindirPrefix;
+extern  std::string _configPath;
+extern  std::string UserOverrideContainersConfig;
+extern  std::string bindirPrefix;
 
 
 struct ContainersConfig {
     // Devices to add to all containers
-    std::shared_ptr<Slice> Devices=nullptr;
+    std::shared_ptr<Slice> Devices=std::make_shared<Slice>();
 
     // Volumes to add to all containers
-    std::shared_ptr<Slice> Volumes=nullptr;
+    std::shared_ptr<Slice> Volumes=std::make_shared<Slice>();
 
     // ApparmorProfile is the apparmor profile name which is used as the
     // default for the runtime.
     std::string ApparmorProfile;
 
     // Annotations to add to all containers
-    std::shared_ptr<Slice> Annotations=nullptr;
+    std::shared_ptr<Slice> Annotations=std::make_shared<Slice>();
 
     // BaseHostsFile is the path to a hosts file, the entries from this file
     // are added to the containers hosts file.
@@ -54,28 +54,28 @@ struct ContainersConfig {
     std::string Cgroups;
 
     // CgroupConf entries specifies a list of cgroup files to write to and their values.
-    std::shared_ptr<Slice> CgroupConf=nullptr;
+    std::shared_ptr<Slice> CgroupConf=std::make_shared<Slice>();
 
     // Capabilities to add to all containers.
-    std::shared_ptr<Slice> DefaultCapabilities=nullptr;
+    std::shared_ptr<Slice> DefaultCapabilities=std::make_shared<Slice>();
 
     // Sysctls to add to all containers.
-    std::shared_ptr<Slice> DefaultSysctls=nullptr;
+    std::shared_ptr<Slice> DefaultSysctls=std::make_shared<Slice>();
 
     // DefaultUlimits specifies the default ulimits to apply to containers
-    std::shared_ptr<Slice> DefaultUlimits=nullptr;
+    std::shared_ptr<Slice> DefaultUlimits=std::make_shared<Slice>();
 
     // DefaultMountsFile is the path to the default mounts file for testing
     std::string DefaultMountsFile;
 
     // DNSServers set default DNS servers.
-    std::shared_ptr<Slice> DNSServers=nullptr;
+    std::shared_ptr<Slice> DNSServers=std::make_shared<Slice>();
 
     // DNSOptions set default DNS options.
-    std::shared_ptr<Slice> DNSOptions=nullptr;
+    std::shared_ptr<Slice> DNSOptions=std::make_shared<Slice>();
 
     // DNSSearches set default DNS search domains.
-    std::shared_ptr<Slice> DNSSearches=nullptr;
+    std::shared_ptr<Slice> DNSSearches=std::make_shared<Slice>();
 
     // EnableKeyring tells the container engines whether to create
     // a kernel keyring for use within the container
@@ -90,7 +90,7 @@ struct ContainersConfig {
     bool EnableLabeledUsers = false;
 
     // Env is the environment variable list for container process.
-    std::shared_ptr<Slice> Env=nullptr;
+    std::shared_ptr<Slice> Env=std::make_shared<Slice>();
 
     // EnvHost Pass all host environment variables into the container.
     bool EnvHost = false;
@@ -124,7 +124,7 @@ struct ContainersConfig {
     std::string LogTag;
 
     // Mount to add to all containers
-    std::shared_ptr<Slice> Mounts=nullptr;
+    std::shared_ptr<Slice> Mounts=std::make_shared<Slice>();
 
     // NetNS indicates how to create a network namespace for the container
     std::string NetNS;
@@ -184,19 +184,19 @@ struct EngineConfig {
     std::string CgroupManager;
 
     // ConmonEnvVars 是在启动 Conmon 二进制文件时传递的环境变量。
-    std::shared_ptr<Slice> ConmonEnvVars=nullptr;
+    std::shared_ptr<Slice> ConmonEnvVars=std::make_shared<Slice>();
 
     // ConmonPath 是用于管理容器的 Conmon 二进制文件的路径。将使用指向有效文件的第一个路径。
-    std::shared_ptr<Slice> ConmonPath=nullptr;
+    std::shared_ptr<Slice> ConmonPath=std::make_shared<Slice>();
 
     // ConmonRsPath 是用于管理容器的 Conmon-rs 二进制文件的路径。将使用指向有效文件的第一个路径。
-    std::shared_ptr<Slice> ConmonRsPath=nullptr;
+    std::shared_ptr<Slice> ConmonRsPath=std::make_shared<Slice>();
 
     // CompatAPIEnforceDockerHub 强制在 Podman 的兼容性 REST API 中使用 docker.io 来完成短名称。
     bool CompatAPIEnforceDockerHub=false;
 
     // ComposeProviders 指定一个或多个外部提供者用于 compose 命令。第一个找到的提供者将用于执行。
-    std::shared_ptr<Slice>  ComposeProviders=nullptr;
+    std::shared_ptr<Slice>  ComposeProviders=std::make_shared<Slice>();
 
     // ComposeWarningLogs 发出日志，指示在每次调用 compose 命令时正在执行外部 compose 提供者。
     bool ComposeWarningLogs=false;
@@ -211,7 +211,7 @@ struct EngineConfig {
     bool EnablePortReservation=false;
 
     // Env 是运行容器引擎（例如 Podman、Buildah）时要使用的环境变量。
-    std::shared_ptr<Slice> Env=nullptr;
+    std::shared_ptr<Slice> Env=std::make_shared<Slice>();
 
     // EventsLogFilePath 是事件日志存储的位置。
     std::string EventsLogFilePath;
@@ -229,10 +229,10 @@ struct EngineConfig {
     std::string graphRoot;
 
     // HelperBinariesDir 是用于搜索辅助二进制文件的目录列表。
-    std::shared_ptr<Slice> HelperBinariesDir=nullptr;
+    std::shared_ptr<Slice> HelperBinariesDir=std::make_shared<Slice>();
 
     // HooksDir 是用于挂载钩子文件的目录列表。当多个目录中存在相同的文件名时，最后列出的目录中的文件具有优先权。
-    std::shared_ptr<Slice>  HooksDir=nullptr;
+    std::shared_ptr<Slice>  HooksDir=std::make_shared<Slice>();
 
     // ImageBuildFormat （已弃用）指示构建容器映像时的默认映像格式。应使用 ImageDefaultFormat。
     std::string ImageBuildFormat;
@@ -274,7 +274,7 @@ struct EngineConfig {
     std::string NetworkCmdPath;
 
     // NetworkCmdOptions 是传递给 slirp4netns 二进制文件的默认选项。例如 "allow_host_loopback=true"
-    std::shared_ptr<Slice> NetworkCmdOptions=nullptr;
+    std::shared_ptr<Slice> NetworkCmdOptions=std::make_shared<Slice>();
 
     // NoPivotRoot 设置是否在 OCI 运行时中设置 no-pivot-root。
     bool NoPivotRoot=false;
@@ -292,7 +292,7 @@ struct EngineConfig {
     std::map<std::string, std::string> PlatformToOCIRuntime;
 
     // PodExitPolicy 确定最后一个 pod 容器退出时的行为。
-    std::shared_ptr<PodExitPolicy> PodExitPolicy=nullptr;
+    std::shared_ptr<PodExitPolicy> PodExitPolicy=std::make_shared<::PodExitPolicy>();
 
     // PullPolicy 决定在创建或运行容器之前是否拉取映像，默认是 "missing"。
     std::string PullPolicy;
@@ -316,7 +316,7 @@ struct EngineConfig {
     std::string ActiveService;
 
     // AddCompression 向清单列表中添加带有请求的压缩算法的现有实例。
-    std::shared_ptr<Slice> AddCompression=nullptr;
+    std::shared_ptr<Slice> AddCompression=std::make_shared<Slice>();
 
     // ServiceDestinations 映射到服务名称的目标。
     std::map<std::string, Destination> ServiceDestinations;
@@ -325,19 +325,19 @@ struct EngineConfig {
     std::string SSHConfig;
 
     // RuntimePath 是用于启动容器的 OCI 运行时二进制文件的路径。
-    std::shared_ptr<Slice> RuntimePath=nullptr;
+    std::shared_ptr<Slice> RuntimePath=std::make_shared<Slice>();
 
     // RuntimeSupportsJSON 是支持 --format=json 的 OCI 运行时列表。
-    std::shared_ptr<Slice> RuntimeSupportsJSON=nullptr;
+    std::shared_ptr<Slice> RuntimeSupportsJSON=std::make_shared<Slice>();
 
     // RuntimeSupportsNoCgroups 是支持在没有 CGroup 的情况下运行容器的 OCI 运行时列表。
-    std::shared_ptr<Slice> RuntimeSupportsNoCgroups=nullptr;
+    std::shared_ptr<Slice> RuntimeSupportsNoCgroups=std::make_shared<Slice>();
 
     // RuntimeSupportsKVM 是支持容器 KVM 分离的 OCI 运行时列表。
-    std::shared_ptr<Slice> RuntimeSupportsKVM=nullptr;
+    std::shared_ptr<Slice> RuntimeSupportsKVM=std::make_shared<Slice>();
 
     // SetOptions 包含配置选项的子集。
-    std::shared_ptr<SetOptions> setOptions=nullptr;
+    std::shared_ptr<SetOptions> setOptions=std::make_shared<SetOptions>();
 
     // SignaturePolicyPath 是用于验证映像的签名策略的路径。
     std::string SignaturePolicyPath;
@@ -379,7 +379,7 @@ struct EngineConfig {
     std::string CompressionFormat;
 
     //CompressionLevel 是用于压缩图像层的压缩级别。
-    std::shared_ptr<int> CompressionLevel=nullptr;
+    std::shared_ptr<int> CompressionLevel=std::make_shared<int>(0);
 
     //PodmanshTimeout 是等待 podmansh 登录的秒数。
     uint32_t PodmanshTimeout=0;
@@ -419,7 +419,7 @@ struct eventsLogMaxSize{
 };
 
 struct SubnetPool{
-    std::shared_ptr<IPNet> Base=nullptr;
+    std::shared_ptr<IPNet> Base=std::make_shared<IPNet>();
     int Size=0;
     SubnetPool(std::shared_ptr<IPNet> base, int size)
     : Base(base), Size(size) {}
@@ -430,10 +430,10 @@ struct NetworkConfig {
     std::string NetworkBackend;
 
     // CNIPluginDirs 是存储 CNI 插件二进制文件的目录
-    std::shared_ptr<Slice> CNIPluginDirs=nullptr;
+    std::shared_ptr<Slice> CNIPluginDirs=std::make_shared<Slice>();
 
     // NetavarkPluginDirs 是包含 netavark 插件的目录列表
-    std::shared_ptr<Slice> NetavarkPluginDirs=nullptr;
+    std::shared_ptr<Slice> NetavarkPluginDirs=std::make_shared<Slice>();
 
     // FirewallDriver 是要使用的防火墙驱动程序
     std::string FirewallDriver;
@@ -457,7 +457,7 @@ struct NetworkConfig {
     uint16_t DNSBindPort = 0;
 
     // PastaOptions 包含运行 pasta 时应使用的默认选项列表
-    std::shared_ptr<Slice> PastaOptions=nullptr;
+    std::shared_ptr<Slice> PastaOptions=std::make_shared<Slice>();
 };
 
 struct SecretConfig{
@@ -496,7 +496,7 @@ struct MachineConfig {
     std::string User; // toml:"user,omitempty"
     
     // 默认挂载到虚拟机中的主机目录。
-    std::shared_ptr<Slice> Volumes=nullptr; // toml:"volumes,omitempty"
+    std::shared_ptr<Slice> Volumes=std::make_shared<Slice>(); // toml:"volumes,omitempty"
     
     // 用于运行 podman-machine 虚拟机的虚拟化提供者。
     std::string Provider; // toml:"provider,omitempty"
@@ -517,13 +517,13 @@ struct FarmConfig{
  */
 class Config{
     public:
-    std::shared_ptr<ContainersConfig>    Containers=nullptr;
-    std::shared_ptr<EngineConfig>        Engine=nullptr;
-    std::shared_ptr<MachineConfig>       Machine=nullptr;
-    std::shared_ptr<NetworkConfig>       Network=nullptr;
-    std::shared_ptr<SecretConfig>        Secrets=nullptr;
-    std::shared_ptr<ConfigMapConfig>     ConfigMaps=nullptr;
-    std::shared_ptr<FarmConfig>          Farms=nullptr;
+    std::shared_ptr<ContainersConfig>    Containers=std::make_shared<ContainersConfig>();
+    std::shared_ptr<EngineConfig>        Engine=std::make_shared<EngineConfig>();
+    std::shared_ptr<MachineConfig>       Machine=std::make_shared<MachineConfig>();
+    std::shared_ptr<NetworkConfig>       Network=std::make_shared<NetworkConfig>();
+    std::shared_ptr<SecretConfig>        Secrets= std::make_shared<SecretConfig>();
+    std::shared_ptr<ConfigMapConfig>     ConfigMaps=std::make_shared<ConfigMapConfig>();
+    std::shared_ptr<FarmConfig>          Farms=std::make_shared<FarmConfig>();
     std::vector<std::string>             loadedModules;
     // Config()=default;
     void CheckCgroupsAndAdjustConfig();
@@ -543,10 +543,10 @@ struct DecryptConfig{
 };
 struct EncryptConfig{
     std::map<std::string,std::vector<std::vector<uint8_t>>> Parameters;
-    std::shared_ptr<DecryptConfig> DecryptConfig=nullptr;
+    std::shared_ptr<DecryptConfig> DecryptConfig=std::make_shared<::DecryptConfig>();
 };
 struct CryptoConfig{
-    std::shared_ptr<EncryptConfig> EncryptConfig=nullptr;
-    std::shared_ptr<DecryptConfig> DecryptConfig=nullptr;
+    std::shared_ptr<EncryptConfig> EncryptConfig=std::make_shared<::EncryptConfig>();
+    std::shared_ptr<DecryptConfig> DecryptConfig=std::make_shared<::DecryptConfig>();
 };
 #endif

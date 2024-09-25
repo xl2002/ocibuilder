@@ -12,14 +12,14 @@
 #include "go/string.h"
 #include "selinux/selinux.h"
 #include <boost/compute/detail/getenv.hpp>
-const std::string
-	// _configPath is the path to the containers/containers.conf
-	// inside a given config directory.
-	_configPath = "containers/containers.conf",
-	// UserOverrideContainersConfig holds the containers config path overridden by the rootless user
-	UserOverrideContainersConfig = ".config/" + _configPath,
-	// Token prefix for looking for helper binary under $BINDIR
-	bindirPrefix = "$BINDIR";
+// const std::string
+// 	// _configPath is the path to the containers/containers.conf
+// 	// inside a given config directory.
+// 	_configPath = "containers/containers.conf",
+// 	// UserOverrideContainersConfig holds the containers config path overridden by the rootless user
+// 	UserOverrideContainersConfig = ".config/" + _configPath,
+// 	// Token prefix for looking for helper binary under $BINDIR
+// 	bindirPrefix = "$BINDIR";
 
 void Config::CheckCgroupsAndAdjustConfig(){
     return;

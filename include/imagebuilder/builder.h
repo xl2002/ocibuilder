@@ -64,7 +64,7 @@ public:
 class Executor_Interface;
 class Image_Builder {
 public:
-    std::shared_ptr<container_Config> RunConfig=nullptr;
+    std::shared_ptr<container_Config> RunConfig=std::make_shared<container_Config>();
 
     std::vector<std::string> Env;
     std::map<std::string, std::string> Args;
@@ -75,10 +75,10 @@ public:
     
     std::vector<std::string> GlobalAllowedArgs;
     std::map<std::string, bool> AllowedArgs;
-    std::shared_ptr<VolumeSet> Volumes=nullptr;
+    std::shared_ptr<VolumeSet> Volumes=std::make_shared<VolumeSet>();
     std::vector<std::string> Excludes;
 
-    std::shared_ptr<VolumeSet> PendingVolumes=nullptr;
+    std::shared_ptr<VolumeSet> PendingVolumes=std::make_shared<VolumeSet>();
     std::vector<Run> PendingRuns;
     std::vector<Copy> PendingCopies;
 

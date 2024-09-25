@@ -34,8 +34,8 @@ class Flag{
     string  name;                   ///<在命令行中显示的名称
     // string  shorthand;           ///<单字母缩写标志
     string  usage_help;             ///<帮助信息
-    Value*  value=nullptr;          ///<用来保存标签从参数列表中分析得到值
-    // shared_ptr<Value> value;
+    Value_interface*  value=nullptr;          ///<用来保存标签从参数列表中分析得到值
+    // shared_ptr<Value_interface> value;
     string  default_value;          ///<标签的默认值
     string  NoOptDefVal;            ///< 默认值（作为文本）；如果该标志位于命令行上且没有任何选项
     map<string,vector<string>> Annotations; ///< 由 bash 自动完成代码使用
@@ -45,7 +45,7 @@ class Flag{
     string  shorthand_deprecated;         ///<如果不推荐使用此标志的简写，则此字符串是新的或现在要使用的字符串
     // set<string> values;                ///<设定值
     Flag()=default;
-    Flag(string name,string usage,Value* v,string values);
+    Flag(string name,string usage,Value_interface* v,string values);
     ~Flag();
 };
 /**
@@ -70,7 +70,7 @@ class Flagset{
     
     Flagset()=default;                      ///<构造函数
     ~Flagset();
-    Flag* Addvar(Value* value,string name,string usage);
+    Flag* Addvar(Value_interface* value,string name,string usage);
     void StringVar(string &option_name, string name,string value, string usage);
     void StringArrayVar(vector<string>& option_name, string name ,vector<string> value , string usage);
     void String(string name, string value, string usage);

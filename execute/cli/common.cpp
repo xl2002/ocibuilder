@@ -65,9 +65,9 @@ string ParseBool(string str){
 /**
  * @brief 根据命令 cmd 获取对应的 store 对象
  * @param cmd 命令
- * @return shared_ptr<store> store 对象
+ * @return shared_ptr<Store> store 对象
  */
-shared_ptr<store> getStore(Command* cmd){
+shared_ptr<Store> getStore(Command* cmd){
     auto needToShutdownStore =false;
     // if (!setXDGRuntimeDir()) {
     //     cerr << "Failed to set XDG runtime directory" << endl;
@@ -137,7 +137,7 @@ shared_ptr<store> getStore(Command* cmd){
 
     umask(0);
 
-    shared_ptr<store> store = GetStore(options);
+    shared_ptr<Store> store = GetStore(options);
     if (store) {
         // 假设 is::Transport::SetStore(store) 的替代实现
         // is.Transport.SetStore(store);

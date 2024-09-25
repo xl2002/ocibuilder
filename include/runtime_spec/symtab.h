@@ -21,6 +21,7 @@ public:
 
 public:
     // 构造函数
+    Func() = default;
     Func(const std::string& name) : funcName(name) {}
 
     // 公有接口，用于获取函数名称
@@ -87,17 +88,17 @@ struct ptabEntry {
 struct modulehash{
     std::string modulename;
     std::string linktimehash;
-    std::shared_ptr<std::string> runtimehash=nullptr;
+    std::shared_ptr<std::string> runtimehash=std::make_shared<std::string>();
 };
 
 struct bitvector{
     uint32_t n;
-    std::shared_ptr<uint8_t> bytedata=nullptr;
+    std::shared_ptr<uint8_t> bytedata=std::make_shared<uint8_t>(0);
 };
 
 
 struct moduledata {
-    std::shared_ptr<pcHeader> pcHeaderPtr=nullptr;                        // 指向 pcHeader 的指针
+    std::shared_ptr<pcHeader> pcHeaderPtr=std::make_shared<pcHeader>();                        // 指向 pcHeader 的指针
     std::vector<uint8_t> funcnametab;             
     std::vector<uint32_t> cutab;                  
     std::vector<uint8_t> filetab;                 
@@ -120,7 +121,7 @@ struct moduledata {
 
     std::vector<textsect> textsectmap;            
     std::vector<int32_t> typelinks;               // 从类型的偏移量
-    std::shared_ptr<std::vector<itab>> itablinks=nullptr;                 
+    std::shared_ptr<std::vector<itab>> itablinks=std::make_shared<std::vector<itab>>();                 
 
     std::vector<ptabEntry> ptab;                  
 
@@ -134,17 +135,17 @@ struct moduledata {
 
     bitvector gcdatamask, gcbssmask;              
 
-    std::shared_ptr<std::map<int32_t, _type>> typemap=nullptr;            
+    std::shared_ptr<std::map<int32_t, _type>> typemap=std::make_shared<std::map<int32_t, _type>>();            
 
     bool bad;                                     
 
-    std::shared_ptr<moduledata> next=nullptr;                             // 指向下一个 moduledata
+    std::shared_ptr<moduledata> next=std::make_shared<moduledata>();                             // 指向下一个 moduledata
 };
 
 // funcInfo 结构体
 struct funcInfo {
-    std::shared_ptr<_func> funcPtr=nullptr;        // 指向 _func 的指针
-    std::shared_ptr<moduledata> datap=nullptr;     // 指向 moduledata 的指针
+    std::shared_ptr<_func> funcPtr=std::make_shared<_func>();        // 指向 _func 的指针
+    std::shared_ptr<moduledata> datap=std::make_shared<moduledata>();     // 指向 moduledata 的指针
 };
 
 
@@ -152,7 +153,7 @@ struct funcInfo {
 struct Frame {
     
     uintptr_t PC;        // 程序计数器（PC）用于表示当前帧的位置
-    std::shared_ptr<Func> funcPtr=nullptr;          // 函数指针，用于表示当前帧所对应的函数   
+    std::shared_ptr<Func> funcPtr=std::make_shared<Func>();          // 函数指针，用于表示当前帧所对应的函数   
     std::string Function;// 函数名，包路径限定的函数名
 
     std::string File;    // 文件名和行号，表示当前帧的位置

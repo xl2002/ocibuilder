@@ -27,6 +27,6 @@ struct Algorithm_sha256 {
 };
 extern  Algorithm_sha256 SHA256;
 extern  Algorithm_sha256 Canonical_sha256;
-extern std::map<Algorithm_sha256, std::regex> anchoredEncodedRegexps;
+extern  std::map<Algorithm_sha256, std::regex> anchoredEncodedRegexps;
 
 #endif // DIGEST_ALGORITHM_H)

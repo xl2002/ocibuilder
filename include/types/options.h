@@ -33,7 +33,7 @@ using std::vector;
  * @brief 记录镜像存储方面的信息
  * 
  */
-class store;
+class Store;
 class StoreOptions{
     public:
     // 文件系统路径，用于存储运行时信息，如活动挂载点的位置，这些信息在主机重启后将丢失。
@@ -75,9 +75,9 @@ struct ReloadConfig {
     std::mutex mutex;
     std::string configFile;
 };
-extern const string overlayDriver;
-extern const string overlay2;
-extern const string storageConfEnv;
+extern string overlayDriver;
+extern string overlay2;
+extern string storageConfEnv;
 //函数声明
 bool loadDefaultStoreOptionsIfNeeded();
 StoreOptions DefaultStoreOptions();
@@ -96,5 +96,5 @@ bool DirectoryExists(const std::string& path);
 
 bool ReloadConfigurationFileIfNeeded(const std::string& configFile, StoreOptions* storeOptions);
 ///<ReloadConfigurationFileIfNeeded这个函数负责一些初始化变量的赋值
-std::shared_ptr<store> GetStore(StoreOptions options);
+std::shared_ptr<Store> GetStore(StoreOptions options);
 #endif // MACRO

@@ -9,7 +9,7 @@ std::regex reComment(R"(^#.*$)");
 std::regex reHeredoc(R"(^(\d*)<<(-?)([^<]*)$)");
 std::regex reLeadingTabs(R"((^\t+))");
 
-const auto DefaultEscapeToken = '\\';
+// const auto DefaultEscapeToken = '\\';
 std::shared_ptr<Heredoc> heredocFromMatch(const std::vector<std::string>& match) {
     if (match.empty()) {
         return nullptr;

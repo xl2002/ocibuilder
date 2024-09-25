@@ -15,8 +15,10 @@
 #include <winsock2.h>
 #include <windows.h>
 #include <mutex>
+#include <cstring>
 #include <iostream>
 #include "go/file.h"
+#include "logrus/exported.h"
 #include <boost/compute/detail/getenv.hpp>
 // #define PATH_MAX 4096
 using std::string;
@@ -24,11 +26,13 @@ using std::string;
  * @brief 
  * 
  */
-const string overlayDriver  = "overlay";
-const string overlay2       = "overlay2";
-const string storageConfEnv = "CONTAINERS_STORAGE_CONF";
-const string defaultRunRoot = "/run/containers/storage";
-const string defaultGraphRoot = "/var/lib/containers/storage";
+// const string overlayDriver  = "overlay";
+// const string overlay2       = "overlay2";
+// const string storageConfEnv = "CONTAINERS_STORAGE_CONF";
+const string defaultRunRoot = "D:/oci_images";
+// const string defaultRunRoot = "/run/containers/storage";
+const string defaultGraphRoot = "D:/oci_images";
+// const string defaultGraphRoot = "/var/lib/containers/storage";
 const int AutoUserNsMinSize=1024;
 const int AutoUserNsMaxSize=65536;
 /**
@@ -36,15 +40,16 @@ const int AutoUserNsMaxSize=65536;
  * 
  */
 std::once_flag defaultStoreOptionsFlag;
+std::once_flag defaultloadoptions;
 bool defaultConfigFileSet = false;
 /// @brief defaultConfigFile 系统范围的 storage.conf 文件的路径
-std::string defaultConfigFile = "D:/share/containers/storage.conf";
+std::string defaultConfigFile = "D:/storage.conf";
 // std::string storageConfEnv = "STORAGE_CONF_ENV";
 /// @brief 
-std::string defaultOverrideConfigFile = "D:/containers/storage.conf";
+std::string defaultOverrideConfigFile = "D:/storage.conf";
 StoreOptions defaultStoreOptions;
 std::mutex storesLock;
-vector<std::shared_ptr<store>> stores;
+vector<std::shared_ptr<Store>> stores;
 ReloadConfig prevReloadConfig;
 void ReloadConfigurationFile(const std::string& configFile, StoreOptions* storeOptions) {
     // 实现加载配置文件的逻辑
@@ -97,7 +102,9 @@ void loadDefaultStoreOptions() {
         setDefaults(defaultStoreOptions);
 
         // 获取环境变量中的配置文件路径
-        std::string path = boost::compute::detail::getenv(storageConfEnv.c_str());
+        // std::string path = boost::compute::detail::getenv(storageConfEnv.c_str());
+        const char* env_path = boost::compute::detail::getenv(storageConfEnv.c_str());
+        std::string path = env_path ? std::string(env_path) : "";  // 检查 nullptr
         if (!path.empty()) {
             defaultOverrideConfigFile = path;
             if (!ReloadConfigurationFileIfNeeded(defaultOverrideConfigFile, &defaultStoreOptions)) {
@@ -108,7 +115,9 @@ void loadDefaultStoreOptions() {
         }
 
         // 获取 XDG_CONFIG_HOME 环境变量
-        path = boost::compute::detail::getenv("XDG_CONFIG_HOME");
+        auto xdg=boost::compute::detail::getenv("XDG_CONFIG_HOME");
+        path=xdg?std::string(xdg):"";
+        // path = boost::compute::detail::getenv("XDG_CONFIG_HOME");
         if (!path.empty()) {
             std::string homeConfigFile = path + "/containers/storage.conf";
             if (boost::filesystem::exists(homeConfigFile)) {
@@ -136,11 +145,13 @@ void loadDefaultStoreOptions() {
                 throw myerror("重新加载配置文件失败: " + defaultConfigFile);
             }
             setDefaults(defaultStoreOptions);
+            
             return;
         }
-
+        Warningf("Attempting to use %s, %s", defaultConfigFile, strerror(errno));
         // 处理警告
-        std::cerr << "尝试使用 " << defaultConfigFile << ", 错误信息: " << std::strerror(errno) << std::endl;
+
+        // std::cerr << "尝试使用 " << defaultConfigFile << ", 错误信息: " << std::strerror(errno) << std::endl;
         if (!ReloadConfigurationFileIfNeeded(defaultConfigFile, &defaultStoreOptions)) {
             throw myerror("重新加载配置文件失败: " + defaultConfigFile);
         }
@@ -229,7 +240,7 @@ StoreOptions DefaultStoreOptions() {
                 throw; // 重新抛出 myerror 类型的异常
             }
         };
-        std::call_once(defaultStoreOptionsFlag, loadoptions);
+        std::call_once(defaultloadoptions, loadoptions);
     } catch (const myerror& e) {
         throw; // 重新抛出 myerror 类型的异常
     }
@@ -318,7 +329,7 @@ std::string getConfigHome() {
  * @return false 永远不会返回 false，因为当前的实现始终返回 true
  */
 bool usePerUserStorage() {
-    return true; // 假设始终使用用户个人存储
+    return false; // 假设始终使用用户个人存储
 }
 /// @brief 包装了 std::call_once 调用，确保 loadDefaultStoreOptions 只执行一次。
 bool loadDefaultStoreOptionsIfNeeded() {
@@ -479,7 +490,7 @@ StoreOptions loadStoreOptionsFromConfFile(const std::string& storageConf) {
 
     return storageOpts;
 }
-std::shared_ptr<store> GetStore(StoreOptions options) {
+std::shared_ptr<Store> GetStore(StoreOptions options) {
     try {
         // 初始化默认配置
         StoreOptions defaultOpts = DefaultStoreOptions();
@@ -542,7 +553,7 @@ std::shared_ptr<store> GetStore(StoreOptions options) {
         uint32_t auto_ns_max_size = finalOptions.auto_ns_max_size ? finalOptions.auto_ns_max_size : AutoUserNsMaxSize;
 
         // 创建 store 实例
-        auto s = std::make_shared<store>();
+        auto s = std::make_shared<Store>();
         s->run_root = finalOptions.run_root;
         s->graph_driver_name = finalOptions.graph_driver_name;
         s->graph_driver_priority = finalOptions.graph_driver_priority;

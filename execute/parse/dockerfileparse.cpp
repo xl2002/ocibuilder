@@ -93,26 +93,26 @@ void Node::AddChild(std::shared_ptr<Node> child, int startLine, int endLine) {
     Children.push_back(child);
 }
 
-namespace dockerfilecommand {
-    const std::string Add = "add";
-    const std::string Arg = "arg";
-    const std::string Cmd = "cmd";
-    const std::string Copy = "copy";
-    const std::string Entrypoint = "entrypoint";
-    const std::string Env = "env";
-    const std::string Expose = "expose";
-    const std::string From = "from";
-    const std::string Healthcheck = "healthcheck";
-    const std::string Label = "label";
-    const std::string Maintainer = "maintainer";
-    const std::string Onbuild = "onbuild";
-    const std::string Run = "run";
-    const std::string Shell = "shell";
-    const std::string StopSignal = "stopsignal";
-    const std::string User = "user";
-    const std::string Volume = "volume";
-    const std::string Workdir = "workdir";
-}
+// namespace dockerfilecommand {
+//     const std::string Add = "add";
+//     const std::string Arg = "arg";
+//     const std::string Cmd = "cmd";
+//     const std::string Copy = "copy";
+//     const std::string Entrypoint = "entrypoint";
+//     const std::string Env = "env";
+//     const std::string Expose = "expose";
+//     const std::string From = "from";
+//     const std::string Healthcheck = "healthcheck";
+//     const std::string Label = "label";
+//     const std::string Maintainer = "maintainer";
+//     const std::string Onbuild = "onbuild";
+//     const std::string Run = "run";
+//     const std::string Shell = "shell";
+//     const std::string StopSignal = "stopsignal";
+//     const std::string User = "user";
+//     const std::string Volume = "volume";
+//     const std::string Workdir = "workdir";
+// }
 // Function to handle possible parser directives
 // 定义用于存储指令的映射
 using DispatchFunction=std::function<std::tuple<std::shared_ptr<Node>,std::map<std::string,bool>>(std::string,std::shared_ptr<Directive>)>;
@@ -126,27 +126,27 @@ std::map<std::string, DispatchFunction> dispatch={
     {dockerfilecommand::Volume,parseMaybeJSONToList}
 };
 
-std::shared_ptr<Regexp> tokenEscapeCommand=Delayed(R"(^#[ \t]*escape[ \t]*=[ \t]*(?P<escapechar>.).*$)");
-std::shared_ptr<Regexp> tokenPlatformCommand=Delayed(R"(^#[ \t]*platform[ \t]*=[ \t]*(?P<platform>.*)$)");
-std::shared_ptr<Regexp> tokenWhitespace=Delayed(R"([\t\v\f\r ]+)");
-std::shared_ptr<Regexp> tokenComment=Delayed(R"(^#.*$)");
+// std::shared_ptr<Regexp> tokenEscapeCommand=Delayed(R"(^#[ \t]*escape[ \t]*=[ \t]*(?P<escapechar>.).*$)");
+// std::shared_ptr<Regexp> tokenPlatformCommand=Delayed(R"(^#[ \t]*platform[ \t]*=[ \t]*(?P<platform>.*)$)");
+// std::shared_ptr<Regexp> tokenWhitespace=Delayed(R"([\t\v\f\r ]+)");
+// std::shared_ptr<Regexp> tokenComment=Delayed(R"(^#.*$)");
 // 默认转义符号
-const char DefaultEscapeToken = '\\';
+// const char DefaultEscapeToken = '\\';
 
 // 默认平台标识符，假设为构建的默认平台
-std::string defaultPlatformToken = "windows"; // 用实际的默认平台替代
+// std::string defaultPlatformToken = "windows"; // 用实际的默认平台替代
 
 // 定义包含 heredoc 的指令集合
-std::map<std::string, bool> heredocDirectives = {
-    {"ADD", true},
-    {"COPY", true},
-    {"RUN", true}
-};
+// std::map<std::string, bool> heredocDirectives = {
+//     {"ADD", true},
+//     {"COPY", true},
+//     {"RUN", true}
+// };
 
 // 定义允许包含指令的指令集合
-std::map<std::string, bool> heredocCompoundDirectives = {
-    {"ONBUILD", true}
-};
+// std::map<std::string, bool> heredocCompoundDirectives = {
+//     {"ONBUILD", true}
+// };
 void Directive::setEscapeToken(const std::string& s){
     if (s != "`" && s != "\\") {
             throw myerror("invalid ESCAPE '" + s + "'. Must be ` or \\");

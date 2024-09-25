@@ -56,8 +56,8 @@ struct Network {
 
 struct IPNet{
     boost::asio::ip::address_v4 ipAddress;
-    unsigned short prefixLength;
-
+    unsigned short prefixLength=0;
+    IPNet() = default;
     IPNet(boost::asio::ip::address_v4 ipAddress, unsigned short prefixLength)
         : ipAddress(ipAddress), prefixLength(prefixLength) {}
 };

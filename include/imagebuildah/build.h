@@ -15,6 +15,6 @@
 using std::string;
 using std::vector;
 
-string BuildDockerfiles(shared_ptr<store> stores, shared_ptr<define_BuildOptions> options,vector<string> paths,shared_ptr<Canonical_interface> ret_ref);
+string BuildDockerfiles(shared_ptr<Store> stores, shared_ptr<define_BuildOptions> options,vector<string> paths,shared_ptr<Canonical_interface> ret_ref);
 
 #endif // IMAGEBUILDAH_BUILD_H

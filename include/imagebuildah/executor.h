@@ -51,16 +51,16 @@ struct Executor {
     std::string containerSuffix;
     // std::shared_ptr<Logger> logger;
     std::map<std::string, std::shared_ptr<StageExecutor>> stages;
-    std::shared_ptr<store> store=nullptr;
+    std::shared_ptr<Store> store=std::make_shared<Store>();
     std::string contextDir;
-    std::shared_ptr<PullPolicy> pullPolicy=nullptr;
+    std::shared_ptr<PullPolicy> pullPolicy=std::make_shared<::PullPolicy>();
     std::string registry;
     bool ignoreUnrecognizedInstructions=false;
     bool quiet=false;
     std::string runtime;
     std::vector<std::string> runtimeArgs;
     std::vector<Mount> transientMounts;
-    std::shared_ptr<Compression> compression=nullptr;
+    std::shared_ptr<Compression> compression=std::make_shared<::Compression>();
     std::string output;
     std::string outputFormat;
     std::vector<std::string> additionalTags;
@@ -69,18 +69,18 @@ struct Executor {
     std::ostream* out=nullptr;
     std::ostream* err=nullptr;
     std::string signaturePolicyPath;
-    std::shared_ptr<OptionalBool> skipUnusedStages=nullptr;
-    std::shared_ptr<SystemContext> systemContext=nullptr;
+    std::shared_ptr<OptionalBool> skipUnusedStages=std::make_shared<::OptionalBool>();
+    std::shared_ptr<SystemContext> systemContext=std::make_shared<::SystemContext>();
     std::ostream* reportWriter=nullptr;
-    std::shared_ptr<Isolation> isolation=nullptr;
+    std::shared_ptr<Isolation> isolation=std::make_shared<::Isolation>();
     std::vector<NamespaceOption> namespaceOptions;
-    std::shared_ptr<NetworkConfigurationPolicy> configureNetwork=nullptr;
+    std::shared_ptr<NetworkConfigurationPolicy> configureNetwork=std::make_shared<::NetworkConfigurationPolicy>();
     std::string cniPluginPath;
     std::string cniConfigDir;
     // NetworkInterface is the libnetwork network interface used to setup CNI or netavark networks.
     // ContainerNetwork networkInterface;
-    std::shared_ptr<IDMappingOptions> idmappingOptions=nullptr;
-    std::shared_ptr<CommonBuildOptions> commonBuildOptions=nullptr;
+    std::shared_ptr<IDMappingOptions> idmappingOptions=std::make_shared<::IDMappingOptions>();
+    std::shared_ptr<CommonBuildOptions> commonBuildOptions=std::make_shared<::CommonBuildOptions>();
     std::string defaultMountsFilePath;
     std::string iidfile;
     bool squash=false;
@@ -105,19 +105,19 @@ struct Executor {
     std::map<std::string, std::string> globalArgs;
     std::set<std::string> unusedArgs;
     std::vector<std::string> capabilities;
-    std::shared_ptr<ContainerDevices> devices=nullptr;
+    std::shared_ptr<ContainerDevices> devices=std::make_shared<::ContainerDevices>();
     std::vector<std::string> deviceSpecs;
     std::string signBy;
     std::string architecture;
-    std::shared_ptr<std::chrono::system_clock::time_point> timestamp=nullptr; // Uses `std::tm` instead of `*time.Time`
+    std::shared_ptr<std::chrono::system_clock::time_point> timestamp=std::make_shared<std::chrono::system_clock::time_point>(); // Uses `std::tm` instead of `*time.Time`
     std::string os;
     int maxPullPushRetries=0;
     std::chrono::duration<int> retryPullPushDelay;
-    std::shared_ptr<DecryptConfig> ociDecryptConfig=nullptr;
+    std::shared_ptr<DecryptConfig> ociDecryptConfig=std::make_shared<::DecryptConfig>();
     std::string lastError;
     std::map<std::string, std::string> terminatedStage;
     std::mutex stagesLock;
-    std::shared_ptr<Weighted> stagesSemaphore=nullptr;
+    std::shared_ptr<Weighted> stagesSemaphore=std::make_shared<::Weighted>();
     bool logRusage=false;
     std::ostream* rusageLogFile=nullptr;
     std::mutex imageInfoMutex;
@@ -136,7 +136,7 @@ struct Executor {
     std::string osVersion;
     std::vector<std::string> osFeatures;
     std::vector<std::string> envs;
-    std::shared_ptr<ConfidentialWorkloadOptions> confidentialWorkload=nullptr;
+    std::shared_ptr<ConfidentialWorkloadOptions> confidentialWorkload=std::make_shared<::ConfidentialWorkloadOptions>();
     std::vector<SBOMScanOptions> sbomScanOptions;
     std::string cdiConfigDir;
     Executor()=default;
@@ -178,7 +178,7 @@ struct stageDependencyInfo{
 std::shared_ptr<Executor> 
 newExecutor(
     std::string logPrefix,
-    std::shared_ptr<store> stores,
+    std::shared_ptr<Store> stores,
     std::shared_ptr<define_BuildOptions> options,
     std::shared_ptr<Node> mainNode,
     std::vector<std::string> containerFiles);

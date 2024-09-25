@@ -2,100 +2,91 @@
 #include "go/time.h"
 namespace fs = boost::filesystem;
 
-extern std::unordered_map<std::string, std::function<std::shared_ptr<Driver>(const std::string&, const driver_Options&)>> drivers;
+
 // 计算 numContainerLocationIndex
 constexpr unsigned int numContainerLocationIndex = 2; // 这里的 2 是因为我们有两个容器位置的标志
-string store:: RunRoot()
+string Store:: RunRoot()
 {
     return "";
 }
-// 定义优先级驱动程序的向量
-std::vector<std::string> Priority = {
-    "overlay",
-    // We don't support devicemapper without configuration
-    // "devicemapper",
-    "aufs",
-    "btrfs",
-    "zfs",
-    "vfs"
-};
+
 string join(const vector<string>& elem);
 string Join(const vector<string>& elem) {
     return join(elem);
 }
 
-shared_ptr<Driver> store:: New(const string& name, const driver_Options& config) {
-    if (!name.empty()) {
-        // 如果指定了驱动名称，尝试加载指定的驱动，并记录到日志中,日志系统先不考虑
-        // logDebug("[graphdriver] trying provided driver \"" + name + "\"");
-        return GetDriver(name, config);
-    }
+// shared_ptr<Driver> Store:: New(const string& name, const driver_Options& config) {
+//     if (!name.empty()) {
+//         // 如果指定了驱动名称，尝试加载指定的驱动，并记录到日志中,日志系统先不考虑
+//         // logDebug("[graphdriver] trying provided driver \"" + name + "\"");
+//         return GetDriver(name, config);
+//     }
 
-    // 尝试加载之前使用的驱动
-    auto driversMap = ScanPriorDrivers(config.root);
+//     // 尝试加载之前使用的驱动
+//     auto driversMap = ScanPriorDrivers(config.root);
 
-    // 使用提供的优先级列表，如果为空则使用默认的优先级列表
-    vector<string> prioList = config.driverPriority;
-    if (prioList.empty()) {
-        prioList = Priority;
-    }
+//     // 使用提供的优先级列表，如果为空则使用默认的优先级列表
+//     vector<string> prioList = config.driverPriority;
+//     if (prioList.empty()) {
+//         prioList = Priority;
+//     }
 
-    // 遍历优先级列表并尝试加载驱动
-    for (const auto& name : prioList) {
-        if (name == "vfs" && config.driverPriority.empty()) {
-            // 如果优先级列表为空，跳过vfs驱动
-            continue;
-        }
-        if (driversMap.find(name) != driversMap.end()) {
-            // 如果在已加载的驱动中找到优先驱动，尝试加载并返回
-            auto driver = getBuiltinDriver(name, config.root, config);
-            if (!driver) {
-                // 如果加载失败，记录错误日志并返回错误
-                // logError("[graphdriver] prior storage driver " + name + " failed.");
-                throw myerror("Failed to load driver: " + name);
-            }
+//     // 遍历优先级列表并尝试加载驱动
+//     for (const auto& name : prioList) {
+//         if (name == "vfs" && config.driverPriority.empty()) {
+//             // 如果优先级列表为空，跳过vfs驱动
+//             continue;
+//         }
+//         if (driversMap.find(name) != driversMap.end()) {
+//             // 如果在已加载的驱动中找到优先驱动，尝试加载并返回
+//             auto driver = getBuiltinDriver(name, config.root, config);
+//             if (!driver) {
+//                 // 如果加载失败，记录错误日志并返回错误
+//                 // logError("[graphdriver] prior storage driver " + name + " failed.");
+//                 throw myerror("Failed to load driver: " + name);
+//             }
 
-            // 如果有多个已加载的驱动，要求用户显式选择一个驱动
-            if (driversMap.size() - 1 > 0) {
-                vector<string> driversSlice;
-                for (const auto& kv : driversMap) {
-                    driversSlice.push_back(kv.first);
-                }
+//             // 如果有多个已加载的驱动，要求用户显式选择一个驱动
+//             if (driversMap.size() - 1 > 0) {
+//                 vector<string> driversSlice;
+//                 for (const auto& kv : driversMap) {
+//                     driversSlice.push_back(kv.first);
+//                 }
 
-                throw myerror(config.root + " contains several valid graphdrivers: " +
-                                "; Please cleanup or explicitly choose storage driver (-s <DRIVER>)");
-            }
+//                 throw myerror(config.root + " contains several valid graphdrivers: " +
+//                                 "; Please cleanup or explicitly choose storage driver (-s <DRIVER>)");
+//             }
 
-            // logInfo("[graphdriver] using prior storage driver: " + name);
-            return driver;
-        }
-    }
+//             // logInfo("[graphdriver] using prior storage driver: " + name);
+//             return driver;
+//         }
+//     }
 
-    // 按优先级列表顺序检查并加载驱动
-    for (const auto& name : prioList) {
-        auto driver = getBuiltinDriver(name, config.root, config);
-        if (driver) {
-            return driver;
-        }
-    }
+//     // 按优先级列表顺序检查并加载驱动
+//     for (const auto& name : prioList) {
+//         auto driver = getBuiltinDriver(name, config.root, config);
+//         if (driver) {
+//             return driver;
+//         }
+//     }
 
-    // 如果没有找到优先驱动，检查所有已注册的驱动
-    for (auto& kv : drivers) {
-        std::vector<std::string> pathComponents = {config.root, kv.first}; // 创建路径组件的向量
-        std::string path = Join(pathComponents); // 连接路径
-        driver_Options opts;
-        opts.driverOptions = config.driverOptions; // 将现有的 vector<string> 分配给 Options 对象的 driverOptions
-        auto driver = kv.second(path, opts); // 使用 Options 对象作为参数
-        if (driver) {
-            return driver;
-        }
-    }
+//     // 如果没有找到优先驱动，检查所有已注册的驱动
+//     for (auto& kv : drivers) {
+//         std::vector<std::string> pathComponents = {config.root, kv.first}; // 创建路径组件的向量
+//         std::string path = Join(pathComponents); // 连接路径
+//         driver_Options opts;
+//         opts.driverOptions = config.driverOptions; // 将现有的 vector<string> 分配给 Options 对象的 driverOptions
+//         auto driver = kv.second(path, opts); // 使用 Options 对象作为参数
+//         if (driver) {
+//             return driver;
+//         }
+//     }
 
-    // 如果没有找到支持的存储驱动，抛出myerror类型的错误
-    throw myerror("no supported storage backend found");
-}
+//     // 如果没有找到支持的存储驱动，抛出myerror类型的错误
+//     throw myerror("no supported storage backend found");
+// }
 
-shared_ptr<Driver> store::createGraphDriverLocked() {
+shared_ptr<Driver> Store::createGraphDriverLocked() {
     driver_Options config{
         root: graph_root,
         runRoot: run_root,
@@ -437,7 +428,7 @@ bool imageStore::startWritingWithReload(bool canReload) {
         throw myerror("startWritingWithReload failed: " + std::string(e.what()));
     }
 }
-shared_ptr<rwImageStore> newImageStore(const string& dir) {
+shared_ptr<rwImageStore_interface> newImageStore(const string& dir) {
     try {
         // 创建目录
         if (!MkdirAll(dir)) {
@@ -838,7 +829,7 @@ bool containerStore::startWritingWithReload(bool canReload) {
     }
 }
 //newContainerStore的实现
-std::shared_ptr<rwContainerStore> newContainerStore(const std::string& dir, const std::string& runDir, bool transient) {
+std::shared_ptr<rwContainerStore_interface> newContainerStore(const std::string& dir, const std::string& runDir, bool transient) {
     try {
         // 创建目录
         if (!MkdirAll(dir)) {
@@ -898,7 +889,7 @@ std::shared_ptr<rwContainerStore> newContainerStore(const std::string& dir, cons
 
 
 
-void load(store* s) {
+void load(Store* s) {
     try {
         // Lambda 捕获 store 指针
         auto func = [s]() -> std::shared_ptr<Driver> {
@@ -938,7 +929,7 @@ void load(store* s) {
         }
 
         // 创建 ImageStore
-        shared_ptr<rwImageStore> imageStore = newImageStore(gipath);
+        shared_ptr<rwImageStore_interface> imageStore = newImageStore(gipath);
         if (!imageStore) {
             throw myerror("Failed to create ImageStore at: " + gipath);
         }
@@ -957,7 +948,7 @@ void load(store* s) {
         }
 
         // 创建 ContainerStore
-        shared_ptr<rwContainerStore> rcs = newContainerStore(gcpath, rcpath, s->transient_store);
+        shared_ptr<rwContainerStore_interface> rcs = newContainerStore(gcpath, rcpath, s->transient_store);
         if (!rcs) {
             throw myerror("Failed to create ContainerStore.");
 
@@ -1006,14 +997,13 @@ void load(store* s) {
     }
 }
 
-void store::load() {
+void Store::load() {
     try {
         ::load(this);
     } catch (const myerror& e) {
         throw; // 重新抛出 myerror 类型的异常
     }
-}
-void store::DeleteContainer(std::string id){
+}void Store::DeleteContainer(std::string id){
     return;
 }
 

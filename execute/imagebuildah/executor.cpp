@@ -17,7 +17,7 @@
 std::shared_ptr<Executor> 
 newExecutor(
     std::string logPrefix,
-    std::shared_ptr<store> stores,
+    std::shared_ptr<Store> stores,
     std::shared_ptr<define_BuildOptions> options,
     std::shared_ptr<Node> mainNode,
     std::vector<std::string> containerFiles){

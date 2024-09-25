@@ -19,8 +19,8 @@
  * @param v 标签的值
  * @param values 标签的默认值
  */
-Flag::Flag(string name,string usage,Value* v,string values):name(name),usage_help(usage),value(v),default_value(values) {}
-// Flag::Flag(string name,string usage,Value* v,string values):name(name),usage_help(usage),value(std::make_shared<Value>(v)),default_value(values) {}
+Flag::Flag(string name,string usage,Value_interface* v,string values):name(name),usage_help(usage),value(v),default_value(values) {}
+// Flag::Flag(string name,string usage,Value_interface* v,string values):name(name),usage_help(usage),value(std::make_shared<Value_interface>(v)),default_value(values) {}
 /**
  * @brief 销毁Flag::Flag对象
  * 
@@ -73,7 +73,7 @@ Flagset::~Flagset(){
  * @param usage 标签的用途
  * @return Flag* 返回标签的指针
  */
-Flag* Flagset::Addvar(Value* value,string name,string usage){
+Flag* Flagset::Addvar(Value_interface* value,string name,string usage){
     Flag* flag=new Flag{name,usage,value,value->String()};
     AddFlag(flag);
     // ret_flag=*flag;

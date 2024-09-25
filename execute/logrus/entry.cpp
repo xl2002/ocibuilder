@@ -127,7 +127,7 @@ void Entry::log(const Level& level, const std::string& msg) {
     struct BufferGuard {
         std::shared_ptr<Entry> entry;
         std::shared_ptr<Buffer> buffer;
-        std::shared_ptr<BufferPool> pool;
+        std::shared_ptr<BufferPool_interface> pool;
 
         ~BufferGuard() {
             // 延迟执行逻辑
@@ -299,12 +299,12 @@ std::shared_ptr<Entry> Entry::Dup() {
     return newEntry;
     // return std::make_shared<Entry>(LoggerPtr, newData, Time, ContextPtr, err);
 }
-// 获取关联的 BufferPool
-std::shared_ptr<BufferPool> Entry::getBufferPool() {
+// 获取关联的 BufferPool_interface
+std::shared_ptr<BufferPool_interface> Entry::getBufferPool() {
     if (LoggerPtr && LoggerPtr->BufferPoolPtr) {
         return LoggerPtr->BufferPoolPtr;
     }
-    return globalBufferPool; // 返回默认的全局 BufferPool
+    return globalBufferPool; // 返回默认的全局 BufferPool_interface
 }
 void Entry::fireHooks() {
     // 临时 LevelHooks 对象，用于复制 Logger 的钩子
@@ -359,10 +359,10 @@ bool Entry::HasCaller(){
 }
 
 // 全局变量，用于缓存包名等信息
-std::string logrusPackage;
-int minimumCallerDepth = 1;  // 在堆栈初始化前的默认深度
-const int maximumCallerDepth = 25;
-const int knownLogrusFrames = 4;
+// std::string logrusPackage;
+// int minimumCallerDepth = 1;  // 在堆栈初始化前的默认深度
+// const int maximumCallerDepth = 25;
+// const int knownLogrusFrames = 4;
 
 // 使用 std::once_flag 保证初始化只执行一次
 std::once_flag callerInitOnce;

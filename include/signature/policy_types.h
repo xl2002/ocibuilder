@@ -17,7 +17,7 @@ struct PolicyTransportScopes{
 };
 
 struct Policy{
-    std::shared_ptr<PolicyRequirements> Default=nullptr;
+    std::shared_ptr<PolicyRequirements> Default=std::make_shared<PolicyRequirements>();
     std::map<std::string,PolicyTransportScopes> Transports;
 };
 

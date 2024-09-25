@@ -15,35 +15,35 @@
 #include <unistd.h> // For access function
 using namespace std;
 // 定义ProtoDriver抽象基类
-
+// class Driver;
 
 // 定义错误信息
-const string ErrNotSupported = "driver not supported";
-const string ErrPrerequisites = "prerequisites for driver not satisfied (wrong filesystem?)";
-const string ErrIncompatibleFS = "backing file system is unsupported for this graph driver";
-const string ErrLayerUnknown = "unknown layer";
+extern string ErrNotSupported;
+extern string ErrPrerequisites;
+extern string ErrIncompatibleFS;
+extern string ErrLayerUnknown;
 // const myerror ErrNotSupported = myerror("driver not supported");
 // const myerror ErrPrerequisites = myerror("prerequisites for driver not satisfied (wrong filesystem?)");
 // const myerror ErrIncompatibleFS = myerror("backing file system is unsupported for this graph driver");
 // const myerror ErrLayerUnknown = myerror("unknown layer");
 
-class ProtoDriver {
+class ProtoDriver_interface {
 public:
-    virtual ~ProtoDriver() {}
+    virtual ~ProtoDriver_interface() {}
     virtual string String() = 0;
 };
 
 // 定义DiffDriver抽象基类
-class DiffDriver {
+class DiffDriver_interface {
 public:
-    virtual ~DiffDriver() {}
+    virtual ~DiffDriver_interface() {}
     virtual void Method2() = 0;
 };
 
 // 定义LayerIDMapUpdater抽象基类
-class LayerIDMapUpdater {
+class LayerIDMapUpdater_interface {
 public:
-    virtual ~LayerIDMapUpdater() {}
+    virtual ~LayerIDMapUpdater_interface() {}
     virtual void UpdateLayerIDMap(string& id) = 0;
 };
 // Quota 类
@@ -77,11 +77,11 @@ public:
     bool useComposefs;                                // 是否使用 composefs
 };
 // Driver 类定义
-class Driver : public ProtoDriver, public DiffDriver, public LayerIDMapUpdater {
+class Driver : public ProtoDriver_interface, public DiffDriver_interface, public LayerIDMapUpdater_interface {
 public:
     virtual ~Driver() {}
 
-    // ProtoDriver 的实现
+    // ProtoDriver_interface 的实现
     std::string String() override {
         return "MyDriver"; // 示例实现
     }
@@ -96,7 +96,7 @@ public:
     // std::shared_ptr<RefCounter> ctr; // RefCounter
     // std::shared_ptr<Control> quotaCtl; // Control
     OverlayOptions options; // overlayOptions
-    std::shared_ptr<DiffDriver> naiveDiff; // DiffDriver
+    std::shared_ptr<DiffDriver_interface> naiveDiff; // DiffDriver_interface
     bool supportsDType; // 是否支持 DType
     std::shared_ptr<bool> supportsVolatile; // 是否支持 Volatile
     bool usingMetacopy; // 是否使用 Metacopy
@@ -114,8 +114,9 @@ typedef struct driver_Options {
     bool experimentalEnabled;     // 是否启用实验特性
 }driver_Options;
 // 使用unordered_map存储所有注册的驱动程序
+extern std::unordered_map<std::string, std::function<std::shared_ptr<Driver>(const std::string&, const driver_Options&)>> drivers;
 shared_ptr<Driver> GetDriver(const string& name, const driver_Options& config);
 unordered_map<string, bool> ScanPriorDrivers(const string& root);
 shared_ptr<Driver> getBuiltinDriver(const std::string& name, const std::string& home, const driver_Options& options);
-
+shared_ptr<Driver> New(const string& name, const driver_Options& config);
 #endif // SORAGE_DRIVER_H

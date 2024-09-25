@@ -15,7 +15,7 @@ namespace storage{
         std::string ID;
 
         // Digest 是在创建时指定的摘要值，可用于定位镜像
-        std::shared_ptr<Digest> digest=nullptr; // 需要定义或包含 digest 库
+        std::shared_ptr<Digest> digest=std::make_shared<Digest>(); // 需要定义或包含 digest 库
 
         // Digests 是镜像清单的摘要值列表，可用于定位镜像
         // 如果Digest被设置，其值也会包含在此列表中

@@ -1,7 +1,7 @@
 #include "regexp/regexp.h"
 
 
-const bool precompile=false;
+// const bool precompile=false;
 std::shared_ptr<Regexp> Delayed(const std::string& val) {
     auto re = std::make_shared<Regexp>(val);
     re->val = val;

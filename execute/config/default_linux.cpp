@@ -70,13 +70,13 @@ std::vector<std::string> getDefaultProcessLimits() {
 bool selinuxEnabled(){
     return GetEnabled();
 }
-const std::string
-	// OverrideContainersConfig holds the default config path overridden by the root user
-	OverrideContainersConfig = "/etc/";
+// const std::string
+// 	// OverrideContainersConfig holds the default config path overridden by the root user
+// 	OverrideContainersConfig = "/etc/";
 
-	// DefaultContainersConfig holds the default containers config path
-const std::string DefaultContainersConfig = "/usr/share/" + _configPath;
+// 	// DefaultContainersConfig holds the default containers config path
+// const std::string DefaultContainersConfig = "/usr/share/" + _configPath;
 
-	// DefaultSignaturePolicyPath is the default value for the
-	// policy.json file.
-const std::string DefaultSignaturePolicyPath = "/etc/containers/policy.json";
+// 	// DefaultSignaturePolicyPath is the default value for the
+// 	// policy.json file.
+// const std::string DefaultSignaturePolicyPath = "/etc/containers/policy.json";

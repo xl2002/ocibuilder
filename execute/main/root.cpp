@@ -10,11 +10,11 @@
  */
 #include "main/root.h"
 
-globalFlags globalFlagOptions{};
-int exitcode=0;
-std::shared_ptr<Config> defaultContainerConfig=nullptr;
+// globalFlags globalFlagOptions{};
+// int exitcode=0;
+// std::shared_ptr<Config> defaultContainerConfig=nullptr;
 const string logLevel="log-level";
-Command rootcmd=init_rootcmd(); ///<定义rootcmd，作为全局变量
+// Command rootcmd=init_rootcmd(); ///<定义rootcmd，作为全局变量
 /**
  * @brief rootcmd的初始化函数
  * 

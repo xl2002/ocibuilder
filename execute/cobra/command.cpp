@@ -48,7 +48,7 @@ Command::~Command(){
  * @brief CommandLine 是默认的命令行标志集。
  * 
  */
-Flagset* CommandLine=NewFlagSet("buildah");
+// Flagset* CommandLine=NewFlagSet("buildah");
 
 /**
  * @brief 返回命令的标志集

@@ -29,6 +29,7 @@ struct globalFlags{
     string RegistriesConfDir;           ///<
     string DefaultMountsFile ;   
     string UserShortNameAliasConfPath;
+    globalFlags()=default;
 };
 //
 /**

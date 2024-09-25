@@ -26,7 +26,7 @@ class Rule {
 
     // Permissions is the set of permissions that this rule applies to (in the
     // cgroupv1 format -- any combination of "rwm").
-    std::shared_ptr<Permissions> permissions=nullptr;
+    std::shared_ptr<Permissions> permissions=std::make_shared<Permissions>();
 
     // Allow specifies whether this rule is allowed.
     bool allow=false;

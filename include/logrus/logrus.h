@@ -4,6 +4,7 @@
 #include <vector>
 #include "cobra/error.h"
 #include <algorithm>
+#include <boost/any.hpp>
 enum class level : uint32_t {
     PanicLevel=0,
     FatalLevel,
@@ -38,7 +39,9 @@ public:
         return static_cast<uint32_t>(lvl) < static_cast<uint32_t>(other.lvl);
     }
 };
-
+// struct Fields {
+//     std::map<std::string, std::vector<boost::any>> fields;
+// };
 // // 为 Level 类型提供哈希函数
 // namespace std {
 //     template <>

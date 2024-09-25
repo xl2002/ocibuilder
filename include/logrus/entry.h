@@ -19,7 +19,7 @@ using Fields = std::unordered_map<std::string, boost::any>;  // 用户设置的�
 class Logger;
 class Entry : public std::enable_shared_from_this<Entry> {
 public:
-    std::shared_ptr<Logger> LoggerPtr=nullptr;      // 日志器指针
+    std::shared_ptr<Logger> LoggerPtr=std::shared_ptr<Logger>();      // 日志器指针
     Fields Data;                         // 用户设置的所有字段
     std::chrono::system_clock::time_point Time;  // 日志创建的时间
     std::shared_ptr<Level> LevelPtr;        // 日志级别
@@ -88,7 +88,7 @@ public:
     void Panicln(const std::vector<boost::any>& args);
 
     std::shared_ptr<Entry> Dup();
-    std::shared_ptr<BufferPool> getBufferPool();
+    std::shared_ptr<BufferPool_interface> getBufferPool();
     void fireHooks();
     void write();
     bool HasCaller() ;
@@ -119,9 +119,9 @@ public:
 };
 extern std::string logrusPackage;
 extern int minimumCallerDepth;
-extern const int maximumCallerDepth;
-extern const int knownLogrusFrames;
-extern std::once_flag callerInitOnce;
+extern int maximumCallerDepth;
+extern int knownLogrusFrames;
+// extern std::once_flag callerInitOnce;
 
 std::string getPackageName(const std::string& funcName);
 std::shared_ptr<Frame> getCaller();
