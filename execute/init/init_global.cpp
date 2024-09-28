@@ -99,7 +99,7 @@ void init_global(){
 	bindirPrefix = "$BINDIR";
     
 	// OverrideContainersConfig holds the default config path overridden by the root user
-	OverrideContainersConfig = "/etc/";
+	OverrideContainersConfig = "/etc/"+_configPath;
 
 	// DefaultContainersConfig holds the default containers config path
     DefaultContainersConfig = "/usr/share/" + _configPath;

@@ -268,7 +268,15 @@ StoreOptions DefaultStoreOptions() {
     }
     return storeptions;
 }
-
+StoreOptions defaultOptions(){
+    try{
+        std::call_once(defaultStoreOptionsFlag, loadDefaultStoreOptions);
+        return defaultStoreOptions;
+    }catch(const myerror& e){
+        throw;
+    }
+    
+}
 /**
  * @brief 获取默认配置文件路径
  * 该函数用于获取默认的配置文件路径，优先级为：
@@ -362,6 +370,7 @@ bool loadDefaultStoreOptionsIfNeeded() {
         return false;
     }
 }
+
 // 判断路径是否存在以及是否为目录
 bool DirectoryExists(const std::string& path) {
     boost::filesystem::path p(path);
@@ -516,7 +525,7 @@ StoreOptions loadStoreOptionsFromConfFile(const std::string& storageConf) {
 std::shared_ptr<Store> GetStore(StoreOptions options) {
     try {
         // 初始化默认配置
-        StoreOptions defaultOpts = DefaultStoreOptions();
+        StoreOptions defaultOpts = defaultOptions();
         
         StoreOptions finalOptions = options;
 
@@ -562,8 +571,8 @@ std::shared_ptr<Store> GetStore(StoreOptions options) {
         // 创建相关目录
         boost::filesystem::create_directories(finalOptions.run_root);
         boost::filesystem::create_directories(finalOptions.graph_root);
-        if (!finalOptions.image_store_dir.empty()) {
-            boost::filesystem::create_directories(finalOptions.image_store_dir);
+        if (!finalOptions.image_store.empty()) {
+            boost::filesystem::create_directories(finalOptions.image_store);
         }
         boost::filesystem::create_directories(finalOptions.graph_root + "/" + finalOptions.graph_driver_name);
 
@@ -584,16 +593,16 @@ std::shared_ptr<Store> GetStore(StoreOptions options) {
         s->userns_lock = userns_lock;
         s->graph_root = finalOptions.graph_root;
         s->graph_options = finalOptions.graph_driver_options;
-        s->image_store_dir = finalOptions.image_store_dir;
+        s->image_store_dir = finalOptions.image_store;
         s->pull_options = finalOptions.pull_options;
         s->auto_userns_user = finalOptions.root_auto_ns_user;
         s->auto_ns_min_size = auto_ns_min_size;
         s->auto_ns_max_size = auto_ns_max_size;
         s->disable_volatile = finalOptions.disable_volatile;
         s->transient_store = finalOptions.transient_store;
-
+        
         // 加载 store
-        s->load();
+        // s->load();
 
         // 添加到已创建的 store 列表中
         stores.push_back(s);

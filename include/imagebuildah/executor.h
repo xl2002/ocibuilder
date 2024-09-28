@@ -69,7 +69,7 @@ struct Executor {
     std::ostream* out=nullptr;
     std::ostream* err=nullptr;
     std::string signaturePolicyPath;
-    std::shared_ptr<OptionalBool> skipUnusedStages=std::make_shared<::OptionalBool>();
+    OptionalBool skipUnusedStages;
     std::shared_ptr<SystemContext> systemContext=std::make_shared<::SystemContext>();
     std::ostream* reportWriter=nullptr;
     std::shared_ptr<Isolation> isolation=std::make_shared<::Isolation>();

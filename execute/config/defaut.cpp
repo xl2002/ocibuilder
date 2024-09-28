@@ -231,8 +231,7 @@ std::shared_ptr<Config> defaultConfig() {
     Containers->IPCNS="shareable";
     Containers->Init=false;
     Containers->InitPath="";
-    Containers->LogDriver="";
-    Containers->InitPath=defaultLogDriver();
+    Containers->LogDriver=defaultLogDriver();
     Containers->LogSizeMax=DefaultLogSizeMax;
     Containers->Mounts=std::make_shared<Slice>();
     Containers->NetNS="private";

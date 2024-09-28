@@ -60,6 +60,8 @@ shared_ptr<Driver> getBuiltinDriver(const std::string& name, const std::string& 
     std::ostringstream formattedMessage;
     formattedMessage << "failed to built-in GetDriver graph " << name << " " << home << ": " << ErrNotSupported;
     throw myerror(formattedMessage.str());
+
+    // return nullptr;
 }
 std::vector<std::string> Driver::AdditionalImageStores(){
     return options.imageStores;
@@ -143,4 +145,5 @@ shared_ptr<Driver> New(const string& name, const driver_Options& config) {
 
     // 如果没有找到支持的存储驱动，抛出myerror类型的错误
     throw myerror("no supported storage backend found");
+    // return nullptr;
 }

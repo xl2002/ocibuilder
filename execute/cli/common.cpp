@@ -277,16 +277,22 @@ std::vector<std::string> LookupEnvVarReferences(const std::vector<std::string>& 
 std::string Abspath(const std::string& path) {
     try {
         // 使用 Boost 文件系统库获取绝对路径
-        boost::filesystem::path boostPath(path);
-        boost::filesystem::path absolutePath = boost::filesystem::absolute(boostPath);
-
-        // 检查路径是否存在
-        if (!boost::filesystem::exists(absolutePath)) {
-            throw myerror("Path does not exist.");
+        if(path.empty()) {
+            throw myerror("Path is empty.");
         }
+        if(path == ".") {
+            return boost::filesystem::current_path().string();
+        }else{
+            boost::filesystem::path boostPath(path);
+            boost::filesystem::path absolutePath = boost::filesystem::absolute(boostPath);
+            // 检查路径是否存在
+            if (!boost::filesystem::exists(absolutePath)) {
+                throw myerror("Path does not exist.");
+            }
 
-        // 返回绝对路径
-        return absolutePath.string();
+            // 返回绝对路径
+            return absolutePath.string();
+        }
     } catch (const boost::filesystem::filesystem_error& e) {
         // 捕获 Boost 文件系统库相关的异常
         throw myerror("Failed to obtain the absolute path: " + std::string(e.what()));

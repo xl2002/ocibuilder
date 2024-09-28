@@ -122,7 +122,7 @@ void GenBuildOptions(Command* cmd, vector<string> inputArgs,BuildOptions* iopts,
         if(cmd->Flag_find("disable-content-trust")){
 
         }
-        std::shared_ptr<NetworkConfigurationPolicy> networkPolicy=nullptr;
+        std::shared_ptr<NetworkConfigurationPolicy> networkPolicy=std::make_shared<NetworkConfigurationPolicy>();
         auto namespaceOptions= Namespaceoptions(cmd,networkPolicy);
         auto idmappingoptions=make_shared<IDMappingOptions>();
         auto usernsOption=idmappingOptions(cmd,isolation,idmappingoptions);
@@ -225,7 +225,7 @@ void GenBuildOptions(Command* cmd, vector<string> inputArgs,BuildOptions* iopts,
         options->SignBy=iopts->SignBy;
         options->SignaturePolicyPath=iopts->SignaturePolicy;
         auto op=NewOptionalBool(iopts->SkipUnusedStages);
-        options->SkipUnusedStages=std::shared_ptr<OptionalBool>(&op);
+        options->SkipUnusedStages=op;
         options->Squash=iopts->Squash;
         options->systemContext=systemContext;
         options->Target=iopts->Target;

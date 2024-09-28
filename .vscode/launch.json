@@ -32,6 +32,10 @@
                     "ignoreFailures": true
                 }
             ],
+            "logging": {
+                "engineLogging": true,
+                "trace": true // 启用跟踪
+            },
             "preLaunchTask": ""
             // "preLaunchTask": "build"
         },
@@ -66,6 +70,10 @@
                     "ignoreFailures": true
                 }
             ],
+            "logging": {
+                "engineLogging": true,
+                "trace": true // 启用跟踪
+            },
             // "preLaunchTask": ""
             "preLaunchTask": "build"
         }

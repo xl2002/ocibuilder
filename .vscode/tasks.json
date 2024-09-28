@@ -5,7 +5,7 @@
             "label": "build",
             "command": "mingw32-make",
             "args": [
-                "-j12"
+                "-j8"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"

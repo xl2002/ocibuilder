@@ -8,7 +8,7 @@
 #include "config/defaut.h"
 #include "config/default_linux.h"
 #include "go/file.h"
-
+#include "logrus/exported.h"
 // #include <boost/align.hpp>
 std::shared_ptr<myerror> cachedConfigError=nullptr;
 std::mutex cachedConfigMutex;
@@ -43,7 +43,9 @@ std::shared_ptr<Config> New(std::shared_ptr<Options> options) {
 std::shared_ptr<Config> Config_defaut() {
     // int num=0;
     std::lock_guard<std::mutex> lock(cachedConfigMutex);
-    if(cachedConfig!=nullptr || cachedConfigError!=nullptr){
+    if(cachedConfig!=nullptr){
+        return cachedConfig;
+    }else if(cachedConfigError!=nullptr){
         throw *cachedConfigError;
     }
     try {
@@ -166,9 +168,9 @@ std::tuple<std::vector<std::string>, boost::system::error_code> systemConfigs() 
 
     // 调用 addConfigs 函数添加用户配置文件
     auto conf = addConfigs(path + ".d", configs);
-    if(conf.second) {
-        return std::make_tuple(std::vector<std::string>(), conf.second);
-    }
+    // if(conf.second) {
+    //     return std::make_tuple(std::vector<std::string>(), conf.second);
+    // }
     configs=conf.first;
 
     return std::make_tuple(configs, finalErr);
@@ -225,8 +227,13 @@ std::tuple<std::string, boost::system::error_code> userConfigPath() {
         configPath = (boost::filesystem::path(configHome) / "_configPath").string();
     } else {
         // 否则使用用户的 HOME 目录
-        std::string home = boost::compute::detail::getenv("HOME");
-        if (home.empty()){
+        #ifdef _WIN32
+        auto home = boost::compute::detail::getenv("USERPROFILE");
+        #else
+        auto home = boost::compute::detail::getenv("HOME");
+        #endif
+        // auto home = boost::compute::detail::getenv("HOME");
+        if (home==nullptr || boost::nowide::utf::strlen(home) == 0) {
             std::cerr << "Environment variable HOME is empty or not set." << std::endl;
             return std::make_tuple("", ec);
         }
@@ -235,7 +242,7 @@ std::tuple<std::string, boost::system::error_code> userConfigPath() {
             ec = boost::system::errc::make_error_code(boost::system::errc::no_such_file_or_directory);
             return std::make_tuple("", ec);
         }
-        configPath = (boost::filesystem::path(homeDir) / "UserOverrideContainersConfig").string();
+        configPath = (boost::filesystem::path(homeDir) / UserOverrideContainersConfig).string();
     }
 
     return std::make_tuple(configPath, ec);
@@ -249,7 +256,7 @@ boost::optional<myerror> readConfigFromFile(const std::string& path, std::shared
     boost::system::error_code ec;
     // 输出日志信息，表示正在读取配置文件
     // std::cout << "正在读取配置文件: " << path << std::endl;
-
+    // Tracef("Reading config from " + path);
     // 检查文件是否存在
     if (!boost::filesystem::exists(path,ec)) {
         if (ignoreErrNotExist && ec == boost::system::errc::no_such_file_or_directory) {
@@ -260,8 +267,8 @@ boost::optional<myerror> readConfigFromFile(const std::string& path, std::shared
 
     
     // 解析 TOML 文件
-    // boost::property_tree::ptree pt;
-    // boost::property_tree::read_json(path, pt);
+    boost::property_tree::ptree pt;
+    boost::property_tree::read_json(path, pt);
 
     // 将解析后的内容填充到 Config 结构体中
     // 这里你需要根据实际的 Config 结构体字段进行解析

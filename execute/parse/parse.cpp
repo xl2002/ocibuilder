@@ -4,6 +4,7 @@
 #include "go/file.h"
 #include "imagebuilder/builder.h"
 #include "cobra/error.h"
+#include "logrus/exported.h"
 // 定义常量字符串
 
 // SeccompDefaultPath 定义了默认的 seccomp 配置文件路径
@@ -64,7 +65,8 @@ PullPolicy PullPolicyFromOptions(Command* c){
         if(pullNeverFlagValue|| pullFlagValue=="nerver"||pullFlagValue=="false"){
             pullPolicy=PullNever;
         }
-        std::cout << "Pull Policy for pull [" << static_cast<int>(pullPolicy) << "]" << std::endl;
+        // Debugf("Pull Policy for pull [%d]",static_cast<int>(pullPolicy));
+        // std::cout << "Pull Policy for pull [" << static_cast<int>(pullPolicy) << "]" << std::endl;
 
     }
     catch(const myerror& e)
@@ -270,7 +272,7 @@ shared_ptr<CommonBuildOptions> CommonbuildOptions(Command* cmd){
     commonOpts->MemorySwap=memorySwap;
     commonOpts->NoHostname=noHostname;
     commonOpts->OmitHistory=omitHistory;
-    // commonOpts->ShmSize=cmd->Flag_find("shm-size")->value->String();
+    commonOpts->ShmSize=cmd->Flag_find("shm-size")->value->String();
     commonOpts->Ulimit=ulimit;
     commonOpts->Volumes=volumes;
     commonOpts->Secrets=secrets;
@@ -304,7 +306,7 @@ void parseSecurityOpts(vector<string> securityOpts,shared_ptr<CommonBuildOptions
             commonOpts->SeccompProfilePath = SeccompOverridePath;
         }else{
             if(!fileExists(SeccompDefaultPath)){
-
+                commonOpts->SeccompProfilePath = SeccompOverridePath;
             }else{
                 commonOpts->SeccompProfilePath = SeccompDefaultPath;
             }

@@ -42,7 +42,7 @@ class StoreOptions{
     string graph_root;
     // 如果需要与容器存储分开的位置，这是镜像存储的替代位置。
     string image_store;
-    string image_store_dir;
+    // string image_store;
     // 无根用户的存储路径，默认为 $HOME/.local/share/containers/storage。
     string rootless_storage_path;
     // 如果未指定驱动程序，将从 GraphDriverPriority 或平台相关的优先级列表中选择最适合的驱动程序。
@@ -79,6 +79,7 @@ extern string overlayDriver;
 extern string overlay2;
 extern string storageConfEnv;
 //函数声明
+StoreOptions defaultOptions();
 bool loadDefaultStoreOptionsIfNeeded();
 StoreOptions DefaultStoreOptions();
 bool usePerUserStorage();

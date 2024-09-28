@@ -303,7 +303,7 @@ class define_BuildOptions{
 	//SkipUnusedStages 允许用户在多阶段构建中跳过阶段
 	//对目标阶段没有任何贡献。预期违约
 	//值为真。
-	std::shared_ptr<OptionalBool> SkipUnusedStages=std::make_shared<OptionalBool>();
+	OptionalBool SkipUnusedStages;
 	//ReportWriter 是一个 io.Writer，用于报告
 	//（可能的）拉动源图像和
 	//写入新图像。

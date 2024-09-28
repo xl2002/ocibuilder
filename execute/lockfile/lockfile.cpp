@@ -168,16 +168,11 @@ void lockFile::Lock() {
     }
 }
 
-
-
-
-
-
 // 从数据创建 lastwrite 的函数
 lastwrite newLastWriteFromData(const std::vector<uint8_t>& serialized) {
-    if (serialized.empty()) {
-        throw std::invalid_argument("newLastWriteFromData with empty data");
-    }
+    // if (serialized.empty()) {
+    //     throw std::invalid_argument("newLastWriteFromData with empty data");
+    // }
     lastwrite lw;
     lw.state = serialized;
     return lw;
@@ -220,12 +215,12 @@ lastwrite lockFile::GetLastWrite() {
     // 将数据转换为 lastwrite 类型并返回
     return newLastWriteFromData(contents);
 }
-// 函数用于从数据中创建 lastwrite 对象
-lastwrite newLastWrite() {
-    // 在这里实现 your newLastWrite 的具体逻辑
-    //待实现
-    return lastwrite();  // 示例返回，具体实现应根据需求完成
-}
+// // 函数用于从数据中创建 lastwrite 对象
+// lastwrite newLastWrite() {
+//     // 在这里实现 your newLastWrite 的具体逻辑
+//     //待实现
+//     return lastwrite();  // 示例返回，具体实现应根据需求完成
+// }
 
 // 函数用于将 lastwrite 对象转换为序列化的字节数据
 std::vector<uint8_t> serializeLastWrite(const lastwrite& lw) {
@@ -285,7 +280,10 @@ std::shared_ptr<lockFile> createLockFileForPath(const std::string& path, bool ro
     LockType lType = ro ? LockType::ReadLock : LockType::WriteLock;
 
     // 返回新的 lockFile 对象
-    return std::make_shared<lockFile>(path, ro, lType);
+    auto l=std::make_shared<lockFile>(path, ro, lType);
+    l->lw=newLastWrite();
+    return l;
+    // return std::make_shared<lockFile>(path, ro, lType);
 }
 std::shared_ptr<lockFile> getLockfile(const std::string& path, bool ro) {
     std::lock_guard<std::mutex> lock(lockFilesMutex);  // 确保线程安全

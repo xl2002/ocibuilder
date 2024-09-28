@@ -90,7 +90,7 @@ shared_ptr<Driver> Store::createGraphDriverLocked() {
     // driver_Options config{
     //     root: graph_root,
     //     runRoot: run_root,
-    //     imageStore: image_store_dir,
+    //     imageStore: image_store,
     //     driverPriority: graph_driver_priority,
     //     driverOptions: graph_options,
     //     // uidMaps: uidMap,
@@ -971,7 +971,7 @@ void load(Store* s) {
         //     string gipath = Join({store, driverPrefix + "images"});
         //     shared_ptr<roImageStore> ris;
 
-        //     if (store == s->image_store_dir || store == s->graph_root) {
+        //     if (store == s->image_store || store == s->graph_root) {
         //         imageStore = newImageStore(gipath);
         //         if (!imageStore) {
         //             throw myerror("Failed to create ImageStore at: " + gipath);
@@ -1009,6 +1009,7 @@ void Store::load() {
     } catch (const myerror& e) {
         throw; // 重新抛出 myerror 类型的异常
     }
-}void Store::DeleteContainer(std::string id){
+}
+void Store::DeleteContainer(std::string id){
     return;
 }

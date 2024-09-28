@@ -714,7 +714,7 @@ void Executor::warnOnUnsetBuildArgs(
                         auto it = dependencyMap.find(stage.Name);
                         if (it != dependencyMap.end()) {
                             const std::shared_ptr<stageDependencyInfo> stageDependencyInfo = it->second;
-                            if (!stageDependencyInfo->NeededByTarget && *skipUnusedStages != OptionalBool::OptionalBoolFalse) {
+                            if (!stageDependencyInfo->NeededByTarget && skipUnusedStages != OptionalBool::OptionalBoolFalse) {
                                 shouldWarn = false;
                             }
                         }

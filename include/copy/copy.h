@@ -44,7 +44,7 @@ namespace copy{
         std::vector<Digest> instances;                        // 当选择具体镜像时，要复制的实例列表
 
         // 优先使用gzip压缩实例
-        std::shared_ptr<OptionalBool> preferGzipInstances=std::make_shared<OptionalBool>(); 
+        OptionalBool preferGzipInstances; 
 
         std::shared_ptr<EncryptConfig> ociEncryptConfig=std::make_shared<EncryptConfig>();                      // 用于加密镜像的配置
         std::vector<int> ociEncryptLayers;                   // 指定要加密的层
