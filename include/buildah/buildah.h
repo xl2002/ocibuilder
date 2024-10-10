@@ -18,6 +18,7 @@
 #include "define/build.h"
 #include "signature/policy_config.h"
 #include "buildah/image.h"
+#include "platform/platform.h"
 struct Builder {
     std::shared_ptr<Store> store=std::make_shared<Store>();
 
@@ -161,6 +162,11 @@ struct Builder {
         std::shared_ptr<CommitOptions> options
     );
     std::shared_ptr<containerImageRef> makeContainerImageRef(std::shared_ptr<CommitOptions> options);
+    void SetOS(const std::string& os);
+    void SetArchitecture(const std::string& arch);
+    std::string Variant();
+    void SetVariant(const std::string& variant);
+    std::string Hostname();
 };
 
 extern std::shared_ptr<PolicyTransportScopes> storageAllowedPolicyScopes;

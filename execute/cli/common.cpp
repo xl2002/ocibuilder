@@ -149,9 +149,9 @@ shared_ptr<Store> getStore(Command* cmd){
 
 
 
-std::shared_ptr<Builder> OpenBuilder(std::shared_ptr<store> store, const std::string& container);
+std::shared_ptr<Builder> OpenBuilder(std::shared_ptr<Store> store, const std::string& container);
 // openBuilder 函数的实现
-std::shared_ptr<Builder> openBuilder(std::shared_ptr<store> store, const std::string& name) {
+std::shared_ptr<Builder> openBuilder(std::shared_ptr<Store> store, const std::string& name) {
     std::shared_ptr<Builder> builder = nullptr;
 
     try {

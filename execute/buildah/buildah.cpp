@@ -284,10 +284,45 @@ bool checkRegistrySourcesAllows(std::string forWhat,std::shared_ptr<ImageReferen
 
 
 
+// 返回将在容器及使用该容器构建的镜像中设置的主机名
+std::string Builder::Hostname() {
+    if (Docker && Docker->config) {
+        return Docker->config->Hostname;  // 返回 Docker 配置中的主机名
+    }
+    return "";  // 如果 Docker 或配置为空，返回空字符串
+}
 
+// 设置容器或使用该容器构建的镜像的架构变体名称
+void Builder::SetVariant(const std::string& variant) {
+    if (Docker) {
+        Docker->Variant = variant;  // 设置 Docker 中的 Variant
+    }
+    if (OCIv1) {
+        OCIv1->platform->Variant = variant;    // 设置 OCIv1 中的 Variant
+    }
+}
 
+// 返回容器或使用该容器构建的镜像的架构变体名称
+std::string Builder::Variant(){
+    return OCIv1 ? OCIv1->platform->Variant : "";  // 如果 OCIv1 不为空，返回变体，否则返回空字符串
+}
+void Builder::SetArchitecture(const std::string& arch) {
+    if (OCIv1) {
+        OCIv1->platform->Architecture = arch;
+    }
+    if (Docker) {
+        Docker->Architecture = arch;
+    }
+}
 
-
+void Builder::SetOS(const std::string& os) {
+    if (OCIv1) {
+        OCIv1->platform->OS = os;
+    }
+    if (Docker) {
+        Docker->OS = os;
+    }
+}
 
 void fixupConfig(std::shared_ptr<Builder> b, const std::shared_ptr<SystemContext>& sys) {
     try {
@@ -315,13 +350,21 @@ void fixupConfig(std::shared_ptr<Builder> b, const std::shared_ptr<SystemContext
         if (!b->OCIv1 || (b->OCIv1->created && b->OCIv1->created->time_since_epoch().count() == 0)) {
             b->OCIv1->created = std::make_shared<std::chrono::system_clock::time_point>(now);
         }
+        // 获取环境变量
+        boost::process::environment env = boost::this_process::environment();
 
         // 如果没有设置OS，基于系统上下文或环境变量设置
         if (b->OS().empty()) {
             if (sys && !sys->OSChoice.empty()) {
                 b->SetOS(sys->OSChoice);
             } else {
-                b->SetOS(boost::process::environment()["OSTYPE"]);  // 使用boost::process获取操作系统信息
+                // 使用find检查是否存在OSTYPE环境变量
+                if (env.find("OSTYPE") != env.end()) {
+                    b->SetOS(env["OSTYPE"].to_string());  // 转换为std::string
+                } else {
+                    // 如果OSTYPE环境变量不存在，设置一个默认值
+                    b->SetOS("default_os");
+                }
             }
         }
 
@@ -330,11 +373,11 @@ void fixupConfig(std::shared_ptr<Builder> b, const std::shared_ptr<SystemContext
             if (sys && !sys->ArchitectureChoice.empty()) {
                 b->SetArchitecture(sys->ArchitectureChoice);
             } else {
-                b->SetArchitecture(boost::process::environment()["HOSTTYPE"]);  // 使用boost::process获取体系结构信息
+                b->SetArchitecture(boost::process::environment()["HOSTTYPE"].to_string());  // 使用boost::process获取体系结构信息
             }
 
             // 归一化架构和变体
-            auto ps = internalUtil::NormalizePlatform(b->OS(), b->Architecture(), b->Variant());
+            auto ps = NormalizePlatform(b->OS(), b->Architecture(), b->Variant());
             b->SetArchitecture(ps.Architecture);
             b->SetVariant(ps.Variant);
         }
@@ -346,14 +389,14 @@ void fixupConfig(std::shared_ptr<Builder> b, const std::shared_ptr<SystemContext
             }
 
             // 归一化架构和变体
-            auto ps = internalUtil::NormalizePlatform(b->OS(), b->Architecture(), b->Variant());
+            auto ps = NormalizePlatform(b->OS(), b->Architecture(), b->Variant());
             b->SetArchitecture(ps.Architecture);
             b->SetVariant(ps.Variant);
         }
 
         // 如果Docker格式并且没有设置主机名，生成随机ID作为主机名
         if (b->Format == "docker" && b->Hostname().empty()) {
-            b->SetHostname(generateRandomID());
+            // b->SetHostname(generateRandomID());
         }
 
     } catch (const myerror& e) {
@@ -367,7 +410,7 @@ void fixupConfig(std::shared_ptr<Builder> b, const std::shared_ptr<SystemContext
     }
 }
 // OpenBuilder 函数的 C++ 实现
-std::shared_ptr<Builder> OpenBuilder(std::shared_ptr<store> store, const std::string& container) {
+std::shared_ptr<Builder> OpenBuilder(std::shared_ptr<Store> store, const std::string& container) {
     std::shared_ptr<Builder> b = std::make_shared<Builder>();
     
     try {
@@ -418,7 +461,7 @@ std::shared_ptr<Builder> OpenBuilder(std::shared_ptr<store> store, const std::st
 
     } catch (const boost::json::error& e) {
         // 处理 JSON 解析错误
-        throw myerror("解析JSON文件时发生错误: " + std::string(e.what()));
+        throw myerror("解析JSON文件时发生错误: " );
 
     } catch (const boost::filesystem::filesystem_error& e) {
         // 处理文件系统错误
