@@ -10,12 +10,16 @@
 class StoreTransport:public ImageTransport{
     public:
     virtual std::shared_ptr<storageReference>ParseStoreReference(std::shared_ptr<store> store,const std::string &reference) const= 0;
+    virtual ~StoreTransport() = default;
 };
 
 struct storageTransport: public StoreTransport{
+    public:
+    ~storageTransport() override = default;
+    
     std::shared_ptr<storageReference>ParseStoreReference(std::shared_ptr<store> store,const std::string &reference) const override;
         // 返回传输名称
-    std::string Name() const override;;
+    std::string Name() const override;
 
     // 将字符串转换为ImageReference
     std::shared_ptr<ImageReference> ParseReference(const std::string &reference) const override;

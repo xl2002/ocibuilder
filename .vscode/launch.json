@@ -22,7 +22,7 @@
             },
             "windows": {
                 "MIMode": "gdb",
-                "miDebuggerPath": "D:/Softwares/mingw64/bin/gdb.exe",
+                "miDebuggerPath": "C:/MinGW/bin/gdb.exe",
                 "program": "${workspaceFolder}/output/main.exe"
             },
             "setupCommands": [
