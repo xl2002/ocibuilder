@@ -20,3 +20,6 @@ std::shared_ptr<ImageReference_interface> storageTransport::ParseReference(const
 void storageTransport::ValidatePolicyConfigurationScope(const std::string &scope){
     
 }
+void storageTransport::SetStore(std::shared_ptr<Store> store){
+    this->store = store;
+}

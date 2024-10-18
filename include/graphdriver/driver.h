@@ -1,8 +1,9 @@
-#if !defined(SORAGE_DRIVER_H)
-#define SORAGE_DRIVER_H
+#if !defined(GRAPHDRIVER_DRIVER_H)
+#define GRAPHDRIVER_DRIVER_H
 #include <string>
 #include <functional>
 #include "cobra/error.h"
+#include "graphdriver/counter.h"
 #include <memory>       // 用于 std::shared_ptr
 #include <unordered_map> // 用于 std::unordered_map
 #include <string>       // 用于 std::string
@@ -99,7 +100,7 @@ public:
     std::string imageStore; // imageStore 目录
     // std::vector<std::string> uidMaps; // UID 映射
     // std::vector<std::string> gidMaps; // GID 映射
-    // std::shared_ptr<RefCounter> ctr; // RefCounter
+    std::shared_ptr<RefCounter> ctr; // RefCounter
     // std::shared_ptr<Control> quotaCtl; // Control
     OverlayOptions options; // overlayOptions
     std::shared_ptr<DiffDriver_interface> naiveDiff; // DiffDriver_interface
@@ -126,4 +127,4 @@ shared_ptr<Driver> GetDriver(const string& name, const driver_Options& config);
 unordered_map<string, bool> ScanPriorDrivers(const string& root);
 shared_ptr<Driver> getBuiltinDriver(const std::string& name, const std::string& home, const driver_Options& options);
 shared_ptr<Driver> New(const string& name, const driver_Options& config);
-#endif // SORAGE_DRIVER_H
+#endif // GRAPHDRIVER_DRIVER_H

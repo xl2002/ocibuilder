@@ -602,7 +602,7 @@ std::shared_ptr<Store> GetStore(StoreOptions options) {
         s->transient_store = finalOptions.transient_store;
         
         // 加载 store
-        // s->load();
+        s->load();
 
         // 添加到已创建的 store 列表中
         stores.push_back(s);

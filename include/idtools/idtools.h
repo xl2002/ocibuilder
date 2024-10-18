@@ -3,6 +3,9 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include "cobra/error.h"
+#include <boost/filesystem.hpp>
+#include "types/options.h"
 struct IDMap
 {
     public:
@@ -27,6 +30,6 @@ struct IDMappings {
 };
 
 std::shared_ptr<IDMappings> NewIDMappingsFromMaps(std::vector<IDMap> uids, std::vector<IDMap> gids);
-
-
+bool MkdirAllAs(const std::string& path, int mode, int ownerUID, int ownerGID);
+bool mkdirAs(const std::string& path, int mode, int ownerUID, int ownerGID, bool mkAll, bool chownExisting);
 #endif // PKG_IDTOOLS_IDTOOLS_H

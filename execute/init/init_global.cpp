@@ -184,6 +184,11 @@ void init_global(){
         2,
         std::vector<byte>{'{','}'}
     };
+        // 注册 overlay 驱动程序
+    drivers["overlay"] = [](const std::string& home, const driver_Options& options) -> std::shared_ptr<Driver> {
+        return std::make_shared<Driver>(Init(home, options));
+    };
+
 
 }
 void initialize_global(){

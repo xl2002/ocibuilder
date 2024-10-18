@@ -15,7 +15,7 @@ class StoreTransport_interface:public ImageTransport_interface{
 };
 
 struct storageTransport: public StoreTransport_interface{
-    std::shared_ptr<Store_interface> store=nullptr;
+    std::shared_ptr<Store> store=nullptr;
     std::vector<IDMap> defaultUIDMap;
     std::vector<IDMap> defaultGIDMap;
     std::shared_ptr<storageReference>ParseStoreReference(std::shared_ptr<Store_interface> store,const std::string &reference)override;
@@ -27,7 +27,9 @@ struct storageTransport: public StoreTransport_interface{
 
     // 验证策略配置范围
     void ValidatePolicyConfigurationScope(const std::string &scope) override;
+    void SetStore(std::shared_ptr<Store> store);
 };
+
 extern std::shared_ptr<StoreTransport_interface> Transport;
 
 #endif // STORAGE_STORAGE_TRANSPORT_H)

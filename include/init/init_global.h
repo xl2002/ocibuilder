@@ -18,6 +18,7 @@
 #include "storage/storage_transport.h"
 #include "types/options.h"
 #include "v1/descriptor.h"
+#include "storage/overlay/overlay.h"
 
 #include <mutex>
 #include <string>

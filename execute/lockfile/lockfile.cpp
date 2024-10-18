@@ -160,6 +160,7 @@ void lockFile::lock(LockType lType) {
     locked = true;
     counter++;
 }
+
 void lockFile::Lock() {
     if (ro) {
         throw myerror("can't take write lock on read-only lock file");
