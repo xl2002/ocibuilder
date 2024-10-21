@@ -15,7 +15,6 @@
 #include <iostream>
 #include <memory>
 #include "idtools/idtools.h"
-#include "graphdriver/driver.h"
 #include "storage/layers.h"
 #include "storage/images.h"
 #include <mutex>
@@ -651,7 +650,6 @@ class Store :public Store_interface{
     void load() override;
     void DeleteContainer(std::string id) override;
     shared_ptr<Driver> createGraphDriverLocked();
-    // shared_ptr<Driver> New(const string& name, const driver_Options& config);
 };
 
 #endif //

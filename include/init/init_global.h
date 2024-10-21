@@ -24,6 +24,7 @@
 #include "imagebuilder/builder.h"
 #include "imagebuilder/dispatchers.h"
 #include "reference/regexp.h"
+#include "storage/overlay/overlay.h"
 
 #include <mutex>
 #include <string>

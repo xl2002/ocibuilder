@@ -14,7 +14,7 @@ string join(const vector<string>& elem);
 string Join(const vector<string>& elem) {
     return join(elem);
 }
-
+shared_ptr<Driver> New(const string& name, const driver_Options& config);
 // shared_ptr<Driver> Store:: New(const string& name, const driver_Options& config) {
 //     if (!name.empty()) {
 //         // 如果指定了驱动名称，尝试加载指定的驱动，并记录到日志中,日志系统先不考虑
@@ -369,7 +369,7 @@ bool imageStore::load(bool lockedForWriting) {
             Save(); // 调用保存函数处理
         }
 
-        return false; // 没有错误
+        return true; // 没有错误
 
     } catch (const myerror& e) {
         // 捕获并重新抛出 myerror 类型的异常
@@ -466,7 +466,7 @@ shared_ptr<rwImageStore_interface> newImageStore(const string& dir) {
         // 获取最后写入的时间戳
         istore->lastWrite = istore->lockfile->GetLastWrite();
         if (istore->lastWrite.state.empty()) {
-            throw myerror("Failed to get last write time.");
+            // throw myerror("Failed to get last write time.");
         }
 
 
@@ -755,7 +755,7 @@ bool containerStore::load(bool lockedForWriting) {
             }
             Save(modifiedLocations);
         }
-        return false; // 没有错误
+        return true; // 没有错误
 
     } catch (const myerror& e) {
         // 捕获并重新抛出 myerror 类型的异常
@@ -859,6 +859,10 @@ std::shared_ptr<rwContainerStore_interface> newContainerStore(const std::string&
         auto cstore = std::make_shared<containerStore>();
         cstore->lockfile = lockfile;
         cstore->dir = dir;
+        // 确保 jsonPath 至少有一个元素
+        cstore->jsonPath.push_back(Join({dir, "containers.json"}));
+        // 确保 jsonPath 至少有一个元素
+        cstore->jsonPath.push_back(Join({dir, "containers.json"}));
         cstore->jsonPath[0] = Join({dir, "containers.json"});
         cstore->jsonPath[1] = Join({volatileDir, "volatile-containers.json"});
 
@@ -876,7 +880,7 @@ std::shared_ptr<rwContainerStore_interface> newContainerStore(const std::string&
         // 获取最后写入的时间戳
         cstore->lastWrite = cstore->lockfile->GetLastWrite();
         if (cstore->lastWrite.state.empty()) {
-            throw myerror("Failed to get last write time.");
+            // throw myerror("Failed to get last write time.");
         }
 
         // 加载数据

@@ -213,6 +213,12 @@ void init_global(){
         {dockerfilecommand::Volume,Volume}
     };
     init_regexp();
+        // 注册 overlay 驱动程序
+    drivers["overlay"] = [](const std::string& home, const driver_Options& options) -> std::shared_ptr<Driver> {
+        return std::make_shared<Driver>(Init(home, options));
+    };
+
+
 }
 void initialize_global(){
     std::call_once(flag_global, init_global);

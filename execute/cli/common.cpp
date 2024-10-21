@@ -139,8 +139,8 @@ shared_ptr<Store> getStore(Command* cmd){
 
     shared_ptr<Store> store = GetStore(options);
     if (store) {
-        // 假设 is::Transport::SetStore(store) 的替代实现
-        // is.Transport.SetStore(store);
+        storageTransport transport;
+        transport.SetStore(store);
     }
     needToShutdownStore = true;
     return store;

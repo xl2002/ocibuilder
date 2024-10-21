@@ -25,6 +25,7 @@
 #include "types/options.h"
 // #include "storage/utils.h"
 #include "config/config.h"
+#include "storage/storage_transport.h"
 using std::vector;
 using std::string;
 vector<string> SplitN(const string& str, const string& delimiter, size_t max_splits);
