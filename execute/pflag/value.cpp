@@ -23,7 +23,8 @@ string StringValue::String(){
  * @param value 
  */
 void StringValue::Set(string value){
-    *(this->value)=value;
+    // *(this->value)=value;
+    this->value=new string(value);
 }
 /**
  * @brief 返回StringValue的类型

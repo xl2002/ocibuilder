@@ -43,7 +43,7 @@ void storage::Image::recomputeDigests() {
 
         // 如果固定摘要为空且有效摘要不为空，设置第一个有效摘要
         if (digest->digest.empty() && !validDigests.empty()) {
-            digest = std::shared_ptr<Digest>(&validDigests[0]);
+            digest = std::make_shared<Digest>(validDigests[0]);
         }
 
         // 设置计算出的摘要列表

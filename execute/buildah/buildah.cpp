@@ -5,6 +5,7 @@
 #include "transports/transports.h"
 #include "storage/storage_transport.h"
 #include "manifest/manifest.h"
+#include "buildah/new.h"
 // std::shared_ptr<PolicyTransportScopes> storageAllowedPolicyScopes=std::make_shared<PolicyTransportScopes>();
 void Builder::Delete(){
     try{
@@ -269,4 +270,11 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,std::shared_ptr<Dige
 bool checkRegistrySourcesAllows(std::string forWhat,std::shared_ptr<ImageReference_interface> dest){
     
     return false;
+}
+
+std::shared_ptr<Builder> NewBuilder(std::shared_ptr<Store> store,std::shared_ptr<BuilderOptions> options){
+    if(options->CommonBuildOpts==nullptr){
+        options->CommonBuildOpts=std::make_shared<CommonBuildOptions>();
+    }
+    return newBuilder(store,options);
 }

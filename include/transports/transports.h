@@ -16,7 +16,8 @@ class knownTransports{
     void Add(std::shared_ptr<ImageTransport_interface> t);
 };
 
-
+extern std::shared_ptr<knownTransports> kt;
+void Register(std::shared_ptr<ImageTransport_interface> t);
 std::shared_ptr<ImageTransport_interface> Get(std::string name);
 std::string ImageName(std::shared_ptr<ImageReference_interface> ref);
 #endif // TRANS_TRANSPORTS_H

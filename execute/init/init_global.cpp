@@ -71,17 +71,20 @@ namespace dockerfilecommand {
     std::string Volume;
     std::string Workdir;
 };
+std::map<std::string, DispatchFunction> dispatch;
 bool precompile;
 std::shared_ptr<StoreTransport_interface> Transport;
 std::string overlayDriver;
 std::string overlay2;
 std::string storageConfEnv;
 Descriptor DescriptorEmptyJSON;
-
-
-
-
+std::shared_ptr<knownTransports> kt;
+std::shared_ptr<dockerTransport> docker_Transport;
+std::map<std::string,bool> builtinAllowedBuildArgs;
+std::map<std::string,StepFunc> evaluateTable;
 std::once_flag flag_global;
+
+
 void init_global(){
     drivers={};
     ErrNotSupported = "driver not supported";
@@ -139,10 +142,10 @@ void init_global(){
     globalFlagOptions={};
     exitcode=0;
 
-    tokenEscapeCommand=Delayed(R"(^#[ \t]*escape[ \t]*=[ \t]*(?P<escapechar>.).*$)");
-    tokenPlatformCommand=Delayed(R"(^#[ \t]*platform[ \t]*=[ \t]*(?P<platform>.*)$)");
+    tokenEscapeCommand=Delayed(R"(^#[ \t]*escape[ \t]*=[ \t]*(.).*$)");
+    tokenPlatformCommand=Delayed(R"(^#[ \t]*platform[ \t]*=[ \t]*(.*)$)");
     tokenWhitespace=Delayed(R"([\t\v\f\r ]+)");
-    tokenComment=Delayed(R"(^#.*$)");
+    tokenComment=Delayed(R"(^#.*\t$)");
     heredocDirectives = {
         {"ADD", true},
         {"COPY", true},
@@ -173,6 +176,15 @@ void init_global(){
     dockerfilecommand::User = "user";
     dockerfilecommand::Volume = "volume";
     dockerfilecommand::Workdir = "workdir";
+    dispatch={
+        {dockerfilecommand::From,parseStringsWhitespaceDelimited},
+        {dockerfilecommand::Label,parseLabel},
+        {dockerfilecommand::Copy,parseMaybeJSONToList},
+        {dockerfilecommand::Env,parseEnv},
+        {dockerfilecommand::Expose,parseStringsWhitespaceDelimited},
+        {dockerfilecommand::Entrypoint,parseMaybeJSON},
+        {dockerfilecommand::Volume,parseMaybeJSONToList}
+    };
     bool precompile=false;
     Transport= std::make_shared<storageTransport>();
     overlayDriver  = "overlay";
@@ -184,7 +196,23 @@ void init_global(){
         2,
         std::vector<byte>{'{','}'}
     };
-
+    kt=std::make_shared<knownTransports>();
+    docker_Transport=std::make_shared<dockerTransport>();
+    Register(docker_Transport);
+    builtinAllowedBuildArgs={
+        {"NO_PROXY",true},
+        {"no_proxy",true}
+    };
+    evaluateTable={
+        {dockerfilecommand::Env,env},
+        {dockerfilecommand::From,from},
+        {dockerfilecommand::Label,label},
+        {dockerfilecommand::Copy,dispatchCopy},
+        {dockerfilecommand::Expose,expose},
+        {dockerfilecommand::Entrypoint,entrypoint},
+        {dockerfilecommand::Volume,Volume}
+    };
+    init_regexp();
 }
 void initialize_global(){
     std::call_once(flag_global, init_global);

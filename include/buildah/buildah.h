@@ -3,6 +3,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <chrono>
 #include <memory>
 #include "storage/storage.h"
 #include "v1/config.h"
@@ -15,6 +16,7 @@
 #include "define/build.h"
 #include "signature/policy_config.h"
 #include "buildah/image.h"
+#include "logrus/logger.h"
 struct Builder {
     std::shared_ptr<Store> store=std::make_shared<Store>();
 
@@ -160,6 +162,138 @@ struct Builder {
     std::shared_ptr<containerImageRef> makeContainerImageRef(std::shared_ptr<CommitOptions> options);
 };
 
+struct BuilderInfo {
+    // Type 显示容器的类型
+    std::string Type;
+    // FromImage 是基础镜像的名称
+    std::string FromImage;
+    // FromImageID 是基础镜像的ID
+    std::string FromImageID;
+    // FromImageDigest 是基础镜像的摘要
+    std::string FromImageDigest;
+    // GroupAdd 是要添加的组
+    std::vector<std::string> GroupAdd;
+    // Config 是容器的配置信息
+    std::string Config;
+    // Manifest 是容器的Manifest信息
+    std::string Manifest;
+    // Container 是容器的名称
+    std::string Container;
+    // ContainerID 是容器的ID
+    std::string ContainerID;
+    // MountPoint 是容器的挂载点
+    std::string MountPoint;
+    // ProcessLabel 是容器的 SELinux 进程标签
+    std::string ProcessLabel;
+    // MountLabel 是容器的 SELinux 挂载标签
+    std::string MountLabel;
+    // ImageAnnotations 是镜像的注释信息
+    std::map<std::string, std::string> ImageAnnotations;
+    // ImageCreatedBy 表示镜像是由谁创建的
+    std::string ImageCreatedBy;
+    // OCIv1 是OCI v1镜像信息
+    std::shared_ptr<Image> OCIv1=std::make_shared<Image>();
+    // Docker 是Docker v2镜像信息
+    // std::shared_ptr<V2Image> Docker;
+    // DefaultMountsFilePath 是默认的挂载文件路径
+    std::string DefaultMountsFilePath;
+    // Isolation 是隔离模式
+    std::string Isolation;
+    // NamespaceOptions 是命名空间选项
+    std::shared_ptr<::NamespaceOptions> NamespaceOptions=std::make_shared<::NamespaceOptions>();
+    // Capabilities 是能力列表
+    std::vector<std::string> Capabilities;
+    // ConfigureNetwork 是网络配置
+    std::string ConfigureNetwork;
+    // CNIPluginPath 是 CNI 插件路径
+    std::string CNIPluginPath;
+    // CNIConfigDir 是 CNI 配置文件路径
+    std::string CNIConfigDir;
+    // IDMappingOptions 是用户命名空间的映射选项
+    std::shared_ptr<::IDMappingOptions> IDMappingOptions=std::make_shared<::IDMappingOptions>();
+    // History 是镜像的历史信息
+    std::vector<History> History;
+    // Devices 是容器的设备信息
+    std::shared_ptr<ContainerDevices> Devices=std::make_shared<ContainerDevices>();
+    // DeviceSpecs 是设备规格信息
+    std::vector<std::string> DeviceSpecs;
+    // CDIConfigDir 是CDI配置文件路径
+    std::string CDIConfigDir;
+};
+struct BuilderOptions {
+    // Args 定义用户在构建时可以传递给构建器的变量
+    std::map<std::string, std::string> Args;
+    // FromImage 是用于容器的基础镜像，可以为空或 "scratch" 以表示不使用基础镜像
+    std::string FromImage;
+    // ContainerSuffix 为生成的容器名称添加的后缀
+    std::string ContainerSuffix;
+    // Container 是构建容器的期望名称
+    std::string Container;
+    // PullPolicy 决定是否拉取基础镜像
+    std::shared_ptr<::PullPolicy> PullPolicy=std::make_shared<::PullPolicy>();
+    // Registry 是镜像名称的前缀
+    std::string Registry;
+    // BlobDirectory 是用于存储层 blob 的目录
+    std::string BlobDirectory;
+    // GroupAdd 是需要添加的组
+    std::vector<std::string> GroupAdd;
+    // Logger 是 logrus 的 logger 实例
+    std::shared_ptr<::Logger> Logger=std::make_shared<::Logger>();  // 假设使用std::shared_ptr
+    // Mount 信号表明容器应立即挂载
+    bool Mount=false;
+    // SignaturePolicyPath 指定用于签名验证的策略路径
+    std::string SignaturePolicyPath;
+    // ReportWriter 是用于记录镜像拉取日志的 io.Writer
+    std::ostream* ReportWriter;
+    // SystemContext 保存认证和授权信息
+    std::shared_ptr<::SystemContext> SystemContext=std::make_shared<::SystemContext>();
+    // DefaultMountsFilePath 是默认挂载文件路径
+    std::string DefaultMountsFilePath;
+    // Isolation 控制如何处理 "RUN" 语句
+    std::shared_ptr<::Isolation> Isolation=std::make_shared<::Isolation>();
+    // NamespaceOptions 控制如何设置进程的命名空间
+    std::shared_ptr<::NamespaceOptions> NamespaceOptions=std::make_shared<::NamespaceOptions>();
+    // ConfigureNetwork 控制是否为新网络命名空间配置网络
+    std::shared_ptr<::NetworkConfigurationPolicy> ConfigureNetwork=std::make_shared<::NetworkConfigurationPolicy>();
+    // CNIPluginPath 是 CNI 插件的路径
+    std::string CNIPluginPath;
+    // CNIConfigDir 是 CNI 配置文件的路径
+    std::string CNIConfigDir;
+    // NetworkInterface 是用于设置 CNI 或 netavark 网络的网络接口
+    std::shared_ptr<ContainerNetwork> NetworkInterface=std::make_shared<ContainerNetwork>();
+    // IDMappingOptions 是设置用户命名空间时使用的映射选项
+    std::shared_ptr<::IDMappingOptions> IDMappingOptions=std::make_shared<::IDMappingOptions>();
+    // Capabilities 是执行 Run() 时使用的能力列表
+    std::vector<std::string> Capabilities;
+    // CommonBuildOpts 是构建时的通用选项
+    std::shared_ptr<CommonBuildOptions> CommonBuildOpts=std::make_shared<CommonBuildOptions>();
+    // Format 是容器镜像的格式
+    std::string Format;
+    // Devices 是执行 Run() 时提供的设备列表
+    std::shared_ptr<ContainerDevices> Devices=std::make_shared<ContainerDevices>();
+    // DeviceSpecs 是执行 Run() 时提供的设备规格
+    std::vector<std::string> DeviceSpecs;
+    // DefaultEnv 已弃用，忽略
+    std::vector<std::string> DefaultEnv;
+    // MaxPullRetries 是镜像拉取失败时的最大重试次数
+    int MaxPullRetries=0;
+    // PullRetryDelay 是重试镜像拉取的延迟时间
+    std::chrono::duration<double> PullRetryDelay=std::chrono::seconds(0);
+    // OciDecryptConfig 包含解密镜像的配置
+    std::shared_ptr<DecryptConfig> OciDecryptConfig=std::make_shared<DecryptConfig>();
+    // ProcessLabel 是执行 Run() 时的 SELinux 进程标签
+    std::string ProcessLabel;
+    // MountLabel 是工作容器的 SELinux 挂载标签
+    std::string MountLabel;
+    // PreserveBaseImageAnns 指示是否保留基础镜像信息
+    bool PreserveBaseImageAnns=false;
+    // CDIConfigDir 是 CDI 配置文件的路径
+    std::string CDIConfigDir;
+};
+struct ImportOptions{
+    std::string Container;
+    std::string SignaturePolicyPath;
+};
 extern std::shared_ptr<PolicyTransportScopes> storageAllowedPolicyScopes;
 bool checkRegistrySourcesAllows(std::string forWhat,std::shared_ptr<ImageReference_interface> dest);
 

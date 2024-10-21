@@ -238,7 +238,8 @@ std::tuple<string,std::shared_ptr<Canonical_interface>> Executor::Build(std::sha
         auto node = stage.Node;
         while (node != nullptr) {
             for (const auto& child : node->Children) {
-                if (child->Value == "FROM") {
+                auto name=toUpper(child->Value);
+                if (name == "FROM") {
                     if (child->Next) {
                         if(fromOverride!=""){
                             child->Next->Value=fromOverride;
@@ -271,7 +272,7 @@ std::tuple<string,std::shared_ptr<Canonical_interface>> Executor::Build(std::sha
                     }
                 }
                 // 处理 ADD 和 COPY 指令
-                else if (child->Value == "ADD" || child->Value == "COPY") {
+                else if (name == "ADD" || name == "COPY") {
                     for (const auto& flag : child->Flags) {
                         if (flag.find("--from=") == 0) {
                             std::string rootfs = flag.substr(7);
@@ -299,7 +300,7 @@ std::tuple<string,std::shared_ptr<Canonical_interface>> Executor::Build(std::sha
                         }
                     }
                 }
-                else if(child->Value=="RUN"){
+                else if(name=="RUN"){
                     for(const auto& flag:child->Flags){
                         if(flag.find("--mount=")==0&& flag.find("from")!=std::string::npos){
                             std::string mountFlags  = flag.substr(9);
@@ -397,10 +398,10 @@ std::tuple<string,std::shared_ptr<Canonical_interface>> Executor::Build(std::sha
     std::atomic<bool> cancel(false);
     std::mutex resultMutex;
     // boost::optional<std::vector<int>> cleanupStages;
-
+    std::mutex thread_mux;
     for (size_t stageIndex = 0; stageIndex < stages->Stages.size(); ++stageIndex) {
         int index = stageIndex;
-        threads.create_thread([&, index] {
+        threads.create_thread([&]() {
             try {
                 stagesSemaphore->Acquire( 1);  // 获取信号量
             } catch (const myerror& e) {
@@ -410,16 +411,17 @@ std::tuple<string,std::shared_ptr<Canonical_interface>> Executor::Build(std::sha
                 return;
             }
 
-            {
-                std::lock_guard<std::mutex> lock(stagesLock);
-                auto cleanupstages = cleanupStages;
-            }
+            std::unique_lock<std::mutex> lock(stagesLock);
+            auto cleanupstages = cleanupStages;
+            lock.unlock();
 
             // 创建新线程执行阶段构建
-            threads.create_thread([&, index] {
+            std::unique_lock<std::mutex> lock_thread(thread_mux);
+            boost::thread_group inner_threads;
+            inner_threads.create_thread([&] {
                 // try {
                     
-                    if (cancel || cleanupStages.empty()) {
+                    if (cancel ) {
                         std::lock_guard<std::mutex> lock(resultMutex);
                         std::string stageName = std::to_string(index);
 
@@ -452,10 +454,12 @@ std::tuple<string,std::shared_ptr<Canonical_interface>> Executor::Build(std::sha
                 //     throw;
                 // }
             });
+            inner_threads.join_all();
+            lock_thread.unlock();
         });
     }
     threads.join_all();  // 等待所有线程完成
-    
+    // threads2.join_all();
     std::shared_ptr<Canonical_interface> ref;
     for (auto& r : results) {
         auto stage=stages->Stages[r.Index];
@@ -597,7 +601,7 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,bool,std::string> Ex
     }
 
     std::unique_lock<std::mutex> lock(this->stagesLock);
-    std::shared_ptr<StageExecutor> stageExecutor = startStage(std::shared_ptr<Stage>(&stage),stages,output);
+    std::shared_ptr<StageExecutor> stageExecutor = startStage(std::make_shared<Stage>(stage),stages,output);
 
     if (!stageExecutor->log) {
         int stepCounter = 0;

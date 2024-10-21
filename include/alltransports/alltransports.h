@@ -9,5 +9,5 @@
 #include "transports/transports.h"
 
 std::shared_ptr<ImageReference_interface> ParseImageName(std::string imgName);
-
+std::shared_ptr<ImageTransport_interface> TransportFromImageName(std::string imgName);
 #endif // ALLTRANS_ALLTRANSPORTS_H

@@ -61,6 +61,7 @@ public:
     bool Has(std::string path);
     bool Covers(std::string path);
 };
+
 class Executor_Interface;
 class Image_Builder {
 public:
@@ -104,7 +105,9 @@ std::vector<std::shared_ptr<Node>> SplitBy(std::shared_ptr<Node>node,std::string
 std::tuple<std::string,bool> extractNameFromNode(std::shared_ptr<Node>node);
 std::vector<std::shared_ptr<Node>> SplitChildren(std::shared_ptr<Node>node,std::string value);
 // extern const map<std::string,StepFunc> evaluateTable;
-
+extern std::map<std::string,bool> builtinAllowedBuildArgs;
+using StepFunc=std::function<void(std::shared_ptr<Image_Builder>,std::vector<std::string>,std::map<std::string,bool>,std::vector<std::string>,std::string,std::vector<Heredoc>)>;
+extern std::map<std::string,StepFunc> evaluateTable;
 
 class Stage {
 public:

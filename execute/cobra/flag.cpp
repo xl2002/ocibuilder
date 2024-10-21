@@ -564,7 +564,7 @@ void Flagset::parseArgs(vector<string> args){
         it=args.erase(it);
         if(str.size()<2||str[0]!='-'||str.size()==1||str[1]!='-'){
             if(!interspersed){
-                this->args.emplace_back(*it);
+                this->args.emplace_back(str);
                 this->args.insert(this->args.end(),it,args.end());
                 return;
             }else{
@@ -662,7 +662,7 @@ bool Flagset::Set(string name, string value){
     }
     // Flag& flag=f;
     flag->value->Set(value);
-    cout<<"flag: "<<flag->name<<"\nvalue: "<<flag->value->String()<<endl;
+    cout<<"flag: "<<flag->name<<"\tvalue: "<<flag->value->String()<<endl;
     if(!flag->changed){
         flag->changed=true;
         // if(actual_flags.size()==0){

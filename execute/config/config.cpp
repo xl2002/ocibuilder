@@ -57,7 +57,8 @@ std::vector<std::string> Config::GetDefaultEnvEx(bool envHost,bool httpProxy){
     }else{
 
     }
-    env.insert(env.end(),Containers->Env->Get().begin(),Containers->Env->Get().end());
+    auto Env=Containers->Env->Get();
+    env.insert(env.end(),Env.begin(),Env.end());
     return env;
 }
 void Config::addCAPPrefix() {

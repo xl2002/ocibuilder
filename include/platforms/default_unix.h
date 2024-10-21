@@ -7,7 +7,7 @@
 #include "v1/descriptor.h"
 #ifdef _WIN32
     #include <winsock2.h>
-#include <windows.h>
+    #include <windows.h>
     const std::string GOOS = "windows";
 #else
     #include <unistd.h>
@@ -27,21 +27,10 @@
 #endif
 
 // 返回当前CPU的变体，如果不是ARM，则为空
-std::string cpuVariant() {
-#ifdef __arm__
-    // ARM 平台下可以设置具体的变体信息
-    return "v7";  // 示例值，可根据需要调整
-#else
-    return "";
-#endif
 
-}
+std::string GetWindowsOsVersion();
+std::string cpuVariant();
+std::shared_ptr<Platform> DefaultSpec();
 
-std::shared_ptr<Platform> DefaultSpec(){
-    auto platform = std::make_shared<Platform>();
-    platform->Architecture = GOARCH;
-    platform->OS = GOOS;
-    platform->Variant = cpuVariant();
-    return platform;
-}
+
 #endif // PLATFORMS_DEFAULT_UNIX_H)

@@ -18,13 +18,19 @@
 #include "storage/storage_transport.h"
 #include "types/options.h"
 #include "v1/descriptor.h"
+#include "transports/transports.h"
+#include "docker/docker_transport.h"
+#include "parse/line_parsers.h"
+#include "imagebuilder/builder.h"
+#include "imagebuilder/dispatchers.h"
+#include "reference/regexp.h"
 
 #include <mutex>
 #include <string>
 #include <unordered_map>
 #include <vector>
 #include <memory>
-
+#include <functional>
 void initialize_global();
 
 #endif // INIT_GLOBAL_H

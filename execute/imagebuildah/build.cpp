@@ -85,7 +85,7 @@ string BuildDockerfiles(shared_ptr<Store> stores, shared_ptr<define_BuildOptions
             if(buf.st_mode & S_IFDIR){
                 throw myerror("file is a directory: "+dfile);
             }
-            auto content =fstream(dfile,ios::out|ios::binary);
+            auto content =fstream(dfile,ios::in|ios::binary);
             if(!content.is_open()){
                 throw myerror("failed to open file: "+dfile);
             }
@@ -93,7 +93,7 @@ string BuildDockerfiles(shared_ptr<Store> stores, shared_ptr<define_BuildOptions
                 content.close();
                 throw myerror("no contents in "+dfile);
             }
-            data=std::make_shared<std::fstream>(dfile,ios::out|ios::binary);
+            data=std::make_shared<std::fstream>(dfile,ios::in|ios::binary);
             // data=std::make_shared<ifstream>(content);
         }
         if(hasPrefix(dfile,".in")){
@@ -105,9 +105,12 @@ string BuildDockerfiles(shared_ptr<Store> stores, shared_ptr<define_BuildOptions
     for (auto& dockerfile : dockerfiles) {
         //默认构造的 std::istreambuf_iterator，表示流的结束（EOF）,后面的it表示结束
         std::vector<byte> buffer((std::istreambuf_iterator<char>(*dockerfile)), std::istreambuf_iterator<char>());
+        if(buffer.size()==0){
+            std::cout<<"no contents in dockerfile"<<std::endl;
+        }
         files.push_back(buffer);
     }
-    if(options->JobSemaphore==nullptr){
+    if(options->JobSemaphore!=nullptr){
         if(options->Jobs!=nullptr){
             if(*(options->Jobs)<0){
                 throw myerror("building: invalid value for jobs.  It must be a positive integer");
@@ -201,6 +204,7 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>> buildDockerfilesOnc
     {
         throw myerror("parsing main Dockerfile: "+containerFiles[0]+": "+string(e.what()));
     }
+    // auto children=mainNode->Children;
     if(options->systemContext->OSChoice!=""&& options->systemContext->ArchitectureChoice!=""){
         
     }

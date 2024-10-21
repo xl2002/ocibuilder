@@ -35,7 +35,7 @@ std::shared_ptr<Algorithm_sha256> Digest::Algorithm(){
 }
 std::shared_ptr<Verifier_interface> Digest::Verifier() {
     auto ret = std::make_shared<hashVerifier>();
-    ret->digest = std::shared_ptr<Digest>(this);
+    ret->digest = std::make_shared<Digest>(*this);
     ret->hash=this->Algorithm()->Hash();
     return ret;
 }

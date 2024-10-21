@@ -30,6 +30,7 @@
 #include "imagebuilder/builder.h"
 #include "types/types.h"
 #include "alltransports/alltransports.h"
+#include "logrus/logger.h"
 #include <list>
 #include <boost/optional.hpp>
 #include <boost/thread/thread.hpp> // 使用 boost::thread
@@ -49,7 +50,7 @@ struct Executor {
     std::vector<named> cacheTo;
     std::chrono::duration<int> cacheTTL;
     std::string containerSuffix;
-    // std::shared_ptr<Logger> logger;
+    std::shared_ptr<Logger> logger=std::make_shared<Logger>();
     std::map<std::string, std::shared_ptr<StageExecutor>> stages;
     std::shared_ptr<Store> store=std::make_shared<Store>();
     std::string contextDir;
@@ -78,7 +79,7 @@ struct Executor {
     std::string cniPluginPath;
     std::string cniConfigDir;
     // NetworkInterface is the libnetwork network interface used to setup CNI or netavark networks.
-    // ContainerNetwork networkInterface;
+    std::shared_ptr<ContainerNetwork> networkInterface=std::make_shared<::ContainerNetwork>();
     std::shared_ptr<IDMappingOptions> idmappingOptions=std::make_shared<::IDMappingOptions>();
     std::shared_ptr<CommonBuildOptions> commonBuildOptions=std::make_shared<::CommonBuildOptions>();
     std::string defaultMountsFilePath;

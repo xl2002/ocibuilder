@@ -10,7 +10,7 @@
 class Formatter_interface {
 public:
     virtual std::pair<std::vector<uint8_t>, std::string> Format(void* entry) = 0;
-    virtual ~Formatter_interface() = default;
+    ~Formatter_interface() = default;
 };
 
 #endif // LOGRUS_FORMATTER_H

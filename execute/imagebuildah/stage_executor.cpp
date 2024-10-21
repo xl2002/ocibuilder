@@ -7,6 +7,8 @@
 #include "go/string.h"
 #include "buildah/commit.h"
 #include <algorithm>
+#include "logrus/exported.h"
+
 void StageExecutor::Delete(){
     if(builder!=nullptr){
         try{
@@ -43,7 +45,7 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,bool> StageExecutor:
 
     auto pullPolicy=this->executor->pullPolicy;
     std::unique_lock<std::mutex> lock(this->executor->stagesLock);
-    bool preserveBaseImageAnnotationsAtStageStart;
+    bool preserveBaseImageAnnotationsAtStageStart=false;
     auto it = this->executor->imageMap.find(base);
     if(it!=this->executor->imageMap.end()){
         base=it->second;
@@ -61,10 +63,9 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,bool> StageExecutor:
             if(this->executor->rusageLogFile!=nullptr){
                 *this->executor->rusageLogFile<<FormatDiff(usage.first.Subtract(*resourceUsage));
             }
-            resourceUsage=std::shared_ptr<Rusage>(&usage.first);
+            resourceUsage=std::make_shared<Rusage>(usage.first);
         }
     };
-
     if(Supported()){
         auto resourceUsage=Get();
         if(resourceUsage.second){
@@ -73,7 +74,11 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,bool> StageExecutor:
         }
 
     }
-
+    try{
+        std::ignore=this->prepare(base,true,true,preserveBaseImageAnnotationsAtStageStart,pullPolicy);
+    }catch(const myerror& e){
+        throw;
+    }
     auto children=stage->Node->Children;
     std::function<void(std::string,int)> logcommit=[&](std::string output,int instruction){
         auto moreInstructions=instruction<children.size()-1;
@@ -210,6 +215,76 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,bool> StageExecutor:
     }
     logRusage();
     return std::make_tuple(imgID,ref,onlyBaseImage);
+}
+std::shared_ptr<Builder> StageExecutor::prepare(
+    std::string from,
+    bool initializeIBConfig,bool rebase,bool preserveBaseImageAnnotations,
+    std::shared_ptr<PullPolicy> pullPolicy
+){
+    auto stage=this->stage;
+    auto ib=stage->image_builder;
+    auto node =stage->Node;
+    if(from==""){
+
+    }
+    auto displayFrom=from;
+    auto asImageName=stage->Name;
+    if(asImageName!=""){
+        try {
+            // std::atoi 返回 0 表示转换失败
+            if (std::atoi(asImageName.c_str()) == 0 && asImageName != "0") {
+                throw std::invalid_argument("Invalid integer conversion");
+            }
+        } catch (const std::invalid_argument&) {
+            // 转换失败，执行下面的逻辑
+            displayFrom = from + " AS " + asImageName;
+        }
+    }
+    if(initializeIBConfig&&rebase){
+        // Debugf("FROM %s\n",displayFrom.c_str());
+        if(!this->executor->quiet){
+            this->log("FROM ",std::vector<std::string>({displayFrom}));
+        }
+    }
+    auto builderSystemContext=this->executor->systemContext;
+    if(stage->image_builder->Platform!=""){
+
+    }
+    auto builderOptions=std::make_shared<BuilderOptions>();
+    builderOptions->Args=ib->Args;
+    builderOptions->FromImage=from;
+    builderOptions->GroupAdd=this->executor->groupAdd;
+    builderOptions->PullPolicy=pullPolicy;
+    builderOptions->ContainerSuffix=this->executor->containerSuffix;
+    builderOptions->Registry=this->executor->registry;
+    builderOptions->BlobDirectory=this->executor->blobDirectory;
+    builderOptions->SignaturePolicyPath=this->executor->signaturePolicyPath;
+    builderOptions->ReportWriter=this->executor->reportWriter;
+    builderOptions->SystemContext=builderSystemContext;
+    builderOptions->Isolation=this->executor->isolation;
+    builderOptions->NamespaceOptions->val=this->executor->namespaceOptions;
+    builderOptions->ConfigureNetwork=this->executor->configureNetwork;
+    builderOptions->CNIPluginPath=this->executor->cniPluginPath;
+    builderOptions->CNIConfigDir=this->executor->cniConfigDir;
+    builderOptions->NetworkInterface=this->executor->networkInterface;
+    builderOptions->IDMappingOptions=this->executor->idmappingOptions;
+    builderOptions->CommonBuildOpts=this->executor->commonBuildOptions;
+    builderOptions->DefaultMountsFilePath=this->executor->defaultMountsFilePath;
+    builderOptions->Format=this->executor->outputFormat;
+    builderOptions->Capabilities=this->executor->capabilities;
+    builderOptions->Devices=this->executor->devices;
+    builderOptions->DeviceSpecs=this->executor->deviceSpecs;
+    builderOptions->MaxPullRetries=this->executor->maxPullPushRetries;
+    builderOptions->PullRetryDelay=this->executor->retryPullPushDelay;
+    builderOptions->OciDecryptConfig=this->executor->ociDecryptConfig;
+    builderOptions->Logger=this->executor->logger;
+    builderOptions->ProcessLabel=this->executor->processLabel;
+    builderOptions->MountLabel=this->executor->mountLabel;
+    builderOptions->PreserveBaseImageAnns=preserveBaseImageAnnotations;
+    builderOptions->CDIConfigDir=this->executor->cdiConfigDir;
+
+    
+    return nullptr;
 }
 
 

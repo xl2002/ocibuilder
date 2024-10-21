@@ -31,7 +31,7 @@ public:
 
     // 获取内部的 Opaque 对象
     std::shared_ptr<Opaque> GetOpaque() {
-        return std::shared_ptr<Opaque>(&opaque);
+        return std::make_shared<Opaque>(opaque);
     }
 
 };

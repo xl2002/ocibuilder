@@ -53,6 +53,11 @@ public:
     StageExecutor()=default;
     void Delete();
     std::tuple<std::string,std::shared_ptr<Canonical_interface>,bool> Execute(std::string base);
+    std::shared_ptr<Builder> prepare(
+        std::string from,
+        bool initializeIBConfig,bool rebase,bool preserveBaseImageAnnotations,
+        std::shared_ptr<PullPolicy> pullPolicy
+    );
     void UnrecognizedInstruction(std::shared_ptr<Step> step) override;
     void Preserve(std::string path)override;
     void EnsureContainerPath(std::string path)override;

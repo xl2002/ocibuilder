@@ -93,38 +93,18 @@ void Node::AddChild(std::shared_ptr<Node> child, int startLine, int endLine) {
     Children.push_back(child);
 }
 
-// namespace dockerfilecommand {
-//     const std::string Add = "add";
-//     const std::string Arg = "arg";
-//     const std::string Cmd = "cmd";
-//     const std::string Copy = "copy";
-//     const std::string Entrypoint = "entrypoint";
-//     const std::string Env = "env";
-//     const std::string Expose = "expose";
-//     const std::string From = "from";
-//     const std::string Healthcheck = "healthcheck";
-//     const std::string Label = "label";
-//     const std::string Maintainer = "maintainer";
-//     const std::string Onbuild = "onbuild";
-//     const std::string Run = "run";
-//     const std::string Shell = "shell";
-//     const std::string StopSignal = "stopsignal";
-//     const std::string User = "user";
-//     const std::string Volume = "volume";
-//     const std::string Workdir = "workdir";
-// }
 // Function to handle possible parser directives
 // 定义用于存储指令的映射
-using DispatchFunction=std::function<std::tuple<std::shared_ptr<Node>,std::map<std::string,bool>>(std::string,std::shared_ptr<Directive>)>;
-std::map<std::string, DispatchFunction> dispatch={
-    {dockerfilecommand::From,parseStringsWhitespaceDelimited},
-    {dockerfilecommand::Label,parseLabel},
-    {dockerfilecommand::Copy,parseMaybeJSONToList},
-    {dockerfilecommand::Env,parseEnv},
-    {dockerfilecommand::Expose,parseStringsWhitespaceDelimited},
-    {dockerfilecommand::Entrypoint,parseMaybeJSON},
-    {dockerfilecommand::Volume,parseMaybeJSONToList}
-};
+// using DispatchFunction=std::function<std::tuple<std::shared_ptr<Node>,std::map<std::string,bool>>(std::string,std::shared_ptr<Directive>)>;
+// std::map<std::string, DispatchFunction> dispatch={
+//     {dockerfilecommand::From,parseStringsWhitespaceDelimited},
+//     {dockerfilecommand::Label,parseLabel},
+//     {dockerfilecommand::Copy,parseMaybeJSONToList},
+//     {dockerfilecommand::Env,parseEnv},
+//     {dockerfilecommand::Expose,parseStringsWhitespaceDelimited},
+//     {dockerfilecommand::Entrypoint,parseMaybeJSON},
+//     {dockerfilecommand::Volume,parseMaybeJSONToList}
+// };
 
 // std::shared_ptr<Regexp> tokenEscapeCommand=Delayed(R"(^#[ \t]*escape[ \t]*=[ \t]*(?P<escapechar>.).*$)");
 // std::shared_ptr<Regexp> tokenPlatformCommand=Delayed(R"(^#[ \t]*platform[ \t]*=[ \t]*(?P<platform>.*)$)");
@@ -212,6 +192,8 @@ std::shared_ptr<Directive> NewDefaultDirective() {
     return directive;
 }
 std::shared_ptr<Result> Parse(std::stringstream& rwc) {
+    std::string str=rwc.str();
+    std::vector<uint8_t> origin(str.begin(),str.end());
     auto d=NewDefaultDirective();
     auto currentLine=0;
     auto root=std::make_shared<Node>();
@@ -220,13 +202,16 @@ std::shared_ptr<Result> Parse(std::stringstream& rwc) {
     std::vector<std::string> warnings;
     while (std::getline(rwc, line)) {
         ++currentLine;
+        if (!line.empty() && line.back() == '\r') {
+            line.pop_back(); // 去掉最后的 \r
+        }
         // Handle large lines, not directly applicable as in Go, but this is a placeholder
         std::string bytesRead = line;
 
         if (currentLine == 1) {
             // Strip the byte-order-marker if present (not directly applicable in C++)
         }
-
+        bytesRead=processLine(d, bytesRead, true);
         // Process the line
         auto startLine=currentLine;
         bool isEndOfLine;
@@ -240,7 +225,7 @@ std::shared_ptr<Result> Parse(std::stringstream& rwc) {
         std::string accumulatedLine = bytesRead;
         bool hasEmptyContinuationLine = false;
 
-        while (!isEndOfLine && std::getline(rwc, line)) {
+        while (!isEndOfLine && std::getline(rwc, line)) {//用来识别一个多行命令
             // ++currentLine;
 
             // bytesRead = line;
@@ -286,7 +271,7 @@ std::shared_ptr<Result> Parse(std::stringstream& rwc) {
 
         root->AddChild(child, startLine, currentLine);
     }
-
+    // auto children=root->Children;
     // Handle scanner errors, not directly applicable in C++
     if (rwc.bad()) {
         throw myerror("Stream error occurred");
@@ -360,8 +345,9 @@ std::shared_ptr<Node> newNodeFromLine(const std::string& line, std::shared_ptr<D
 }
 
 std::string trimComments(const std::string& src) {
-    static const std::regex tokenComment(R"(#.*$)");
-    return std::regex_replace(src, tokenComment, "");
+    static const std::regex tokenComment(R"(#.*?\r?$)", std::regex_constants::ECMAScript);
+    std::string result = std::regex_replace(src, tokenComment, "");
+    return result;
 }
 std::string trimWhitespace(const std::string& src) {
     std::string result = src;
@@ -413,7 +399,7 @@ std::string processLine(std::shared_ptr<Directive> d, const std::string& token, 
         processedToken = trimWhitespace(processedToken);
     }
 
-    processedToken = trimComments(processedToken);
+    auto ret_processedToken = trimComments(processedToken);
     // std::string directiveResult = d->possibleParserDirective(processedToken);
     try
     {
@@ -423,5 +409,5 @@ std::string processLine(std::shared_ptr<Directive> d, const std::string& token, 
     {
         throw;
     }
-    return processedToken;
+    return ret_processedToken;
 }

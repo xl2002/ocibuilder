@@ -23,3 +23,13 @@ std::shared_ptr<ImageReference_interface> ParseImageName(std::string imgName){
 
     return transport->ParseReference(withinTransport);
 }
+
+std::shared_ptr<ImageTransport_interface> TransportFromImageName(std::string imgName){
+    std::string transportName, withinTransport;
+    bool valid;
+    std::tie(transportName, withinTransport, valid) = Cut(imgName, ':');
+    if(valid){
+        return Get(transportName);
+    }
+    return nullptr;
+}

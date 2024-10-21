@@ -21,6 +21,7 @@ std::string toLower(const std::string& str);
 std::string vectorToString(const std::vector<std::string>& vec);
 std::string Join(const std::vector<std::string>& vec, const std::string& delimiter);
 std::string TrimSuffix(const std::string& str, const std::string& suffix);
+std::string TrimPrefix(const std::string& s, const std::string& prefix);
 std::string TrimSpace(const std::string& str);
 std::string toUpper(const std::string& str);
 std::vector<std::string> split(const std::string& str, char delimiter);

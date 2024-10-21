@@ -5,6 +5,7 @@
 #include "imagebuilder/builder.h"
 #include "cobra/error.h"
 #include "logrus/exported.h"
+#include <boost/filesystem.hpp>
 // 定义常量字符串
 
 // SeccompDefaultPath 定义了默认的 seccomp 配置文件路径
@@ -529,10 +530,16 @@ std::tuple<std::vector<std::string>, std::string> ContainerIgnoreFile(
         } else {
             for (const std::string& containerfile : containerFiles) {
                 std::string containerfilePath = containerfile;
+                #ifdef _WIN32
+                boost::filesystem::path p(containerfile);
+                if(containerfilePath.empty() || !p.is_absolute()){
+                    containerfilePath = contextDir + "/" + containerfile;
+                }
+                #else
                 if (containerfilePath.empty() || containerfilePath[0] != '/') {
                     containerfilePath = contextDir + "/" + containerfile;
                 }
-                
+                #endif
                 std::string containerfileIgnore;
                 if (fileExists(containerfilePath + ".containerignore")) {
                     containerfileIgnore = containerfilePath + ".containerignore";

@@ -1,5 +1,5 @@
 #include "transports/transports.h"
-auto kt=std::make_shared<knownTransports>();
+// auto kt=std::make_shared<knownTransports>();
 std::shared_ptr<ImageTransport_interface> Get(std::string name) {
     return kt->Get(name);
 }

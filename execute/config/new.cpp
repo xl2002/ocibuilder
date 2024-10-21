@@ -9,6 +9,7 @@
 #include "config/default_linux.h"
 #include "go/file.h"
 #include "logrus/exported.h"
+#include <boost/any.hpp>
 // #include <boost/align.hpp>
 std::shared_ptr<myerror> cachedConfigError=nullptr;
 std::mutex cachedConfigMutex;
@@ -280,7 +281,21 @@ boost::optional<myerror> readConfigFromFile(const std::string& path, std::shared
 
     return boost::none; // 返回成功，无错误
 }
+// 解析TOML配置文件
+void parseConfigFile(const std::string& confPath, boost::any conf) {
+    boost::property_tree::ptree pt;
 
+    // 尝试读取文件
+    try {
+        boost::property_tree::ini_parser::read_ini(confPath, pt);
+    } catch (const boost::property_tree::ini_parser_error& e) {
+        throw myerror("无法解析配置文件: " + confPath + ": " + e.what());
+    }
+
+    // 从ptree中提取值到conf中，需根据实际字段映射
+    // 例如:
+    // conf.someField = pt.get<std::string>("Section.someField");
+}
 // Find the specified modules in the options. Return an error if a specific
 // module cannot be located on the host.
 std::vector<std::string> Options::modules() {

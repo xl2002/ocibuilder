@@ -19,7 +19,7 @@ using Fields = std::unordered_map<std::string, boost::any>;  // 用户设置的�
 class Logger;
 class Entry : public std::enable_shared_from_this<Entry> {
 public:
-    std::shared_ptr<Logger> LoggerPtr=std::shared_ptr<Logger>();      // 日志器指针
+    std::shared_ptr<Logger> LoggerPtr=std::make_shared<Logger>();      // 日志器指针
     Fields Data;                         // 用户设置的所有字段
     std::chrono::system_clock::time_point Time;  // 日志创建的时间
     std::shared_ptr<Level> LevelPtr;        // 日志级别

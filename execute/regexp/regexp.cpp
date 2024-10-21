@@ -12,7 +12,8 @@ std::shared_ptr<Regexp> Delayed(const std::string& val) {
 }
 
 void Regexp::MustCompile(){
-    regexp=std::make_shared<std::regex>(val);
+    auto reg=std::make_shared<std::regex>(val);
+    regexp=reg;
 }
 void Regexp::compile() {
     if (precompile) {
@@ -303,13 +304,29 @@ std::vector<std::string> Regexp::Split(const std::string& s, int n) {
     compile();
     std::vector<std::string> result;
     auto regex = *regexp;
-    std::sregex_token_iterator iter(s.begin(), s.end(), regex, -1);
-    std::sregex_token_iterator end;
+    // std::sregex_token_iterator iter(s.begin(), s.end(), regex, -1);
+    // std::sregex_token_iterator end;
 
-    for (int i = 0; i < n && iter != end; ++i, ++iter) {
-        result.push_back(iter->str());
+    // for (int i = 0; i < n && iter != end; ++i, ++iter) {
+    //     result.push_back(iter->str());
+    // }
+
+    // return result;
+    std::string temp = s;
+    std::smatch match;
+    size_t count = 0;
+
+    // 循环查找并分割字符串
+    while (count < n - 1 && std::regex_search(temp, match, regex)) {
+        // 添加前面的部分到结果中
+        result.push_back(temp.substr(0, match.position()));
+        // 更新字符串为剩下的部分
+        temp = temp.substr(match.position() + match.length());
+        count++;
     }
 
+    // 将最后剩余的部分添加到结果中
+    result.push_back(temp);
     return result;
 }
 // Return the string representation of the regular expression

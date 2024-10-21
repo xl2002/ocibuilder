@@ -17,7 +17,7 @@ std::tuple<std::string, std::vector<std::string>, std::string> splitCommand(cons
         try
         {
             std::tie(args, flags) = extractBuilderFlags(cmdline[1]);
-            return std::make_tuple("", std::vector<std::string>{}, "");
+            // return std::make_tuple(cmd, flags, TrimSpace(args));
         }
         catch(const myerror& e)
         {

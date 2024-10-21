@@ -16,6 +16,8 @@
 #include <boost/nowide/utf/convert.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+// #include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/ini_parser.hpp>
 // Options类用于通过New()函数加载配置。
 class Options {
 public:

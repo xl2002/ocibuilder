@@ -65,6 +65,14 @@ std::string TrimSuffix(const std::string& str, const std::string& suffix) {
     // 如果字符串不以指定后缀结尾，返回原字符串
     return str;
 }
+// TrimPrefix 返回去掉前缀字符串后的 s。
+// 如果 s 没有以 prefix 开头，返回 s 不变。
+std::string TrimPrefix(const std::string& s, const std::string& prefix) {
+    if (s.find(prefix) == 0) {  // 检查 s 是否以 prefix 开头
+        return s.substr(prefix.length());
+    }
+    return s;  // 如果没有前缀，返回原字符串
+}
 // Helper function to trim leading and trailing whitespace
 std::string TrimSpace(const std::string& str) {
     const auto start = str.find_first_not_of(" \t\n\r");

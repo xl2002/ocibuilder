@@ -8,10 +8,11 @@
 #include <regex>
 #include "regexp/regexp.h"
 #include "parse/buildkitparser.h"
+
 class Node{
     public:
     std::string Value;
-    std::shared_ptr<Node> Next=std::make_shared<Node>();
+    std::shared_ptr<Node> Next=nullptr;
     std::vector<std::shared_ptr<Node>> Children;
     std::vector<Heredoc> Heredocs;
     std::map<std::string,bool> Attributes;
@@ -78,7 +79,8 @@ namespace dockerfilecommand {
     extern std::string Volume;
     extern std::string Workdir;
 };
-
+using DispatchFunction=std::function<std::tuple<std::shared_ptr<Node>,std::map<std::string,bool>>(std::string&,std::shared_ptr<Directive>)>;
+extern std::map<std::string, DispatchFunction> dispatch;
 
 
 

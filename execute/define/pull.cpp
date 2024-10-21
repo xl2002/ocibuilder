@@ -23,10 +23,32 @@ string PullPolicy::String(){
                 return "";
         }
 }
-
+bool PullPolicy::Validate() {
+    auto p=this->value;
+    if(p==PullIfMissing||p==PullAlways||p==PullIfNewer||p==PullNever) {
+        return true;
+    } else {
+        return false;
+    }
+}
 // map<string,Pull_Policy>PolicyMap ={
 // 	{"missing",PullIfMissing},
 // 	{"always", PullAlways},
 // 	{"never",  PullNever},
 // 	{"ifnewer", PullIfNewer}
 // };
+
+// 解析拉取策略函数
+std::shared_ptr<PullPolicy> ParsePullPolicy(const std::string& s) {
+    if (s == "always" || s == "Always") {
+        return std::make_shared<PullPolicy>(Pull_Policy::PullAlways);
+    } else if (s == "missing" || s == "Missing" || s == "ifnotpresent" || s == "IfNotPresent" || s.empty()) {
+        return std::make_shared<PullPolicy>(Pull_Policy::PullIfMissing);
+    } else if (s == "newer" || s == "Newer" || s == "ifnewer" || s == "IfNewer") {
+        return std::make_shared<PullPolicy>(Pull_Policy::PullIfNewer);
+    } else if (s == "never" || s == "Never") {
+        return std::make_shared<PullPolicy>(Pull_Policy::PullNever);
+    } else {
+        throw std::runtime_error("unsupported pull policy: " + s); // 抛出异常
+    }
+}

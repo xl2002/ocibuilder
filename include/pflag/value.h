@@ -33,7 +33,7 @@ class Value_interface {
  */
 class StringArrayValue:public Value_interface{
     public:
-    vector<string>* value;
+    vector<string>* value=new vector<string>();
     bool changed=false;
     StringArrayValue(vector<string>* newvalue):value(newvalue),changed(false){};
     string String() override;
@@ -49,7 +49,7 @@ class StringArrayValue:public Value_interface{
  */
 class StringValue: public Value_interface{
     public:
-    string* value;
+    string* value=new string();
     StringValue(string* s):value(s){};
     string String() override;
     void Set(string value) override;
@@ -61,7 +61,7 @@ class StringValue: public Value_interface{
  */
 class BoolValue:public Value_interface{
     public:
-    bool* value=nullptr;
+    bool* value=new bool();
     BoolValue(bool* newval):value(newval){};
     string String() override;
     void Set(string value) override;
@@ -74,7 +74,7 @@ class BoolValue:public Value_interface{
  */
 class IntValue:public Value_interface{
     public:
-    int* value=nullptr;
+    int* value=new int();
     IntValue(int* new_val):value(new_val){};
     string String() override;
     void Set(string value) override;
@@ -86,7 +86,7 @@ class IntValue:public Value_interface{
  */
 class int64Value:public Value_interface{
     public:
-    int64_t* value=nullptr;
+    int64_t* value=new int64_t();
     int64Value(int64_t* new_val):value(new_val){};
     string String() override;
     void Set(string value) override;
@@ -98,7 +98,7 @@ class int64Value:public Value_interface{
  */
 class uint64Value:public Value_interface{
     public:
-    uint64_t* value=nullptr;
+    uint64_t* value=new uint64_t();
     uint64Value(uint64_t* new_val):value(new_val){};
     string String() override;
     void Set(string value) override;
@@ -110,7 +110,7 @@ class uint64Value:public Value_interface{
  */
 class stringSliceValue:public Value_interface{
     public:
-    vector<string>* value;
+    vector<string>* value=new vector<string>();
     bool changed=false;
     stringSliceValue(vector<string>* new_val):value(new_val),changed(false){};
     string String() override;

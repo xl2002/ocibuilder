@@ -214,7 +214,8 @@ void GenBuildOptions(Command* cmd, vector<string> inputArgs,BuildOptions* iopts,
         options->Output=output;
         options->OutputFormat=format;
         options->PlatformsList=platforms;
-        options->PullPolicy=std::shared_ptr<PullPolicy>(&pullPolicy);
+        // options->PullPolicy=std::shared_ptr<PullPolicy>(&pullPolicy);
+        options->PullPolicy=std::make_shared<PullPolicy>(pullPolicy);
         options->Quiet=iopts->Quiet;
         options->RemoveIntermediateCtrs=iopts->Rm;
         options->ReportWriter=reporterStream;
