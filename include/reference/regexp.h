@@ -13,6 +13,7 @@
 #include "regexp/regexp.h"
 
 extern std::shared_ptr<Regexp> anchoredIdentifierRegexp;
+extern std::shared_ptr<Regexp> anchoredTagRegexp;
 void init_regexp();
 std::string expression(std::initializer_list<std::string> res);
 std::string anchored(std::initializer_list<std::string> res);

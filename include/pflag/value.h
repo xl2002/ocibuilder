@@ -22,7 +22,7 @@ using std::vector;
  */
 class Value_interface {
     public:
-    ~Value_interface()=default;
+    virtual ~Value_interface()=default;
     virtual string String()=0;
     virtual void Set(string value)=0;
     virtual string Type()=0;

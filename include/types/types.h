@@ -9,7 +9,7 @@
 class ImageTransport_interface;
 class ImageReference_interface{
     public:
-    ~ImageReference_interface()=default;
+    virtual ~ImageReference_interface()=default;
     virtual std::shared_ptr<ImageTransport_interface> Transport() = 0;
     virtual std::string StringWithinTransport() = 0;
     virtual std::string PolicyConfigurationIdentity() = 0;
@@ -19,7 +19,7 @@ class ImageReference_interface{
 // ImageTransport基类
 class ImageTransport_interface {
 public:
-    virtual ~ImageTransport_interface() {}
+    virtual ~ImageTransport_interface()=default;
 
     // 返回传输名称
     virtual std::string Name()  = 0;

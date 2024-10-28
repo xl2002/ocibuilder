@@ -134,7 +134,7 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,std::shared_ptr<Dige
     std::shared_ptr<CommitOptions> options
 ){
     std::string imgID;
-    std::shared_ptr<ImageReference_interface> src;
+    std::shared_ptr<ImageReference_interface> src=nullptr;
     if(options->OmitTimestamp){
         
     }
@@ -219,7 +219,7 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,std::shared_ptr<Dige
     }
     if(dest->Transport()->Name()==Transport->Name()){
         std::shared_ptr<storage::Image>img;
-        std::shared_ptr<ImageReference_interface>dest2;
+        std::shared_ptr<ImageReference_interface>dest2=nullptr;
         try{
             std::tie(dest2,img)=ResolveReference(dest);
         }catch(const myerror& e){
@@ -251,7 +251,7 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,std::shared_ptr<Dige
     }catch(const myerror& e){
         throw myerror("computing digest of manifest of new image "+this->ContainerID+": "+std::string(e.what()));
     }
-    std::shared_ptr<Canonical_interface> ref;
+    std::shared_ptr<Canonical_interface> ref=nullptr;
     auto name=dest->DockerReference();
     if(name!=nullptr){
         try{

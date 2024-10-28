@@ -9,17 +9,8 @@
 #include <iostream>
 #include "unshare/unshare.h"
 namespace homedir {
-    std::string Key(){
-        return "HOME";
-    }
-    std::string Get(){
-        auto homedir=HomeDir();
-        return homedir;
-    }
-
-
-
-
+    std::string Key();
+    std::string Get();
 }
 
 #endif // HOMEDIR_UNIX_H)

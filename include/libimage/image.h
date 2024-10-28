@@ -23,12 +23,12 @@ namespace libimage{
         std::shared_ptr<storage::Image> storageImage=std::make_shared<storage::Image>(); // 使用智能指针以避免内存泄漏
 
         // 指向容器存储的图像引用。
-        std::shared_ptr<ImageReference_interface> storageReference;
+        std::shared_ptr<ImageReference_interface> storageReference=nullptr;
 
         // 以下结构中的所有字段都是缓存的。可以随时清除。
         struct Cached {
             // 图像源。出于性能原因缓存。
-            std::shared_ptr<ImageSource_interface> imageSource;
+            std::shared_ptr<ImageSource_interface> imageSource=nullptr;
 
             // 从 containers/image 获得的检查数据。
             std::shared_ptr<ImageInspectInfo> partialInspectData=std::make_shared<ImageInspectInfo>(); // 使用智能指针以避免内存泄漏

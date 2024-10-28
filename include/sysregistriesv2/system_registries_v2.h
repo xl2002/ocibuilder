@@ -81,7 +81,7 @@ struct Registry:public Endpoint {
 
     // 构造函数
     Registry()=default;
-    Registry() : Blocked(false), MirrorByDigestOnly(false) {}
+    // Registry() : Blocked(false), MirrorByDigestOnly(false) {}
 };
 // V2RegistriesConf 是 sysregistries v2 配置格式。
 struct V2RegistriesConf:public shortNameAliasConf {

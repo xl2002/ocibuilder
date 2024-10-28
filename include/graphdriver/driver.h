@@ -30,21 +30,21 @@ extern string ErrLayerUnknown;
 
 class ProtoDriver_interface {
 public:
-    virtual ~ProtoDriver_interface() {}
+    virtual ~ProtoDriver_interface()=default;
     virtual string String() = 0;
 };
 
 // 定义DiffDriver抽象基类
 class DiffDriver_interface {
 public:
-    virtual ~DiffDriver_interface() {}
+    virtual ~DiffDriver_interface()=default;
     virtual void Method2() = 0;
 };
 
 // 定义LayerIDMapUpdater抽象基类
 class LayerIDMapUpdater_interface {
 public:
-    virtual ~LayerIDMapUpdater_interface() {}
+    virtual ~LayerIDMapUpdater_interface()=default;
     virtual void UpdateLayerIDMap(string& id) = 0;
 };
 // Quota 类
@@ -80,7 +80,7 @@ public:
 // Driver 类定义
 class Driver : public ProtoDriver_interface, public DiffDriver_interface, public LayerIDMapUpdater_interface {
 public:
-    // ~Driver()=default;
+    ~Driver()=default;
     Driver()=default;
     // ProtoDriver_interface 的实现
     std::string String() override {
@@ -103,7 +103,7 @@ public:
     std::shared_ptr<RefCounter> ctr; // RefCounter
     // std::shared_ptr<Control> quotaCtl; // Control
     OverlayOptions options; // overlayOptions
-    std::shared_ptr<DiffDriver_interface> naiveDiff; // DiffDriver_interface
+    std::shared_ptr<DiffDriver_interface> naiveDiff=nullptr; // DiffDriver_interface
     bool supportsDType=false; // 是否支持 DType
     std::shared_ptr<bool> supportsVolatile=std::make_shared<bool>(false); // 是否支持 Volatile
     bool usingMetacopy=false; // 是否使用 Metacopy

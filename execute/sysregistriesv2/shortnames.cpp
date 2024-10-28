@@ -34,7 +34,7 @@ std::tuple<std::shared_ptr<Named_interface>,std::string> ResolveShortNameAlias(s
 
 }
 // 遍历ptree并将数据存储到map
-void traverse_ptree_to_map(const boost::property_tree::ptree& pt, std::map<std::string, std::string>& result_map, const std::string& path = "") {
+void traverse_ptree_to_map(const boost::property_tree::ptree& pt, std::map<std::string, std::string>& result_map, const std::string& path) {
     for (const auto& kv : pt) {
         std::string full_path = path.empty() ? kv.first : path + "." + kv.first;
 
@@ -129,7 +129,7 @@ std::shared_ptr<Named_interface> parseShortNameValue(const std::string& name) {
     if (registry.find_first_of(".:") != std::string::npos || registry == "localhost") {
         throw myerror("invalid short name \"" + name + "\": must not contain registry");
     }
-    auto named=ParseNormalizedNamed(name);
+    named=ParseNormalizedNamed(name);
     return named;
 }
 std::shared_ptr<shortNameAliasCache> newShortNameAliasCache(std::string path,std::shared_ptr<shortNameAliasConf> conf){

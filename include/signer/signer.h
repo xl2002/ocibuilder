@@ -6,6 +6,7 @@
 
 class SignerImplementation_interface{
     public:
+    
     virtual std::string ProgressMessage() = 0;
 };
 struct Signer{

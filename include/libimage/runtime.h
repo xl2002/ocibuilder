@@ -58,4 +58,5 @@ struct LookupImageOptions {
 
 void setRegistriesConfPath(std::shared_ptr<SystemContext> systemContext);
 std::shared_ptr<Runtime> RuntimeFromStore(std::shared_ptr<Store> store,std::shared_ptr<RuntimeOptions> options);
+
 #endif // LIBIMAGE_RUNTIME_H)

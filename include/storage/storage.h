@@ -41,6 +41,7 @@ struct LayerOptions;
 class lockFile;
 class Store_interface{
     public:
+    virtual ~Store_interface()=default;
     // RunRoot、GraphRoot、GraphDriverName 和 GraphOptions 检索
 	//创建对象时传递给 GetStore() 的设置。
     virtual string RunRoot()=0;
@@ -115,7 +116,7 @@ public:
     int maxPrefixPerNode;
     int maxChildrenPerSparseNode;
 
-    std::shared_ptr<ChildList_interface> children;
+    std::shared_ptr<ChildList_interface> children=nullptr;
 };
 // Define the ChildList_interface interface
 class ChildList_interface {
@@ -627,10 +628,10 @@ class Store :public Store_interface{
     uint32_t auto_ns_min_size;
     uint32_t auto_ns_max_size;
 
-    shared_ptr<rwImageStore_interface> image_store;
+    shared_ptr<rwImageStore_interface> image_store=nullptr;
     vector<shared_ptr<rwImageStore_interface>> rw_image_stores;
     vector<shared_ptr<roImageStore_interface>> ro_image_stores;
-    shared_ptr<rwContainerStore_interface> container_store;
+    shared_ptr<rwContainerStore_interface> container_store=nullptr;
 
     string digest_lock_root;
     bool disable_volatile=false;
@@ -646,12 +647,13 @@ class Store :public Store_interface{
     //注释部分目前还未用到
 
     public:
+    Store()=default;
     string RunRoot() override;
     void load() override;
     void DeleteContainer(std::string id) override;
     shared_ptr<Driver> createGraphDriverLocked();
 };
 
-#endif //
+#endif
 
 

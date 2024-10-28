@@ -4,7 +4,7 @@
 #include "digest/digest.h"
 
 struct Digester_interface{
-    // virtual ~Digester_interface() {};
+    virtual ~Digester_interface()=default;
     virtual std::shared_ptr<Hash_256> Hash() = 0;
     virtual std::shared_ptr<Digest> Digest() = 0;
 };

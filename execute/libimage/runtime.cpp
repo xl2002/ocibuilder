@@ -183,11 +183,30 @@ std::tuple<std::shared_ptr<libimage::Image>,std::string> Runtime::LookupImage(st
     // for(auto candidate:candidates) {
     //     this->lookupImageInLocalStorage(name,candidate->String(),candidate,options);
     // }
+    ParseDockerRef(name);
+    // 遍历 candidates
+    for (const auto& candidate : candidates) {
+        // 尝试在本地存储中查找图像
+        std::shared_ptr<libimage::Image> img;
+        try {
+            // 调用 lookupImageInLocalStorage，传入相应的参数
+            img = this->lookupImageInLocalStorage(name, candidate->String(), candidate, options);
+        } catch (const myerror& err) {
+            // 如果发生错误，返回空图像指针、空字符串，并抛出异常
+            throw;
+        }
+
+        // 如果找到了图像，则返回图像和候选项的字符串表示
+        if (img != nullptr) {
+            return std::make_tuple(img, candidate->String());
+        }
+    }
     return{};
 
 }
 
-std::shared_ptr<libimage::Image> Runtime::lookupImageInLocalStorage(std::string name,std::string candidate,std::shared_ptr<Named_interface> namedCandidate,std::shared_ptr<LookupImageOptions> options) {
+// std::shared_ptr<libimage::Image> Runtime::lookupImageInLocalStorage(std::string name,std::string candidate,std::shared_ptr<Named_interface> namedCandidate,std::shared_ptr<LookupImageOptions> options) {
+std::shared_ptr<libimage::Image> Runtime::lookupImageInLocalStorage(std::string name,std::string candidate,std::shared_ptr<Named_interface> namedCandidate,std::shared_ptr<LookupImageOptions> options){
     std::shared_ptr<storage::Image> img;
     std::shared_ptr<ImageReference_interface> ref;
     if(namedCandidate!=nullptr) {

@@ -10,7 +10,7 @@
 #include "digest/digest.h"
 class digester_interface{
     public:
-    virtual ~digester_interface() {}
+    virtual ~digester_interface()=default;
 
     // 写入内容到摘要计算器
     virtual void write(const std::string& data) = 0;

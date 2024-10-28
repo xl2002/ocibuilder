@@ -335,3 +335,6 @@ std::string Regexp::String() {
     return val;  // std::regex does not have a method to return the pattern string directly
 }
 
+std::shared_ptr<std::regex> Regexp::GetRegex() {
+        return regexp; // 返回 std::regex 的共享指针
+}

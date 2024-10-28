@@ -36,13 +36,15 @@ std::shared_ptr<Named_interface> ParseNormalizedNamed(std::string s){
     }
     // auto n=std::make_shared<Named_interface>();
     // auto m=std::shared_ptr<Named_interface>(ref);
-    auto named=std::dynamic_pointer_cast<Named_interface>(ref);
+    // auto named=std::dynamic_pointer_cast<Named_interface>(ref);
+    auto named = std::dynamic_pointer_cast<Named_interface>(ref);
     // if (!named) {
     //     throw std::runtime_error("reference has no name");
     // }
     // return std::shared_ptr<Named_interface>(named);
     // return ref; // 返回解析后的命名引用
     return named;
+    // return named; // 返回解析后的命名引用
 }
 
 // splitDockerDomain 将仓库名称拆分为域名和剩余名称字符串。
@@ -72,7 +74,76 @@ std::pair<std::string, std::string> splitDockerDomain(const std::string& name) {
     return std::make_pair(domain, remainder);
 }
 
-std::shared_ptr<Named_interface> TagNameOnly(std::shared_ptr<Named_interface> named) {
-    
-    return named;
+
+std::shared_ptr<NamedTagged_interface> WithTag(std::shared_ptr<Named_interface> name, const std::string& tag) {
+    if (!std::regex_match(tag, *(anchoredTagRegexp->GetRegex()))) {
+        throw myerror("标签格式无效");
+    }
+
+    std::shared_ptr<repository> repo = std::make_shared<repository>();
+
+    // 尝试将 name 转换为 namedRepository_interface
+    if (auto r = std::dynamic_pointer_cast<namedRepository_interface>(name)) {
+        repo->domain = r->Domain();
+        repo->path = r->Path();
+    } else {
+        // 如果不是 namedRepository_interface，使用 name 的 Name() 方法
+        repo->path = name->Name();
+    }
+
+    if (auto canonical = std::dynamic_pointer_cast<Canonical_interface>(name)) {
+        // return std::make_shared<reference>(
+        //     repo, // namedRepository
+        //     tag, // tag
+        //     std::make_shared<Digest>(canonical->Digests()) // 假设这里可以直接用指针
+        // );
+    }
+
+    return std::make_shared<taggedReference>(repo, tag);
+}
+
+// TagNameOnly 如果引用仅具有仓库名称，则将默认标签“latest”添加到引用中。
+std::shared_ptr<Named_interface> TagNameOnly(const std::shared_ptr<Named_interface>& ref) {
+    if (IsNameOnly(ref)) {
+        std::shared_ptr<NamedTagged_interface> namedTagged;
+        try {
+            namedTagged = WithTag(ref, defaultTag);
+        } catch (const myerror& e) {
+            throw; // 重新抛出异常
+        }
+        return namedTagged;
+    }
+    return ref;
+}
+
+
+// ParseDockerRef 规范化图像引用，遵循Docker约定。主要是为了向后兼容。
+// 返回的引用只能是标记或摘要形式。如果引用包含标签和摘要，
+// 函数将返回摘要引用。
+std::shared_ptr<Named_interface> ParseDockerRef(const std::string& ref) {
+    try {
+        std::shared_ptr<Named_interface> named = ParseNormalizedNamed(ref);
+        if (!named) {
+            throw myerror("解析规范化命名失败");
+        }
+
+        if (std::shared_ptr<NamedTagged_interface> tagged = std::dynamic_pointer_cast<NamedTagged_interface>(named)) {
+            if (std::shared_ptr<Canonical_interface> canonical = std::dynamic_pointer_cast<Canonical_interface>(tagged)) {
+                // // 引用同时具有标签和摘要，仅返回摘要。
+                // // std::shared_ptr<Named_interface> newNamed = WithName(canonical->Name());
+                // if (!newNamed) {
+                //     throw myerror("创建新名称失败");
+                // }
+                // std::shared_ptr<Canonical_interface> newCanonical = WithDigest(newNamed, canonical->Digests());
+                // if (!newCanonical) {
+                //     throw myerror("创建新摘要失败");
+                // }
+                // return newCanonical;
+            }
+        }
+        return TagNameOnly(named);
+    } catch (const myerror& e) {
+        // 处理myerror类型的异常
+        throw; // 重新抛出异常
+    }
 }

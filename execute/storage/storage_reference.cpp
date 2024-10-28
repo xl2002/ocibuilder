@@ -15,8 +15,8 @@ std::tuple<std::shared_ptr<ImageReference_interface>,std::shared_ptr<storage::Im
     }
     auto clone=sref;
     try{
-        auto img=clone->resolveImage(nullptr);
-        return std::make_tuple(clone,img);
+        // auto img=clone->resolveImage(nullptr);
+        // return std::make_tuple(clone,img);
     }catch(const myerror &e){
         throw;
     }

@@ -10,6 +10,7 @@
 class naiveLayerIDMapUpdater : public LayerIDMapUpdater_interface {
 public:
     // 构造函数接受 shared_ptr 作为参数
+    naiveLayerIDMapUpdater()=default;
     naiveLayerIDMapUpdater(std::shared_ptr<ProtoDriver_interface> protoDriver)
         : protoDriver(protoDriver) {}
 
@@ -17,8 +18,7 @@ public:
         // 更新层 ID 的实现
     }
 
-private:
-    std::shared_ptr<ProtoDriver_interface> protoDriver; // 使用 shared_ptr 类型
+    std::shared_ptr<ProtoDriver_interface> protoDriver=nullptr; // 使用 shared_ptr 类型
 };
 
 // NewNaiveLayerIDMapUpdater 函数实现

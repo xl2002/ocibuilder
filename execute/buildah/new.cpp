@@ -5,7 +5,7 @@
 #include "define/pull.h"
 #include "libimage/pull.h"
 std::shared_ptr<Builder> newBuilder(std::shared_ptr<Store> store,std::shared_ptr<BuilderOptions> options){
-    std::shared_ptr<ImageReference_interface> ref;
+    std::shared_ptr<ImageReference_interface> ref=nullptr;
     std::shared_ptr<storage::Image> img=std::make_shared<storage::Image>();
     if(options->FromImage=="scratch"){
         options->FromImage="";

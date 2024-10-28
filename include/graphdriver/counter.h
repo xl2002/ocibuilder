@@ -12,6 +12,7 @@ public:
 // fsChecker 结构体实现
 class FsChecker : public Checker_interface {
 public:
+    ~FsChecker() = default;
     FsChecker(FsMagic t) : t_(t) {}
 
     bool IsMounted(const std::string& path) const override {
@@ -36,7 +37,7 @@ class RefCounter {
 public:
     std::map<std::string, Minfo> counts; // 假设 Minfo 是已定义的结构体
     std::mutex mu;
-    std::shared_ptr<Checker_interface> checker; // 修改为 shared_ptr 类型
+    std::shared_ptr<Checker_interface> checker=nullptr; // 修改为 shared_ptr 类型
 
     // 默认构造函数
     RefCounter() : checker(nullptr) {}

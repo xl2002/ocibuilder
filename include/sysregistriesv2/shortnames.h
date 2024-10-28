@@ -13,7 +13,7 @@ struct shortNameAliasConf{
     std::map<std::string,std::string> Aliases;
 };
 struct alias{
-    std::shared_ptr<Named_interface> value;
+    std::shared_ptr<Named_interface> value=nullptr;
     std::string configOrigin;
     alias()=default;
     alias(std::shared_ptr<Named_interface> value,std::string configOrigin):value(value),configOrigin(configOrigin){};

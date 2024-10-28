@@ -14,7 +14,7 @@ extern std::shared_ptr<dockerTransport> docker_Transport;
 class dockerReference:public ImageReference_interface{
 
 public:
-    std::shared_ptr<Named_interface>ref;
+    std::shared_ptr<Named_interface>ref=nullptr;
     bool isUnknownDigest=false;
     std::string StringWithinTransport() override;
     std::string PolicyConfigurationIdentity() override;
