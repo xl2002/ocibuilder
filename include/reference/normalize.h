@@ -8,4 +8,5 @@ public:
     virtual std::shared_ptr<Named_interface> Familiar()=0;
 };
 std::shared_ptr<Named_interface> ParseNormalizedNamed(std::string s);
+std::shared_ptr<Named_interface> TagNameOnly(std::shared_ptr<Named_interface> named);
 #endif // REFERENCE_NORMALIZE_H)

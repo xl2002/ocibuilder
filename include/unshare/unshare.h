@@ -9,7 +9,11 @@
 #include <iostream>
 
 std::string HomeDir(){
-    return std::string("/root");
+    #if defined(__linux__)
+        return std::string("/root");
+    #else
+        return std::string("D:\\oci_images");
+    #endif
 }
 
 #endif // UNSHARE_UNSHARE_H)q

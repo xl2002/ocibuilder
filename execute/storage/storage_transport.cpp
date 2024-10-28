@@ -20,6 +20,24 @@ std::shared_ptr<ImageReference_interface> storageTransport::ParseReference(const
 void storageTransport::ValidatePolicyConfigurationScope(const std::string &scope){
     
 }
+std::shared_ptr<storageReference>newReference(std::shared_ptr<storageTransport> transport,std::shared_ptr<Named_interface> named,const std::string &id){
+    if(named==nullptr&&id==""){
+        return nullptr;
+    }
+    auto res=std::make_shared<storageReference>();
+    res->transport=transport;
+    res->named=named;
+    res->id=id;
+    return res;
+    // return nullptr;
+}
+std::shared_ptr<storageReference>storageTransport::NewStoreReference(std::shared_ptr<Store_interface> store,std::shared_ptr<Named_interface> named,const std::string &id){
+    auto s=std::make_shared<storageTransport>();
+    s->store=store;
+    s->defaultUIDMap=defaultUIDMap;
+    s->defaultGIDMap=defaultGIDMap;
+    return newReference(s,named,id);
+}
 void storageTransport::SetStore(std::shared_ptr<Store> store){
     this->store = store;
 }

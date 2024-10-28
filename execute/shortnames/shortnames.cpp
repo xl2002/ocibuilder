@@ -1,6 +1,7 @@
 #include "shortnames/shortnames.h"
 #include "cobra/error.h"
 #include "sysregistriesv2/shortnames.h"
+#include "sysregistriesv2/system_registries_v2.h"
 std::vector<std::shared_ptr<Named_interface>> ResolveLocally(std::shared_ptr<SystemContext> ctx,std::string name){
     bool isShort;
     std::shared_ptr<Named_interface> shortRef;
@@ -9,6 +10,14 @@ std::vector<std::shared_ptr<Named_interface>> ResolveLocally(std::shared_ptr<Sys
 
     }
     std::vector<std::shared_ptr<Named_interface>> candidates;
+    auto completeCandidates=[&](std::vector<std::string> registries){
+        for(auto r:registries){
+            std::shared_ptr<Named_interface> named=ParseNormalizedNamed(r+"/"+name);
+            named=TagNameOnly(named);
+            candidates.push_back(named);
+        }
+        return candidates;
+    };
     if(ctx!=nullptr&& ctx->PodmanOnlyShortNamesIgnoreRegistriesConfAndForceDockerHub){
         
     }
@@ -19,8 +28,20 @@ std::vector<std::shared_ptr<Named_interface>> ResolveLocally(std::shared_ptr<Sys
     std::tie(isTagged,isDigested,shortNameRepo,tag,digest)=splitUserInput(shortRef);
     std::shared_ptr<Named_interface> nameAlias;
     std::tie(nameAlias,std::ignore)=ResolveShortNameAlias(ctx,shortNameRepo->String());
-
-    return candidates;
+    if(nameAlias!=nullptr){
+        if(isTagged){
+            nameAlias=WithTag(nameAlias,tag);
+        }
+        nameAlias=TagNameOnly(nameAlias);
+        candidates.push_back(nameAlias);
+    }
+    auto unqualifiedSearchRegistries=UnqualifiedSearchRegistries(ctx);
+    std::vector<string> strvec;
+    for(auto m:unqualifiedSearchRegistries){
+        strvec.push_back(m.second);
+    }
+    strvec.push_back("localhost");
+    return completeCandidates(strvec);
 }
 
 std::tuple<bool,std::shared_ptr<Named_interface>> parseUnnormalizedShortName(std::string input) {

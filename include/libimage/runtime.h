@@ -8,8 +8,10 @@
 #include "libimage/image.h"
 #include "libimage/pull.h"
 #include "define/platform.h"
-class LookupImageOptions;
+#include "reference/reference.h"
+#include "storage/storage_transport.h"
 // Runtime 负责管理镜像并将其存储在容器存储中
+struct LookupImageOptions;
 struct Runtime {
     // 用于向用户发送事件的通道
     std::queue<std::shared_ptr<Event>> eventChannel; // 使用队列代替通道
@@ -21,7 +23,7 @@ struct Runtime {
     std::vector<std::string> copyFromRegistry(std::shared_ptr<ImageReference_interface> ref,std::string inputName,std::shared_ptr<PullPolicy> pullPolicy,std::shared_ptr<PullOptions> options);
     std::vector<std::string> copySingleImageFromRegistry(std::string imageName,std::shared_ptr<PullPolicy> pullPolicy,std::shared_ptr<PullOptions> options);
     std::tuple<std::shared_ptr<libimage::Image>,std::string> LookupImage(std::string name,std::shared_ptr<LookupImageOptions> options);
-
+    std::shared_ptr<libimage::Image> lookupImageInLocalStorage(std::string name,std::string candidate,std::shared_ptr<Named_interface> namedCandidate,std::shared_ptr<LookupImageOptions> options);
 
 };
 struct RuntimeOptions {

@@ -72,3 +72,7 @@ std::pair<std::string, std::string> splitDockerDomain(const std::string& name) {
     return std::make_pair(domain, remainder);
 }
 
+std::shared_ptr<Named_interface> TagNameOnly(std::shared_ptr<Named_interface> named) {
+    
+    return named;
+}

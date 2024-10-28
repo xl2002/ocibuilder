@@ -7,6 +7,7 @@
 #include "go/string.h"
 #include "shortnames/shortnames.h"
 #include "reference/regexp.h"
+#include "storage/images.h"
 std::shared_ptr<Runtime> RuntimeFromStore(std::shared_ptr<Store> store,std::shared_ptr<RuntimeOptions> options) {
     if( options==nullptr ) {
         options=std::make_shared<RuntimeOptions>();
@@ -180,8 +181,20 @@ std::tuple<std::shared_ptr<libimage::Image>,std::string> Runtime::LookupImage(st
     }
     // ParseDockerRef(name);
     // for(auto candidate:candidates) {
-    //     this->lookupImageInLocalStorage();
+    //     this->lookupImageInLocalStorage(name,candidate->String(),candidate,options);
     // }
     return{};
 
+}
+
+std::shared_ptr<libimage::Image> Runtime::lookupImageInLocalStorage(std::string name,std::string candidate,std::shared_ptr<Named_interface> namedCandidate,std::shared_ptr<LookupImageOptions> options) {
+    std::shared_ptr<storage::Image> img;
+    std::shared_ptr<ImageReference_interface> ref;
+    if(namedCandidate!=nullptr) {
+        namedCandidate=TagNameOnly(namedCandidate);
+        ref=Transport->NewStoreReference(this->store,namedCandidate,"");
+    }
+    std::tie(std::ignore,img)=ResolveReference(ref);
+    
+    return nullptr;
 }
