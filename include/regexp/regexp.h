@@ -39,6 +39,7 @@ class Regexp{
     std::vector<uint8_t> ReplaceAllLiteral(const std::vector<uint8_t>& src, const std::vector<uint8_t>& repl);
     std::vector<std::string> Split(const std::string& s, int n);
     std::string String();
+    std::shared_ptr<std::regex> GetRegex();
 };
 extern bool precompile;
 std::shared_ptr<Regexp> Delayed(const std::string& val);

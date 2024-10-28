@@ -18,12 +18,12 @@ Digest canonical::Digests(){
 // string NamedTagged::String(){
 //     return "";
 // }
-string Tagged::String(){
-    return "";
-}
-string Tagged::Tag(){
-    return "";
-}
+// string Tagged::String(){
+//     return "";
+// }
+// string Tagged::Tag(){
+//     return "";
+// }
 
 string named::String(){
     return "";

@@ -20,7 +20,11 @@ struct Runtime {
     std::vector<std::string> copyFromRegistry(std::shared_ptr<ImageReference_interface> ref,std::string inputName,std::shared_ptr<PullPolicy> pullPolicy,std::shared_ptr<PullOptions> options);
     std::vector<std::string> copySingleImageFromRegistry(std::string imageName,std::shared_ptr<PullPolicy> pullPolicy,std::shared_ptr<PullOptions> options);
     std::tuple<std::shared_ptr<libimage::Image>,std::string> LookupImage(std::string name,std::shared_ptr<LookupImageOptions> options);
-
+    std::shared_ptr<Image> lookupImageInLocalStorage(
+        const std::string& name,
+        const std::string& candidate,
+        std::shared_ptr<Named_interface> namedCandidate,
+        std::shared_ptr<LookupImageOptions> options);
 
 };
 struct RuntimeOptions {
@@ -55,4 +59,5 @@ struct LookupImageOptions {
 
 void setRegistriesConfPath(std::shared_ptr<SystemContext> systemContext);
 std::shared_ptr<Runtime> RuntimeFromStore(std::shared_ptr<Store> store,std::shared_ptr<RuntimeOptions> options);
+
 #endif // LIBIMAGE_RUNTIME_H)
