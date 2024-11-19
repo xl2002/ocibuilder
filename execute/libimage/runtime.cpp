@@ -126,8 +126,8 @@ std::vector<std::string> Runtime::copySingleImageFromRegistry(std::string imageN
     if(options->OS!="linux"){
         lookupImageOptions->OS=options->OS;
     }
-    std::shared_ptr<libimage::Image> localImage;
-    std::string resolvedImageName;
+    // std::shared_ptr<libimage::Image> localImage;
+    // std::string resolvedImageName;
     try{
         std::tie(localImage,resolvedImageName)=this->LookupImage(imageName,lookupImageOptions);
     }catch(const myerror& e) {
@@ -178,10 +178,10 @@ std::tuple<std::shared_ptr<libimage::Image>,std::string> Runtime::LookupImage(st
     }catch(const myerror& e) {
         throw;
     }
-    ParseDockerRef(name);
-    for(auto candidate:candidates) {
-        this->lookupImageInLocalStorage();
-    }
+    // ParseDockerRef(name);
+    // for(auto candidate:candidates) {
+    //     this->lookupImageInLocalStorage();
+    // }
     return{};
 
 }

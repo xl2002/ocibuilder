@@ -87,7 +87,7 @@ struct SystemContext  {
 	// If not "", overrides the system's default directory containing a blob info cache.
 	string BlobInfoCacheDir;
 	// Additional tags when creating or copying a docker-archive.
-	vector<NamedTagged> DockerArchiveAdditionalTags;
+	vector<std::shared_ptr<NamedTagged_interface>> DockerArchiveAdditionalTags;
 	// If not "", overrides the temporary directory to use for storing big files
 	string BigFilesTemporaryDir;
 

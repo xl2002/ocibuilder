@@ -9,13 +9,13 @@ std::shared_ptr<named> NormalizeName(std::string name){
 }
 std::shared_ptr<Named_interface>normalizeTaggedDigestedNamed(std::shared_ptr<Named_interface> named);
 std::tuple<std::string, std::shared_ptr<Named_interface>> normalizeTaggedDigestedString(std::string s) {
-    std::shared_ptr<Named_interface> ref;
+    std::shared_ptr<Reference_interface> ref;
     try{
         ref=Parse(s);
     }catch(const myerror& e){
         throw;
     }
-    auto named=ref;
+    auto named=std::dynamic_pointer_cast<Named_interface>(ref);
     try{
         named=normalizeTaggedDigestedNamed(named);
     }catch(const myerror& e){

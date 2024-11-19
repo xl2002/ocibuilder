@@ -4,6 +4,7 @@
 #include "types/types.h"
 #include "v1/config.h"
 #include "libimage/inspect.h"
+class Runtime;
 namespace libimage{
     // Image 结构体定义
     struct Image {

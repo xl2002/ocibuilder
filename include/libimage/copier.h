@@ -122,7 +122,7 @@ struct CopyOptions {
     // ----- internal -----------------------------------------------------
 
     // 其他标签
-    std::vector<std::shared_ptr<NamedTagged>> dockerArchiveAdditionalTags; // 假设的类型
+    std::vector<std::shared_ptr<NamedTagged_interface>> dockerArchiveAdditionalTags; // 假设的类型
 
     // NOTIFY_SOCKET
     std::string extendTimeoutSocket;

@@ -36,12 +36,13 @@ std::shared_ptr<Named_interface> ParseNormalizedNamed(std::string s){
     }
     // auto n=std::make_shared<Named_interface>();
     // auto m=std::shared_ptr<Named_interface>(ref);
-    // auto named=dynamic_cast<Named_interface*>(ref.get());
+    auto named=std::dynamic_pointer_cast<Named_interface>(ref);
     // if (!named) {
     //     throw std::runtime_error("reference has no name");
     // }
     // return std::shared_ptr<Named_interface>(named);
-    return ref; // 返回解析后的命名引用
+    // return ref; // 返回解析后的命名引用
+    return named;
 }
 
 // splitDockerDomain 将仓库名称拆分为域名和剩余名称字符串。

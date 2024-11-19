@@ -8,6 +8,7 @@
 #include "libimage/image.h"
 #include "libimage/pull.h"
 #include "define/platform.h"
+class LookupImageOptions;
 // Runtime 负责管理镜像并将其存储在容器存储中
 struct Runtime {
     // 用于向用户发送事件的通道

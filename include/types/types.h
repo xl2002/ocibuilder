@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 #include <map>
+#include <chrono>
 #include "reference/reference.h"
 class ImageTransport_interface;
 class ImageReference_interface{
@@ -37,6 +38,7 @@ enum class layerCompression:int{
 };
 struct LayerCompression{
     layerCompression layer=layerCompression::PreserveOriginal;
+    LayerCompression()=default;
     LayerCompression(layerCompression layer):layer(layer){};
 };
 
