@@ -4,6 +4,9 @@
 #include "libimage/runtime.h"
 #include "define/pull.h"
 #include "libimage/pull.h"
+#include "manifest/manifest.h"
+#include "define/types.h"
+#include "v1/annotations.h"
 std::shared_ptr<Builder> newBuilder(std::shared_ptr<Store> store,std::shared_ptr<BuilderOptions> options){
     std::shared_ptr<ImageReference_interface> ref=nullptr;
     std::shared_ptr<storage::Image> img=std::make_shared<storage::Image>();
@@ -37,10 +40,68 @@ std::shared_ptr<Builder> newBuilder(std::shared_ptr<Store> store,std::shared_ptr
         try{
             auto pulledImages=imageRuntime->Pull(options->FromImage,pullPolicy,pullOptions);
             if(pulledImages.size()>0){
-
+                img=pulledImages[0]->storageImage;
+                ref=pulledImages[0]->StorageReference();
             }
         }catch(const myerror& e){
             throw;
         }
     }
+    auto imageSpec=options->FromImage;
+    std::string imageID;
+    std::string imageDigest;
+    std::string topLayer;
+    if(img!=nullptr){
+        imageID=img->ID;
+        topLayer=img->TopLayer;
+    }
+    std::shared_ptr<Image_interface> src=nullptr;
+    if(ref!=nullptr){
+        try{
+            auto srcSrc=ref->NewImageSource(systemContext);
+            std::vector<uint8_t> manifestBytes;
+            std::string manifestType;
+            std::tie(manifestBytes,manifestType)=srcSrc->GetManifest(nullptr);
+            auto manifestDigest=manifest::Digest(manifestBytes);
+            if(manifestDigest!=nullptr){
+                imageDigest=manifestDigest->String();
+            }
+            std::shared_ptr<::Digest> instanceDigest=nullptr;
+            // src=FromUnparsedImage(systemContext,UnparsedInstance(srcSrc,instanceDigest));
+        }catch(const myerror& e){
+            throw;
+        }
+    }
+
+    auto builder=std::make_shared<Builder>();
+    builder->store=store;
+    builder->Type=Package+version;
+    builder->FromImage=imageSpec;
+    builder->FromImageID=imageID;
+    builder->FromImageDigest=imageDigest;
+    builder->GroupAdd=options->GroupAdd;
+    builder->DefaultMountsFilePath=options->DefaultMountsFilePath;
+    builder->Isolation=options->Isolation;
+    builder->ConfigureNetwork=options->ConfigureNetwork;
+    builder->CNIPluginPath=options->CNIPluginPath;
+    builder->CNIConfigDir=options->CNIConfigDir;
+    builder->Capabilities=options->Capabilities;
+    builder->CommonBuildOpts=options->CommonBuildOpts;
+    builder->TopLayer=topLayer;
+    builder->Args=options->Args;
+    builder->Format=options->Format;
+    builder->Devices=options->Devices;
+    builder->NetworkInterface=options->NetworkInterface;
+    builder->CDIConfigDir=options->CDIConfigDir;
+    
+    try{
+        builder->initConfig(src,systemContext);
+    }catch(const myerror & e){
+        throw;
+    }
+    if(!options->PreserveBaseImageAnns){
+        builder->SetAnnotation(AnnotationBaseImageDigest,imageDigest);
+        builder->SetAnnotation(AnnotationBaseImageName,imageSpec);
+    }
+    return builder;
 }

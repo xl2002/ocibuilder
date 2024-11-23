@@ -361,7 +361,9 @@ std::shared_ptr<container_Config> Image_Builder::Config(){
     config->Image="";
     return config;
 }
+void Image_Builder::FromImage(std::shared_ptr<Docker::Image>image,std::shared_ptr<Node>node){
 
+}
 // Add 方法：添加路径并返回是否成功
 bool VolumeSet::Add( const std::string& path) {
     if (path == "/") {

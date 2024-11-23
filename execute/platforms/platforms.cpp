@@ -8,7 +8,7 @@ std::shared_ptr<Platform> Normalize(std::shared_ptr<Platform> platform) {
     std::tie(platform->Architecture,platform->Variant)=normalizeArch(platform->Architecture,platform->Variant);
     return platform;
 }
-std::shared_ptr<Platform> platforms::Parse(const std::string& specifier) {
+std::shared_ptr<Platform> PlatForms::Parse(const std::string& specifier) {
     
     Platform p;
 

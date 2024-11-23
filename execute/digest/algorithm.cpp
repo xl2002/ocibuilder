@@ -25,6 +25,9 @@ std::shared_ptr<Digest> Algorithm_sha256::FromString(const std::string& data) {
     return nullptr;
 
 }
+std::shared_ptr<Digest> Algorithm_sha256::FromBytes(std::vector<uint8_t> p){
+    return nullptr;
+}
 std::shared_ptr<Hash_256> Algorithm_sha256::Hash() {
     return nullptr;
 }

@@ -19,7 +19,8 @@ struct Algorithm  {
 	string baseVariantName ;
 	vector<uint8_t> prefix; // Initial bytes of a stream compressed using this algorithm, or empty to disable detection.
 	DecompressorFunc decompressor    ;
-	CompressorFunc compressor    ;  
+	CompressorFunc compressor    ;
+
 };
 
 #endif // INTERNAL_TYPES_H

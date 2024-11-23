@@ -4,8 +4,10 @@
 #include "types/types.h"
 #include "v1/config.h"
 #include "libimage/inspect.h"
+// #include "types/types.h"
 class Runtime;
-namespace libimage{
+namespace LibImage{
+    // struct RootFS;
     // Image 结构体定义
     struct Image {
         // ListData 被 (*Runtime).ListImages() 设置。注意，数据可能过时。
@@ -50,15 +52,13 @@ namespace libimage{
         Image()=default;
 
         // 其他需要的成员函数可以在此添加，例如 reload() 等
+        std::shared_ptr<ImageInspectInfo> inspectInfo();
+        std::shared_ptr<ImageReference_interface> StorageReference();
+        std::shared_ptr<ImageData> Inspect (std::shared_ptr<InspectOptions> options);
+        std::string ID();
+        bool matchesPlatform( std::string os, std::string arch, std::string variant);
+        bool isCorrupted(std::string name);
     };
-    
-
-
-
-
-
-
-
 }
 
 

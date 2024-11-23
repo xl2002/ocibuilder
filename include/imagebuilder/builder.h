@@ -16,6 +16,7 @@
 #include <stdexcept>
 #include "parse/dockerfileparse.h"
 #include "docker/types.h"
+#include "docker/image.h"
 #include "imagebuilder/evaluator.h"
 // #include "imagebuildah/stage_executor.h"
 #include <boost/filesystem.hpp>
@@ -99,6 +100,7 @@ public:
         bool noRunsRemaining 
     );
     std::shared_ptr<container_Config>Config();
+    void FromImage(std::shared_ptr<Docker::Image>image,std::shared_ptr<Node>node);
 };
 
 std::vector<std::shared_ptr<Node>> SplitBy(std::shared_ptr<Node>node,std::string value);
@@ -115,7 +117,7 @@ public:
     int Position=0;
     std::string Name;
     std::shared_ptr<Image_Builder> image_builder=std::make_shared<Image_Builder>();  // Use std::shared_ptr for managing dynamic memory
-    std::shared_ptr<Node> Node=std::make_shared<::Node>();
+    std::shared_ptr<::Node> Node=std::make_shared<::Node>();
 };
 class Stages {
 public:

@@ -34,7 +34,7 @@ void setRegistriesConfPath(std::shared_ptr<SystemContext> systemContext) {
     return;
 }
 
-std::vector<std::shared_ptr<libimage::Image>> Runtime::Pull(std::string name,std::shared_ptr<PullPolicy> pullPolicy,std::shared_ptr<PullOptions> options) {
+std::vector<std::shared_ptr<LibImage::Image>> Runtime::Pull(std::string name,std::shared_ptr<PullPolicy> pullPolicy,std::shared_ptr<PullOptions> options) {
     // Debugf("Pulling image %s (policy: %s)",name.c_str(),pullPolicy->String().c_str());
     if(!this->eventChannel.empty()) {
         
@@ -98,8 +98,21 @@ std::vector<std::shared_ptr<libimage::Image>> Runtime::Pull(std::string name,std
     }catch(const myerror& e) {
         throw;
     }
-    
-    return {};
+    auto localImages=std::vector<std::shared_ptr<LibImage::Image>>{};
+    for(auto iname:pulledImages) {
+        try{
+            std::shared_ptr<LibImage::Image> image;
+            std::tie(image,std::ignore)=this->LookupImage(iname,nullptr);
+            auto matched=image->matchesPlatform(options->OS,options->Architecture,options->Variant);
+            if(!matched) {
+                return {};
+            }
+            localImages.push_back(image);
+        }catch(const myerror& e) {
+            throw;
+        }
+    }
+    return localImages;
 }
 
 std::vector<std::string> Runtime::copyFromRegistry(std::shared_ptr<ImageReference_interface> ref,std::string inputName,std::shared_ptr<PullPolicy> pullPolicy,std::shared_ptr<PullOptions> options) {
@@ -117,7 +130,7 @@ std::vector<std::string> Runtime::copySingleImageFromRegistry(std::string imageN
     if(!pullPolicy->Validate()) {
         return {};
     }
-    std::shared_ptr<libimage::Image> localImage;
+    std::shared_ptr<LibImage::Image> localImage;
     std::string resolvedImageName;
     auto lookupImageOptions=std::make_shared<LookupImageOptions>();
     lookupImageOptions->Variant=options->Variant;
@@ -127,18 +140,24 @@ std::vector<std::string> Runtime::copySingleImageFromRegistry(std::string imageN
     if(options->OS!="linux"){
         lookupImageOptions->OS=options->OS;
     }
-    // std::shared_ptr<libimage::Image> localImage;
+    // std::shared_ptr<LibImage::Image> localImage;
     // std::string resolvedImageName;
     try{
         std::tie(localImage,resolvedImageName)=this->LookupImage(imageName,lookupImageOptions);
     }catch(const myerror& e) {
         throw;
     }
-    return {};
+    if(localImage!=nullptr) {
+        if(localImage->isCorrupted(imageName)) {
+            localImage=nullptr;
+        }
+        return {resolvedImageName};
+    }
+    return {""};
 
 }
 
-std::tuple<std::shared_ptr<libimage::Image>,std::string> Runtime::LookupImage(std::string name,std::shared_ptr<LookupImageOptions> options) {
+std::tuple<std::shared_ptr<LibImage::Image>,std::string> Runtime::LookupImage(std::string name,std::shared_ptr<LookupImageOptions> options) {
     // Debugf("Looking up image %s in local storage",name.c_str());
     if(options==nullptr) {
         options=std::make_shared<LookupImageOptions>();
@@ -172,7 +191,7 @@ std::tuple<std::shared_ptr<libimage::Image>,std::string> Runtime::LookupImage(st
     if(options->Variant=="") {
         options->Variant=this->systemContext->VariantChoice;
     }
-    std::tie(options->OS,options->Architecture,options->Variant)=libimage::Normalize(options->OS,options->Architecture,options->Variant);
+    std::tie(options->OS,options->Architecture,options->Variant)=LibImage::Normalize(options->OS,options->Architecture,options->Variant);
     std::vector<std::shared_ptr<Named_interface>> candidates;
     try{
         candidates=ResolveLocally(this->systemContext,name);
@@ -187,7 +206,7 @@ std::tuple<std::shared_ptr<libimage::Image>,std::string> Runtime::LookupImage(st
     // 遍历 candidates
     for (const auto& candidate : candidates) {
         // 尝试在本地存储中查找图像
-        std::shared_ptr<libimage::Image> img;
+        std::shared_ptr<LibImage::Image> img;
         try {
             // 调用 lookupImageInLocalStorage，传入相应的参数
             img = this->lookupImageInLocalStorage(name, candidate->String(), candidate, options);
@@ -201,19 +220,43 @@ std::tuple<std::shared_ptr<libimage::Image>,std::string> Runtime::LookupImage(st
             return std::make_tuple(img, candidate->String());
         }
     }
-    return{};
+    return{nullptr,""};
 
 }
 
-// std::shared_ptr<libimage::Image> Runtime::lookupImageInLocalStorage(std::string name,std::string candidate,std::shared_ptr<Named_interface> namedCandidate,std::shared_ptr<LookupImageOptions> options) {
-std::shared_ptr<libimage::Image> Runtime::lookupImageInLocalStorage(std::string name,std::string candidate,std::shared_ptr<Named_interface> namedCandidate,std::shared_ptr<LookupImageOptions> options){
+// std::shared_ptr<LibImage::Image> Runtime::lookupImageInLocalStorage(std::string name,std::string candidate,std::shared_ptr<Named_interface> namedCandidate,std::shared_ptr<LookupImageOptions> options) {
+std::shared_ptr<LibImage::Image> Runtime::lookupImageInLocalStorage(std::string name,std::string candidate,std::shared_ptr<Named_interface> namedCandidate,std::shared_ptr<LookupImageOptions> options){
     std::shared_ptr<storage::Image> img;
     std::shared_ptr<ImageReference_interface> ref;
     if(namedCandidate!=nullptr) {
         namedCandidate=TagNameOnly(namedCandidate);
-        ref=Transport->NewStoreReference(this->store,namedCandidate,"");
+        try{
+            ref=Transport->NewStoreReference(this->store,namedCandidate,"");
+            std::tie(std::ignore,img)=ResolveReference(ref);
+        }catch(const myerror& e) {
+            throw;
+        }
     }
-    std::tie(std::ignore,img)=ResolveReference(ref);
+    ref=Transport->ParseStoreReference(this->store,img->ID);
+    if(ref==nullptr) {
+        throw myerror("failed to parse image ID: "+img->ID);
+    }
+    auto image=this->storageToImage(img,ref);
+    if(!image->matchesPlatform(options->OS,options->Architecture,options->Variant)) {
+        throw myerror("image does not match platform: "+options->OS+"/"+options->Architecture+"/"+options->Variant);
+    }
+
+    // if(img!=nullptr) {
+    //     return img;
+    // }
     
-    return nullptr;
+    return image;
 }
+std::shared_ptr<LibImage::Image> Runtime::storageToImage(std::shared_ptr<storage::Image> img,std::shared_ptr<ImageReference_interface> ref) {
+    auto image=std::make_shared<LibImage::Image>();
+    image->runtime=std::make_shared<Runtime>(*this);
+    image->storageImage=img;
+    image->storageReference=ref;
+    return image;
+}
+

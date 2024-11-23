@@ -25,6 +25,7 @@ class Digest{
         return digest < other.digest;
     }
 };
-
+std::shared_ptr<Digest> FromString(std::string s);
+std::shared_ptr<::Digest> FromBytes(std::vector<uint8_t> p);
 
 #endif // GITHUB_DIGEST_H

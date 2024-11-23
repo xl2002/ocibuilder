@@ -18,6 +18,7 @@
 #include "storage/storage_transport.h"
 #include "types/options.h"
 #include "v1/descriptor.h"
+#include "v1/annotations.h"
 #include "transports/transports.h"
 #include "docker/docker_transport.h"
 #include "parse/line_parsers.h"

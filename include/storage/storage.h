@@ -39,6 +39,9 @@ constexpr containerLocations stableContainerLocation = 1 << 0; // 1 << 0 => 1
 constexpr containerLocations volatileContainerLocation = 1 << 1; // 1 << 1 => 2
 struct LayerOptions;
 class lockFile;
+namespace storage {
+    struct Image;
+}
 class Store_interface{
     public:
     virtual ~Store_interface()=default;
@@ -47,6 +50,7 @@ class Store_interface{
     virtual string RunRoot()=0;
     virtual void DeleteContainer(std::string id)=0;
     virtual void load()=0;
+    virtual std::shared_ptr<storage::Image> Image(std::string id)=0;
     // virtual string GraphRoot()=0;
     // virtual string ImageStore()=0;
 	// virtual bool ransientStore()=0;
@@ -266,107 +270,9 @@ public:
     // 清除所有图像记录
     virtual void Wipe() = 0;
 };
-struct imageStore:public rwImageStore_interface{
-        // rwImageStore_interface 方法的空实现
-    void startWriting() override {
-        // 空实现
-    }
+struct ImageStore:public rwImageStore_interface{
 
-    void stopWriting() override {
-        // 空实现
-    }
-
-    std::shared_ptr<storage::Image> create(const std::string& id, const std::vector<std::string>& names, 
-                                const std::string& layer, const ImageOptions& options) override {
-        return nullptr; // 空实现
-    }
-
-    void updateNames(const std::string& id, const std::vector<std::string>& names, 
-                    updateNameOperation op) override {
-        // 空实现
-    }
-
-    void Delete(const std::string& id) override {
-        // 空实现
-    }
-
-    void addMappedTopLayer(const std::string& id, const std::string& layer) override {
-        // 空实现
-    }
-
-    void removeMappedTopLayer(const std::string& id, const std::string& layer) override {
-        // 空实现
-    }
-
-    void GarbageCollect() override {
-        // 空实现
-    }
-
-    void Wipe() override {
-        // 空实现
-    }
-
-    void startReading() override {
-        // 空实现
-    }
-
-    void stopReading() override {
-        // 空实现
-    }
-
-    bool Exists(const std::string& id)  override {
-        return false; // 空实现
-    }
-
-    std::shared_ptr<storage::Image> Get(const std::string& id)  override {
-        return nullptr; // 空实现
-    }
-
-    std::vector<storage::Image> Images()  override {
-        return {}; // 空实现
-    }
-
-    std::vector<std::shared_ptr<storage::Image>> ByDigest(const Digest& digest)  override {
-        return {}; // 空实现
-    }
-
-    // metadataStore 和 bigDataStore 方法的空实现
-    std::vector<uint8_t> BigData(const std::string& id, const std::string& key)  override {
-        return {}; // 空实现
-    }
-
-    int64_t BigDataSize(const std::string& id, const std::string& key)  override {
-        return 0; // 空实现
-    }
-
-    Digest BigDataDigest(const std::string& id, const std::string& key)  override {
-        return {}; // 空实现
-    }
-
-    std::vector<std::string> BigDataNames(const std::string& id)  override {
-        return {}; // 空实现
-    }
-
-    void SetMetadata(const std::string& id, const std::string& metadata) override {
-        // 空实现
-    }
-
-    void SetBigData(const std::string& id, const std::string& key, 
-                    const std::vector<uint8_t>& data, 
-                    std::function<std::string(const std::vector<uint8_t>&)> digestManifest) override {
-        // 空实现
-    }
-
-    // flaggableStore_interface 方法的空实现
-    void ClearFlag(const std::string& id, const std::string& flag) override {
-        // 空实现
-    }
-
-    void SetFlag(const std::string& id, const std::string& flag, const std::string& value) override {
-        // 空实现
-    }
-
-    // 以下字段在构建 imageStore 时设置，之后不能再修改。
+    // 以下字段在构建 ImageStore 时设置，之后不能再修改。
     // 它们可以在没有其他锁定的情况下安全地访问。
     shared_ptr<lockFile> lockfile=std::make_shared<lockFile>(); // LockFile 用于区分读写和只读 image store。
     string dir;
@@ -384,6 +290,38 @@ struct imageStore:public rwImageStore_interface{
     map<string, shared_ptr<storage::Image>> byname;
     map<Digest, vector<shared_ptr<storage::Image>>> bydigest;
 
+        // rwImageStore_interface 方法的空实现
+    void startWriting() override;
+    void stopWriting() override ;
+    std::shared_ptr<storage::Image> create(const std::string& id, const std::vector<std::string>& names, 
+                                const std::string& layer, const ImageOptions& options) override;
+    void updateNames(const std::string& id, const std::vector<std::string>& names, 
+                    updateNameOperation op) override ;
+    void Delete(const std::string& id) override ;
+    void addMappedTopLayer(const std::string& id, const std::string& layer) override ;
+    void removeMappedTopLayer(const std::string& id, const std::string& layer) override ;
+    void GarbageCollect() override ;
+    void Wipe() override ;
+    void startReading() override ;
+    void stopReading() override ;
+    bool Exists(const std::string& id)  override ;
+    // std::shared_ptr<storage::Image> Get(const std::string& id)  override {
+    //     return nullptr; // 空实现
+    // }
+    std::vector<storage::Image> Images()  override;
+    std::vector<std::shared_ptr<storage::Image>> ByDigest(const Digest& digest)  override;
+    // metadataStore 和 bigDataStore 方法的空实现
+    std::vector<uint8_t> BigData(const std::string& id, const std::string& key)  override;
+    int64_t BigDataSize(const std::string& id, const std::string& key)  override;
+    Digest BigDataDigest(const std::string& id, const std::string& key)  override;
+    std::vector<std::string> BigDataNames(const std::string& id)  override;
+    void SetMetadata(const std::string& id, const std::string& metadata) override;
+    void SetBigData(const std::string& id, const std::string& key, 
+                    const std::vector<uint8_t>& data, 
+                    std::function<std::string(const std::vector<uint8_t>&)> digestManifest) override;
+    // flaggableStore_interface 方法的空实现
+    void ClearFlag(const std::string& id, const std::string& flag) override;
+    void SetFlag(const std::string& id, const std::string& flag, const std::string& value) override;
 
     bool checkModified(lastwrite& lastWrite);
     bool load(bool lockedForWriting);
@@ -393,6 +331,8 @@ struct imageStore:public rwImageStore_interface{
     void removeName(std::shared_ptr<storage::Image> image, const std::string& name);
     std::vector<std::string> stringSliceWithoutValue(const std::vector<std::string>& slice, const std::string& value);
     void Save();
+    std::shared_ptr<storage::Image> Get(const std::string& id) override;
+    std::shared_ptr<storage::Image> lookup(const std::string& id);
 };
 
 
@@ -606,7 +546,9 @@ public:
     std::map<std::string, std::shared_ptr<Container>> byname;
 };
 
-
+// namespace storage {
+//     struct Image;
+// }
 class Store :public Store_interface{
     public:
     string run_root;
@@ -652,6 +594,7 @@ class Store :public Store_interface{
     void load() override;
     void DeleteContainer(std::string id) override;
     shared_ptr<Driver> createGraphDriverLocked();
+    std::shared_ptr<storage::Image> Image(std::string id) override;
 };
 
 #endif

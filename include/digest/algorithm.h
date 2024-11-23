@@ -12,7 +12,7 @@
 #include <regex>
 #include "digest/digest.h"
 class Digest;
-struct Algorithm_sha256 {
+struct Algorithm_sha256 {//xcy,256哈希值
     std::string value;
     Algorithm_sha256() = default;
     Algorithm_sha256(std::string v) : value(v) {};
@@ -24,6 +24,7 @@ struct Algorithm_sha256 {
     bool Available();
     void Validate(const std::string& encoded);
     int Size();
+    std::shared_ptr<Digest> FromBytes(std::vector<uint8_t> p);
 };
 extern  Algorithm_sha256 SHA256;
 extern  Algorithm_sha256 Canonical_sha256;

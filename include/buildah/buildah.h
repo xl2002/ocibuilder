@@ -70,7 +70,7 @@ struct Builder {
 
     // 镜像元数据和运行时设置，支持多种格式。
     std::shared_ptr<Image> OCIv1=std::make_shared<Image>();
-    std::shared_ptr<V1Image> Docker=std::make_shared<V1Image>();
+    std::shared_ptr<V2Image> Docker=std::make_shared<V2Image>();
 
     // DefaultMountsFilePath 是保存挂载点的文件路径，以 "host-path:container-path" 格式。
     std::string DefaultMountsFilePath;
@@ -153,13 +153,29 @@ struct Builder {
     void SetStopSignal(std::string sig);
     void SetHealthcheck(std::shared_ptr<HealthConfig> config);
     void ClearLabels();
-    std::string Architecture();
+    // std::string Architecture();
     void SetLabel(std::string k,std::string v);
     std::tuple<std::string,std::shared_ptr<Canonical_interface>,std::shared_ptr<Digest>> Commit(
         std::shared_ptr<ImageReference_interface> dest,
         std::shared_ptr<CommitOptions> options
     );
     std::shared_ptr<containerImageRef> makeContainerImageRef(std::shared_ptr<CommitOptions> options);
+    void initConfig(std::shared_ptr<Image_interface> img,std::shared_ptr<SystemContext> sys);
+    void SetAnnotation(std::string key,std::string value);
+    std::string Hostname();
+    std::string Domainname();
+    std::string User();
+    std::vector<std::string> Env();
+    std::vector<std::string> Cmd();
+    std::string WorkDir();
+    std::vector<std::string> Entrypoint();
+    std::map<std::string,std::string> Labels();
+    std::vector<std::string> Shell();
+    std::string StopSignal();
+    std::vector<std::string> OnBuild();
+    std::string Maintainer();
+    std::string Architecture();
+    std::string Mount(std::string label);
 };
 
 struct BuilderInfo {
@@ -296,5 +312,5 @@ struct ImportOptions{
 };
 extern std::shared_ptr<PolicyTransportScopes> storageAllowedPolicyScopes;
 bool checkRegistrySourcesAllows(std::string forWhat,std::shared_ptr<ImageReference_interface> dest);
-
+std::shared_ptr<Builder> NewBuilder(std::shared_ptr<Store> store,std::shared_ptr<BuilderOptions> options);
 #endif

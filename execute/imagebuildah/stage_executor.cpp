@@ -8,7 +8,7 @@
 #include "buildah/commit.h"
 #include <algorithm>
 #include "logrus/exported.h"
-
+#include "docker/image.h"
 void StageExecutor::Delete(){
     if(builder!=nullptr){
         try{
@@ -283,8 +283,57 @@ std::shared_ptr<Builder> StageExecutor::prepare(
     builderOptions->PreserveBaseImageAnns=preserveBaseImageAnnotations;
     builderOptions->CDIConfigDir=this->executor->cdiConfigDir;
 
-    
-    return nullptr;
+    std::shared_ptr<Builder> builder =NewBuilder(this->executor->store,builderOptions);
+    if(this->executor->mountLabel==""&&this->executor->processLabel==""){
+        this->executor->mountLabel=builder->MountLabel;
+        this->executor->processLabel=builder->ProcessLabel;
+    }
+    if(initializeIBConfig){
+        auto volumes=std::map<std::string, std::string>();
+        auto ports=std::map<std::string, Port>();
+        auto dConfig=std::make_shared<container_Config>();
+        dConfig->Hostname=builder->Hostname();
+        dConfig->Domainname=builder->Domainname();
+        dConfig->User=builder->User();
+        dConfig->Env=builder->Env();
+        dConfig->Cmd=builder->Cmd();
+        dConfig->WorkingDir=builder->WorkDir();
+        dConfig->Entrypoint=builder->Entrypoint();
+        dConfig->Labels=builder->Labels();
+        dConfig->Shell=builder->Shell();
+        dConfig->StopSignal=builder->StopSignal();
+        dConfig->OnBuild=builder->OnBuild();
+        dConfig->Image=from;
+        dConfig->Volumes=volumes;
+        dConfig->ExposedPorts=ports;
+        auto rootfs=std::make_shared<Docker::RootFS>();
+        if(builder->Docker->RootFS!=nullptr){
+            rootfs->Type=builder->Docker->RootFS->Type;
+        }
+        for(auto i:builder->Docker->RootFS->DiffIDs){
+            rootfs->Layers.push_back(i->String());
+        }
+        auto dImage=std::make_shared<Docker::Image>();
+        dImage->Parent=builder->FromImage;
+        dImage->ContainerConfig=dConfig;
+        dImage->Container=builder->Container;
+        dImage->Architecture=builder->Architecture();
+        dImage->Author=builder->Maintainer();
+        dImage->RootFS=rootfs;
+        dImage->Config=dImage->ContainerConfig;
+        try{
+            ib->FromImage(dImage,node);//空实现
+            auto mountPoint=builder->Mount(builder->MountLabel);//空实现
+            if(rebase){
+                this->mountPoint=mountPoint;
+                this->builder=builder;
+            }
+        }catch(const myerror& e){
+            throw;
+        }
+
+    }
+    return builder;
 }
 
 

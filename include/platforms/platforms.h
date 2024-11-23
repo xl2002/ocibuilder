@@ -7,7 +7,7 @@
 #include "v1/descriptor.h"
 
 std::shared_ptr<Platform> Normalize(std::shared_ptr<Platform> platform);
-namespace platforms {
+namespace PlatForms {
     std::shared_ptr<Platform> Parse(const std::string& specifier);
 }
 

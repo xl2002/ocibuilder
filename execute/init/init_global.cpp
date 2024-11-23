@@ -217,7 +217,7 @@ void init_global(){
     drivers["overlay"] = [](const std::string& home, const driver_Options& options) -> std::shared_ptr<Driver> {
         return std::make_shared<Driver>(Init(home, options));
     };
-
+    v1_init();
 
 }
 void initialize_global(){

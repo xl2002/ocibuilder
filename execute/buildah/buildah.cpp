@@ -247,7 +247,7 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,std::shared_ptr<Dige
     }
     std::shared_ptr<Digest> manifestDigest;
     try{
-        manifestDigest=manifest::Digest_trans(manifestBytes);
+        manifestDigest=manifest::Digest(manifestBytes);
     }catch(const myerror& e){
         throw myerror("computing digest of manifest of new image "+this->ContainerID+": "+std::string(e.what()));
     }

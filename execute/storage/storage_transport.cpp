@@ -1,12 +1,21 @@
 #include "storage/storage_transport.h"
-
+#include "go/string.h"
 // const std::shared_ptr<StoreTransport_interface> Transport= std::make_shared<storageTransport>();
 
 std::string storageTransport::Name(){
     return "containers-storage";
 }
 std::shared_ptr<storageReference>storageTransport::ParseStoreReference(std::shared_ptr<Store_interface> store,const std::string &reference){
-
+    auto img=store->Image(reference);
+    std::string id;
+    if(img!=nullptr&&hasPrefix(img->ID,reference)){ 
+        id=img->ID;
+    }
+    std::shared_ptr<Named_interface> named=nullptr;
+    auto result=this->NewStoreReference(store,named,id);
+    if(result!=nullptr){
+        return result;
+    }
     return nullptr;
 }
 

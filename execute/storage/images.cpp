@@ -53,3 +53,23 @@ void storage::Image::recomputeDigests() {
         throw;
     }
 }
+
+// std::shared_ptr<storage::Image> storage::ImageStore::Get(const std::string& id) {
+//     auto image=this->lookup(id);
+//     if(image!=nullptr){
+//         return std::make_shared<storage::Image>(*image);//复制一份
+//     }
+//     return nullptr;
+// }
+
+// std::shared_ptr<storage::Image> storage::ImageStore::lookup(const std::string& id){
+//     auto image=this->byid.find(id);
+//     if(image!=this->byid.end()){
+//         return image->second;
+//     }
+//     auto img2=this->byname.find(id);
+//     if(img2!=this->byname.end()){
+//         return img2->second;
+//     }
+//     return nullptr;
+// }

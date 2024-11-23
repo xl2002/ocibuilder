@@ -12,7 +12,7 @@ namespace manifest{
         
     };
 
-    std::shared_ptr<Digest> Digest_trans(std::vector<byte> manifestBlob);
+    std::shared_ptr<::Digest> Digest(std::vector<byte> manifestBlob);
 }
 
 #endif // MANIFEST_MANIFEST_H

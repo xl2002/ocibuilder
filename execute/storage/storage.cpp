@@ -111,7 +111,7 @@ shared_ptr<Driver> Store::createGraphDriverLocked() {
 }
 
 
-bool imageStore::checkModified(lastwrite& lastWrite) {
+bool ImageStore::checkModified(lastwrite& lastWrite) {
     // 从 lockfile 中获取是否修改过的状态以及当前的 lastwrite
     auto ret=lockfile->ModifiedSince(lastWrite);
     auto currentLW = ret.first;
@@ -125,7 +125,7 @@ bool imageStore::checkModified(lastwrite& lastWrite) {
     return modified; // 返回是否被修改过的状态
 }
 // imagespath 函数的实现
-std::string imageStore::imagespath(){
+std::string ImageStore::imagespath(){
     return Join({dir, "images.json"}); // Join 函数用于拼接路径，dir 是 imageStore 的成员变量
 }
 //parseJson 函数的实现
@@ -165,7 +165,7 @@ bool parseJson(const vector<uint8_t>& data, vector<shared_ptr<storage::Image>>& 
     return true;
 }
 // 实现 stringSliceWithoutValue 函数
-std::vector<std::string> imageStore::stringSliceWithoutValue(const std::vector<std::string>& slice, const std::string& value) {
+std::vector<std::string> ImageStore::stringSliceWithoutValue(const std::vector<std::string>& slice, const std::string& value) {
     std::vector<std::string> modified;
     modified.reserve(slice.size()); // 预留空间以提高效率
     std::copy_if(slice.begin(), slice.end(), std::back_inserter(modified),
@@ -175,7 +175,7 @@ std::vector<std::string> imageStore::stringSliceWithoutValue(const std::vector<s
     return modified;
 }
 // 实现 removeName 函数
-void imageStore::removeName(std::shared_ptr<storage::Image> image, const std::string& name) {
+void ImageStore::removeName(std::shared_ptr<storage::Image> image, const std::string& name) {
     // 确保持有写锁
     boost::unique_lock<boost::shared_mutex> lock(inProcessLock);
     image->Names = stringSliceWithoutValue(image->Names, name);
@@ -241,7 +241,7 @@ boost::property_tree::ptree imageToPtree(const std::shared_ptr<storage::Image>& 
     return pt;
 }
 //Save 函数的实现
-void imageStore::Save() {
+void ImageStore::Save() {
     try {
         // 检查是否允许修改
         if (!lockfile->IsReadWrite()) {
@@ -284,7 +284,7 @@ void imageStore::Save() {
     }
 }
 // load 函数定义
-bool imageStore::load(bool lockedForWriting) {
+bool ImageStore::load(bool lockedForWriting) {
     try {
         string rpath = imagespath(); // 获取镜像存储路径
 
@@ -377,7 +377,7 @@ bool imageStore::load(bool lockedForWriting) {
     }
 }
 // reloadIfChanged 函数定义
-bool imageStore::reloadIfChanged(bool lockedForWriting, bool& tryLockedForWriting) {
+bool ImageStore::reloadIfChanged(bool lockedForWriting, bool& tryLockedForWriting) {
     // 获取当前的 lastwrite 状态
     lastwrite lastWrite;
     bool modified = false;
@@ -404,7 +404,7 @@ bool imageStore::reloadIfChanged(bool lockedForWriting, bool& tryLockedForWritin
 
     return false; // 没有错误，未尝试写锁定
 }
-bool imageStore::startWritingWithReload(bool canReload) {
+bool ImageStore::startWritingWithReload(bool canReload) {
     try {
         // 锁定 lockFile 对象
         lockfile->Lock();
@@ -447,12 +447,12 @@ shared_ptr<rwImageStore_interface> newImageStore(const string& dir) {
             throw myerror("Failed to get lock file for: " + dir);
         }
 
-        // 初始化 imageStore 结构
-        auto istore = make_shared<imageStore>();
+        // 初始化 ImageStore 结构
+        auto istore = make_shared<ImageStore>();
         istore->lockfile = lockfile;
         istore->dir = dir;
 
-        // 初始化 imageStore 的其他成员
+        // 初始化 ImageStore 的其他成员
         istore->images = vector<shared_ptr<storage::Image>>();
         istore->byid = map<string, shared_ptr<storage::Image>>();
         istore->byname = map<string, shared_ptr<storage::Image>>();
@@ -1016,4 +1016,136 @@ void Store::load() {
 }
 void Store::DeleteContainer(std::string id){
     return;
+}
+std::shared_ptr<storage::Image> Store::Image(std::string id){
+    std::vector<std::shared_ptr<roImageStore_interface>> images_store;
+    images_store.push_back(this->image_store);
+    if(this->ro_image_stores.size()>0){
+        images_store.insert(images_store.end(), this->ro_image_stores.begin(), this->ro_image_stores.end());
+    }
+    for(auto store:images_store){
+        auto img=store->Get(id);
+        if(img!=nullptr){
+            return img;
+        }
+    }
+    return nullptr;
+}
+
+std::shared_ptr<storage::Image> ImageStore::Get(const std::string& id) {
+    auto image=this->lookup(id);
+    if(image!=nullptr){
+        return std::make_shared<storage::Image>(*image);//复制一份
+    }
+    return nullptr;
+}
+
+std::shared_ptr<storage::Image> ImageStore::lookup(const std::string& id){
+    auto image=this->byid.find(id);
+    if(image!=this->byid.end()){
+        return image->second;
+    }
+    auto img2=this->byname.find(id);
+    if(img2!=this->byname.end()){
+        return img2->second;
+    }
+    return nullptr;
+}
+void ImageStore::startWriting() {
+    // 空实现
+}
+
+void ImageStore::stopWriting(){
+    // 空实现
+}
+
+std::shared_ptr<storage::Image> ImageStore::create(
+    const std::string& id, const std::vector<std::string>& names, 
+    const std::string& layer, const ImageOptions& options) {
+    return nullptr; // 空实现
+}
+
+void ImageStore::updateNames(const std::string& id, const std::vector<std::string>& names, 
+                updateNameOperation op) {
+    // 空实现
+}
+
+void ImageStore::Delete(const std::string& id) {
+    // 空实现
+}
+
+void ImageStore::addMappedTopLayer(const std::string& id, const std::string& layer) {
+    // 空实现
+}
+
+void ImageStore::removeMappedTopLayer(const std::string& id, const std::string& layer) {
+    // 空实现
+}
+
+void ImageStore::GarbageCollect() {
+    // 空实现
+}
+
+void ImageStore::Wipe() {
+    // 空实现
+}
+
+void ImageStore::startReading() {
+    // 空实现
+}
+
+void ImageStore::stopReading() {
+    // 空实现
+}
+
+bool ImageStore::Exists(const std::string& id)  {
+    return false; // 空实现
+}
+
+// std::shared_ptr<storage::Image> Get(const std::string& id)  override {
+//     return nullptr; // 空实现
+// }
+
+std::vector<storage::Image> ImageStore::Images()  {
+    return {}; // 空实现
+}
+
+std::vector<std::shared_ptr<storage::Image>> ImageStore::ByDigest(const Digest& digest)  {
+    return {}; // 空实现
+}
+
+// metadataStore 和 bigDataStore 方法的空实现
+std::vector<uint8_t> ImageStore::BigData(const std::string& id, const std::string& key) {
+    return {}; // 空实现
+}
+
+int64_t ImageStore::BigDataSize(const std::string& id, const std::string& key) {
+    return 0; // 空实现
+}
+
+Digest ImageStore::BigDataDigest(const std::string& id, const std::string& key) {
+    return {}; // 空实现
+}
+
+std::vector<std::string> ImageStore::BigDataNames(const std::string& id) {
+    return {}; // 空实现
+}
+
+void ImageStore::SetMetadata(const std::string& id, const std::string& metadata) {
+    // 空实现
+}
+
+void ImageStore::SetBigData(const std::string& id, const std::string& key, 
+                const std::vector<uint8_t>& data, 
+                std::function<std::string(const std::vector<uint8_t>&)> digestManifest) {
+    // 空实现
+}
+
+// flaggableStore_interface 方法的空实现
+void ImageStore::ClearFlag(const std::string& id, const std::string& flag) {
+    // 空实现
+}
+
+void ImageStore::SetFlag(const std::string& id, const std::string& flag, const std::string& value) {
+    // 空实现
 }

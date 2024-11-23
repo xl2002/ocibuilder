@@ -5,13 +5,17 @@
 #include <queue>
 #include "storage/storage.h"
 #include "libimage/events.h"
-#include "libimage/image.h"
 #include "libimage/pull.h"
 #include "define/platform.h"
+#include "libimage/inspect.h"
+#include "libimage/image.h"
 #include "reference/reference.h"
 #include "storage/storage_transport.h"
 // Runtime 负责管理镜像并将其存储在容器存储中
 struct LookupImageOptions;
+namespace LibImage{//由于头文件相互包含，提前声明
+    struct Image;
+}
 struct Runtime {
     // 用于向用户发送事件的通道
     std::queue<std::shared_ptr<Event>> eventChannel; // 使用队列代替通道
@@ -19,12 +23,12 @@ struct Runtime {
     std::shared_ptr<Store> store=std::make_shared<Store>();
     // 全局系统上下文。使用值而非指针以简化复制和修改
     std::shared_ptr<SystemContext> systemContext=std::make_shared<SystemContext>();
-    std::vector<std::shared_ptr<libimage::Image>> Pull(std::string name,std::shared_ptr<PullPolicy> pullPolicy,std::shared_ptr<PullOptions> options);
+    std::vector<std::shared_ptr<LibImage::Image>> Pull(std::string name,std::shared_ptr<PullPolicy> pullPolicy,std::shared_ptr<PullOptions> options);
     std::vector<std::string> copyFromRegistry(std::shared_ptr<ImageReference_interface> ref,std::string inputName,std::shared_ptr<PullPolicy> pullPolicy,std::shared_ptr<PullOptions> options);
     std::vector<std::string> copySingleImageFromRegistry(std::string imageName,std::shared_ptr<PullPolicy> pullPolicy,std::shared_ptr<PullOptions> options);
-    std::tuple<std::shared_ptr<libimage::Image>,std::string> LookupImage(std::string name,std::shared_ptr<LookupImageOptions> options);
-    std::shared_ptr<libimage::Image> lookupImageInLocalStorage(std::string name,std::string candidate,std::shared_ptr<Named_interface> namedCandidate,std::shared_ptr<LookupImageOptions> options);
-
+    std::tuple<std::shared_ptr<LibImage::Image>,std::string> LookupImage(std::string name,std::shared_ptr<LookupImageOptions> options);
+    std::shared_ptr<LibImage::Image> lookupImageInLocalStorage(std::string name,std::string candidate,std::shared_ptr<Named_interface> namedCandidate,std::shared_ptr<LookupImageOptions> options);
+    std::shared_ptr<LibImage::Image> storageToImage(std::shared_ptr<storage::Image> img,std::shared_ptr<ImageReference_interface> ref);
 };
 struct RuntimeOptions {
     std::shared_ptr<::SystemContext> SystemContext=std::make_shared<::SystemContext>();

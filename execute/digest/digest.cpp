@@ -65,3 +65,10 @@ void Digest::Validate() {
         throw myerror(e.what());
     }
 }
+
+std::shared_ptr<::Digest> FromBytes(std::vector<uint8_t> p){
+    return Canonical_sha256.FromBytes(p);
+}
+std::shared_ptr<Digest> FromString(std::string s){
+    return Canonical_sha256.FromString(s);
+}

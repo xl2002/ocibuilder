@@ -5,9 +5,11 @@
 #include <map>
 #include <vector>
 #include <chrono>
+#include <mutex>
 #include "cobra/error.h"
 #include <set>
 #include "digest/digest.h"
+#include "lockfile/lockfile.h"
 namespace storage{
     // 表示一个镜像和相关的元数据的结构体
     struct Image {
@@ -55,7 +57,21 @@ namespace storage{
         std::map<std::string, std::string> Flags;
         void recomputeDigests();
     };
+    // struct ImageStore:public roImageStore_interface{
+    //     // std::shared_ptr<::lockFile> lockfile=std::make_shared<::lockFile>();
+    //     std::string dir;
+    //         // 以下字段需使用 inProcessLock 进行同步访问
+    //     // mutable std::shared_timed_mutex inProcessLock; // C++11 的读写锁
 
-
+    //     // 需持有 inProcessLock 的读/写锁才能读/写以下字段
+    //     // LastWrite lastWrite;
+    //     std::vector<std::shared_ptr<Image>> images;
+    //     // TruncIndex* idindex;
+    //     std::map<std::string, std::shared_ptr<Image>> byid;
+    //     std::map<std::string, std::shared_ptr<Image>> byname;
+    //     std::map<Digest, std::vector<std::shared_ptr<Image>>> bydigest;
+    //     std::shared_ptr<Image> Get(const std::string& id) override;
+    //     std::shared_ptr<Image> lookup(const std::string& id);
+    // };
 }
 #endif // STORAGE_IMAGES_H)

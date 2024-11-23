@@ -11,7 +11,7 @@
 #include "go/string.h"
 #include "specs/specs.h"
 #include <boost/optional.hpp>
-
+#include "digest/digest.h"
 class HealthConfig{
     public:
     // Test is the test to perform to check that the container is healthy.
@@ -136,5 +136,30 @@ struct V1Image {
     // Size 是包括镜像所有层的总大小
     int64_t Size=0;  // 使用 boost::optional 来表示可选字段
 };
-
+struct ID{
+    std::shared_ptr<::Digest> digest=std::make_shared<::Digest>();
+    ~ID()=default;
+    ID()=default;
+};
+struct V2S2RootFS{
+    std::string Type;
+    std::vector<std::shared_ptr<Digest>> DiffIDs;
+    V2S2RootFS()=default;
+};
+struct V2S2History{
+    std::chrono::system_clock::time_point Created;
+    std::string Author;
+    std::string CreatedBy;
+    std::string Comment;
+    bool EmptyLayer=false;
+    V2S2History()=default;
+};
+struct V2Image:public V1Image{
+    std::shared_ptr<::ID> Parent =std::make_shared<::ID>();
+    std::shared_ptr<V2S2RootFS> RootFS=std::make_shared<V2S2RootFS>();
+    std::shared_ptr<V2S2History>History=std::make_shared<V2S2History>();
+    std::string OSVersion;
+    std::vector<std::string> OSFeatures;
+    V2Image()=default;
+};
 #endif // DOCKER_TYPES_H)

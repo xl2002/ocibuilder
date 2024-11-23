@@ -12,16 +12,18 @@ public:
 extern std::shared_ptr<dockerTransport> docker_Transport;
 
 class dockerReference:public ImageReference_interface{
-
 public:
     std::shared_ptr<Named_interface>ref=nullptr;
     bool isUnknownDigest=false;
+    dockerReference()=default;
     std::string StringWithinTransport() override;
     std::string PolicyConfigurationIdentity() override;
     std::vector<std::string> PolicyConfigurationNamespaces() override;
     std::shared_ptr<Named_interface> DockerReference() override;
     // std::string Name() override;
     std::shared_ptr<ImageTransport_interface> Transport() override;
+    std::shared_ptr<Image_interface> NewImage(std::shared_ptr<SystemContext>sys) override;
+    std::shared_ptr<ImageSource_interface> NewImageSource(std::shared_ptr<SystemContext>sys) override;
 };
 
 #endif // DOCKER_DOCKER_TRANSPORT_H

@@ -29,7 +29,7 @@ std::shared_ptr<Named_interface>normalizeTaggedDigestedNamed(std::shared_ptr<Nam
 
     return named;
 }
-namespace libimage {
+namespace LibImage {
     std::tuple<std::string,std::string,std::string> Normalize(std::string rawOS,std::string rawArch,std::string rawVariant) {
         auto platformSpec=std::make_shared<Platform>();
         platformSpec->OS=rawOS;
@@ -42,7 +42,7 @@ namespace libimage {
         auto rawPlatform=ToString(normalizedSpec->OS,normalizedSpec->Architecture,normalizedSpec->Variant);
         std::shared_ptr<Platform> normalizedPlatform;
         try{
-            normalizedPlatform=platforms::Parse(rawPlatform);
+            normalizedPlatform=PlatForms::Parse(rawPlatform);
         }catch(const myerror& e){
             throw;
         }

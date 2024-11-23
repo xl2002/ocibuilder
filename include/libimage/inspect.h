@@ -15,7 +15,7 @@ struct DriverData{
     std::string Name;
     std::map<std::string, std::string> Data;
 };
-namespace libimage {
+namespace LibImage {
     struct RootFS{
         std::string Type;
         std::vector<Digest> Layers;
@@ -69,7 +69,7 @@ struct ImageData {
     std::shared_ptr<DriverData> GraphDriver=std::make_shared<DriverData>(); // 指向 DriverData 的指针
 
     // 根文件系统
-    std::shared_ptr<libimage::RootFS> RootFS=std::make_shared<libimage::RootFS>(); // 指向 RootFS 的指针
+    std::shared_ptr<LibImage::RootFS> RootFS=std::make_shared<LibImage::RootFS>(); // 指向 RootFS 的指针
 
     // 标签
     std::map<std::string, std::string> Labels;

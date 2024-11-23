@@ -57,4 +57,9 @@ std::vector<std::string> dockerReference::PolicyConfigurationNamespaces(){
 std::shared_ptr<Named_interface> dockerReference::DockerReference(){
     return ref;
 }
-
+std::shared_ptr<Image_interface> dockerReference::NewImage(std::shared_ptr<SystemContext>sys){
+    return nullptr;
+}
+std::shared_ptr<ImageSource_interface> dockerReference::NewImageSource(std::shared_ptr<SystemContext>sys) {
+    return nullptr;
+}

@@ -82,11 +82,7 @@ Flagset* Getbuildflags(BudResults* br){
     flags->StringSliceVar( br->AddHost, "add-host", vector<string>(), "add a custom host-to-IP mapping (`host:ip`) (default [])");
     flags->StringArrayVar( br->Secrets, "secret",  vector<string>(), "secret file to expose to the build") ;
     flags->StringArrayVar( br ->SSH, "ssh",  vector<string>(), "SSH agent socket or keys to expose to the build. (format: default|<id>[=<socket>|<key>[,<key>]])");
-    
-    
-    
-    
-    
+
     return flags;
 }
 

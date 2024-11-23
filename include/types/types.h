@@ -5,8 +5,11 @@
 #include <vector>
 #include <map>
 #include <chrono>
+#include "define/types.h"
 #include "reference/reference.h"
 class ImageTransport_interface;
+struct Image_interface;
+struct ImageSource_interface;
 class ImageReference_interface{
     public:
     virtual ~ImageReference_interface()=default;
@@ -15,6 +18,8 @@ class ImageReference_interface{
     virtual std::string PolicyConfigurationIdentity() = 0;
     virtual std::vector<std::string> PolicyConfigurationNamespaces() = 0;
     virtual std::shared_ptr<Named_interface> DockerReference() = 0;
+    virtual std::shared_ptr<Image_interface> NewImage(std::shared_ptr<SystemContext>sys) = 0;
+    virtual std::shared_ptr<ImageSource_interface> NewImageSource(std::shared_ptr<SystemContext>sys) = 0;
 };
 // ImageTransport基类
 class ImageTransport_interface {
@@ -43,8 +48,11 @@ struct LayerCompression{
 };
 
 struct ImageSource_interface{
+    virtual ~ImageSource_interface()=default;
     virtual std::shared_ptr<ImageReference_interface> Reference() = 0;
+    virtual std::tuple<std::vector<uint8_t>,std::string> GetManifest(std::shared_ptr<Digest> instanceDigest)=0;
 };
+
 // ImageInspectLayer 结构体定义
 struct ImageInspectLayer {
     // MIME 类型，未知时为空字符串
@@ -96,4 +104,17 @@ struct ImageInspectInfo {
     std::string Author;
 
 };
+
+struct UnparsedImage_interface{
+    virtual ~UnparsedImage_interface()=default;
+};
+struct Image_interface:public UnparsedImage_interface{
+    virtual ~Image_interface()=default;
+    virtual std::shared_ptr<ImageInspectInfo> Inspect() = 0;
+};
+
+
+
+
+
 #endif // TYPES_TYPES_H

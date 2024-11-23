@@ -82,6 +82,7 @@ class Driver : public ProtoDriver_interface, public DiffDriver_interface, public
 public:
     ~Driver()=default;
     Driver()=default;
+    Driver(const Driver& other) = default;
     // ProtoDriver_interface 的实现
     std::string String() override {
         return "MyDriver"; // 示例实现
