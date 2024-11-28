@@ -1,9 +1,9 @@
-#if !defined(REFERENCE_NORMALIZE_H)
-#define REFERENCE_NORMALIZE_H
+#if !defined(IMAGE_TYPES_REFERENCE_NORMALIZE_H)
+#define IMAGE_TYPES_REFERENCE_NORMALIZE_H
 #include <regex>
-#include "reference/reference.h"
-#include "reference/regexp.h"
-#include "reference/helpers.h"
+#include "image/types/reference/reference.h"
+#include "image/types/reference/regexp.h"
+#include "image/types/reference/helpers.h"
 class normalizedNamed_interface : public Named_interface{
 public:
     virtual std::shared_ptr<Named_interface> Familiar()=0;

@@ -1,5 +1,5 @@
-#include "buildah/digester.h"
-#include "digest/algorithm.h"
+#include "image/buildah/digester.h"
+#include "image/digest/algorithm.h"
 
 void CompositeDigester::closeOpenDigester(){
     if(closer!=nullptr){

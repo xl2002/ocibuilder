@@ -1,12 +1,12 @@
-#if !defined(UTIL_UTIL_H)
-#define UTIL_UTIL_H
+#if !defined(IMAGE_UTIL_UTIL_H)
+#define IMAGE_UTIL_UTIL_H
 #include <string>
 #include <set>
 #include "cobra/error.h"
-#include "types/types.h"
+#include "image/types/types.h"
 #include <fstream>
-#include "alltransports/alltransports.h"
-#include "v1/descriptor.h"
+#include "image/transports/alltransports.h"
+#include "image/image_types/v1/descriptor.h"
 const int minimumTruncatedIDLength=3;
 const std::string DefaultTransport="docker://";
 

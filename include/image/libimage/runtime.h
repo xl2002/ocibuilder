@@ -1,15 +1,15 @@
-#if !defined(LIBIMAGE_RUNTIME_H)
-#define LIBIMAGE_RUNTIME_H
-#include "define/types.h"
+#if !defined(IMAGE_LIBIMAGE_RUNTIME_H)
+#define IMAGE_LIBIMAGE_RUNTIME_H
+#include "image/types/define/types.h"
 #include <memory>
 #include <queue>
 #include "storage/storage.h"
-#include "libimage/events.h"
-#include "libimage/pull.h"
-#include "define/platform.h"
-#include "libimage/inspect.h"
-#include "libimage/image.h"
-#include "reference/reference.h"
+#include "image/libimage/events.h"
+#include "image/libimage/pull.h"
+#include "image/types/define/platform.h"
+#include "image/libimage/inspect.h"
+#include "image/libimage/image.h"
+#include "image/types/reference/reference.h"
 #include "storage/storage_transport.h"
 // Runtime 负责管理镜像并将其存储在容器存储中
 struct LookupImageOptions;

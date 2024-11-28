@@ -1,5 +1,5 @@
-#if !defined(DEFINE_NAMESPACE_H)
-#define DEFINE_NAMESPACE_H
+#if !defined(IMAGE_TYPES_DEFINE_NAMESPACE_H)
+#define IMAGE_TYPES_DEFINE_NAMESPACE_H
 #include <string>
 #include <vector>
 #include<algorithm>

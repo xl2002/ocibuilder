@@ -1,5 +1,5 @@
-#if !defined(UNSHARE_UNSHARE_LINUX_H)
-#define UNSHARE_UNSHARE_LINUX_H
+#if !defined(FILESYS_SYSTEM_UNSHARE_LINUX_H)
+#define FILESYS_SYSTEM_UNSHARE_LINUX_H
 #include <cstdlib>
 #include <string>
 #include <unistd.h>

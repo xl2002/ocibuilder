@@ -1,4 +1,4 @@
-#include "define/namespace.h"
+#include "image/types/define/namespace.h"
 void NamespaceOptions::AddOrReplace(vector<NamespaceOption> options){
 	for (auto const& option : options) {
 		// auto it = std::find_if(this->val.begin(),this->val.end(),

@@ -1,18 +1,18 @@
-#if !defined(V1_CONFIG_H)
-#define V1_CONFIG_H
+#if !defined(IMAGE_IMAGE_TYPES_V1_CONFIG_H)
+#define IMAGE_IMAGE_TYPES_V1_CONFIG_H
 #include <memory>
 #include <string>
 #include <map>
 #include <vector>
 #include <chrono>
 #include <ctime> // For std::time_t
-#include "digest/digest.h"
-#include "v1/descriptor.h"
-#include "define/build.h"
-#include "define/namespace.h"
+#include "image/digest/digest.h"
+#include "image/image_types/v1/descriptor.h"
+#include "image/types/define/build.h"
+#include "image/types/define/namespace.h"
 #include "types/network.h"
-#include "define/types.h"
-#include "v1/config.h"
+#include "image/types/define/types.h"
+#include "image/image_types/v1/config.h"
 struct ImageConfig {
     // User defines the username or UID which the process in the container should run as.
     std::string user;

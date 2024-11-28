@@ -1,4 +1,4 @@
-#include "define/types.h"
+#include "image/types/define/types.h"
 #include "go/string.h"
 
 /**

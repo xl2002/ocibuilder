@@ -1,12 +1,12 @@
-#include "buildah/new.h"
-#include "buildah/common.h"
-#include "buildah/push.h"
-#include "libimage/runtime.h"
-#include "define/pull.h"
-#include "libimage/pull.h"
-#include "manifest/manifest.h"
-#include "define/types.h"
-#include "v1/annotations.h"
+#include "image/buildah/new.h"
+#include "image/buildah/common.h"
+#include "image/buildah/push.h"
+#include "image/libimage/runtime.h"
+#include "image/types/define/pull.h"
+#include "image/libimage/pull.h"
+#include "image/image_types/manifest/manifest.h"
+#include "image/types/define/types.h"
+#include "image/image_types/v1/annotations.h"
 std::shared_ptr<Builder> newBuilder(std::shared_ptr<Store> store,std::shared_ptr<BuilderOptions> options){
     std::shared_ptr<ImageReference_interface> ref=nullptr;
     std::shared_ptr<storage::Image> img=std::make_shared<storage::Image>();

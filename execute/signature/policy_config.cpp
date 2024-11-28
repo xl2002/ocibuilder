@@ -1,5 +1,5 @@
-#include "signature/policy_config.h"
-#include "homedir/homedir_unix.h"
+#include "image/types/signature/policy_config.h"
+#include "filesys/utils/homedir_unix.h"
 #include "cli/common.h"
 #include "go/string.h"
 #include "go/file.h"

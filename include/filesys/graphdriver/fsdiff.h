@@ -1,8 +1,8 @@
-#if !defined(GRAPHDRIVER_FSDIFF_H)
-#define GRAPHDRIVER_FSDIFF_H
+#if !defined(FILESYS_GRAPHDRIVER_FSDIFF_H)
+#define FILESYS_GRAPHDRIVER_FSDIFF_H
 #include <string>
 #include <memory>
-#include "graphdriver/driver.h"
+#include "filesys/graphdriver/driver.h"
 
 // NaiveDiffDriver 类定义
 class NaiveDiffDriver : public ProtoDriver_interface, public DiffDriver_interface {

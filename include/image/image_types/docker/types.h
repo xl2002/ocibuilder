@@ -1,5 +1,5 @@
-#if !defined(DOCKER_TYPES_H)
-#define DOCKER_TYPES_H
+#if !defined(IMAGE_IMAGE_TYPES_DOCKER_TYPES_H)
+#define IMAGE_IMAGE_TYPES_DOCKER_TYPES_H
 #include <string>
 #include <ctime>
 #include <string>
@@ -9,9 +9,9 @@
 #include <memory>
 #include <chrono>
 #include "go/string.h"
-#include "specs/specs.h"
+#include "filesys/system/specs/specs.h"
 #include <boost/optional.hpp>
-#include "digest/digest.h"
+#include "image/digest/digest.h"
 class HealthConfig{
     public:
     // Test is the test to perform to check that the container is healthy.

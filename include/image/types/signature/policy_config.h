@@ -1,5 +1,5 @@
-#if !defined(SIGNATURE_POLICY_CONFIG_H)
-#define SIGNATURE_POLICY_CONFIG_H
+#if !defined(IMAGE_TYPES_SIGNATURE_POLICY_CONFIG_H)
+#define IMAGE_TYPES_SIGNATURE_POLICY_CONFIG_H
 
 #include <string>
 #include <map>
@@ -8,10 +8,10 @@
 #include <set>
 #include <chrono>
 #include <iostream>
-#include "define/types.h"
+#include "image/types/define/types.h"
 #include "storage/storage.h"
-#include "types/types.h"
-#include "signature/policy_types.h"
+#include "image/types/types.h"
+#include "image/types/signature/policy_types.h"
 
 
 std::shared_ptr<Policy> DefaultPolicy(std::shared_ptr<SystemContext> sys);

@@ -1,4 +1,4 @@
-#include "reference/helpers.h"
+#include "image/types/reference/helpers.h"
 
 bool IsNameOnly(const std::shared_ptr<Named_interface>& ref) {
     if (std::dynamic_pointer_cast<NamedTagged_interface>(ref)) {

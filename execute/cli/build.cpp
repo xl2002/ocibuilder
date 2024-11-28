@@ -1,9 +1,9 @@
 #include "cli/build.h"
 #include "auth/auth.h"
-#include "util/util.h"
+#include "image/util/util.h"
 #include "parse/parse.h"
 #include "cli/common.h"
-#include "define/types.h"
+#include "image/types/define/types.h"
 #include <winsock2.h>
 #include <windows.h>
 #include <cstdio>

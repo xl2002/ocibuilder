@@ -1,5 +1,5 @@
-#if !defined(SSHAGENT_SSHAGENT_H)
-#define SSHAGENT_SSHAGENT_H
+#if !defined(IMAGE_TYPES_SSHAGENT_H)
+#define IMAGE_TYPES_SSHAGENT_H
 #include <string>
 #include <vector>
 #include <memory>

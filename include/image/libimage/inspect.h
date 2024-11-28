@@ -1,16 +1,16 @@
-#if !defined(LIBIMAGE_INSPECT_H)
-#define LIBIMAGE_INSPECT_H
+#if !defined(IMAGE_LIBIMAGE_INSPECT_H)
+#define IMAGE_LIBIMAGE_INSPECT_H
 #include <vector>
 #include <string>
 #include <memory>
 #include <chrono>
 #include <map>
-#include "v1/config.h"
-#include "digest/digest.h"
-#include "manifest/docker_schema2.h"
-// #include "define/types.h"
+#include "image/image_types/v1/config.h"
+#include "image/digest/digest.h"
+#include "image/image_types/manifest/docker_schema2.h"
+// #include "image/types/define/types.h"
 // #include "storage/storage.h"
-// #include "libimage/image.h"
+// #include "image/libimage/image.h"
 struct DriverData{
     std::string Name;
     std::map<std::string, std::string> Data;

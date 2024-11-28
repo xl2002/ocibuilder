@@ -1,5 +1,5 @@
-#if !defined(V1_MEDIATYPE_H)
-#define V1_MEDIATYPE_H
+#if !defined(IMAGE_IMAGE_TYPES_V1_MEDIATYPE_H)
+#define IMAGE_IMAGE_TYPES_V1_MEDIATYPE_H
 
 #include <string>
 const std::string 	

@@ -1,5 +1,5 @@
-#if !defined(COPY_COPY_H)
-#define COPY_COPY_H
+#if !defined(IMAGE_TYPES_COPY_H)
+#define IMAGE_TYPES_COPY_H
 
 #include <string>
 #include <map>
@@ -7,11 +7,11 @@
 #include <memory>
 #include <set>
 #include <chrono>
-#include "internal/types.h"
+#include "image/types/internal/types.h"
 #include "bytes/buffer.h"
-#include "signer/signer.h"
-#include "reference/reference.h"
-#include "define/types.h"
+#include "image/types/signer.h"
+#include "image/types/reference/reference.h"
+#include "image/types/define/types.h"
 #include "config/config.h"
 #include "semaphore/semaphore.h"
 namespace copy{

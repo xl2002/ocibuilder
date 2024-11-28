@@ -1,6 +1,6 @@
-#if !defined(DIGEST_VERIFIER_H)
-#define DIGEST_VERIFIER_H
-#include "digest/digest.h"
+#if !defined(IMAGE_DIGEST_VERIFIER_H)
+#define IMAGE_DIGEST_VERIFIER_H
+#include "image/digest/digest.h"
 #include <string>
 #include <vector>
 #include <memory>

@@ -1,4 +1,4 @@
-#include "digest/digest.h"
+#include "image/digest/digest.h"
 #include "cobra/error.h"
 #include "regexp/regexp.h"
 #include <regex>

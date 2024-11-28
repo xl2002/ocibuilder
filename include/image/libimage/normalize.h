@@ -1,10 +1,10 @@
-#if !defined(LIBIMAGE_NORMALIZED_H)
-#define LIBIMAGE_NORMALIZED_H
+#if !defined(IMAGE_LIBIMAGE_NORMALIZED_H)
+#define IMAGE_LIBIMAGE_NORMALIZED_H
 
 #include <string>
 #include <vector>
 #include <memory>
-#include "reference/reference.h"
+#include "image/types/reference/reference.h"
 #include <sstream>
 std::shared_ptr<named> NormalizeName(std::string name);
 std::tuple<std::string, std::shared_ptr<Named_interface>> normalizeTaggedDigestedString(std::string s);

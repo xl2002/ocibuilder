@@ -5,7 +5,7 @@
 #include <string.h> 
 // #include <string>
 // #include <string/case_conv.hpp>
-#include "go/sha256.h"
+#include "image/digest/sha256.h"
 #include "boost/align.hpp"
 // using namespace std;
 /*********************** FUNCTION DEFINITIONS ***********************/

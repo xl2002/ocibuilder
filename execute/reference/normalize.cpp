@@ -1,4 +1,4 @@
-#include "reference/normalize.h"
+#include "image/types/reference/normalize.h"
 
 const std::string 	
     legacyDefaultDomain = "index.docker.io",

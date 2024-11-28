@@ -1,5 +1,5 @@
-#if !defined(DEVICES_DEVICES_H)
-#define DEVICES_DEVICES_H
+#if !defined(FILESYS_SYSTEM_DEVICES_H)
+#define FILESYS_SYSTEM_DEVICES_H
 #include <string>
 #include <memory>
 #include <vector>

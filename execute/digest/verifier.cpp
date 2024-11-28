@@ -1,4 +1,4 @@
-#include "digest/verifier.h"
+#include "image/digest/verifier.h"
 int hashVerifier::write( std::vector<char> p){
     return 0;
 }

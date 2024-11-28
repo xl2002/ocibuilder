@@ -1,4 +1,4 @@
-#include "define/build.h"
+#include "image/types/define/build.h"
 const string
 	tarExt  = "tar",
 	solaris = "solaris",

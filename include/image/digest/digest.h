@@ -1,10 +1,10 @@
-#if !defined(GITHUB_DIGEST_H)
-#define GITHUB_DIGEST_H
+#if !defined(IMAGE_DIGEST_DIGEST_H)
+#define IMAGE_DIGEST_DIGEST_H
 #include <string>
 #include <vector>
-#include "go/hash.h"
-#include "digest/algorithm.h"
-#include "digest/verifier.h"
+#include "image/digest/hash.h"
+#include "image/digest/algorithm.h"
+#include "image/digest/verifier.h"
 using std::string;
 using std::vector;
 class Algorithm_sha256;

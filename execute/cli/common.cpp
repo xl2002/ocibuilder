@@ -9,7 +9,7 @@
  * 
  */
 #include "cli/common.h"
-#include "define/types.h"
+#include "image/types/define/types.h"
 #include <cstdlib>
 #include <stdlib.h>
 #include <algorithm>

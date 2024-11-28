@@ -8,18 +8,18 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#if !defined(DEFINE_BUILD_H)
-#define DEFINE_BUILD_H
+#if !defined(IMAGE_TYPES_DEFINE_BUILD_H)
+#define IMAGE_TYPES_DEFINE_BUILD_H
 #include <string>
 #include <map>
 #include <iostream>
 #include <vector>
 #include <functional>
-#include "define/pull.h"
-#include "reference/reference.h"
+#include "image/types/define/pull.h"
+#include "image/types/reference/reference.h"
 #include "config/config.h"
-#include "define/namespace.h"
-#include "define/types.h"
+#include "image/types/define/namespace.h"
+#include "image/types/define/types.h"
 #include <memory>
 // #include "parse/parse.h"
 #include <chrono>

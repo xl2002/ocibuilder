@@ -1,5 +1,5 @@
-#if !defined(BUILDE_COMMIT_H)
-#define BUILDE_COMMIT_H
+#if !defined(IMAGE_BUILDE_COMMIT_H)
+#define IMAGE_BUILDE_COMMIT_H
 #include <string>
 #include <vector>
 #include <map>
@@ -7,10 +7,10 @@
 #include <memory>    
 #include <boost/optional.hpp>
 #include <iostream>  // for std::ostream
-#include "define/build.h"
-#include "define/types.h"
+#include "image/types/define/build.h"
+#include "image/types/define/types.h"
 #include "config/config.h"
-#include "manifest/docker_schema2.h"
+#include "image/image_types/manifest/docker_schema2.h"
 struct CommitOptions {
     // PreferredManifestType 是图片清单的首选类型
     std::string PreferredManifestType;

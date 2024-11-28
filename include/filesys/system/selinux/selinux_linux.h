@@ -1,5 +1,5 @@
-#if !defined(SELINUX_SELINUX_LINUX_H)
-#define SELINUX_SELINUX_LINUX_H
+#if !defined(FILESYS_SYSTEM_SELINUX_SELINUX_LINUX_H)
+#define FILESYS_SYSTEM_SELINUX_SELINUX_LINUX_H
 
 #include <string>
 #include <vector>

@@ -1,5 +1,5 @@
-#if !defined(BUILDAH_DIGEST_H)
-#define BUILDAH_DIGEST_H
+#if !defined(IMAGE_BUILDAH_DIGEST_H)
+#define IMAGE_BUILDAH_DIGEST_H
 #include <string>
 #include <vector>
 #include <map>
@@ -7,7 +7,7 @@
 #include <fstream>
 #include <sstream>
 #include <memory>
-#include "digest/digest.h"
+#include "image/digest/digest.h"
 class digester_interface{
     public:
     virtual ~digester_interface()=default;

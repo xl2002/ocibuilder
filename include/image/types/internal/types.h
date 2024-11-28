@@ -1,5 +1,5 @@
-#if !defined(INTERNAL_TYPES_H)
-#define INTERNAL_TYPES_H
+#if !defined(IMAGE_TYPES_INTERNAL_TYPES_H)
+#define IMAGE_TYPES_INTERNAL_TYPES_H
 #include <string>
 #include <vector>
 #include <functional>

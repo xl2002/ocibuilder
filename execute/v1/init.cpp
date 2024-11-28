@@ -1,4 +1,4 @@
-#include "v1/annotations.h"
+#include "image/image_types/v1/annotations.h"
 std::string AnnotationBaseImageDigest;
 std::string AnnotationBaseImageName;
 void v1_init(){

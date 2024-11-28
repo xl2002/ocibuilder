@@ -1,7 +1,7 @@
-#if !defined(BLOBCACHE_BLOBCACHE_H)
-#define BLOBCACHE_BLOBCACHE_H
-#include "types/types.h"
-#include "reference/reference.h"
+#if !defined(IMAGE_TYPES_BLOBCACHE_H)
+#define IMAGE_TYPES_BLOBCACHE_H
+#include "image/types/types.h"
+#include "image/types/reference/reference.h"
 
 struct BlobCache_interface:public ImageReference_interface{
     virtual std::string Directory()=0;

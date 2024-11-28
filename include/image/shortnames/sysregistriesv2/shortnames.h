@@ -1,14 +1,14 @@
-#if !defined(SYSREgistriesV2_SHORTNAMES_H)
-#define SYSREgistriesV2_SHORTNAMES_H
+#if !defined(IMAGE_SHORTNAMES_SYSREgistriesV2_SHORTNAMES_H)
+#define IMAGE_SHORTNAMES_SYSREgistriesV2_SHORTNAMES_H
 #include <string>
 #include <vector>
 #include <memory>
 #include <regex>
 #include <map>
-#include "reference/reference.h"
-#include "types/types.h"
-#include "digest/digest.h"
-#include "define/types.h"
+#include "image/types/reference/reference.h"
+#include "image/types/types.h"
+#include "image/digest/digest.h"
+#include "image/types/define/types.h"
 struct shortNameAliasConf{
     std::map<std::string,std::string> Aliases;
 };

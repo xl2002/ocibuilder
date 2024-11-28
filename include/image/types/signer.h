@@ -1,5 +1,5 @@
-#if !defined(SIGNER_SIGNER_H)
-#define SIGNER_SIGNER_H
+#if !defined(IMAGE_TYPES_SIGNER_H)
+#define IMAGE_TYPES_SIGNER_H
 #include <string>
 #include <vector>
 #include <memory>

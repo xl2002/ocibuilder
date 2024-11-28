@@ -1,8 +1,8 @@
-#if !defined(DOCKER_REFERENCE_H)
-#define DOCKER_REFERENCE_H
+#if !defined(IMAGE_TYPES_REFERENCE_REFERENCE_H)
+#define IMAGE_TYPES_REFERENCE_REFERENCE_H
 #include <string>
 #include <vector>
-#include "digest/digest.h"
+#include "image/digest/digest.h"
 #include "cobra/error.h"
 
 using std::string;

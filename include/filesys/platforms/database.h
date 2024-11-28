@@ -1,5 +1,5 @@
-#if !defined(PLATFORMS_DATABASE_H)
-#define PLATFORMS_DATABASE_H
+#if !defined(FILESYS_PLATFORMS_DATABASE_H)
+#define FILESYS_PLATFORMS_DATABASE_H
 #include <string>
 #include <vector>
 #include <memory>

@@ -1,5 +1,5 @@
-#if !defined(LIBIMAGE_EVENTS_H)
-#define LIBIMAGE_EVENTS_H
+#if !defined(IMAGE_LIBIMAGE_EVENTS_H)
+#define IMAGE_LIBIMAGE_EVENTS_H
 #include <stdexcept>
 #include <string> 
 #include <vector>

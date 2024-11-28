@@ -1,7 +1,7 @@
-#if !defined(DIGEST_DIGESTER_H)
-#define DIGEST_DIGESTER_H
+#if !defined(IMAGE_DIGEST_DIGESTER_H)
+#define IMAGE_DIGEST_DIGESTER_H
 
-#include "digest/digest.h"
+#include "image/digest/digest.h"
 
 struct Digester_interface{
     virtual ~Digester_interface()=default;

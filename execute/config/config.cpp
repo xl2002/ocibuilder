@@ -10,7 +10,7 @@
  */
 #include "config/config.h"
 #include "go/string.h"
-#include "selinux/selinux.h"
+#include "filesys/system/selinux/selinux.h"
 #include <boost/compute/detail/getenv.hpp>
 // const std::string
 // 	// _configPath is the path to the containers/containers.conf

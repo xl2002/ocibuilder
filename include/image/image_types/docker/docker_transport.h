@@ -1,7 +1,7 @@
-#if !defined(DOCKER_DOCKER_TRANSPORT_H)
-#define DOCKER_DOCKER_TRANSPORT_H
-#include "reference/normalize.h"
-#include "types/types.h"
+#if !defined(IMAGE_IMAGE_TYPES_DOCKER_DOCKER_TRANSPORT_H)
+#define IMAGE_IMAGE_TYPES_DOCKER_DOCKER_TRANSPORT_H
+#include "image/types/reference/normalize.h"
+#include "image/types/types.h"
 class dockerTransport:public ImageTransport_interface{
 
 public:

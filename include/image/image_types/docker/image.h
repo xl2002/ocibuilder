@@ -1,12 +1,12 @@
-#if !defined(DOCKER_IMAGE_H)
-#define DOCKER_IMAGE_H
+#if !defined(IMAGE_IMAGE_TYPES_DOCKER_IMAGE_H)
+#define IMAGE_IMAGE_TYPES_DOCKER_IMAGE_H
 
 #include <string>
 #include <vector>
 #include <map>
 #include <memory>
 #include <chrono>
-#include "docker/types.h"
+#include "image/image_types/docker/types.h"
 namespace Docker{
     struct RootFS{
         std::string Type;

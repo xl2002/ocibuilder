@@ -1,15 +1,15 @@
 #if !defined(PARSE_PARSE_H)
 #define PARSE_PARSE_H
 #include <string>
-#include "define/pull.h"
+#include "image/types/define/pull.h"
 #include "cobra/command.h"
-#include "define/types.h"
-#include "define/build.h"
-#include "define/namespace.h"
+#include "image/types/define/types.h"
+#include "image/types/define/build.h"
+#include "image/types/define/namespace.h"
 #include <array>
 #include <sstream>
-#include "util/util.h"
-// #include "idtools/idtools.h"
+#include "image/util/util.h"
+// #include "filesys/utils/idtools.h"
 
 PullPolicy PullPolicyFromOptions(Command* c);
 shared_ptr<SystemContext> SystemContextFromOptions(Command* c);

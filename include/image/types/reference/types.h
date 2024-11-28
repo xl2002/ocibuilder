@@ -1,5 +1,5 @@
-#if !defined(DOCKER_TYPES_H)
-#define DOCKER_TYPES_H
+#if !defined(IMAGE_TYPES_REFERENCE_TYPES_H)
+#define IMAGE_TYPES_REFERENCE_TYPES_H
 #include <string>
 #include <ctime>
 #include <string>
@@ -9,7 +9,7 @@
 #include <memory>
 #include <chrono>
 #include "go/string.h"
-#include "specs/specs.h"
+#include "filesys/system/specs/specs.h"
 #include <boost/optional.hpp>
 
 class HealthConfig{

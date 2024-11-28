@@ -1,5 +1,5 @@
-#if !defined(DIGEST_ALGORITHM_H)
-#define DIGEST_ALGORITHM_H
+#if !defined(IMAGE_DIGEST_ALGORITHM_H)
+#define IMAGE_DIGEST_ALGORITHM_H
 
 #include <string>
 #include <vector>
@@ -10,7 +10,7 @@
 #include <sstream>
 #include <iomanip>
 #include <regex>
-#include "digest/digest.h"
+#include "image/digest/digest.h"
 class Digest;
 struct Algorithm_sha256 {//xcy,256哈希值
     std::string value;

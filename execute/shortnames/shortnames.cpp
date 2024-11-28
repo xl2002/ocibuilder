@@ -1,7 +1,7 @@
-#include "shortnames/shortnames.h"
+#include "image/shortnames/shortnames.h"
 #include "cobra/error.h"
-#include "sysregistriesv2/shortnames.h"
-#include "sysregistriesv2/system_registries_v2.h"
+#include "image/shortnames/sysregistriesv2/shortnames.h"
+#include "image/shortnames/sysregistriesv2/system_registries_v2.h"
 std::vector<std::shared_ptr<Named_interface>> ResolveLocally(std::shared_ptr<SystemContext> ctx,std::string name){
     bool isShort;
     std::shared_ptr<Named_interface> shortRef;

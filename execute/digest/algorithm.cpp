@@ -1,4 +1,4 @@
-#include "digest/algorithm.h"
+#include "image/digest/algorithm.h"
 
 // Algorithm_sha256 SHA256("sha256");
 // Algorithm_sha256 Canonical_sha256=SHA256;

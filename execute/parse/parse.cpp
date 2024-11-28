@@ -1,6 +1,6 @@
 #include "parse/parse.h"
 #include <algorithm>
-#include "specs/specs.h"
+#include "filesys/system/specs/specs.h"
 #include "go/file.h"
 #include "imagebuilder/builder.h"
 #include "cobra/error.h"

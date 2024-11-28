@@ -1,10 +1,10 @@
-#if !defined(RUSAGE_RUSAGE_UNIX_H)
-#define RUSAGE_RUSAGE_UNIX_H
+#if !defined(FILESYS_SYSTEM_RUSAGE_RUSAGE_UNIX_H)
+#define FILESYS_SYSTEM_RUSAGE_RUSAGE_UNIX_H
 #include <iostream>
 #include <stdexcept>
 #include <chrono>
 #include <utility> // For std::pair
-#include "rusage/rusage.h"
+#include "filesys/system/rusage/rusage.h"
 #ifdef _WIN32
 #include <winsock2.h>
 #include <windows.h>

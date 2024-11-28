@@ -1,4 +1,4 @@
-#include "docker/docker_transport.h"
+#include "image/image_types/docker/docker_transport.h"
 #include "cobra/error.h"
 #include "go/string.h"
 std::string dockerTransport::Name() {

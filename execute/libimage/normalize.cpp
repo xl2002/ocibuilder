@@ -1,8 +1,8 @@
-#include "libimage/normalize.h"
+#include "image/libimage/normalize.h"
 #include "cobra/error.h"
-#include "v1/descriptor.h"
-#include "platforms/platforms.h"
-#include "platforms/default_unix.h"
+#include "image/image_types/v1/descriptor.h"
+#include "filesys/platforms/platforms.h"
+#include "filesys/platforms/default_unix.h"
 std::shared_ptr<named> NormalizeName(std::string name){
     
     return nullptr;

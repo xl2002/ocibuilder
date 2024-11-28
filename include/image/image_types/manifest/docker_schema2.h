@@ -1,5 +1,5 @@
-#if !defined(MANIFEST_DOCKER_SCHEMA_H)
-#define MANIFEST_DOCKER_SCHEMA_H
+#if !defined(IMAGE_IMAGE_TYPES_MANIFEST_DOCKER_SCHEMA_H)
+#define IMAGE_IMAGE_TYPES_MANIFEST_DOCKER_SCHEMA_H
 #include <string>
 #include <ctime>
 #include <string>

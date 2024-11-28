@@ -1,5 +1,5 @@
-#include "buildah/buildah.h"
-#include "buildah/image.h"
+#include "image/buildah/buildah.h"
+#include "image/buildah/image.h"
 
 
 std::shared_ptr<containerImageRef> Builder::makeContainerImageRef(std::shared_ptr<CommitOptions> options){

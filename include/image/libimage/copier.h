@@ -1,12 +1,12 @@
-#if !defined(LIBIMAGE_COPIER_H)
-#define LIBIMAGE_COPIER_H
+#if !defined(IMAGE_LIBIMAGE_COPIER_H)
+#define IMAGE_LIBIMAGE_COPIER_H
 
-#include "define/types.h"
-#include "libimage/manifest.h"
-#include "internal/types.h"
+#include "image/types/define/types.h"
+#include "image/libimage/manifest.h"
+#include "image/types/internal/types.h"
 #include "config/config.h"
 #include <queue>
-#include "signer/signer.h"
+#include "image/types/signer.h"
 #include "bytes/buffer.h"
 // CopyOptions 结构体定义
 struct CopyOptions {

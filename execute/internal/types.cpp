@@ -1,4 +1,4 @@
-#include "internal/types.h"
+#include "image/types/internal/types.h"
 
 // std::string GetTempDir() {
 //     try {

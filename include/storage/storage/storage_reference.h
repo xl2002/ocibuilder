@@ -1,11 +1,11 @@
 #if !defined(STORAGE_STORAGE_REFERENCE_H)
 #define STORAGE_STORAGE_REFERENCE_H
 
-#include "types/types.h"
+#include "image/types/types.h"
 #include "storage/storage_transport.h"
-#include "reference/reference.h"
+#include "image/types/reference/reference.h"
 #include "storage/images.h"
-#include "define/types.h"
+#include "image/types/define/types.h"
 class storageTransport;
 struct storageReference: public ImageReference_interface{
     std::shared_ptr<storageTransport> transport=std::make_shared<storageTransport>();

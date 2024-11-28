@@ -8,7 +8,7 @@
 #include <mutex>
 #include "cobra/error.h"
 #include <set>
-#include "digest/digest.h"
+#include "image/digest/digest.h"
 #include "lockfile/lockfile.h"
 namespace storage{
     // 表示一个镜像和相关的元数据的结构体

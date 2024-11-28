@@ -1,5 +1,5 @@
-#if !defined(REFERENCE_REGEXP_H)
-#define REFERENCE_REGEXP_H
+#if !defined(IMAGE_TYPES_REFERENCE_REGEXP_H)
+#define IMAGE_TYPES_REFERENCE_REGEXP_H
 #include <string>
 #include <vector>
 #include <memory>

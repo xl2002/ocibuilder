@@ -1,10 +1,10 @@
-#if !defined(LIBIMAGE_IMAGE_H)
-#define LIBIMAGE_IMAGE_H
-#include "libimage/runtime.h"
-#include "types/types.h"
-#include "v1/config.h"
-#include "libimage/inspect.h"
-// #include "types/types.h"
+#if !defined(IMAGE_LIBIMAGE_IMAGE_H)
+#define IMAGE_LIBIMAGE_IMAGE_H
+#include "image/libimage/runtime.h"
+#include "image/types/types.h"
+#include "image/image_types/v1/config.h"
+#include "image/libimage/inspect.h"
+// #include "image/types/types.h"
 class Runtime;
 namespace LibImage{
     // struct RootFS;

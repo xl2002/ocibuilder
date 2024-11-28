@@ -5,9 +5,9 @@
 #include <vector>
 #include <fstream>
 #include "cobra/command.h"
-#include "define/build.h"
+#include "image/types/define/build.h"
 #include "cli/common.h"
-#include "define/types.h"
+#include "image/types/define/types.h"
 // #include ""
 using std::string;
 using std::vector;

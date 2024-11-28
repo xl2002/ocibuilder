@@ -16,7 +16,7 @@
 #include "root.h"
 #include "cobra/args.h"
 #include "cobra/error.h"
-#include "define/build.h"
+#include "image/types/define/build.h"
 #include <fstream>
 #include <memory>
 #include <cstdio>
@@ -24,7 +24,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include "cli/build.h"
-#include "reference/reference.h"
+#include "image/types/reference/reference.h"
 #include "imagebuildah/build.h"
 #include "storage/storage.h"
 // #include <filesystem>

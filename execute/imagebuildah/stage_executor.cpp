@@ -1,14 +1,14 @@
 #include "imagebuildah/stage_executor.h"
 #include "cobra/error.h"
-#include "rusage/rusage.h"
-#include "rusage/rusage_unix.h"
-#include "transports/transports.h"
-#include "util/util.h"
+#include "filesys/system/rusage/rusage.h"
+#include "filesys/system/rusage/rusage_unix.h"
+#include "image/transports/transports.h"
+#include "image/util/util.h"
 #include "go/string.h"
-#include "buildah/commit.h"
+#include "image/buildah/commit.h"
 #include <algorithm>
 #include "logrus/exported.h"
-#include "docker/image.h"
+#include "image/image_types/docker/image.h"
 void StageExecutor::Delete(){
     if(builder!=nullptr){
         try{

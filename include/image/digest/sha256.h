@@ -6,8 +6,8 @@
 * Details:    Defines the API for the corresponding SHA1 implementation.
 *********************************************************************/
 
-#ifndef SHA256_H
-#define SHA256_H
+#ifndef IMAGE_DIGEST_SHA256_H
+#define IMAGE_DIGEST_SHA256_H
 
 /*************************** HEADER FILES ***************************/
 #include <stddef.h>

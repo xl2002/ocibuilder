@@ -2,8 +2,8 @@
 #include "config/config_local.h"
 #include "types/options.h"
 #include "config/default_linux.h"
-#include "unshare/unshare_linux.h"
-#include "cgroupv2/cgroups_linux.h"
+#include "filesys/system/unshare_linux.h"
+#include "filesys/system/cgroups_linux.h"
 #include <cstdlib>
 #include <thread>
 #include <boost/compute/detail/getenv.hpp>

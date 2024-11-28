@@ -14,7 +14,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include "imagebuildah/executor.h"
-#include "buildah/buildah.h"
+#include "image/buildah/buildah.h"
 #include "imagebuilder/builder.h"
 class Executor;
 // class VolumeSet;

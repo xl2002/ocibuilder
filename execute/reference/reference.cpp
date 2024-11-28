@@ -1,5 +1,5 @@
-#include "reference/reference.h"
-#include "reference/helpers.h"
+#include "image/types/reference/reference.h"
+#include "image/types/reference/helpers.h"
 string canonical::String(){
     return "";
 }

@@ -9,8 +9,8 @@
 #include <sstream>
 #include <tuple>
 #include "semaphore/semaphore.h"
-#include "v1/descriptor.h"
-#include "reference/reference.h"
+#include "image/image_types/v1/descriptor.h"
+#include "image/types/reference/reference.h"
 #include "multierror/group.h"
 #include "imagebuilder/evaluator.h"
 #include "imagebuildah/executor.h"

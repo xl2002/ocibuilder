@@ -15,8 +15,8 @@
 #include <algorithm>
 #include <stdexcept>
 #include "parse/dockerfileparse.h"
-#include "docker/types.h"
-#include "docker/image.h"
+#include "image/image_types/docker/types.h"
+#include "image/image_types/docker/image.h"
 #include "imagebuilder/evaluator.h"
 // #include "imagebuildah/stage_executor.h"
 #include <boost/filesystem.hpp>

@@ -1,11 +1,11 @@
 #if !defined(STORAGE_STIRAGE_H)
 #define STORAGE_STIRAGE_H
 #include "lockfile/lockfile.h"
-#include "idtools/idtools.h"
-#include "graphdriver/driver.h"
+#include "filesys/utils/idtools.h"
+#include "filesys/graphdriver/driver.h"
 #include "storage/layers.h"
 #include "cobra/error.h"
-#include "digest/digest.h"
+#include "image/digest/digest.h"
 #include "types/options.h"
 #include <cstdint> 
 #include <set>
@@ -14,7 +14,7 @@
 #include <map>
 #include <iostream>
 #include <memory>
-#include "idtools/idtools.h"
+#include "filesys/utils/idtools.h"
 #include "storage/layers.h"
 #include "storage/images.h"
 #include <mutex>

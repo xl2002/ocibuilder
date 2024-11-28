@@ -1,5 +1,5 @@
-#if !defined(GRAPHDRIVER_DRIVER_LINUX_WINDOWS_H) 
-#define GRAPHDRIVER_DRIVER_LINUX_WINDOWS_H
+#if !defined(FILESYS_GRAPHDRIVER_DRIVER_LINUX_WINDOWS_H) 
+#define FILESYS_GRAPHDRIVER_DRIVER_LINUX_WINDOWS_H
 
 #include <boost/filesystem.hpp>
 #include <stdexcept>

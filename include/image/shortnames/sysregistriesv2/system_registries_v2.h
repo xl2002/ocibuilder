@@ -1,16 +1,16 @@
-#if !defined(SYSREgistriesV2_SYSTEM_REGISTRIES_V2_H)
-#define SYSREgistriesV2_SYSTEM_REGISTRIES_V2_H
+#if !defined(IMAGE_SHORTNAMES_SYSREgistriesV2_SYSTEM_REGISTRIES_V2_H)
+#define IMAGE_SHORTNAMES_SYSREgistriesV2_SYSTEM_REGISTRIES_V2_H
 #include <string>
 #include <vector>
 #include <memory>
 #include <regex>
 #include <map>
-#include "reference/reference.h"
-#include "types/types.h"
-#include "digest/digest.h"
-#include "define/types.h"
+#include "image/types/reference/reference.h"
+#include "image/types/types.h"
+#include "image/digest/digest.h"
+#include "image/types/define/types.h"
 #include <string>
-#include "sysregistriesv2/shortnames.h"
+#include "image/shortnames/sysregistriesv2/shortnames.h"
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 // configWrapper 用于存储 ConfigPath 和 ConfigDirPath 的路径

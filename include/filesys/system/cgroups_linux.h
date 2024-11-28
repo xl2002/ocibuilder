@@ -1,5 +1,5 @@
-#ifndef CGROUPS_CGROUPS_LINUX_H
-#define CGROUPS_CGROUPS_LINUX_H
+#ifndef FILESYS_SYSTEM_CGROUPS_LINUX_H
+#define FILESYS_SYSTEM_CGROUPS_LINUX_H
 #include <mutex>
 #include <system_error>
 #include <tuple>

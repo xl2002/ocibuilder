@@ -1,5 +1,5 @@
-#if !defined(BUILDAH_IMAGE_H)
-#define BUILDAH_IMAGE_H
+#if !defined(IMAGE_BUILDAH_IMAGE_H)
+#define IMAGE_BUILDAH_IMAGE_H
 #include <string>
 #include <map>
 #include <vector>
@@ -7,11 +7,11 @@
 #include <set>
 #include <chrono>
 #include "storage/storage.h"
-#include "define/build.h"
-#include "define/types.h"
+#include "image/types/define/build.h"
+#include "image/types/define/types.h"
 #include "bytes/buffer.h"
-#include "v1/config.h"
-#include "manifest/docker_schema2.h"
+#include "image/image_types/v1/config.h"
+#include "image/image_types/manifest/docker_schema2.h"
 // 容器镜像引用的结构体定义
 struct containerImageRef: public ImageReference_interface{
     std::string fromImageName;                  // 源镜像的名称

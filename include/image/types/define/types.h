@@ -1,12 +1,12 @@
-#if !defined(DEFINE_TYPES_H)
-#define DEFINE_TYPES_H
+#if !defined(IMAGE_TYPES_DEFINE_TYPES_H)
+#define IMAGE_TYPES_DEFINE_TYPES_H
 #include <string>
-#include "reference/reference.h"
-#include "internal/types.h"
-#include "specs/specs.h"
-#include "idtools/idtools.h"
-#include "define/pull.h"
-#include "internal/types.h"
+#include "image/types/reference/reference.h"
+#include "image/types/internal/types.h"
+#include "filesys/system/specs/specs.h"
+#include "filesys/utils/idtools.h"
+#include "image/types/define/pull.h"
+#include "image/types/internal/types.h"
 using std::string;
 typedef string TeeType;
 const std::string

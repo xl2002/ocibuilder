@@ -1,5 +1,5 @@
-#if !defined(DEFINE_SPECS_H)
-#define DEFINE_SPECS_H
+#if !defined(FILESYS_SYSTEM_SPECS_SPECS_H)
+#define FILESYS_SYSTEM_SPECS_SPECS_H
 #include <string>
 #include <vector>
 using std::string;

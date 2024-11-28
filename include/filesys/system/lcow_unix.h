@@ -1,5 +1,5 @@
-#if !defined(SYSTEM_LCOW_UNIX_H)
-#define SYSTEM_LCOW_UNIX_H
+#if !defined(FILESYS_SYSTEM_LCOW_UNIX_H)
+#define FILESYS_SYSTEM_LCOW_UNIX_H
 #include <string>
 bool isLCOWSupported() {
     // This should return whether LCOW (Linux Containers on Windows) is supported.

@@ -1,5 +1,5 @@
-#if !defined(BUILDAH_COMMON_H)
-#define BUILDAH_COMMON_H
+#if !defined(IMAGE_BUILDAH_COMMON_H)
+#define IMAGE_BUILDAH_COMMON_H
 #include <string>
 #include <vector>
 #include <map>
@@ -7,11 +7,11 @@
 #include <set>
 #include <chrono>
 #include <iostream>
-#include "define/types.h"
+#include "image/types/define/types.h"
 #include "storage/storage.h"
-#include "copy/copy.h"
-#include "signature/policy_eval.h"
-#include "types/types.h"
+#include "image/types/copy.h"
+#include "image/types/signature/policy_eval.h"
+#include "image/types/types.h"
 std::shared_ptr<SystemContext> getSystemContext(
     std::shared_ptr<Store_interface> store,
     std::shared_ptr<SystemContext> defaults,

@@ -1,9 +1,9 @@
-#if !defined(DEFINE_TYPES_UNIX_H)
-#define DEFINE_TYPES_UNIX_H
+#if !defined(IMAGE_TYPES_DEFINE_TYPES_UNIX_H)
+#define IMAGE_TYPES_DEFINE_TYPES_UNIX_H
 #include <string>
 #include <vector>
 #include <map>
-#include "devices/devices.h"
+#include "filesys/system/devices.h"
 class BuildahDevice:public Device{
     std::string Source;
     std::string Destination;

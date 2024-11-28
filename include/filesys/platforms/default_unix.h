@@ -1,10 +1,10 @@
-#if !defined(PLATFORMS_DEFAULT_UNIX_H)
-#define PLATFORMS_DEFAULT_UNIX_H
+#if !defined(FILESYS_PLATFORMS_DEFAULT_UNIX_H)
+#define FILESYS_PLATFORMS_DEFAULT_UNIX_H
 
 #include <string>
 #include <vector>
 #include <memory>
-#include "v1/descriptor.h"
+#include "image/image_types/v1/descriptor.h"
 #ifdef _WIN32
     #include <winsock2.h>
     #include <windows.h>

@@ -1,10 +1,10 @@
-#if !defined(GRAPHDRIVER_COUNTER_H)
-#define GRAPHDRIVER_COUNTER_H
+#if !defined(FILESYS_GRAPHDRIVER_COUNTER_H)
+#define FILESYS_GRAPHDRIVER_COUNTER_H
 
 #include <map>
 #include <mutex>
 #include <string>
-#include "graphdriver/driver_linux_windows.h"
+#include "filesys/graphdriver/driver_linux_windows.h"
 class Checker_interface {
 public:
     virtual bool IsMounted(const std::string& path) const = 0;

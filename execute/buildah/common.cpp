@@ -1,4 +1,4 @@
-#include "buildah/common.h"
+#include "image/buildah/common.h"
 
 std::shared_ptr<SystemContext> getSystemContext(
     std::shared_ptr<Store_interface> store,

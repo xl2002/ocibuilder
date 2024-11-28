@@ -1,9 +1,9 @@
-#if !defined(TRANS_TRANSPORTS_H)
-#define TRANS_TRANSPORTS_H
+#if !defined(IMAGE_TRANSPORTS_TRANSPORTS_H)
+#define IMAGE_TRANSPORTS_TRANSPORTS_H
 #include <memory>
 #include <string>
 #include <vector>
-#include "types/types.h"
+#include "image/types/types.h"
 #include "cobra/error.h"
 #include <map>
 #include <mutex>

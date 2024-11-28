@@ -1,9 +1,9 @@
-#include "sysregistriesv2/shortnames.h"
-#include "reference/reference.h"
+#include "image/shortnames/sysregistriesv2/shortnames.h"
+#include "image/types/reference/reference.h"
 #include "cobra/error.h"
-#include "reference/normalize.h"
+#include "image/types/reference/normalize.h"
 #include "lockfile/lockfile.h"
-#include "sysregistriesv2/system_registries_v2.h"
+#include "image/shortnames/sysregistriesv2/system_registries_v2.h"
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 std::tuple<std::shared_ptr<Named_interface>,std::string> ResolveShortNameAlias(std::shared_ptr<SystemContext> ctx,std::string name){

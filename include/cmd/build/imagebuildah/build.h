@@ -5,9 +5,9 @@
 #include <memory>
 #include <iostream>
 #include <stdexcept>
-#include "reference/reference.h"
+#include "image/types/reference/reference.h"
 #include "storage/storage.h"
-#include "define/build.h"
+#include "image/types/define/build.h"
 #include "go/string.h"
 #include "go/file.h"
 #include "semaphore/semaphore.h"

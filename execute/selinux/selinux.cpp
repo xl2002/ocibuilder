@@ -1,5 +1,5 @@
-#include "selinux/selinux.h"
-#include "selinux/selinux_linux.h"
+#include "filesys/system/selinux/selinux.h"
+#include "filesys/system/selinux/selinux_linux.h"
 bool GetEnabled(){
     return getEnabled();
 }

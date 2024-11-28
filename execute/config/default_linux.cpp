@@ -1,5 +1,5 @@
 #include "config/default_linux.h"
-#include "selinux/selinux.h"
+#include "filesys/system/selinux/selinux.h"
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/lexical_cast.hpp>
 

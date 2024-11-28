@@ -9,7 +9,7 @@
  * 
  */
 #include "types/options.h"
-#include "util/util.h"
+#include "image/util/util.h"
 #include "cli/common.h"
 #include <stdlib.h> 
 #include <winsock2.h>

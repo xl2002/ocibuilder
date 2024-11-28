@@ -1,13 +1,13 @@
-#if !defined(V1_DESCRIPTOR_H)
-#define V1_DESCRIPTOR_H
+#if !defined(IMAGE_IMAGE_TYPES_V1_DESCRIPTOR_H)
+#define IMAGE_IMAGE_TYPES_V1_DESCRIPTOR_H
 
 #include <string>
 #include <vector>
 #include <memory>
 #include <map>
-#include "digest/digest.h"
+#include "image/digest/digest.h"
 #include "bytes/buffer.h"
-#include "v1/mediatype.h"
+#include "image/image_types/v1/mediatype.h"
 class Platform{
     public:
     std::string Architecture;

@@ -1,5 +1,5 @@
-#if !defined(DEFINE_PULL_H)
-#define DEFINE_PULL_H
+#if !defined(IMAGE_TYPES_DEFINE_PULL_H)
+#define IMAGE_TYPES_DEFINE_PULL_H
 #include <string>
 #include <map>
 #include <iostream>

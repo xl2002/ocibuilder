@@ -19,7 +19,7 @@
 #include "storage/storage.h"
 #include <memory>
 #include "cobra/command.h"
-#include "define/types.h"
+#include "image/types/define/types.h"
 // #include "storage/runtime.h"
 // #include "storage/image.h"
 #include "types/options.h"

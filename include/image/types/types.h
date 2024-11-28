@@ -1,12 +1,12 @@
-#if !defined(TYPES_TYPES_H)
-#define TYPES_TYPES_H
+#if !defined(IMAGE_TYPES_TYPES_H)
+#define IMAGE_TYPES_TYPES_H
 #include <string>
 #include <memory>
 #include <vector>
 #include <map>
 #include <chrono>
-#include "define/types.h"
-#include "reference/reference.h"
+#include "image/types/define/types.h"
+#include "image/types/reference/reference.h"
 class ImageTransport_interface;
 struct Image_interface;
 struct ImageSource_interface;

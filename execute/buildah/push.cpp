@@ -1,6 +1,6 @@
-#include "buildah/push.h"
+#include "image/buildah/push.h"
 #include "cobra/error.h"
-#include "blobcache/blobcache.h"
+#include "image/types/blobcache.h"
 LookupReferenceFunc cacheLookupReferenceFunc(std::string directory, std::shared_ptr<LayerCompression> compression){
     return [=](std::shared_ptr<ImageReference_interface>ref)->std::shared_ptr<ImageReference_interface>{
         if(directory==""){

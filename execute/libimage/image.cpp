@@ -1,7 +1,7 @@
-#include "libimage/image.h"
+#include "image/libimage/image.h"
 #include "cobra/error.h"
-#include "platforms/platforms.h"
-#include "libimage/normalize.h"
+#include "filesys/platforms/platforms.h"
+#include "image/libimage/normalize.h"
 namespace LibImage{
     
     std::shared_ptr<ImageReference_interface> Image::StorageReference(){

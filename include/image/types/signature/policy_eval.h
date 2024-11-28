@@ -1,5 +1,5 @@
-#if !defined(SIGNATURE_POLICY_EVAL_H)
-#define SIGNATURE_POLICY_EVAL_H
+#if !defined(IMAGE_TYPES_SIGNATURE_POLICY_EVAL_H)
+#define IMAGE_TYPES_SIGNATURE_POLICY_EVAL_H
 #include <string>
 #include <map>
 #include <vector>
@@ -7,7 +7,7 @@
 #include <set>
 #include <chrono>
 #include <iostream>
-#include "signature/policy_types.h"
+#include "image/types/signature/policy_types.h"
 struct PolicyRequirement_interface{
     
 };

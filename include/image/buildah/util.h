@@ -1,5 +1,5 @@
-#if !defined(BUILDAH_UTIL_H)
-#define BUILDAH_UTIL_H
+#if !defined(IMAGE_BUILDAH_UTIL_H)
+#define IMAGE_BUILDAH_UTIL_H
 
 #include <string>
 #include <vector>
@@ -8,9 +8,9 @@
 #include <set>
 #include <chrono>
 #include <iostream>
-#include "define/types.h"
+#include "image/types/define/types.h"
 #include "storage/storage.h"
-#include "types/types.h"
+#include "image/types/types.h"
 
 bool isReferenceBlocked(std::shared_ptr<ImageReference_interface> ref,std::shared_ptr<SystemContext> sc);
 bool isReferenceSomething(

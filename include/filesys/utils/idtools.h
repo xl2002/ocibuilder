@@ -1,5 +1,5 @@
-#if !defined(PKG_IDTOOLS_IDTOOLS_H)
-#define PKG_IDTOOLS_IDTOOLS_H
+#if !defined(FILESYS_UTILS_IDTOOLS_H)
+#define FILESYS_UTILS_IDTOOLS_H
 #include <string>
 #include <vector>
 #include <memory>
