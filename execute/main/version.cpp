@@ -8,7 +8,7 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#include "main/version.h"
+#include "cmd/version/version.h"
 /**
  * @brief 初始化 version 命令的内容
  * 

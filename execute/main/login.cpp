@@ -8,7 +8,7 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#include "main/login.h"
+#include "cmd/login/login.h"
 /**
  * @brief 初始化 login 命令的内容
  * 

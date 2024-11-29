@@ -8,7 +8,7 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#include "main/config.h"
+#include "cmd/config/config.h"
 // #include "command.h"
 
 /**

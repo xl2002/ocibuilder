@@ -8,8 +8,8 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#ifndef CMD_INFO_H
-#define CMD_INFO_H
+#ifndef CMD_INFO_INFO_H
+#define CMD_INFO_INFO_H
 #include <string>
 #include <vector>
 #include "cobra/command.h"

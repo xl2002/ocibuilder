@@ -8,7 +8,7 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#include "main/build.h"
+#include "cmd/build/build.h"
 #include "config/new.h"
 /**
  * @brief 返回build命令的标志

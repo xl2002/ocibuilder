@@ -1,4 +1,4 @@
-#include "imagebuilder/shell_parser.h"
+#include "cmd/build/imagebuilder/shell_parser.h"
 #include "cobra/error.h"
 std::string ProcessWord(std::string word,std::vector<std::string>env){
     auto sw=std::make_shared<shellWord>();

@@ -8,8 +8,8 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#ifndef CMD_ROOT_H
-#define CMD_ROOT_H
+#ifndef CMD_ROOT_ROOT_H
+#define CMD_ROOT_ROOT_H
 #include <map>
 #include <memory>
 #include "cobra/command.h"

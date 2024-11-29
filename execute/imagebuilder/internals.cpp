@@ -1,4 +1,4 @@
-#include "imagebuilder/internals.h"
+#include "cmd/build/imagebuilder/internals.h"
 std::vector<std::string> mergeEnv(std::vector<std::string> defaults, std::vector<std::string> overrides){
     std::vector<std::string> result;
     result.reserve(defaults.size() + overrides.size());

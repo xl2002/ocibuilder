@@ -1,5 +1,5 @@
-#if !defined(IMAGEBUILDER_BUILDER_H)
-#define IMAGEBUILDER_BUILDER_H
+#if !defined(CMD_BUILD_IMAGEBUILDER_BUILDER_H)
+#define CMD_BUILD_IMAGEBUILDER_BUILDER_H
 #include <string>
 #include <vector>
 #include <map>
@@ -17,8 +17,8 @@
 #include "parse/dockerfileparse.h"
 #include "image/image_types/docker/types.h"
 #include "image/image_types/docker/image.h"
-#include "imagebuilder/evaluator.h"
-// #include "imagebuildah/stage_executor.h"
+#include "cmd/build/imagebuilder/evaluator.h"
+// #include "cmd/build/imagebuildah/stage_executor.h"
 #include <boost/filesystem.hpp>
 // #include <boost/system/error_code.hpp>
 #include <sys/stat.h>

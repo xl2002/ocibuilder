@@ -2,7 +2,7 @@
 #include <algorithm>
 #include "filesys/system/specs/specs.h"
 #include "go/file.h"
-#include "imagebuilder/builder.h"
+#include "cmd/build/imagebuilder/builder.h"
 #include "cobra/error.h"
 #include "logrus/exported.h"
 #include <boost/filesystem.hpp>

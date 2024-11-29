@@ -8,8 +8,8 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#ifndef CMD_TAG_H
-#define CMD_TAG_H
+#ifndef CMD_TAG_TAG_H
+#define CMD_TAG_TAG_H
 #include <string>
 #include <vector>
 #include "cobra/command.h"

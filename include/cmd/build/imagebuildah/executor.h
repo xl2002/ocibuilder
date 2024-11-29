@@ -1,5 +1,5 @@
-#if !defined(IMAGEBUILDAH_EXECUTOR_H)
-#define IMAGEBUILDAH_EXECUTOR_H
+#if !defined(CMD_BUILD_IMAGEBUILDHAH_EXECUTOR_H)
+#define CMD_BUILD_IMAGEBUILDHAH_EXECUTOR_H
 #include <string>
 #include <vector>
 #include <map>
@@ -20,14 +20,14 @@
 #include "image/types/define/types.h"
 #include "image/types/define/namespace.h"
 #include "semaphore/semaphore.h"
-#include "imagebuildah/stage_executor.h"
+#include "cmd/build/imagebuildah/stage_executor.h"
 #include "image/types/define/types_unix.h"
 #include "image/digest/digest.h"
 #include "image/image_types/v1/config.h"
 #include "image/types/sshagent.h"
 #include "parse/dockerfileparse.h"
 #include "image/buildah/buildah.h"
-#include "imagebuilder/builder.h"
+#include "cmd/build/imagebuilder/builder.h"
 #include "image/types/types.h"
 #include "image/transports/alltransports.h"
 #include "logrus/logger.h"

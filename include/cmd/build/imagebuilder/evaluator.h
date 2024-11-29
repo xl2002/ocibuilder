@@ -1,5 +1,5 @@
-#if !defined(IMAGEBUILDER_EVALUATOR_H)
-#define IMAGEBUILDER_EVALUATOR_H
+#if !defined(CMD_BUILD_IMAGEBUILDER_EVALUATOR_H)
+#define CMD_BUILD_IMAGEBUILDER_EVALUATOR_H
 #include <vector>
 #include <string>
 #include <map>
@@ -10,8 +10,8 @@
 #include "cobra/error.h"
 // #include "parse/dockerfileparse.h"
 #include "go/string.h"
-#include "imagebuilder/internals.h"
-#include "imagebuilder/shell_parser.h"
+#include "cmd/build/imagebuilder/internals.h"
+#include "cmd/build/imagebuilder/shell_parser.h"
 std::shared_ptr<Node> ParseDockerfile(std::vector<byte> r);
 
 extern std::map<std::string,bool> replaceEnvAllowed;

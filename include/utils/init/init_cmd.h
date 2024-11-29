@@ -1,7 +1,7 @@
 #if !defined(INIT_CMD_H)
 #define INIT_CMD_H
 #include <mutex>
-#include "main/build.h"
+#include "cmd/build/build.h"
 
 void initialize_cmd();
 

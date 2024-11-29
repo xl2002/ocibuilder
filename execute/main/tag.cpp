@@ -8,7 +8,7 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#include "main/tag.h"
+#include "cmd/tag/tag.h"
 /**
  * @brief 初始化 tag 命令的内容
  * 

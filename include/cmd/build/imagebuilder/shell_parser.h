@@ -1,5 +1,5 @@
-#if !defined(IMAGEBUILDER_SHELL_PARSER_H)
-#define IMAGEBUILDER_SHELL_PARSER_H
+#if !defined(CMD_BUILD_IMAGEBUILDER_SHELL_PARSER_H)
+#define CMD_BUILD_IMAGEBUILDER_SHELL_PARSER_H
 
 #include <string>
 #include <vector>

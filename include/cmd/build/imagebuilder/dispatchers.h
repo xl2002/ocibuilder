@@ -1,5 +1,5 @@
-#if !defined(IMAGEBUILDER_DISPATCHERS_H)
-#define IMAGEBUILDER_DISPATCHERS_H
+#if !defined(CMD_BUILD_IMAGEBUILDER_DISPATCHERS_H)
+#define CMD_BUILD_IMAGEBUILDER_DISPATCHERS_H
 #include <string>
 #include <vector>
 #include <map>
@@ -9,7 +9,7 @@
 #include <sstream>
 #include <iomanip>
 #include "cobra/error.h"
-#include "imagebuilder/builder.h"
+#include "cmd/build/imagebuilder/builder.h"
 
 void env(
     std::shared_ptr<Image_Builder>b,

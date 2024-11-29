@@ -1,9 +1,9 @@
-#include "imagebuilder/builder.h"
+#include "cmd/build/imagebuilder/builder.h"
 #include "go/string.h"
 #include "cobra/error.h"
 #include "cli/common.h"
-#include "imagebuilder/internals.h"
-#include "imagebuilder/dispatchers.h"
+#include "cmd/build/imagebuilder/internals.h"
+#include "cmd/build/imagebuilder/dispatchers.h"
 
 void logExecutor::UnrecognizedInstruction(std::shared_ptr<Step> step){
     return;

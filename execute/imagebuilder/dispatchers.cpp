@@ -1,5 +1,5 @@
-#include "imagebuilder/dispatchers.h"
-#include "imagebuilder/internals.h"
+#include "cmd/build/imagebuilder/dispatchers.h"
+#include "cmd/build/imagebuilder/internals.h"
 #include "shell/lex.h"
 #include <boost/algorithm/string.hpp>
 #include "regexp/regexp.h"

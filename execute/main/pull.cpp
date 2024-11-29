@@ -8,7 +8,7 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#include "main/pull.h"
+#include "cmd/pull/pull.h"
 /**
  * @brief 初始化 pull 命令的内容
  * 

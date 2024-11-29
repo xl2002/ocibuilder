@@ -8,11 +8,11 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#include "main/root.h"
+#include "cmd/root/root.h"
 #include "init/init.h"
 #include "cobra/flag.h"
 #include "cobra/command.h"
-// #include "main/build.h"
+// #include "cmd/build/build.h"
 #include <iostream>
 // #include "logrus/exported.h"
 using namespace std;

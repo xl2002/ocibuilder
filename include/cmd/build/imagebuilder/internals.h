@@ -1,5 +1,5 @@
-#if !defined(IMAGEBUILDER_INTERNALS_H)
-#define IMAGEBUILDER_INTERNALS_H
+#if !defined(CMD_BUILD_IMAGEBUILDER_INTERNALS_H)
+#define CMD_BUILD_IMAGEBUILDER_INTERNALS_H
 
 #include <string>
 #include <vector>

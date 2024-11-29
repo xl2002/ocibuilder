@@ -1,4 +1,4 @@
-#include "imagebuildah/build.h"
+#include "cmd/build/imagebuildah/build.h"
 #include <mutex>
 #include <future>
 #include "cli/common.h"
@@ -12,8 +12,8 @@
 #include "image/image_types/v1/descriptor.h"
 #include "image/types/reference/reference.h"
 #include "multierror/group.h"
-#include "imagebuilder/evaluator.h"
-#include "imagebuildah/executor.h"
+#include "cmd/build/imagebuilder/evaluator.h"
+#include "cmd/build/imagebuildah/executor.h"
 #include "config/config.h"
 #include "config/new.h"
 std::tuple<std::string,std::shared_ptr<Canonical_interface>> buildDockerfilesOnce(shared_ptr<Store> stores,string logPrefix,shared_ptr<define_BuildOptions> options,vector<string>& containerFiles,vector<vector<byte>>& dockerfilecontents);

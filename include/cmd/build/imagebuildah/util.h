@@ -1,5 +1,5 @@
-#if !defined(IMAGEBUILDER_UTIL_H)
-#define IMAGEBUILDER_UTIL_H
+#if !defined(CMD_BUILD_IMAGEBUILDHAH_UTIL_H)
+#define CMD_BUILD_IMAGEBUILDHAH_UTIL_H
 
 #include <string>
 #include <vector>

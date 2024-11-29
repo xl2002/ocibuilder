@@ -8,7 +8,7 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#include "main/logout.h"
+#include "cmd/logout/logout.h"
 /**
  * @brief 初始化 logout 命令的内容
  * 

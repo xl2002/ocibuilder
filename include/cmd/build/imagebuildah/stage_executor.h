@@ -1,5 +1,5 @@
-#if !defined(IMAGEBUILDAH_STAGE_EXECUTOR_H)
-#define IMAGEBUILDAH_STAGE_EXECUTOR_H
+#if !defined(CMD_BUILD_IMAGEBUILDHAH_STAGE_EXECUTOR_H)
+#define CMD_BUILD_IMAGEBUILDHAH_STAGE_EXECUTOR_H
 #include <string>
 #include <vector>
 #include <map>
@@ -13,9 +13,9 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include "imagebuildah/executor.h"
+#include "cmd/build/imagebuildah/executor.h"
 #include "image/buildah/buildah.h"
-#include "imagebuilder/builder.h"
+#include "cmd/build/imagebuilder/builder.h"
 class Executor;
 // class VolumeSet;
 // class Copy;
