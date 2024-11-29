@@ -1,8 +1,8 @@
-#if !defined(RUNTIME_SPEC_RUNTIME2_H)
-#define RUNTIME_SPEC_RUNTIME2_H
+#if !defined(RUNTIME_RUNTIME2_H)
+#define RUNTIME_RUNTIME2_H
 #include <string>
-#include "runtime_spec/symtab.h"
-#include "runtime_spec/type.h"
+#include "runtime/symtab.h"
+#include "runtime/type.h"
 using funcID = uint8_t;
 
 using funcFlag = uint8_t;

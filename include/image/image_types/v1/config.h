@@ -10,7 +10,7 @@
 #include "image/image_types/v1/descriptor.h"
 #include "image/types/define/build.h"
 #include "image/types/define/namespace.h"
-#include "types/network.h"
+#include "network/network.h"
 #include "image/types/define/types.h"
 #include "image/image_types/v1/config.h"
 struct ImageConfig {

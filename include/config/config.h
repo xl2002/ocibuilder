@@ -17,7 +17,7 @@
 #include <cstdlib>
 #include "attributedstring/slice.h"
 #include "config/pod_exit_policy.h"
-#include "types/network.h"
+#include "network/network.h"
 using std::map;
 using std::string;
 using std::vector;

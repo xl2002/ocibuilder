@@ -1,5 +1,5 @@
-#if !defined(RUNTIME_SPEC_TYPE_H)
-#define RUNTIME_SPEC_TYPE_H
+#if !defined(RUNTIME_TYPE_H)
+#define RUNTIME_TYPE_H
 #include <string>
 #include <vector>
 
