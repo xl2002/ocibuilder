@@ -1,5 +1,5 @@
-#if !defined(TYPES_NETWORK_H)
-#define TYPES_NETWORK_H
+#if !defined(NETWORK_NETWORK_H)
+#define NETWORK_NETWORK_H
 #include <string>
 #include <vector>
 #include <map>

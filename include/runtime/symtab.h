@@ -1,13 +1,13 @@
-#if !defined(RUNTIME_SPEC_SYMTAB_H)
-#define RUNTIME_SPEC_SYMTAB_H
+#if !defined(RUNTIME_SYMTAB_H)
+#define RUNTIME_SYMTAB_H
 #include <string>
 #include <cstdint>
 #include <iostream>
 #include <vector>
 #include <map>
 #include <memory>   
-#include "runtime_spec/runtime2.h"
-#include "runtime_spec/type.h"
+#include "runtime/runtime2.h"
+#include "runtime/type.h"
 struct _func;
 struct itab;
 class Func {
