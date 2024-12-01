@@ -1,6 +1,6 @@
 #if !defined(LOGRUS_EXPORTED_H)
 #define LOGRUS_EXPORTED_H
-#include "logrus/logger.h"
+#include "utils/logger/logrus/logger.h"
 
 extern std::shared_ptr<Logger> Std;
 void SetLevel(std::shared_ptr<Level> level);

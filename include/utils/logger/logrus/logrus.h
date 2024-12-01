@@ -2,7 +2,7 @@
 #define LOGRUS_LOGRUS_H
 #include <string>
 #include <vector>
-#include "cobra/error.h"
+#include "utils/common/error.h"
 #include <algorithm>
 #include <boost/any.hpp>
 enum class level : uint32_t {

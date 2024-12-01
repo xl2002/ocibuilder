@@ -1,13 +1,13 @@
 #if !defined(PAARSE_DOCKERFILEPARSE_H)
 #define PAARSE_DOCKERFILEPARSE_H
-#include <string> 
+#include <string>
 #include <vector>
 #include <memory>
 #include <map>
 #include <sstream>
 #include <regex>
-#include "regexp/regexp.h"
-#include "parse/buildkitparser.h"
+#include "utils/common/regexp.h"
+#include "utils/parse/buildkitparser.h"
 
 class Node{
     public:

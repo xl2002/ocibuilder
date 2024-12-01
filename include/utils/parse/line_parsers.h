@@ -6,8 +6,8 @@
 #include <memory>
 #include <sstream>
 #include <regex>
-#include "parse/dockerfileparse.h"
-#include "regexp/regexp.h"
+#include "utils/parse/dockerfileparse.h"
+#include "utils/common/regexp.h"
 std::tuple<std::shared_ptr<Node>, std::map<std::string, bool>> 
 parseStringsWhitespaceDelimited(const std::string& rest, std::shared_ptr<Directive>d);
 std::tuple<std::shared_ptr<Node>, std::map<std::string, bool>>

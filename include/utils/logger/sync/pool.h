@@ -5,8 +5,8 @@
 #include <vector>
 #include <unordered_map>
 #include <memory>
-#include "sync/cond.h"
-#include "logrus/entry.h"
+#include "utils/logger/sync/cond.h"
+#include "utils/logger/logrus/entry.h"
 // 定义 ArbitraryType 类型
 // using ArbitraryType = int;
 

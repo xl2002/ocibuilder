@@ -6,7 +6,7 @@
 #include <queue>
 #include <memory>
 #include <condition_variable>
-#include "bytes/buffer.h"
+#include "utils/common/buffer.h"
 
 // 定义 BufferPool_interface 接口
 class BufferPool_interface {

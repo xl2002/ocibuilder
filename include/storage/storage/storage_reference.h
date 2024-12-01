@@ -2,9 +2,9 @@
 #define STORAGE_STORAGE_REFERENCE_H
 
 #include "image/types/types.h"
-#include "storage/storage_transport.h"
+#include "storage/storage/storage_transport.h"
 #include "image/types/reference/reference.h"
-#include "storage/images.h"
+#include "storage/storage/images.h"
 #include "image/types/define/types.h"
 class storageTransport;
 struct storageReference: public ImageReference_interface{

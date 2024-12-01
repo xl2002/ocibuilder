@@ -2,7 +2,7 @@
 #define STORAGE_OVERLAY_OVERLAY_H
 
 #include "filesys/graphdriver/driver.h"
-#include "cobra/error.h"
+#include "utils/common/error.h"
 #include "filesys/graphdriver/driver_linux_windows.h"
 #include "filesys/utils/idtools.h"
 #include "filesys/graphdriver/chown.h"

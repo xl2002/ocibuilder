@@ -18,9 +18,9 @@
 #include <boost/interprocess/sync/file_lock.hpp>
 #include <boost/iostreams/device/file_descriptor.hpp>
 #include <boost/iostreams/filtering_streambuf.hpp>
-#include "lockfile/lastwrite.h"
-#include "cobra/error.h"
-#include "types/options.h"
+#include "storage/lockfile/lastwrite.h"
+#include "utils/common/error.h"
+#include "storage/types/options.h"
 using namespace std;
 
 enum class LockType { ReadLock, WriteLock };

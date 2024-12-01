@@ -6,10 +6,10 @@
 #include <vector>
 #include <chrono>
 #include <mutex>
-#include "cobra/error.h"
+#include "utils/common/error.h"
 #include <set>
 #include "image/digest/digest.h"
-#include "lockfile/lockfile.h"
+#include "storage/lockfile/lockfile.h"
 namespace storage{
     // 表示一个镜像和相关的元数据的结构体
     struct Image {

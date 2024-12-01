@@ -16,16 +16,16 @@
 #include <algorithm>
 #include <iostream>
 #include <tuple>
-#include "storage/storage.h"
+#include "storage/storage/storage.h"
 #include <memory>
-#include "cobra/command.h"
+#include "utils/cli/cobra/command.h"
 #include "image/types/define/types.h"
 // #include "storage/runtime.h"
 // #include "storage/image.h"
-#include "types/options.h"
+#include "storage/types/options.h"
 // #include "storage/utils.h"
-#include "config/config.h"
-#include "storage/storage_transport.h"
+#include "config/config.h"   //#include "cmd/config/config.h"
+#include "storage/storage/storage_transport.h"
 using std::vector;
 using std::string;
 vector<string> SplitN(const string& str, const string& delimiter, size_t max_splits);

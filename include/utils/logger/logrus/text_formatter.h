@@ -4,9 +4,9 @@
 #include <vector>
 #include <functional>
 #include "runtime/runtime2.h"
-#include "logrus/json_formatter.h"
-#include "logrus/formatter.h"
-#include "sync/once.h"
+#include "utils/logger/logrus/json_formatter.h"
+#include "utils/logger/logrus/formatter.h"
+#include "utils/logger/sync/once.h"
 struct TextFormatter : public Formatter_interface{
 public:
     bool ForceColors = false;             // 强制输出颜色

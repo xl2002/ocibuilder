@@ -5,8 +5,8 @@
 #include <map>
 #include <vector>
 #include "image/transports/transports.h"
-#include "storage/storage.h"
-#include "storage/storage_reference.h"
+#include "storage/storage/storage.h"
+#include "storage/storage/storage_reference.h"
 #include "filesys/utils/idtools.h"
 struct storageReference;
 class StoreTransport_interface:public ImageTransport_interface{

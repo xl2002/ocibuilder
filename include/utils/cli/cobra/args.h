@@ -14,8 +14,8 @@
 #include <iostream>
 #include <vector>
 #include <functional>
-#include "command.h"
-#include "error.h"
+#include "utils/cli/cobra/command.h"
+#include "utils/common/error.h"
 #include <string>
 using std::vector;
 using std::function;

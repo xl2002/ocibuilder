@@ -5,8 +5,8 @@
 #include <vector>
 #include <unordered_map>
 #include <memory>
-#include "logrus/logrus.h"
-#include "logrus/entry.h"
+#include "utils/logger/logrus/logrus.h"
+#include "utils/logger/logrus/entry.h"
 class Entry;
 //using LevelHooks = std::unordered_map<Level, std::vector<Hook_interface>>;
 class Hook_interface {

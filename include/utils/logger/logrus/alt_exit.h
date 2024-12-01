@@ -4,7 +4,7 @@
 #include <vector>
 #include <functional>
 #include <exception>
-#include "cobra/error.h"
+#include "utils/common/error.h"
 void runHandler(const std::function<void()>& handler);
 void runHandlers();
 #endif // LOGRUS_ALT_EXIT_H
