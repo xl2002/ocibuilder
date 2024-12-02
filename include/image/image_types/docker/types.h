@@ -8,7 +8,7 @@
 #include <set>
 #include <memory>
 #include <chrono>
-#include "go/string.h"
+#include "utils/common/go/string.h"
 #include "filesys/system/specs/specs.h"
 #include <boost/optional.hpp>
 #include "image/digest/digest.h"

@@ -1,9 +1,9 @@
 #include "image/buildah/buildah.h"
-#include "cobra/error.h"
+#include "utils/common/error.h"
 #include "image/buildah/common.h"
 #include "image/buildah/util.h"
 #include "image/transports/transports.h"
-#include "storage/storage_transport.h"
+#include "storage/storage/storage_transport.h"
 #include "image/image_types/manifest/manifest.h"
 #include "image/buildah/new.h"
 // std::shared_ptr<PolicyTransportScopes> storageAllowedPolicyScopes=std::make_shared<PolicyTransportScopes>();

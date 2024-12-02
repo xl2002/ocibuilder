@@ -1,5 +1,5 @@
-#if !defined(LOGRUS_ALT_EXIT_H)
-#define LOGRUS_ALT_EXIT_H
+#if !defined(UTILS_LOGGER_LOGRUS_ALT_EXIT_H)
+#define UTILS_LOGGER_LOGRUS_ALT_EXIT_H
 #include <iostream>
 #include <vector>
 #include <functional>

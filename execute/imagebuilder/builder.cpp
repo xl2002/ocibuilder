@@ -1,7 +1,7 @@
 #include "cmd/build/imagebuilder/builder.h"
-#include "go/string.h"
-#include "cobra/error.h"
-#include "cli/common.h"
+#include "utils/common/go/string.h"
+#include "utils/common/error.h"
+#include "utils/cli/cli/common.h"
 #include "cmd/build/imagebuilder/internals.h"
 #include "cmd/build/imagebuilder/dispatchers.h"
 

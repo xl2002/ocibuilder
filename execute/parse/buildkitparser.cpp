@@ -1,7 +1,7 @@
-#include "parse/buildkitparser.h"
-#include "regexp/regexp.h"
-#include "shell/lex.h"
-#include "cobra/error.h"
+#include "utils/parse/buildkitparser.h"
+#include "utils/common/regexp.h"
+#include "utils/cli/cobra/lex.h"
+#include "utils/common/error.h"
 #include <regex>
 // 正则表达式定义
 std::regex reWhitespace(R"([\t\v\f\r ]+)");

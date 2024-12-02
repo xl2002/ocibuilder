@@ -1,5 +1,5 @@
-#if !defined(REGEXP_REGEXP_H)
-#define REGEXP_REGEXP_H
+#if !defined(UTILS_COMMON_REGEXP_H)
+#define UTILS_COMMON_REGEXP_H
 #include <string>
 #include <vector>
 #include <memory>

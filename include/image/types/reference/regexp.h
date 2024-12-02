@@ -10,7 +10,7 @@
 #include <locale>
 #include <codecvt>
 #include <functional>
-#include "regexp/regexp.h"
+#include "utils/common/regexp.h"
 
 extern std::shared_ptr<Regexp> anchoredIdentifierRegexp;
 extern std::shared_ptr<Regexp> anchoredTagRegexp;

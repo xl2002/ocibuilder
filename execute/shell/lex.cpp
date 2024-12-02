@@ -1,4 +1,4 @@
-#include "shell/lex.h"
+#include "utils/cli/cobra/lex.h"
 std::shared_ptr<Lex> NewLex(const char& escapeToken){
     auto ret=std::make_shared<Lex>();
     ret->escapeToken=escapeToken;

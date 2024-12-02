@@ -5,7 +5,7 @@
 #include <string>
 #include <memory>
 #include <tuple>
-#include <cobra/error.h>
+#include "utils/common/error.h"
 #include "image/transports/transports.h"
 
 std::shared_ptr<ImageReference_interface> ParseImageName(std::string imgName);

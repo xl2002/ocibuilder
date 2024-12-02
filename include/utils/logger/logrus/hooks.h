@@ -1,5 +1,5 @@
-#if !defined(LOGRUS_HOOKS_H)
-#define LOGRUS_HOOKS_H
+#if !defined(UTILS_LOGGER_LOGRUS_HOOKS_H)
+#define UTILS_LOGGER_LOGRUS_HOOKS_H
 #include <string>
 #include <iostream>
 #include <vector>

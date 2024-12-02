@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 #include "image/digest/digest.h"
-#include "cobra/error.h"
+#include "utils/common/error.h"
 
 using std::string;
 using std::vector;
@@ -64,7 +64,7 @@ class namedRepository_interface:public Named_interface{
 class reference : public Canonical_interface{
 public:
     std::string tag;
-    std::shared_ptr<Digest> digest;
+    std::shared_ptr<Digest> digest=std::make_shared<Digest>();
     std::shared_ptr<namedRepository_interface> namedRepository=nullptr;
     reference()=default;
     reference(std::shared_ptr<namedRepository_interface> repo, const std::string& tagValue, std::shared_ptr<Digest> dig)

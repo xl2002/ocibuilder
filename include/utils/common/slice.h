@@ -1,5 +1,5 @@
-#if !defined(ATTRIBUTEDSTRING_SLICE_H)
-#define ATTRIBUTEDSTRING_SLICE_H
+#if !defined(UTILS_COMMON_SLICE_H)
+#define UTILS_COMMON_SLICE_H
 #include <string>
 #include <vector>
 #include <memory>

@@ -8,7 +8,7 @@
 #include <chrono>
 #include <iostream>
 #include "image/types/define/types.h"
-#include "storage/storage.h"
+#include "storage/storage/storage.h"
 #include "image/types/copy.h"
 #include "image/types/signature/policy_eval.h"
 #include "image/types/types.h"

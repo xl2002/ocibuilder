@@ -7,7 +7,7 @@
 #include "config/config.h"
 #include <queue>
 #include "image/types/signer.h"
-#include "bytes/buffer.h"
+#include "utils/common/buffer.h"
 // CopyOptions 结构体定义
 struct CopyOptions {
     // 如果设置，将用于复制图像。下面的字段可能会覆盖某些设置。

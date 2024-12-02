@@ -15,7 +15,7 @@
 #include <vector>
 #include <memory>
 #include <cstdlib>
-#include "attributedstring/slice.h"
+#include "utils/common/slice.h"
 #include "config/pod_exit_policy.h"
 #include "network/network.h"
 using std::map;

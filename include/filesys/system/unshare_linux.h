@@ -2,7 +2,7 @@
 #define FILESYS_SYSTEM_UNSHARE_LINUX_H
 #include <cstdlib>
 #include <string>
-#include <unistd.h>
+//#include <unistd.h>
 #include <boost/optional.hpp>
 int GetRootlessUID();
 

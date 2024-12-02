@@ -1,6 +1,6 @@
 #include "image/image_types/docker/docker_transport.h"
-#include "cobra/error.h"
-#include "go/string.h"
+#include "utils/common/error.h"
+#include "utils/common/go/string.h"
 std::string dockerTransport::Name() {
     return "docker";
 }

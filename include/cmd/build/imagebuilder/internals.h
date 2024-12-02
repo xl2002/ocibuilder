@@ -19,11 +19,11 @@
 #include <windows.h>
     const char PATH_SEPARATOR = '\\';
 #else
-    #include <unistd.h>
+    //#include <unistd.h>
     const char PATH_SEPARATOR = '/';
 #endif
 #include <cstdlib>
-#include "go/string.h"
+#include "utils/common/go/string.h"
 #include <boost/filesystem.hpp>
 std::vector<std::string> mergeEnv(std::vector<std::string> defaults, std::vector<std::string> overrides);
 // envMapAsSlice 返回一个包含 "key=value" 格式字符串的 vector

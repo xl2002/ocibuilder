@@ -1,5 +1,5 @@
-#if !defined(GO_FILE_H)
-#define GO_FILE_H
+#if !defined(UTILS_COMMON_GO_FILE_H)
+#define UTILS_COMMON_GO_FILE_H
 #include <string>
 #include <vector>
 #include <map>

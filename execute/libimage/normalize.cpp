@@ -1,5 +1,5 @@
 #include "image/libimage/normalize.h"
-#include "cobra/error.h"
+#include "utils/common/error.h"
 #include "image/image_types/v1/descriptor.h"
 #include "filesys/platforms/platforms.h"
 #include "filesys/platforms/default_unix.h"

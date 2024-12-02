@@ -1,5 +1,5 @@
-#if !defined(LOGRUS_JSON_FORMATTER_H)
-#define LOGRUS_JSON_FORMATTER_H
+#if !defined(UTILS_LOGGER_LOGRUS_JSON_FORMATTER_H)
+#define UTILS_LOGGER_LOGRUS_JSON_FORMATTER_H
 #include <string>
 #include <map>
 

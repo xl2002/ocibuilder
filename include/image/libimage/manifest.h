@@ -4,7 +4,7 @@
 #include <string>
 #include <map>
 #include <memory>
-#include "storage/storage.h"
+#include "storage/storage/storage.h"
 #include "image/types/types.h"
 #include "image/types/reference/reference.h"
 #include "image/image_types/v1/config.h"

@@ -1,5 +1,5 @@
-#if !defined(PAARSE_DOCKERFILEPARSE_H)
-#define PAARSE_DOCKERFILEPARSE_H
+#if !defined(UTILS_PARSE_DOCKERFILEPARSE_H)
+#define UTILS_PARSE_DOCKERFILEPARSE_H
 #include <string>
 #include <vector>
 #include <memory>

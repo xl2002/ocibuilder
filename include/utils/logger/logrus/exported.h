@@ -1,5 +1,5 @@
-#if !defined(LOGRUS_EXPORTED_H)
-#define LOGRUS_EXPORTED_H
+#if !defined(UTILS_LOGGER_LOGRUS_EXPORTED_H)
+#define UTILS_LOGGER_LOGRUS_EXPORTED_H
 #include "utils/logger/logrus/logger.h"
 
 extern std::shared_ptr<Logger> Std;

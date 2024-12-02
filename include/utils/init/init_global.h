@@ -1,5 +1,5 @@
-#if !defined(INIT_GLOBAL_H)
-#define INIT_GLOBAL_H
+#if !defined(UTILS_INIT_INIT_GLOBAL_H)
+#define UTILS_INIT_INIT_GLOBAL_H
 #include "filesys/graphdriver/driver.h"
 #include "image/buildah/buildah.h"
 #include "filesys/system/cgroups_linux.h"
@@ -25,7 +25,7 @@
 #include "cmd/build/imagebuilder/builder.h"
 #include "cmd/build/imagebuilder/dispatchers.h"
 #include "image/types/reference/regexp.h"
-#include "storage/storage/overlay/overlay.h"
+#include "storage/storage/overlay.h"
 
 #include <mutex>
 #include <string>

@@ -1,5 +1,5 @@
 #include "image/libimage/image.h"
-#include "cobra/error.h"
+#include "utils/common/error.h"
 #include "filesys/platforms/platforms.h"
 #include "image/libimage/normalize.h"
 namespace LibImage{

@@ -1,5 +1,5 @@
-#if !defined(LOGRUS_TEXT_FORMATTER_H)
-#define LOGRUS_TEXT_FORMATTER_H
+#if !defined(UTILS_LOGGER_LOGRUS_TEXT_FORMATTER_H)
+#define UTILS_LOGGER_LOGRUS_TEXT_FORMATTER_H
 #include <string>
 #include <vector>
 #include <functional>

@@ -6,7 +6,7 @@
 #include <memory>
 #include <map>
 #include "image/digest/digest.h"
-#include "bytes/buffer.h"
+#include "utils/common/buffer.h"
 #include "image/image_types/v1/mediatype.h"
 class Platform{
     public:

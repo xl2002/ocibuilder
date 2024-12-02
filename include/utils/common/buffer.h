@@ -1,5 +1,5 @@
-#if !defined(BYTES_BUFFER_H)
-#define BYTES_BUFFER_H
+#if !defined(UTILS_COMMON_BUFFER_H)
+#define UTILS_COMMON_BUFFER_H
 #include <string>
 #include <iostream>
 #include <vector>

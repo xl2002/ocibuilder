@@ -1,5 +1,5 @@
-#if !defined(INIT_CMD_H)
-#define INIT_CMD_H
+#if !defined(UTILS_INIT_INIT_CMD_H)
+#define UTILS_INIT_INIT_CMD_H
 #include <mutex>
 #include "cmd/build/build.h"
 

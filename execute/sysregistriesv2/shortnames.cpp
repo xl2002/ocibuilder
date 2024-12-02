@@ -1,8 +1,8 @@
 #include "image/shortnames/sysregistriesv2/shortnames.h"
 #include "image/types/reference/reference.h"
-#include "cobra/error.h"
+#include "utils/common/error.h"
 #include "image/types/reference/normalize.h"
-#include "lockfile/lockfile.h"
+#include "storage/lockfile/lockfile.h"
 #include "image/shortnames/sysregistriesv2/system_registries_v2.h"
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/ini_parser.hpp>

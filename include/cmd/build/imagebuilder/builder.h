@@ -14,7 +14,7 @@
 #include <sstream>
 #include <algorithm>
 #include <stdexcept>
-#include "parse/dockerfileparse.h"
+#include "utils/parse/dockerfileparse.h"
 #include "image/image_types/docker/types.h"
 #include "image/image_types/docker/image.h"
 #include "cmd/build/imagebuilder/evaluator.h"
@@ -27,7 +27,7 @@
 #include <winsock2.h>
 #include <windows.h>
 #else
-#include <unistd.h>
+//#include <unistd.h>
 #include <pwd.h>
 #include <grp.h>
 #endif

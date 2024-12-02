@@ -1,6 +1,6 @@
 #include "config/defaut.h"
 #include "config/config_local.h"
-#include "types/options.h"
+#include "storage/types/options.h"
 #include "config/default_linux.h"
 #include "filesys/system/unshare_linux.h"
 #include "filesys/system/cgroups_linux.h"

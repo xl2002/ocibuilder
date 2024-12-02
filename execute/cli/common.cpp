@@ -8,7 +8,7 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#include "cli/common.h"
+#include "utils/cli/cli/common.h"
 #include "image/types/define/types.h"
 #include <cstdlib>
 #include <stdlib.h>

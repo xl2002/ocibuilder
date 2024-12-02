@@ -8,8 +8,8 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#if !defined(GO_STRING_H)
-#define GO_STRING_H
+#if !defined(UTILS_COMMON_GO_STRING_H)
+#define UTILS_COMMON_GO_STRING_H
 #include <string>
 #include <vector>
 #include <map>

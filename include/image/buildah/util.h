@@ -9,7 +9,7 @@
 #include <chrono>
 #include <iostream>
 #include "image/types/define/types.h"
-#include "storage/storage.h"
+#include "storage/storage/storage.h"
 #include "image/types/types.h"
 
 bool isReferenceBlocked(std::shared_ptr<ImageReference_interface> ref,std::shared_ptr<SystemContext> sc);

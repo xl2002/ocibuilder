@@ -1,5 +1,5 @@
-#if !defined(SEM_SEMAPHORE_H)
-#define SEM_SEMAPHORE_H
+#if !defined(UTILS_COMMON_SEMAPHORE_H)
+#define UTILS_COMMON_SEMAPHORE_H
 #include <string>
 #include <vector>
 #include <mutex>

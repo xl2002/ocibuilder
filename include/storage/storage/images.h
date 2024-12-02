@@ -1,5 +1,5 @@
-#if !defined(STORAGE_IMAGES_H)
-#define STORAGE_IMAGES_H
+#if !defined(STORAGE_STORAGE_IMAGES_H)
+#define STORAGE_STORAGE_IMAGES_H
 #include <string>
 #include <memory>
 #include <map>

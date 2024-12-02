@@ -8,7 +8,7 @@
 #include <stdexcept>
 #include <sstream>
 #include <iomanip>
-#include "cobra/error.h"
+#include "utils/common/error.h"
 #include "cmd/build/imagebuilder/builder.h"
 
 void env(

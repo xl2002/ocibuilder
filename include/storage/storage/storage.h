@@ -1,5 +1,5 @@
-#if !defined(STORAGE_STIRAGE_H)
-#define STORAGE_STIRAGE_H
+#if !defined(STORAGE_STORAGE_STORAGE_H)
+#define STORAGE_STORAGE_STORAGE_H
 #include "storage/lockfile/lockfile.h"
 #include "filesys/utils/idtools.h"
 #include "filesys/graphdriver/driver.h"

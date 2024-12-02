@@ -1,14 +1,14 @@
-#include "parse/dockerfileparse.h"
-#include "parse/line_parsers.h"
-#include "cobra/error.h"
-#include "go/string.h"
+#include "utils/parse/dockerfileparse.h"
+#include "utils/parse/line_parsers.h"
+#include "utils/common/error.h"
+#include "utils/common/go/string.h"
 #include "filesys/system/lcow_unix.h"
 #include <algorithm>
 #include <iomanip>
 #include <tuple>
-#include "parse/split_command.h"
-#include "shell/lex.h"
-#include "parse/buildkitparser.h"
+#include "utils/parse/split_command.h"
+#include "utils/cli/cobra/lex.h"
+#include "utils/parse/buildkitparser.h"
 std::string Node::Dump() const {
     std::ostringstream oss;
     oss << Value;

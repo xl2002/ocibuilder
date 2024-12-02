@@ -9,7 +9,7 @@
 using rlim_t = size_t; // 在Windows中使用size_t作为rlim_t的替代
 #else
 #include <sys/resource.h>
-#include <unistd.h>
+//#include <unistd.h>
 #endif
 std::string getDefaultLockType(){
     return "shm";

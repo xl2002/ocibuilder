@@ -1,5 +1,5 @@
-#if !defined(INIT_INIT_H)
-#define INIT_INIT_H
+#if !defined(UTILS_INIT_INIT_H)
+#define UTILS_INIT_INIT_H
 
 #include "utils/init/init_global.h"
 #include "utils/init/init_cmd.h"

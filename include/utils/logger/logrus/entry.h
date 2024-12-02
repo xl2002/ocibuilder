@@ -1,5 +1,5 @@
-#if !defined(LOGRUS_ENTRY_H)
-#define LOGRUS_ENTRY_H
+#if !defined(UTILS_LOGGER_LOGRUS_ENTRY_H)
+#define UTILS_LOGGER_LOGRUS_ENTRY_H
 #include <string>
 #include <chrono>
 #include <map>
@@ -10,7 +10,7 @@
 #include "utils/logger/logrus/logger.h"
 #include "utils/logger/context/context.h"
 #include "runtime/runtime2.h"
-#include "fmt/print.h"   //无print.p
+// #include "fmt/print.h"   //无print.p
 #include <boost/stacktrace.hpp>
 #include "utils/logger/logrus/bufferpool.h"
 #include "boost/xpressive/detail/utility/any.hpp"

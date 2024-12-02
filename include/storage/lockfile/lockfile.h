@@ -1,5 +1,5 @@
-#if !defined(PKG_LOCKFILE_LOCKFILE_H)
-#define PKG_LOCKFILE_LOCKFILE_H
+#if !defined(STORAGE_LOCKFILE_LOCKFILE_H)
+#define STORAGE_LOCKFILE_LOCKFILE_H
 #include <winsock2.h>
 #include <windows.h>
 #include <string>
@@ -7,7 +7,7 @@
 #include <chrono>
 #include <atomic>
 #include <fcntl.h>
-#include <unistd.h>
+//#include <unistd.h>
 #include <iostream>
 #include <memory>
 #include <unordered_map>

@@ -9,7 +9,7 @@
 #include <chrono>
 #include <iostream>
 #include "image/types/define/types.h"
-#include "storage/storage.h"
+#include "storage/storage/storage.h"
 #include "image/types/types.h"
 #include "image/types/signature/policy_types.h"
 

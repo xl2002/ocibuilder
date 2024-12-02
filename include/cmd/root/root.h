@@ -12,8 +12,8 @@
 #define CMD_ROOT_ROOT_H
 #include <map>
 #include <memory>
-#include "cobra/command.h"
-#include "types/options.h"
+#include "utils/cli/cobra/command.h"
+#include "storage/types/options.h"
 #include "config/new.h"
 // #include "flag.h"
 // using namespace std;

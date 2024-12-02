@@ -8,17 +8,17 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#include "types/options.h"
+#include "storage/types/options.h"
 #include "image/util/util.h"
-#include "cli/common.h"
+#include "utils/cli/cli/common.h"
 #include <stdlib.h> 
 #include <winsock2.h>
 #include <windows.h>
 #include <mutex>
 #include <cstring>
 #include <iostream>
-#include "go/file.h"
-#include "logrus/exported.h"
+#include "utils/common/go/file.h"
+#include "utils/logger/logrus/exported.h"
 #include <boost/compute/detail/getenv.hpp>
 #include <pthread.h>
 // #define PATH_MAX 4096

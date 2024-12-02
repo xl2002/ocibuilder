@@ -21,9 +21,9 @@
 #include "image/types/define/namespace.h"
 #include "image/types/define/types.h"
 #include <memory>
-// #include "parse/parse.h"
+// #include "utils/parse/parse.h"
 #include <chrono>
-#include <semaphore/semaphore.h>
+#include "utils/common/semaphore.h"
 using std::string;
 using std::map;
 using std::vector;

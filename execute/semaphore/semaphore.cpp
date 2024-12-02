@@ -1,4 +1,4 @@
-#include "semaphore/semaphore.h"
+#include "utils/common/semaphore.h"
 
 std::shared_ptr<Weighted> NewWeighted(int64_t n) {
     return std::make_shared<Weighted>(n);

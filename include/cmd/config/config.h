@@ -12,7 +12,7 @@
 #define CMD_CONFIG_CONFIG_H
 #include <string>
 #include <vector>
-#include "cobra/command.h"
+#include "utils/cli/cobra/command.h"
 #include "cmd/root/root.h"
 using std::string;
 using std::vector;

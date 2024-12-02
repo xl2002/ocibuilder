@@ -1,4 +1,4 @@
-#include "storage/images.h"
+#include "storage/storage/images.h"
 //recomputeDigests 函数的实现
 bool bigDataNameIsManifest(const std::string& name) {
     // 这里 ImageDigestManifestBigDataNamePrefix 是定义为大数据名称的前缀

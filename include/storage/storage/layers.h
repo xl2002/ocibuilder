@@ -1,5 +1,5 @@
-#if !defined(STORAGE_LAYERS_H)
-#define STORAGE_LAYERS_H
+#if !defined(STORAGE_STORAGE_LAYERS_H)
+#define STORAGE_STORAGE_LAYERS_H
 #include <string>
 #include <vector>
 using std::string;

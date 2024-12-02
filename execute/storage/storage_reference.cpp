@@ -1,6 +1,6 @@
-#include "storage/storage_reference.h"
-#include "cobra/error.h"
-#include "storage/storage.h"
+#include "storage/storage/storage_reference.h"
+#include "utils/common/error.h"
+#include "storage/storage/storage.h"
 std::shared_ptr<ImageTransport_interface> storageReference::Transport(){
     auto st=std::make_shared<storageTransport>();
     st->store=this->transport->store;

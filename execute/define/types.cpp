@@ -1,5 +1,5 @@
 #include "image/types/define/types.h"
-#include "go/string.h"
+#include "utils/common/go/string.h"
 
 /**
  * @brief 检查并提取 URL 中的目录信息

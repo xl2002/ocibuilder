@@ -3,14 +3,14 @@
 #include "image/types/define/types.h"
 #include <memory>
 #include <queue>
-#include "storage/storage.h"
+#include "storage/storage/storage.h"
 #include "image/libimage/events.h"
 #include "image/libimage/pull.h"
 #include "image/types/define/platform.h"
 #include "image/libimage/inspect.h"
 #include "image/libimage/image.h"
 #include "image/types/reference/reference.h"
-#include "storage/storage_transport.h"
+#include "storage/storage/storage_transport.h"
 // Runtime 负责管理镜像并将其存储在容器存储中
 struct LookupImageOptions;
 namespace LibImage{//由于头文件相互包含，提前声明

@@ -1,13 +1,13 @@
 #include "image/libimage/runtime.h"
-#include "logrus/exported.h"
+#include "utils/logger/logrus/exported.h"
 #include "config/new.h"
 #include "image/transports/alltransports.h"
 #include "image/image_types/docker/docker_transport.h"
 #include "image/libimage/normalize.h"
-#include "go/string.h"
+#include "utils/common/go/string.h"
 #include "image/shortnames/shortnames.h"
 #include "image/types/reference/regexp.h"
-#include "storage/images.h"
+#include "storage/storage/images.h"
 std::shared_ptr<Runtime> RuntimeFromStore(std::shared_ptr<Store> store,std::shared_ptr<RuntimeOptions> options) {
     if( options==nullptr ) {
         options=std::make_shared<RuntimeOptions>();

@@ -8,12 +8,12 @@
 #include <set>
 #include <chrono>
 #include "image/types/internal/types.h"
-#include "bytes/buffer.h"
+#include "utils/common/buffer.h"
 #include "image/types/signer.h"
 #include "image/types/reference/reference.h"
 #include "image/types/define/types.h"
 #include "config/config.h"
-#include "semaphore/semaphore.h"
+#include "utils/common/semaphore.h"
 namespace copy{
     struct ImageListSelection{
         int imagelistselection=0;

@@ -6,7 +6,7 @@
 #include <cstdlib>
 #include <tuple>
 #include "config/config.h"
-#include "cobra/error.h"
+#include "utils/common/error.h"
 // #include <boost/format.hpp>
 #include <boost/optional.hpp>
 #include <boost/compute/detail/getenv.hpp>

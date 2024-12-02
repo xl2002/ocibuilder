@@ -2,7 +2,7 @@
 #define IMAGE_UTIL_UTIL_H
 #include <string>
 #include <set>
-#include "cobra/error.h"
+#include "utils/common/error.h"
 #include "image/types/types.h"
 #include <fstream>
 #include "image/transports/alltransports.h"

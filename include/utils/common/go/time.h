@@ -1,5 +1,5 @@
-#if !defined(GO_TIME_H)
-#define GO_TIME_H
+#if !defined(UTILS_COMMON_GO_TIME_H)
+#define UTILS_COMMON_GO_TIME_H
 #include <iostream>
 #include <chrono>
 #include <ctime>

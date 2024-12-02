@@ -8,15 +8,15 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#ifndef COBRA_COMMAND_H
-#define COBRA_COMMAND_H
+#ifndef UTILS_CLI_COBRA_COMMAND_H
+#define UTILS_CLI_COBRA_COMMAND_H
 
 // #include <errors.h>
 #include <numeric>
 #include <tuple>
 // #include <ios>
 #include <functional>
-// #include "cobra/flag.h"
+// #include "utils/cli/cobra/flag.h"
 #include "utils/cli/cobra/flag.h"
 // #include "context.h"
 // using namespace std;

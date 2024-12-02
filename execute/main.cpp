@@ -9,12 +9,12 @@
  * 
  */
 #include "cmd/root/root.h"
-#include "init/init.h"
-#include "cobra/flag.h"
-#include "cobra/command.h"
+#include "utils/init/init.h"
+#include "utils/cli/cobra/flag.h"
+#include "utils/cli/cobra/command.h"
 // #include "cmd/build/build.h"
 #include <iostream>
-// #include "logrus/exported.h"
+// #include "utils/logger/logrus/exported.h"
 using namespace std;
 
 

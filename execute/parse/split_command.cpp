@@ -1,7 +1,7 @@
-#include "parse/split_command.h"
-#include "go/string.h"
-#include "parse/dockerfileparse.h"
-#include "cobra/error.h"
+#include "utils/parse/split_command.h"
+#include "utils/common/go/string.h"
+#include "utils/parse/dockerfileparse.h"
+#include "utils/common/error.h"
 // splitCommand takes a single line of text and parses out the cmd and args,
 // which are used for dispatching to more exact parsing functions.
 std::tuple<std::string, std::vector<std::string>, std::string> splitCommand(const std::string& line) {

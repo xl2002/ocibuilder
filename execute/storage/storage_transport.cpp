@@ -1,5 +1,5 @@
-#include "storage/storage_transport.h"
-#include "go/string.h"
+#include "storage/storage/storage_transport.h"
+#include "utils/common/go/string.h"
 // const std::shared_ptr<StoreTransport_interface> Transport= std::make_shared<storageTransport>();
 
 std::string storageTransport::Name(){

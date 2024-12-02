@@ -1,5 +1,5 @@
-#if !defined(PAARSE_SPLIT_COMMAND_H)
-#define PAARSE_SPLIT_COMMAND_H
+#if !defined(UTILS_PARSE_SPLIT_COMMAND_H)
+#define UTILS_PARSE_SPLIT_COMMAND_H
 #include <string>
 #include <vector>
 #include <memory>

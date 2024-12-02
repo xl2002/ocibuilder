@@ -1,5 +1,5 @@
-#if !defined(STORAGE_OVERLAY_OVERLAY_H)
-#define STORAGE_OVERLAY_OVERLAY_H
+#if !defined(STORAGE_STORAGE_OVERLAY_H)
+#define STORAGE_STORAGE_OVERLAY_H
 
 #include "filesys/graphdriver/driver.h"
 #include "utils/common/error.h"

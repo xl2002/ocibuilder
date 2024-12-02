@@ -8,8 +8,8 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#if !defined(TYPES_OPTIONS_H)
-#define TYPES_OPTIONS_H
+#if !defined(STORAGE_TYPES_OPTIONS_H)
+#define STORAGE_TYPES_OPTIONS_H
 #include <string>
 #include <map>
 #include <vector>

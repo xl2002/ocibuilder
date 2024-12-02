@@ -1,4 +1,4 @@
-#include "auth/auth.h"
+#include "security/auth.h"
 /**
  * @brief CheckAuthFile 该函数用来判断给定的文件路径是否可以访问
  * @param pathOption 该参数是要检查的文件路径

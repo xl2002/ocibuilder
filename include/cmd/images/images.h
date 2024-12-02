@@ -12,8 +12,8 @@
 #define CMD_IMAGES_IMAGES_H
 #include <string>
 #include <vector>
-#include "cobra/command.h"
-#include "root.h"
+#include "utils/cli/cobra/command.h"
+#include "cmd/root/root.h"
 using std::string;
 using std::vector;
 /**

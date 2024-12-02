@@ -1,8 +1,8 @@
-#include "cli/build.h"
-#include "auth/auth.h"
+#include "utils/cli/cli/build.h"
+#include "security/auth.h"
 #include "image/util/util.h"
-#include "parse/parse.h"
-#include "cli/common.h"
+#include "utils/parse/parse.h"
+#include "utils/cli/cli/common.h"
 #include "image/types/define/types.h"
 #include <winsock2.h>
 #include <windows.h>
@@ -10,7 +10,7 @@
 #include <iostream>
 #include <memory>
 #include <chrono>
-#include "go/file.h"
+#include "utils/common/go/file.h"
 vector<string> getContainerfiles(vector<string> files);
 
 /**

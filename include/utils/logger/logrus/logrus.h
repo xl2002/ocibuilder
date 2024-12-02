@@ -1,5 +1,5 @@
-#if !defined(LOGRUS_LOGRUS_H)
-#define LOGRUS_LOGRUS_H
+#if !defined(UTILS_LOGGER_LOGRUS_LOGRUS_H)
+#define UTILS_LOGGER_LOGRUS_LOGRUS_H
 #include <string>
 #include <vector>
 #include "utils/common/error.h"

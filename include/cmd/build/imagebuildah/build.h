@@ -6,12 +6,12 @@
 #include <iostream>
 #include <stdexcept>
 #include "image/types/reference/reference.h"
-#include "storage/storage.h"
+#include "storage/storage/storage.h"
 #include "image/types/define/build.h"
-#include "go/string.h"
-#include "go/file.h"
-#include "semaphore/semaphore.h"
-#include "multierror/group.h"
+#include "utils/common/go/string.h"
+#include "utils/common/go/file.h"
+#include "utils/common/semaphore.h"
+#include "utils/common/group.h"
 using std::string;
 using std::vector;
 

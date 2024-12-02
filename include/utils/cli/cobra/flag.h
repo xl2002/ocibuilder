@@ -10,8 +10,8 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#ifndef COBRA_FLAG_H
-#define COBRA_FLAG_H
+#ifndef UTILS_CLI_COBRA_FLAG_H
+#define UTILS_CLI_COBRA_FLAG_H
 #include <functional>
 #include <memory>
 #include <string>

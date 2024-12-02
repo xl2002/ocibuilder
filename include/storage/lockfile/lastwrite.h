@@ -1,5 +1,5 @@
-#if !defined(PKG_LOCKFILE_LASTWRITE_H)
-#define PKG_LOCKFILE_LASTWRITE_H
+#if !defined(STORAGE_LOCKFILE_LASTWRITE_H)
+#define STORAGE_LOCKFILE_LASTWRITE_H
 #include <vector>
 #include <cstdint>
 #include "utils/common/error.h"

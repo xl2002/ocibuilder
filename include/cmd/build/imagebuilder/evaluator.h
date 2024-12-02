@@ -5,11 +5,11 @@
 #include <map>
 #include <memory>
 #include <sstream>
-#include "parse/dockerfileparse.h"
-#include "bytes/buffer.h"
-#include "cobra/error.h"
-// #include "parse/dockerfileparse.h"
-#include "go/string.h"
+#include "utils/parse/dockerfileparse.h"
+#include "utils/common/buffer.h"
+#include "utils/common/error.h"
+// #include "utils/parse/dockerfileparse.h"
+#include "utils/common/go/string.h"
 #include "cmd/build/imagebuilder/internals.h"
 #include "cmd/build/imagebuilder/shell_parser.h"
 std::shared_ptr<Node> ParseDockerfile(std::vector<byte> r);

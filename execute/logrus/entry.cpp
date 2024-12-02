@@ -1,4 +1,4 @@
-#include "logrus/entry.h"
+#include "utils/logger/logrus/entry.h"
 
 
 std::shared_ptr<Entry> Entry::WithField(const std::string& key, const std::string& value) {

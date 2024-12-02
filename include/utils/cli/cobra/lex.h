@@ -1,5 +1,5 @@
-#if !defined(SHELL_LEX_H)
-#define SHELL_LEX_H
+#if !defined(UTILS_CLI_SHELL_LEX_H)
+#define UTILS_CLI_SHELL_LEX_H
 #include <string>
 #include <vector>
 #include <memory>

@@ -1,8 +1,8 @@
 #include "cmd/build/imagebuilder/dispatchers.h"
 #include "cmd/build/imagebuilder/internals.h"
-#include "shell/lex.h"
+#include "utils/cli/cobra/lex.h"
 #include <boost/algorithm/string.hpp>
-#include "regexp/regexp.h"
+#include "utils/common/regexp.h"
 #include "filesys/platforms/default_unix.h"
 const auto obRgex=Delayed(R"(^\s*ONBUILD\s*)");
 const auto localspec = DefaultSpec();

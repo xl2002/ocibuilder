@@ -9,7 +9,7 @@
 #include "image/digest/digest.h"
 #include "image/image_types/manifest/docker_schema2.h"
 // #include "image/types/define/types.h"
-// #include "storage/storage.h"
+// #include "storage/storage/storage.h"
 // #include "image/libimage/image.h"
 struct DriverData{
     std::string Name;

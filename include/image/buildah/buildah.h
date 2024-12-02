@@ -5,7 +5,7 @@
 #include <vector>
 #include <chrono>
 #include <memory>
-#include "storage/storage.h"
+#include "storage/storage/storage.h"
 #include "image/image_types/v1/config.h"
 #include "image/buildah/digester.h"
 #include "image/types/define/types_unix.h"
@@ -16,7 +16,7 @@
 #include "image/types/define/build.h"
 #include "image/types/signature/policy_config.h"
 #include "image/buildah/image.h"
-#include "logrus/logger.h"
+#include "utils/logger/logrus/logger.h"
 struct Builder {
     std::shared_ptr<Store> store=std::make_shared<Store>();
 

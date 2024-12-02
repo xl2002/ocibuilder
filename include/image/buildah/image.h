@@ -6,10 +6,10 @@
 #include <memory>
 #include <set>
 #include <chrono>
-#include "storage/storage.h"
+#include "storage/storage/storage.h"
 #include "image/types/define/build.h"
 #include "image/types/define/types.h"
-#include "bytes/buffer.h"
+#include "utils/common/buffer.h"
 #include "image/image_types/v1/config.h"
 #include "image/image_types/manifest/docker_schema2.h"
 // 容器镜像引用的结构体定义

@@ -1,5 +1,5 @@
-#if !defined(HASHICORP_MULTIERROR)
-#define HASHICORP_MULTIERROR
+#if !defined(UTILS_COMMON_GROUP_H)
+#define UTILS_COMMON_GROUP_H
 #include <future>
 #include <iostream>
 #include <vector>

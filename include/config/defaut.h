@@ -6,7 +6,7 @@
 #include <tuple>
 
 #include "config/config.h"
-#include "cobra/error.h"
+#include "utils/common/error.h"
 #include <boost/filesystem.hpp>
 #include <boost/optional.hpp>
 

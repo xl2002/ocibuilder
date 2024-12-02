@@ -1,5 +1,5 @@
-#if !defined(LOGRUS_BUFFERPOOL_H)
-#define LOGRUS_BUFFERPOOL_H
+#if !defined(UTILS_LOGGER_LOGRUS_BUFFERPOOL_H)
+#define UTILS_LOGGER_LOGRUS_BUFFERPOOL_H
 #include <string>
 #include <iostream>
 #include <vector>

@@ -10,7 +10,7 @@
     #include <windows.h>
     const std::string GOOS = "windows";
 #else
-    #include <unistd.h>
+    //#include <unistd.h>
     const std::string GOOS = "linux"; // 假设默认是 Linux，可以根据实际系统修改
 #endif
 

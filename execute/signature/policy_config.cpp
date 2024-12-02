@@ -1,8 +1,8 @@
 #include "image/types/signature/policy_config.h"
 #include "filesys/utils/homedir_unix.h"
-#include "cli/common.h"
-#include "go/string.h"
-#include "go/file.h"
+#include "utils/cli/cli/common.h"
+#include "utils/common/go/string.h"
+#include "utils/common/go/file.h"
 
 std::string userPolicyFile=FromSlash("/.config/containers/policy.json");
 std::string systemDefaultPolicyPath="/etc/containers/policy.json";

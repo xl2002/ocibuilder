@@ -1,5 +1,5 @@
-#if !defined(STORAGE_STORAGE_REFERENCE_H)
-#define STORAGE_STORAGE_REFERENCE_H
+#if !defined(STORAGE_STORAGE_STORAGE_REFERENCE_H)
+#define STORAGE_STORAGE_STORAGE_REFERENCE_H
 
 #include "image/types/types.h"
 #include "storage/storage/storage_transport.h"

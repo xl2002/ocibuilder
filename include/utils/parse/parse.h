@@ -1,5 +1,5 @@
-#if !defined(PARSE_PARSE_H)
-#define PARSE_PARSE_H
+#if !defined(UTILS_PARSE_PARSE_H)
+#define UTILS_PARSE_PARSE_H
 #include <string>
 #include "image/types/define/pull.h"
 #include "utils/cli/cobra/command.h"
