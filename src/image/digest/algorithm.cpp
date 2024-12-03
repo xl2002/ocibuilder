@@ -21,13 +21,30 @@
 std::map<Algorithm_sha256, std::string> algorithms = {
     { SHA256, "sha256" }
 };
+/**
+ * @brief 将输入的字符串data计算出对应的哈希，返回Digest指针
+ * 
+ * @param data 用于计算的字符串
+ * @return std::shared_ptr<Digest> 返回对应的Digest指针
+ */
 std::shared_ptr<Digest> Algorithm_sha256::FromString(const std::string& data) {
     return nullptr;
 
 }
+/**
+ * @brief 将输入的数据p计算出对应的哈希，返回Digest指针
+ * 
+ * @param p 用于计算的数据p
+ * @return std::shared_ptr<Digest> 返回对应的Digest指针
+ */
 std::shared_ptr<Digest> Algorithm_sha256::FromBytes(std::vector<uint8_t> p){
     return nullptr;
 }
+/**
+ * @brief 新建一个Hash_256，参考sha256_init(SHA256_CTX *ctx)，需要初始化
+ * 
+ * @return std::shared_ptr<Hash_256> 
+ */
 std::shared_ptr<Hash_256> Algorithm_sha256::Hash() {
     return nullptr;
 }
@@ -71,4 +88,25 @@ int Algorithm_sha256::Size() {
 
     // 返回对应算法的大小
     return it->second.size();
+}
+/**
+ * @brief 将输入的digest值p转换为string
+ * 
+ * @param p 输入的digest值
+ * @return std::string 返回对应的string
+ */
+std::string Algorithm_sha256::Encode(std::vector<uint8_t> p){
+    return "";
+}
+/**
+ * @brief 构建一个新的digester实例
+ * 
+ * @return std::shared_ptr<Digester_interface> 返回新的digester实例指针
+ */
+std::shared_ptr<Digester_interface> Algorithm_sha256::Digester(){
+    return nullptr;
+}
+
+std::string Algorithm_sha256::String(){
+    return this->value;
 }

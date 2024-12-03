@@ -19,29 +19,39 @@ class digester_interface{
     virtual void close() = 0;
 
     // 获取内容类型
-    virtual std::string ContentType() const = 0;
+    virtual std::string ContentType() = 0;
 
     // 获取摘要
-    virtual std::shared_ptr<Digest> Digester() const = 0;
+    virtual std::shared_ptr<::Digest> Digest() = 0;
 };
 class SimpleHash {//hash函数,标准库没有
 
 };
-// simpleDigester 类
-// class simpleDigester : public digester {
-// public:
-//     std::shared_ptr<SimpleHash> hasher_;
-//     std::string contentType_;
-// };
-class simpleDigester {
-
+/**
+ * @brief 一个简单的digester，只是按原样消化其内容。
+ * 
+ */
+class simpleDigester:public digester_interface{
+    public:
+    std::shared_ptr<Digester_interface> digester;
+    std::shared_ptr<Hash_256> hasher;
+    std::string contentType;
+    std::string ContentType() override;
+    void write(const std::string& data) override;
+    void close() override;
+    std::shared_ptr<::Digest> Digest() override;
 };
+std::shared_ptr<digester_interface> newSimpleDigester(string contentType);
 class CompositeDigester{
     public:
     std::vector<std::shared_ptr<digester_interface>> digesters; // 存储 Digester 对象
-    std::shared_ptr<std::ofstream> closer; // 存储 Closable 对象
-
+    // std::ofstream closer; // 存储 Closable 对象
+    std::shared_ptr<digester_interface> closer;
     void closeOpenDigester();
     std::pair<std::string, std::shared_ptr<Digest>> Digest();
+    void Restart();
+    void Start(std::string contentType);
+    std::shared_ptr<digester_interface> Hash();
 };
+
 #endif // BUILDAH_DIGEST_H)

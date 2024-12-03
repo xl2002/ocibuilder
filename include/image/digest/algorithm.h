@@ -11,7 +11,9 @@
 #include <iomanip>
 #include <regex>
 #include "image/digest/digest.h"
+#include "image/digest/digester.h"
 class Digest;
+class Digester_interface;
 struct Algorithm_sha256 {//xcy,256哈希值
     std::string value;
     Algorithm_sha256() = default;
@@ -25,6 +27,9 @@ struct Algorithm_sha256 {//xcy,256哈希值
     void Validate(const std::string& encoded);
     int Size();
     std::shared_ptr<Digest> FromBytes(std::vector<uint8_t> p);
+    std::string Encode(std::vector<uint8_t> p);
+    std::shared_ptr<Digester_interface> Digester();
+    std::string String();
 };
 extern  Algorithm_sha256 SHA256;
 extern  Algorithm_sha256 Canonical_sha256;
