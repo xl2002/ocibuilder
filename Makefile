@@ -18,7 +18,7 @@ LFLAGS = -lboost_filesystem-mgw12-mt-x64-1_75 -lboost_system-mgw12-mt-x64-1_75 -
 OUTPUT	:= output
 
 # define source directory
-SRC		:= execute
+SRC		:= src
 
 # define include directory
 # INCLUDE	:= include D:/Softwares/boost_1_75_0
