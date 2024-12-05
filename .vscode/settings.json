@@ -94,9 +94,7 @@
         "rope": "cpp",
         "slist": "cpp",
         "hash_map": "cpp",
-        "hash_set": "cpp",
-        "filesystem": "cpp",
-        "xstring": "cpp"
+        "hash_set": "cpp"
     },
     "C_Cpp.errorSquiggles": "enabled",
     "cSpell.words": [
