@@ -7,11 +7,13 @@
 #include "utils/common/error.h"
 #include <map>
 #include <mutex>
+// class ImageReference_interface;
+// class ImageTransport_interface;
 class knownTransports{
     public:
     std::map<std::string,std::shared_ptr<ImageTransport_interface>> transports;
     std::mutex mu;
-    std::shared_ptr<ImageTransport_interface> Get(std::string name);
+    std::shared_ptr<ImageTransport_interface> get(std::string name);
     void Remove(std::string k);
     void Add(std::shared_ptr<ImageTransport_interface> t);
 };

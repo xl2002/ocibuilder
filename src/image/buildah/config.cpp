@@ -5,6 +5,7 @@
 // }
 //读取镜像的config信息
 void Builder::initConfig(std::shared_ptr<Image_interface> img,std::shared_ptr<SystemContext> sys){
+    
     if(img!=nullptr){
 
     }

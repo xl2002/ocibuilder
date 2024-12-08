@@ -97,3 +97,10 @@ bool MkdirAllAs(const std::string& path, int mode, int ownerUID, int ownerGID) {
         return false;
     }
 }
+void MkdirAllAndChownNew(const std::string& path, int mode, int ownerUID, int ownerGID) {
+    try {
+        mkdirAs(path, mode, ownerUID, ownerGID, true, false);
+    } catch (const myerror& e) {
+        throw;
+    }
+}

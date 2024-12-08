@@ -13,6 +13,7 @@
 #include "network/network.h"
 #include "image/types/define/types.h"
 #include "image/image_types/v1/config.h"
+#include "boost/json.hpp"
 struct ImageConfig {
     // User defines the username or UID which the process in the container should run as.
     std::string user;
@@ -74,12 +75,45 @@ struct History {
     // EmptyLayer is used to mark if the history item created a filesystem diff.
     bool emptyLayer=false;
 };
-struct Image {
-    std::shared_ptr<std::chrono::system_clock::time_point> created=std::make_shared<std::chrono::system_clock::time_point>(); // Using std::time_t as a placeholder for date and time
-    std::string author;
-    std::shared_ptr<Platform> platform=std::make_shared<Platform>();
-    std::shared_ptr<ImageConfig> config=std::make_shared<ImageConfig>();
-    std::shared_ptr<RootFS> rootFS=std::make_shared<RootFS>();
-    std::vector<History> history;
+namespace v1 {
+    struct Image {
+        std::shared_ptr<std::chrono::system_clock::time_point> created=std::make_shared<std::chrono::system_clock::time_point>(); // Using std::time_t as a placeholder for date and time
+        std::string author;
+        std::shared_ptr<Platform> platform=std::make_shared<Platform>();
+        std::shared_ptr<ImageConfig> config=std::make_shared<ImageConfig>();
+        std::shared_ptr<RootFS> rootFS=std::make_shared<RootFS>();
+        std::vector<History> history;
+        Image()=default;
+        /**
+         * @brief 序列化
+         * 
+         * @param jv 
+         * @param image 
+         */
+        friend void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const Image& image) {
+            
+        }
+        /**
+         * @brief 反序列化
+         * 
+         * @param jv 
+         * @param image 
+         */
+        friend void tag_invoke(boost::json::value_to_tag<Image>, const boost::json::value& jv, Image& image) {
+            
+        }
+    };
+}
+
+struct Manifest{
+    int SchemaVersion=0;
+    std::string MediaType;
+    std::string ArtifactType;
+    std::shared_ptr<Descriptor> Config=std::make_shared<Descriptor>();
+    std::vector<std::shared_ptr<Descriptor>> Layers;
+    std::shared_ptr<Descriptor> Subject=std::make_shared<Descriptor>();
+    std::map<std::string, std::string> Annotations;
+    Manifest()=default;
+
 };
 #endif // V1_CONFIG_H)

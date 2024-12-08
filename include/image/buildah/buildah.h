@@ -17,6 +17,9 @@
 #include "image/types/signature/policy_config.h"
 #include "image/buildah/image.h"
 #include "utils/logger/logrus/logger.h"
+#include "image/buildah/add.h"
+// struct v1::Image;
+class Store;
 struct Builder {
     std::shared_ptr<Store> store=std::make_shared<Store>();
 
@@ -69,7 +72,7 @@ struct Builder {
     std::string ImageHistoryComment;
 
     // 镜像元数据和运行时设置，支持多种格式。
-    std::shared_ptr<Image> OCIv1=std::make_shared<Image>();
+    std::shared_ptr<v1::Image> OCIv1=std::make_shared<v1::Image>();
     std::shared_ptr<V2Image> Docker=std::make_shared<V2Image>();
 
     // DefaultMountsFilePath 是保存挂载点的文件路径，以 "host-path:container-path" 格式。
@@ -176,6 +179,7 @@ struct Builder {
     std::string Maintainer();
     std::string Architecture();
     std::string Mount(std::string label);
+    void Add(std::string destination,bool extract,std::shared_ptr<AddAndCopyOptions> options,std::vector<std::string> sources);
 };
 
 struct BuilderInfo {
@@ -208,7 +212,7 @@ struct BuilderInfo {
     // ImageCreatedBy 表示镜像是由谁创建的
     std::string ImageCreatedBy;
     // OCIv1 是OCI v1镜像信息
-    std::shared_ptr<Image> OCIv1=std::make_shared<Image>();
+    std::shared_ptr<v1::Image> OCIv1=std::make_shared<v1::Image>();
     // Docker 是Docker v2镜像信息
     // std::shared_ptr<V2Image> Docker;
     // DefaultMountsFilePath 是默认的挂载文件路径

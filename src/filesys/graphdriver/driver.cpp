@@ -147,3 +147,55 @@ shared_ptr<Driver> New(const string& name, const driver_Options& config) {
     throw myerror("no supported storage backend found");
     // return nullptr;
 }
+
+
+std::string Driver::String() {
+    return "MyDriver"; // 示例实现
+}
+void Driver::Method2() {
+
+}
+void Driver::UpdateLayerIDMap(string& id) {
+
+}
+/**
+ * @brief 在Driver类的home目录下创建子目录id，仅仅得到子目录的路径
+ * 
+ * @param id 
+ * @param useImageStore 
+ * @return std::tuple<std::string,std::string,bool> 
+ */
+std::tuple<std::string,std::string,bool> Driver::dir2(std::string& id,bool useImageStore){
+
+    return std::make_tuple(std::string(),std::string(),false);
+}
+/**
+ * @brief 创建oDriver.home下的目录结构
+ *  
+ * @param id 文件夹名
+ * @param parent id对应层的父层
+ * @param readOnly 
+ */
+void Driver::create(const std::string& id, const std::string& parent,std::shared_ptr<CreateOpts> opts,bool readOnly){
+// 1. 通过dir2得到子目录的路径
+
+// 2. MkdirAllAndChownNew函数新建dir对应的目录
+
+// 3. MkdirAs新建dir/diff文件夹
+
+// 4. MkdirAs新建dir/merged文件夹
+
+}
+/**
+ * @brief 根据id创建layer层
+ * 
+ * @param id 
+ * @param parent 
+ * @param opts 
+ */
+void Driver::CreateReadWrite(const std::string& id, const std::string& parent,std::shared_ptr<CreateOpts> opts){
+
+}
+
+
+

@@ -346,7 +346,13 @@ std::string StageExecutor::getContentSummaryAfterAddingContent(){
     summary=summary+digest.second->Encoded();
     return summary;
 }
-
+/**
+ * @brief 构建createdByz字符串
+ * 
+ * @param node 
+ * @param addedContentSummary 
+ * @return std::string 
+ */
 std::string StageExecutor::getCreatedBy(std::shared_ptr<Node> node,std::string addedContentSummary){
     
     return "";
@@ -497,12 +503,31 @@ void StageExecutor::Preserve(std::string path){
 void StageExecutor::EnsureContainerPath(std::string path){
 
 }
+
 void StageExecutor::EnsureContainerPathAs(std::string path,std::string user,const mode_t* mode) {
 
 }
+/**
+ * @brief copy操作的实际功能函数
+ * 
+ * @param excludes 
+ * @param copies 
+ */
 void StageExecutor::COPY(std::vector<std::string> excludes,std::vector<Copy> copies) {
 
 }
 void StageExecutor::RUN(std::shared_ptr<Run> run) {
 
 }
+/**
+ * @brief 进行Copy操作
+ * 
+ * @param excludes 
+ * @param copies 
+ */
+void StageExecutor::performCopy(std::vector<std::string> excludes,std::vector<Copy> copies){
+// volumeCacheInvalidate不写
+    
+}
+
+

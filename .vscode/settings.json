@@ -105,5 +105,6 @@
     "CodeGPT.apiKey": "CodeGPT Plus Beta",
     "makefile.configureOnOpen": false,
     "cmake.ignoreCMakeListsMissing": true,
-    "commentTranslate.hover.enabled": true
+    "commentTranslate.hover.enabled": true,
+    "C_Cpp.default.cppStandard": "c++11"
 }

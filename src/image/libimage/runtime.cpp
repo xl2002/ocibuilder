@@ -8,6 +8,8 @@
 #include "image/shortnames/shortnames.h"
 #include "image/types/reference/regexp.h"
 #include "storage/storage/images.h"
+#include <boost/filesystem.hpp>
+namespace fs = boost::filesystem;
 std::shared_ptr<Runtime> RuntimeFromStore(std::shared_ptr<Store> store,std::shared_ptr<RuntimeOptions> options) {
     if( options==nullptr ) {
         options=std::make_shared<RuntimeOptions>();
@@ -36,6 +38,21 @@ void setRegistriesConfPath(std::shared_ptr<SystemContext> systemContext) {
 
 std::vector<std::shared_ptr<LibImage::Image>> Runtime::Pull(std::string name,std::shared_ptr<PullPolicy> pullPolicy,std::shared_ptr<PullOptions> options) {
     // Debugf("Pulling image %s (policy: %s)",name.c_str(),pullPolicy->String().c_str());
+    if(fs::exists(name)) {
+        auto localImages=std::vector<std::shared_ptr<LibImage::Image>>{};
+        std::shared_ptr<LibImage::Image> fromimage=std::make_shared<LibImage::Image>();
+        //在overlay创建layer层，并模拟出Image
+        auto store=this->store;
+        auto rlstore=store->bothLayerStoreKinds();
+        auto layerOptions=std::make_shared<LayerOptions>();
+        auto diff=std::ifstream{};
+        std::string id="";
+        std::shared_ptr<Layer> clayer;
+        std::tie(clayer,std::ignore)=rlstore->create(id,nullptr,{},"",{},layerOptions,true,diff);
+        fromimage->storageImage->ID=clayer->ID;
+        localImages.push_back(fromimage);
+        return localImages;
+    }
     if(!this->eventChannel.empty()) {
         
     }

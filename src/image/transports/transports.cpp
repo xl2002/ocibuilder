@@ -1,7 +1,7 @@
 #include "image/transports/transports.h"
 // auto kt=std::make_shared<knownTransports>();
 std::shared_ptr<ImageTransport_interface> Get(std::string name) {
-    return kt->Get(name);
+    return kt->get(name);
 }
 void Delete(std::string name) {
     kt->Remove(name);
@@ -10,7 +10,7 @@ void Delete(std::string name) {
 void Register(std::shared_ptr<ImageTransport_interface> t) {
     kt->Add(t);
 }
-std::shared_ptr<ImageTransport_interface> knownTransports::Get(std::string name){
+std::shared_ptr<ImageTransport_interface> knownTransports::get(std::string name){
     std::lock_guard<std::mutex> lock(mu);
     if(transports.find(name)==transports.end()){
         return nullptr;

@@ -27,6 +27,7 @@ struct TarHeader {
     char gname[32];       // 组名
     char padding[255];    // 填充
     std::ofstream createTar(const std::string& tarFilePath, const fs::path& directory);
+    void extractTar(const std::string& tarFilePath, const fs::path& targetDirectory);
 };
 struct tarFilterer
 {

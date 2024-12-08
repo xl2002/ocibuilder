@@ -10,6 +10,15 @@ std::ofstream TarHeader::createTar(const std::string& tarFilePath, const fs::pat
     return std::ofstream(tarFilePath, std::ios::out | std::ios::binary);
 }
 /**
+ * @brief 将tarFilePath解压到targetDirectory
+ * 
+ * @param tarFilePath 
+ * @param targetDirectory 
+ */
+void TarHeader::extractTar(const std::string& tarFilePath, const fs::path& targetDirectory){
+
+}
+/**
  * @brief 根据tarfilePath和directory创建tarFilterer
  *  
  * @param tarFilePath 
