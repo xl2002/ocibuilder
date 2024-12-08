@@ -1,83 +1,72 @@
-// #include <boost/filesystem.hpp>
-// #include <iostream>
-// int main()
-// {
-//     std::cout << boost::filesystem::exists("D:\\oci_images\\storage.conf") << std::endl;
-// }
-
-// #include <iostream>
-// #include <regex>
-// #include <string>
-
-// int main() {
-//     std::string src = "# 使用 BusyBox 作为基镜像\n"
-//                       "这是有效代码\n"
-//                       "# 这是一条注释\n"
-//                       "另一行代码 # 这是行内注释\n";
-
-//     // 匹配以 # 开头的注释及其后面的所有内容
-//     static const std::regex tokenComment(R"(#.*?\n)", std::regex_constants::ECMAScript);
-
-//     // 输出原始字符串
-//     std::cout << "原始字符串:\n" << src << "\n\n";
-
-//     // 检查是否匹配
-//     std::smatch match;
-//     if (std::regex_search(src, match, tokenComment)) {
-//         std::cout << "找到匹配的注释: " << match[0] << "\n";
-//     } else {
-//         std::cout << "未找到匹配的注释。\n";
-//     }
-
-//     // 使用 regex_replace 清除注释
-//     std::string result = std::regex_replace(src, tokenComment, "");
-
-//     // 去除每行前后的空白字符
-//     result = std::regex_replace(result, std::regex(R"(^\s+|\s+$)"), "");
-
-//     // 去除多余空行
-//     result = std::regex_replace(result, std::regex(R"(\n\s*\n)"), "\n");
-
-//     // 输出结果
-//     std::cout << "清除注释后的字符串:\n" << result << std::endl;
-
-//     return 0;
-// }
 #include <iostream>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/ini_parser.hpp>
-#include <map>
+#include <fstream>
 #include <string>
+#include <boost/filesystem.hpp>  // 使用 Boost 文件系统
+#include "image\buildah\tar_other.h"  // 包含 tarpp 的头文件
 
-// 遍历ptree并将数据存储到map
-void traverse_ptree_to_map(const boost::property_tree::ptree& pt, std::map<std::string, std::string>& result_map, const std::string& path = "") {
-    for (const auto& kv : pt) {
-        std::string full_path = path.empty() ? kv.first : path + "." + kv.first;
-
-        if (kv.second.empty()) {
-            // 如果没有子节点，将 key 和 value 存入 map
-            result_map[full_path] = kv.second.get_value<std::string>();
-        } else {
-            // 如果有子节点，递归遍历
-            traverse_ptree_to_map(kv.second, result_map, full_path);
-        }
-    }
-}
+namespace fs = boost::filesystem;  // 使用 Boost 文件系统命名空间
 
 int main() {
-    boost::property_tree::ptree pt;
-    boost::property_tree::ini_parser::read_ini("D:\\oci_images\\short-name-aliases.conf", pt);
-    std::map<std::string, std::string> config_map;
-    // 获取配置信息
-    // 遍历并将配置文件的内容存储到map
-    traverse_ptree_to_map(pt, config_map);
-
-    // 输出 map 中的数据
-    for (const auto& entry : config_map) {
-        std::cout << entry.first << " = " << entry.second << std::endl;
+    // 创建一个输出文件流，指定输出路径为 E:\example.tar
+    std::ofstream tar_file("E:\\example.tar", std::ios::binary);
+    if (!tar_file.is_open()) {
+        std::cerr << "Failed to open tar file for writing." << std::endl;
+        return 1;
     }
+
+    // 创建一个 Tar 对象，传入输出文件流
+    tarpp::Tar tar(tar_file);
+
+    // 输入文件夹路径
+    fs::path input_dir = "E:\\test";
+
+    // 检查文件夹是否存在
+    if (!fs::exists(input_dir) || !fs::is_directory(input_dir)) {
+        std::cerr << "Input directory does not exist or is not a directory." << std::endl;
+        return 1;
+    }
+
+  // 遍历文件夹中的所有文件和子文件夹
+    for (fs::recursive_directory_iterator it(input_dir), end_it; it != end_it; ++it) {
+        const fs::path& file_path = *it;
+
+        // 如果是目录，添加目录条目到 tar 中
+        if (fs::is_directory(file_path)) {
+            std::string dir_name = file_path.string().substr(input_dir.string().size() + 1);  // 获取相对路径
+            if (!dir_name.empty() && dir_name.back() != '/') {
+                dir_name += '/';  // 确保目录以 '/' 结尾
+            }
+
+            // 添加目录到 tar 文件
+            tar.add(dir_name, "", tarpp::TarFileOptions(tarpp::details::DEFAULT_MODE(), 0, 0, tarpp::details::DEFAULT_TIME(), tarpp::FileType::DIRECTORY, "", "", ""));
+            std::cout << "Added directory: " << dir_name << std::endl;
+        }
+        // 如果是普通文件，添加文件内容到 tar 中
+        else if (fs::is_regular_file(file_path)) {
+            std::ifstream file(file_path.string(), std::ios::binary);
+            if (file.is_open()) {
+                std::string content((std::istreambuf_iterator<char>(file)),
+                                    std::istreambuf_iterator<char>());
+
+                // 获取相对路径作为 tar 中的文件名
+                std::string tar_name = file_path.string().substr(input_dir.string().size() + 1);
+
+                // 添加文件内容到 tar 中
+                tar.add(tar_name, content);
+
+                // 打印信息
+                std::cout << "Added file: " << tar_name << std::endl;
+            } else {
+                std::cerr << "Failed to open file: " << file_path << std::endl;
+            }
+        }
+    }
+
+
+    // 完成打包
+    tar.finalize();
+
+    std::cout << "Tar file created successfully at E:\\example.tar!" << std::endl;
 
     return 0;
 }
-
-
