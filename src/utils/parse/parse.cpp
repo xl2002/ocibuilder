@@ -459,7 +459,7 @@ shared_ptr<NamespaceOptions> idmappingOptions(Command* cmd,shared_ptr<Isolation>
     idm.UIDMap=uidmap;
     idm.GIDMap=gidmap;
     idm.AutoUserNs=isAuto;
-    idm.AutoUserNsOpts=*autoOpts;
+    idm.AutoUserNsOpts=autoOpts;
     idmapOptions=make_shared<IDMappingOptions>(idm);
     return make_shared<NamespaceOptions>(usernsOptions);
 }

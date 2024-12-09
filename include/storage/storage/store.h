@@ -10,7 +10,7 @@
 struct Layer;
 struct LayerOptions;
 struct rwLayerStore_interface{
-    virtual ~rwLayerStore_interface()=0;
+    virtual ~rwLayerStore_interface()=default;
     virtual std::tuple<std::shared_ptr<Layer>,int64_t> create(
         std::string& id,std::shared_ptr<Layer> parentLayer,std::vector<std::string>names,
         std::string mountLabel,std::map<std::string,std::string> options,

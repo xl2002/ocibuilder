@@ -22,8 +22,8 @@ struct LayerOptions;
 class TruncIndex;
 struct IDMap;
 class Driver;
-struct Layer
-{
+class Compression;
+struct Layer{
     public:
     // ID 是创建时指定的，或由库生成的随机值
     std::string ID;
@@ -87,6 +87,7 @@ struct Layer
     // BigDataNames 是存储供调用者使用的大数据项名称
     std::vector<std::string> BigDataNames;
 };
+class lockFile;
 struct multipleLockFile{
     std::vector<std::shared_ptr<lockFile>>lockfiles;
 };

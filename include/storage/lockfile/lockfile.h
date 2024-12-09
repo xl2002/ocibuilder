@@ -36,7 +36,7 @@ public:
         // 初始化其他成员变量
     }
     std::string file;
-    bool ro;
+    bool ro=false;
 
     // rwMutex serializes concurrent reader-writer acquisitions in the same process space
     boost::shared_mutex rwMutex;
