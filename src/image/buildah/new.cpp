@@ -7,6 +7,8 @@
 #include "image/image_types/manifest/manifest.h"
 #include "image/types/define/types.h"
 #include "image/image_types/v1/annotations.h"
+#include <boost/filesystem.hpp>
+
 std::shared_ptr<Builder> newBuilder(std::shared_ptr<Store> store,std::shared_ptr<BuilderOptions> options){
     std::shared_ptr<ImageReference_interface> ref=nullptr;
     std::shared_ptr<storage::Image> img=std::make_shared<storage::Image>();
@@ -73,6 +75,9 @@ std::shared_ptr<Builder> newBuilder(std::shared_ptr<Store> store,std::shared_ptr
         }
     }
 
+
+
+    
     auto builder=std::make_shared<Builder>();
     builder->store=store;
     builder->Type=Package+version;
@@ -95,7 +100,9 @@ std::shared_ptr<Builder> newBuilder(std::shared_ptr<Store> store,std::shared_ptr
     builder->CDIConfigDir=options->CDIConfigDir;
     
     try{
-        builder->initConfig(src,systemContext);
+        if(!boost::filesystem::exists(imageSpec)){
+            builder->initConfig(src,systemContext);
+        }
     }catch(const myerror & e){
         throw;
     }

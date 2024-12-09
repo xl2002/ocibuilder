@@ -14,7 +14,11 @@ struct IDMap
     int HostID=0;
     int Size=0;
 };
-
+// 定义 IDPair 类，用于表示 UID 和 GID 的配对
+struct IDPair {
+    int UID=0; // 用户 ID
+    int GID=0; // 组 ID
+};
 struct IDMappings {
     std::vector<IDMap> uids;
     std::vector<IDMap> gids;
@@ -32,4 +36,8 @@ struct IDMappings {
 std::shared_ptr<IDMappings> NewIDMappingsFromMaps(std::vector<IDMap> uids, std::vector<IDMap> gids);
 bool MkdirAllAs(const std::string& path, int mode, int ownerUID, int ownerGID);
 bool mkdirAs(const std::string& path, int mode, int ownerUID, int ownerGID, bool mkAll, bool chownExisting);
+void MkdirAllAndChownNew(const std::string& path, int mode, int ownerUID, int ownerGID);
+
+
+
 #endif // PKG_IDTOOLS_IDTOOLS_H

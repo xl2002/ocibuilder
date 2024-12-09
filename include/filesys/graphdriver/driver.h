@@ -13,6 +13,7 @@
 #include <vector>
 #include <sstream>
 #include <algorithm>
+#include "filesys/utils/idtools.h"
 #include <unistd.h> // For access function
 using namespace std;
 // 定义ProtoDriver抽象基类
@@ -23,6 +24,7 @@ extern string ErrNotSupported;
 extern string ErrPrerequisites;
 extern string ErrIncompatibleFS;
 extern string ErrLayerUnknown;
+struct IDMappings;
 // const myerror ErrNotSupported = myerror("driver not supported");
 // const myerror ErrPrerequisites = myerror("prerequisites for driver not satisfied (wrong filesystem?)");
 // const myerror ErrIncompatibleFS = myerror("backing file system is unsupported for this graph driver");
@@ -77,23 +79,15 @@ public:
     std::shared_ptr<FileMode> forceMask=std::make_shared<FileMode>();              // 强制掩码（文件权限模式）
     bool useComposefs=false;                                // 是否使用 composefs
 };
+struct CreateOpts{
+    std::string MountLabel;
+    std::map<std::string, std::string> StorageOpt;
+    std::shared_ptr<IDMappings> IdMappings=std::make_shared<IDMappings>();
+    bool ignoreChownErrors=false;
+};
 // Driver 类定义
 class Driver : public ProtoDriver_interface, public DiffDriver_interface, public LayerIDMapUpdater_interface {
-public:
-    ~Driver()=default;
-    Driver()=default;
-    Driver(const Driver& other) = default;
-    // ProtoDriver_interface 的实现
-    std::string String() override {
-        return "MyDriver"; // 示例实现
-    }
-    void Method2()override {
 
-    }
-    void UpdateLayerIDMap(string& id)override {
-
-    }
-    std::vector<std::string> AdditionalImageStores();
 public:
     std::string name;  // Driver 名称
     std::string home;  // home 目录
@@ -110,6 +104,18 @@ public:
     bool usingMetacopy=false; // 是否使用 Metacopy
     bool usingComposefs=false; // 是否使用 Composefs
     std::shared_ptr<bool> supportsIDMappedMounts=std::make_shared<bool>(false); // 是否支持 ID 映射挂载
+
+    ~Driver()=default;
+    Driver()=default;
+    Driver(const Driver& other) = default;
+    // ProtoDriver_interface 的实现
+    std::string String() override;
+    void Method2()override;
+    void UpdateLayerIDMap(string& id)override;
+    std::vector<std::string> AdditionalImageStores();
+    std::tuple<std::string,std::string,bool> dir2(std::string& id,bool useImageStore);
+    void create(const std::string& id, const std::string& parent,std::shared_ptr<CreateOpts> opts,bool readOnly);
+    void CreateReadWrite(const std::string& id, const std::string& parent,std::shared_ptr<CreateOpts> opts);
 };
 typedef struct driver_Options {
     string root;                  // 根目录

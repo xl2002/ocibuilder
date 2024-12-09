@@ -14,6 +14,9 @@
 #include "image/types/define/types.h"
 #include "config/config.h"
 #include "utils/common/semaphore.h"
+#include "image/libimage/copier.h"
+#include "image/types/signature/policy_eval.h"
+#include "image/libimage/single.h"
 namespace copy{
     struct ImageListSelection{
         int imagelistselection=0;
@@ -60,4 +63,53 @@ namespace copy{
         bool forceCompressionFormat=false;                          // 强制使用指定的压缩格式
     };
 }
+std::vector<uint8_t> Image(std::shared_ptr<PolicyContext>policyContext,std::shared_ptr<ImageReference_interface> destRef,std::shared_ptr<ImageReference_interface> srcRef,std::shared_ptr<ImageReference_interface> registry,std::shared_ptr<copy::Options> copyOptions);
+struct UnparsedImage{
+    std::shared_ptr<ImageReference_interface> src=nullptr;
+    std::shared_ptr<Digest> digest=std::make_shared<Digest>();
+    std::vector<uint8_t> cachedManifest;
+    std::string cachedManifestMIMEType;
+    // cachedSignatures       []signature.Signature
+    UnparsedImage()=default;
+};
+struct copier{
+    std::shared_ptr<PolicyContext> policyContext=std::make_shared<PolicyContext>();
+    std::shared_ptr<ImageDestination_interface> dest=nullptr;
+    std::shared_ptr<ImageSource_interface> rawSource=nullptr;
+    std::shared_ptr<copy::Options> options=std::make_shared<copy::Options>();
+    std::shared_ptr<std::ostream> reportWriter=nullptr;
+    std::shared_ptr<std::ostream> progressOutput=nullptr;
+    std::shared_ptr<UnparsedImage> unparsedToplevel=nullptr;
+    copier()=default;
+    std::shared_ptr<copySingleImageResult> copySingleImage(std::shared_ptr<UnparsedImage> unparsedImage,std::shared_ptr<Digest> targetInstance,std::shared_ptr<copySingleImageOptions> opts);
+};
+struct manifestConversionPlan{
+    std::string preferredMIMEType;
+    bool preferredMIMETypeNeedsConversion=false;
+    std::vector<std::string> otherMIMETypeCandidates;
+    manifestConversionPlan()=default;
+};
+struct imageCopier{
+    std::shared_ptr<copier> c=std::make_shared<copier>();
+    std::shared_ptr<ManifestUpdateOptions> manifestUpdates=std::make_shared<ManifestUpdateOptions>();
+    std::shared_ptr<ImageSource_interface> src=nullptr;
+    std::shared_ptr<::manifestConversionPlan> manifestConversionPlan=std::make_shared<::manifestConversionPlan>();
+    bool diffIDsAreNeeded=false;
+    std::string cannotModifyManifestReason;
+    bool canSubstituteBlobs=false;
+    std::shared_ptr<Algorithm> compressionFormat=std::make_shared<Algorithm>();
+    std::shared_ptr<int> compressionLevel=std::make_shared<int>(0);
+    bool requireCompressionFormatMatch=false;
+
+    imageCopier()=default;
+    std::shared_ptr<Algorithm> copyLayers();
+    std::tuple<std::shared_ptr<BlobInfo>,std::shared_ptr<Digest>> copyLayer(std::shared_ptr<BlobInfo> srcInfo,bool toEncrypt,int layerIndex,std::shared_ptr<Named_interface> srcRef,bool emptyLayer);
+    // std::shared_ptr<bpCompressionStepData> bpcPreserveOriginal(std::shared_ptr<bpDetectCompressionStepData>detect,bool layerCompressionChangeSupported);
+};
+
+struct copyLayerData{
+    std::shared_ptr<BlobInfo> destInfo=std::make_shared<BlobInfo>();
+    std::shared_ptr<Digest> diffID=std::make_shared<Digest>();
+    copyLayerData()=default;
+};
 #endif // COPY_COPY_H

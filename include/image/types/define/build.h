@@ -51,6 +51,7 @@ enum compression{
     Xz,
     Zstd
 };
+// enum OptionalBool;
 class Compression{
 	public:
     compression value;
@@ -103,7 +104,7 @@ struct platforms{
     std::string Arch;
     std::string Variant; 
 };
-
+enum class OptionalBool : unsigned char;
 ///CommonBuildOptions 是可以通过 buildah from 和 build 的标志定义的资源
 struct CommonBuildOptions  {
 	// AddHost 是要添加到构建容器的 /etc/hosts 的主机名列表。
@@ -217,6 +218,10 @@ struct CommonBuildOptions  {
 // class SBOMScanOptions{
 
 // };
+// struct IDMappingOptions;
+// struct SystemContext;
+// struct ConfidentialWorkloadOptions;
+struct SBOMScanOptions;
 class define_BuildOptions{
 	public:
 	// ContainerSuffix 为容器添加后缀的名称
@@ -274,7 +279,7 @@ class define_BuildOptions{
 	//ConfidentialWorkload 控制我们是否生成一个
 	//使用 krun 作为虚拟机而不是传统的虚拟机来运行的映像
 	//进程类型容器。
-	std::shared_ptr<ConfidentialWorkloadOptions> ConfidentialWorkload=std::make_shared<::ConfidentialWorkloadOptions>(); ;
+	std::shared_ptr<ConfidentialWorkloadOptions> ConfidentialWorkload=std::make_shared<ConfidentialWorkloadOptions>(); ;
 	//添加到我们编写的图像中的附加标签（如果我们知道）
 	//添加它们的方法。
 	vector<string> AdditionalTags;
@@ -334,7 +339,7 @@ class define_BuildOptions{
 
 	//如果我们要设置自己的用户命名空间，则使用 ID 映射选项
 	//处理 RUN 指令时。
-	shared_ptr<IDMappingOptions> IDMappingoptions=std::make_shared<IDMappingOptions>() ;
+	shared_ptr<::IDMappingOptions> IDMappingoptions=std::make_shared<::IDMappingOptions>() ;
 	//AddCapability 是添加到默认集的功能列表
 	//处理 RUN 指令。
 	vector<string> AddCapabilities  ;

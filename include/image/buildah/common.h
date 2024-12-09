@@ -12,6 +12,8 @@
 #include "image/types/copy.h"
 #include "image/types/signature/policy_eval.h"
 #include "image/types/types.h"
+#include "image/buildah/retry.h"
+
 std::shared_ptr<SystemContext> getSystemContext(
     std::shared_ptr<Store_interface> store,
     std::shared_ptr<SystemContext> defaults,

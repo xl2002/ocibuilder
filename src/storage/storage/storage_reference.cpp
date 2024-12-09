@@ -60,6 +60,22 @@ std::shared_ptr<ImageSource_interface> newImageSource(std::shared_ptr<SystemCont
 std::shared_ptr<ImageSource_interface> storageReference::NewImageSource(std::shared_ptr<SystemContext>sys){
     return newImageSource(sys,std::make_shared<storageReference>(*this));
 }
+/**
+ * @brief 在tmp目录下创建缓存目录，并且构建storageImageDestination
+ * 
+ * @return std::shared_ptr<storageImageDestination> 
+ */
+std::shared_ptr<storageImageDestination> newImageDestination(std::shared_ptr<SystemContext>sys,std::shared_ptr<storageReference>ref){
+    
+}
+/**
+ * @brief 建立镜像够简单的缓存目录
+ * 
+ * @return std::shared_ptr<ImageDestination_interface> 
+ */
+std::shared_ptr<ImageDestination_interface> storageReference::NewImageDestination(std::shared_ptr<SystemContext>sys){
+    return newImageDestination(sys,std::make_shared<storageReference>(*this));
+}
 std::string storageReference::StringWithinTransport(){
     return "";
 }

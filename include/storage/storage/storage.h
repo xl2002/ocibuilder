@@ -15,7 +15,9 @@
 #include <iostream>
 #include <memory>
 #include "filesys/utils/idtools.h"
+#include "storage/storage/layers.h"
 #include "storage/storage/images.h"
+#include "storage/storage/storage.h"
 #include <mutex>
 #include <filesystem>
 #include <boost/thread/shared_mutex.hpp>
@@ -37,7 +39,11 @@ typedef unsigned int containerLocations;
 constexpr containerLocations stableContainerLocation = 1 << 0; // 1 << 0 => 1
 constexpr containerLocations volatileContainerLocation = 1 << 1; // 1 << 1 => 2
 struct LayerOptions;
+struct DiffOptions;
 class lockFile;
+class Driver;
+class Container;
+class ContainerOptions;
 namespace storage {
     struct Image;
 }
@@ -65,11 +71,38 @@ class Store_interface{
 	//指定），以指定层（或无层）作为其父层，
 	//并带有可选名称。  （可写标志被忽略。）
     // virtual std::shared_ptr<Layer> CreateLayer(string id,string parent,vector<string>names,string mountLabel,bool writeable,LayerOptions* options)=0;
-    
+    virtual std::shared_ptr<Container> CreateContainer(
+        const std::string& id, const std::vector<std::string>& names, const std::string& image, 
+        const std::string& layer, const std::string& metadata,const std::shared_ptr<ContainerOptions> options)=0;
+    // virtual std::ifstream Diff(std::string from,std::string to , std::shared_ptr<DiffOptions> options)=0;
 };
-
+struct LayerBigDataOption{
+    std::string key;
+    std::ifstream Data;
+};
+struct IDMappingOptions;
 struct LayerOptions{
+    std::shared_ptr<IDMappingOptions> idMappingOptions=std::make_shared<IDMappingOptions>();
+    // TemplateLayer 是用于初始化此层内容的模板层的 ID
+    std::string templateLayer;
 
+    // OriginalDigest 指定由调用方已知的 (可能是压缩的) tar 流的摘要
+    std::shared_ptr<Digest> originalDigest=std::make_shared<Digest>();
+
+    // OriginalSize 指定与 OriginalDigest 对应的 tar 流大小
+    std::shared_ptr<int64_t> originalSize=std::make_shared<int64_t>(0);
+
+    // UncompressedDigest 指定未压缩版本 (DiffID) 的摘要
+    std::shared_ptr<Digest> uncompressedDigest=std::make_shared<Digest>();
+
+    // VolatileInfo 表示层信息是否可以视为临时的
+    bool volatileInfo=false;
+
+    // BigData 是应与层一起存储的数据集
+    std::vector<LayerBigDataOption> bigData;
+
+    // Flags 是一组命名标志及其值，与层一起存储
+    std::map<std::string, boost::optional<std::string>> flags;
 };
 using updateNameOperation = int;
 // ImageBigDataOption 结构体定义
@@ -454,74 +487,33 @@ public:
 };
 struct containerStore : public rwContainerStore_interface {
 public:
-    void startWriting() override {
-        // 空实现
-    }
-    void stopWriting() override {
-        // 空实现
-    }
-    void startReading() override {
-        // 空实现
-    }
-    void stopReading() override {
-        // 空实现
-    }
+    void startWriting() override ;
+    void stopWriting() override ;
+    void startReading() override ;
+    void stopReading() override ;
     std::shared_ptr<Container> create(const std::string& id, const std::vector<std::string>& names, 
                                         const std::string& image, const std::string& layer, 
-                                        const ContainerOptions& options) override {
-        return nullptr; // 空实现
-    }
+                                        const ContainerOptions& options) override;
     void updateNames(const std::string& id, const std::vector<std::string>& names, 
-                        updateNameOperation op) override {
-        // 空实现
-    }
-    std::shared_ptr<Container> Get(const std::string& id) override {
-        return nullptr; // 空实现
-    }
-    bool Exists(const std::string& id) override {
-        return false; // 空实现
-    }
-    void Delete(const std::string& id) override {
-        // 空实现
-    }
-    void Wipe() override {
-        // 空实现
-    }
-    std::string Lookup(const std::string& name) override {
-        return ""; // 空实现
-    }
-    std::vector<std::shared_ptr<Container>> Containers() override {
-        return {}; // 空实现
-    }
-    void GarbageCollect() override {
-        // 空实现
-    }
+                        updateNameOperation op) override ;
+    std::shared_ptr<Container> Get(const std::string& id) override ;
+    bool Exists(const std::string& id) override ;
+    void Delete(const std::string& id) override ;
+    void Wipe() override ;
+    std::string Lookup(const std::string& name) override ;
+    std::vector<std::shared_ptr<Container>> Containers() override ;
+    void GarbageCollect() override ;
     // metadataStore 和 bigDataStore 方法的空实现
-    void SetMetadata(const std::string& id, const std::string& metadata) override {
-        // 空实现
-    }
-    void SetBigData(const std::string& id, const std::string& key, const std::vector<uint8_t>& data) override {
-        // 空实现
-    }
-    std::vector<uint8_t> BigData(const std::string& id, const std::string& key)  override {
-        return {}; // 空实现
-    }
-    int64_t BigDataSize(const std::string& id, const std::string& key)  override {
-        return 0; // 空实现
-    }
-    Digest BigDataDigest(const std::string& id, const std::string& key)  override {
-        return {}; // 空实现
-    }
-    std::vector<std::string> BigDataNames(const std::string& id)  override {
-        return {}; // 空实现
-    }
+    void SetMetadata(const std::string& id, const std::string& metadata) override ;
+    void SetBigData(const std::string& id, const std::string& key, const std::vector<uint8_t>& data) override ;
+    std::vector<uint8_t> BigData(const std::string& id, const std::string& key)  override ;
+    int64_t BigDataSize(const std::string& id, const std::string& key)  override ;
+    Digest BigDataDigest(const std::string& id, const std::string& key)  override ;
+    std::vector<std::string> BigDataNames(const std::string& id)  override ;
     // flaggableStore_interface 方法的空实现
-    void ClearFlag(const std::string& id, const std::string& flag) override {
-        // 空实现
-    }
-    void SetFlag(const std::string& id, const std::string& flag, const std::string& value) override {
-        // 空实现
-    }
+    void ClearFlag(const std::string& id, const std::string& flag) override ;
+    void SetFlag(const std::string& id, const std::string& flag, const std::string& value) override ;
+    
     //其他需要的方法实现
     bool startWritingWithReload(bool canReload);
     bool reloadIfChanged(bool lockedForWriting);
@@ -594,6 +586,12 @@ class Store :public Store_interface{
     void DeleteContainer(std::string id) override;
     shared_ptr<Driver> createGraphDriverLocked();
     std::shared_ptr<storage::Image> Image(std::string id) override;
+    std::shared_ptr<rwLayerStore_interface> bothLayerStoreKinds();
+    std::shared_ptr<rwLayerStore_interface> bothLayerStoreKindsLocked();
+    std::shared_ptr<rwLayerStore_interface> getLayerStoreLocked();
+    std::shared_ptr<rwLayerStore_interface> newLayerStore(std::string rundir, std::string layerdir, std::string imagedir,std::shared_ptr<Driver> driver,bool transient);
+    std::shared_ptr<Container> CreateContainer(const std::string& id, const std::vector<std::string>& names, const std::string& image, const std::string& layer, const std::string& metadata,const std::shared_ptr<ContainerOptions> options) override;
+    // std::ifstream Diff(std::string from,std::string to , std::shared_ptr<DiffOptions> options) override;
 };
 
 #endif

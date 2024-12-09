@@ -4,23 +4,52 @@
 #include <vector>
 #include <functional>
 #include <map>
+#include <iostream>
 #include <memory>
+#include "image/types/types.h"
+// #include "storage/storage/storage_transport.h"
 using std::string;
 using std::vector;
 using std::function;
 // CompressorFunc 类型定义
-using CompressorFunc = std::function<std::shared_ptr<std::ostream>(
-    std::ostream&, const std::map<std::string, std::string>&, int*)>;
+using CompressorFunc = std::function<void(std::istream&, std::ostream&)>;
 
 // DecompressorFunc 类型定义
-using DecompressorFunc = std::function<std::shared_ptr<std::istream>(std::istream&)>;
+using DecompressorFunc = std::function<void(std::istream&, std::ostream&)>;
 struct Algorithm  {
 	string name ;           
 	string baseVariantName ;
 	vector<uint8_t> prefix; // Initial bytes of a stream compressed using this algorithm, or empty to disable detection.
 	DecompressorFunc decompressor    ;
 	CompressorFunc compressor    ;
-
+	Algorithm()=default;
+	std::string Name() const { return name; }
+	std::string BaseVariantName() const { return baseVariantName; }
+	std::vector<uint8_t> AlgorithmPrefix() const { return prefix; }
 };
-
+void gzip_compress(std::istream& inputStream, std::ostream& outputStream);
+void gzip_decompress(std::istream& inputStream, std::ostream& outputStream);
+std::shared_ptr<Algorithm> NewAlgorithm(string name,std::string nontrivialBaseVariantName,std::vector<uint8_t> prefix,DecompressorFunc decompressor,CompressorFunc compressor);
+CompressorFunc AlgorithmCompressor(std::shared_ptr<Algorithm> algorithm);
+DecompressorFunc AlgorithmDecompressor(std::shared_ptr<Algorithm> algorithm);
+struct bpDetectCompressionStepData{
+	bool isCompressed=false;
+	std::shared_ptr<Algorithm> format=std::make_shared<Algorithm>();
+	DecompressorFunc decompressor;
+	string srcCompressorName;
+	bpDetectCompressionStepData()=default;
+};
+using bpcOperation=int;
+struct LayerCompression;
+struct bpCompressionStepData{
+	bpcOperation operation;
+	std::shared_ptr<LayerCompression>uploadedOperation=std::make_shared<LayerCompression>();
+	std::shared_ptr<Algorithm>uploadedAlgorithm=std::make_shared<Algorithm>();
+	std::map<std::string, std::string>uploadedAnnotations;
+	string srcCompressorName;
+	string uploadedCompressorName;
+	std::vector<std::istream*>closers;
+	bpCompressionStepData()=default;
+};
+// std::shared_ptr<Algorithm> NewAlgorithm(string name);
 #endif // INTERNAL_TYPES_H

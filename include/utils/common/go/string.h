@@ -28,4 +28,6 @@ std::vector<std::string> split(const std::string& str, char delimiter);
 bool cutPrefix(const std::string& str, const std::string& prefix, std::string& result);
 std::tuple<std::string, std::string, bool> Cut(const std::string &str, char delimiter);
 std::string FromSlash(const std::string& path);
+std::vector<uint8_t> stringToVector(const std::string& str);
+std::string vectorToString(const std::vector<uint8_t>& vec);
 #endif // GO_STRING_H

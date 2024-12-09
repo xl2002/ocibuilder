@@ -7,8 +7,10 @@
 #include "filesys/utils/idtools.h"
 #include "image/types/define/pull.h"
 #include "image/types/internal/types.h"
+#include "image/types/types.h"
 using std::string;
 typedef string TeeType;
+
 const std::string
 	BuilderIdentityAnnotation = "io.buildah.version",
     Package="buildah",
@@ -20,7 +22,7 @@ const std::string
     DOCKER="docker",
 	SEV="sev",
 	SNP="snp";
-
+struct IDMap;
 void TempDirForURL(std::string dir,std::string prefix, std::string url,std::string& name, std::string& subdir);
 enum ShortNameMode {
     ShortNameModeInvalid = 0,
@@ -43,7 +45,7 @@ struct DockerAuthConfig  {
 	// Ref: https://docs.docker.com/registry/spec/auth/oauth/
 	string IdentityToken ;
 };
-
+struct Algorithm;
 struct SystemContext  {
 	string RootForImplicitAbsolutePaths; 
 
@@ -152,7 +154,7 @@ struct SystemContext  {
 	bool DirForceDecompress=false;
 
 	// CompressionFormat is the format to use for the compression of the blobs
-	std::shared_ptr<Algorithm> CompressionFormat=std::make_shared<::Algorithm>();
+	std::shared_ptr<Algorithm> CompressionFormat=std::make_shared<Algorithm>();
 	// CompressionLevel specifies what compression level is used
 	std::shared_ptr<int> CompressionLevel=std::make_shared<int>(0);
 	SystemContext()= default;
@@ -166,6 +168,7 @@ struct AutoUserNsOptions{
     std::string GroupFile;
     std::vector<IDMap> AdditionalUIDMappings;
     std::vector<IDMap> AdditionalGIDMappings;
+	AutoUserNsOptions()= default;
 };
 struct IDMappingOptions{
 	bool HostUIDMapping=false;
@@ -173,7 +176,8 @@ struct IDMappingOptions{
 	vector<LinuxIDMapping> UIDMap;
 	vector<LinuxIDMapping> GIDMap;
 	bool AutoUserNs=false;
-	AutoUserNsOptions AutoUserNsOpts;
+	std::shared_ptr<AutoUserNsOptions> AutoUserNsOpts=std::make_shared<AutoUserNsOptions>();
+	IDMappingOptions()= default;
 };
 struct Secret{
 	std::string ID;
@@ -192,12 +196,13 @@ struct ConfidentialWorkloadOptions{
 	int CPUs=0;
 	int Memory=0;
 	std::string TempDir;
-	TeeType teeType;
+	std::shared_ptr<TeeType> teeType=nullptr;
 	bool IgnoreAttestationErrors=false;
 	std::string WorkloadID;
 	std::string DiskEncryptionPassphrase;
 	std::string Slop;
 	std::string FirmwareLibrary;
+	ConfidentialWorkloadOptions()= default;
 };
 typedef std::string SBOMMergeStrategy;
 struct SBOMScanOptions {
@@ -212,13 +217,16 @@ struct SBOMScanOptions {
     std::string ImagePURLOutput;      // 在图像中存储的 PURL 列表
     SBOMMergeStrategy MergeStrategy;  // 多次扫描的输出合并方式
 };
+struct LayerCompression;
 struct BlobInfo{
 	std::shared_ptr<Digest> Digest=std::make_shared<::Digest>();
 	int64_t Size=0;
 	std::vector<std::string> URLs;
 	std::map<std::string, std::string> Annotations;
 	std::string MediaType;
-	std::shared_ptr<Algorithm> CompressionAlgorithm=std::make_shared<::Algorithm>();
+	std::shared_ptr<LayerCompression> CompressionOperation=std::make_shared<LayerCompression>();
+	std::shared_ptr<Algorithm> CompressionAlgorithm=std::make_shared<Algorithm>();
+	BlobInfo()=default;
 };
 enum class progressevent:uint8_t{
 	ProgressEventNewArtifact,

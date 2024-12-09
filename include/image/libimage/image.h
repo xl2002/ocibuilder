@@ -6,6 +6,7 @@
 #include "image/libimage/inspect.h"
 // #include "image/types/types.h"
 class Runtime;
+// struct ::Image;
 namespace LibImage{
     // struct RootFS;
     // Image 结构体定义
@@ -15,7 +16,7 @@ namespace LibImage{
             // Dangling 表示图像是否悬空。使用 `IsDangling()` 来计算最新状态。
             std::shared_ptr<bool> IsDangling; // 使用智能指针以避免内存泄漏
             // Parent 指向父图像。使用 `Parent()` 来计算最新状态。
-            std::shared_ptr<Image> Parent; // 使用智能指针以避免内存泄漏
+            std::shared_ptr<LibImage::Image> Parent; // 使用智能指针以避免内存泄漏
         } listData;
 
         // 指向运行时的反向指针。
@@ -39,7 +40,7 @@ namespace LibImage{
             std::shared_ptr<ImageData> completeInspectData; // 假设的类型
 
             // 相应的 OCI 图像。
-            std::shared_ptr<::Image> ociv1Image=std::make_shared<::Image>(); // 使用智能指针以避免内存泄漏
+            std::shared_ptr<v1::Image> ociv1Image=std::make_shared<v1::Image>(); // 使用智能指针以避免内存泄漏
 
             // Names() 解析成引用。
             std::vector<Reference_interface> namesReferences;

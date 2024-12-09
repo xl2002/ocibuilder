@@ -4,37 +4,40 @@
 #include <memory>
 #include <vector>
 #include <map>
+#include <mutex>
 #include <chrono>
 #include "image/types/define/types.h"
 #include "image/types/reference/reference.h"
-class ImageTransport_interface;
+#include "storage/storage/storage_reference.h"
+// class ImageTransport_interface;
 struct Image_interface;
 struct ImageSource_interface;
-class ImageReference_interface{
-    public:
-    virtual ~ImageReference_interface()=default;
-    virtual std::shared_ptr<ImageTransport_interface> Transport() = 0;
-    virtual std::string StringWithinTransport() = 0;
-    virtual std::string PolicyConfigurationIdentity() = 0;
-    virtual std::vector<std::string> PolicyConfigurationNamespaces() = 0;
-    virtual std::shared_ptr<Named_interface> DockerReference() = 0;
-    virtual std::shared_ptr<Image_interface> NewImage(std::shared_ptr<SystemContext>sys) = 0;
-    virtual std::shared_ptr<ImageSource_interface> NewImageSource(std::shared_ptr<SystemContext>sys) = 0;
-};
+struct ImageDestination_interface;
+struct SystemContext;
+struct BlobInfo;
+// class ImageReference_interface{
+//     public:
+//     virtual ~ImageReference_interface()=default;
+//     virtual std::shared_ptr<ImageTransport_interface> Transport() = 0;
+//     virtual std::string StringWithinTransport() = 0;
+//     virtual std::string PolicyConfigurationIdentity() = 0;
+//     virtual std::vector<std::string> PolicyConfigurationNamespaces() = 0;
+//     virtual std::shared_ptr<Named_interface> DockerReference() = 0;
+//     virtual std::shared_ptr<Image_interface> NewImage(std::shared_ptr<SystemContext>sys) = 0;
+//     virtual std::shared_ptr<ImageSource_interface> NewImageSource(std::shared_ptr<SystemContext>sys) = 0;
+//     virtual std::shared_ptr<ImageDestination_interface> NewImageDestination(std::shared_ptr<SystemContext>sys) = 0;
+// };
 // ImageTransport基类
-class ImageTransport_interface {
-public:
-    virtual ~ImageTransport_interface()=default;
-
-    // 返回传输名称
-    virtual std::string Name()  = 0;
-
-    // 将字符串转换为ImageReference
-    virtual std::shared_ptr<ImageReference_interface> ParseReference(const std::string &reference)  = 0;
-
-    // 验证策略配置范围
-    virtual void ValidatePolicyConfigurationScope(const std::string &scope)  = 0;
-};
+// class ImageTransport_interface {
+// public:
+//     virtual ~ImageTransport_interface()=default;
+//     // 返回传输名称
+//     virtual std::string Name()  = 0;
+//     // 将字符串转换为ImageReference
+//     virtual std::shared_ptr<ImageReference_interface> ParseReference(const std::string &reference)  = 0;
+//     // 验证策略配置范围
+//     virtual void ValidatePolicyConfigurationScope(const std::string &scope)  = 0;
+// };
 
 enum class layerCompression:int{
     PreserveOriginal=0,
@@ -113,8 +116,41 @@ struct Image_interface:public UnparsedImage_interface{
     virtual std::shared_ptr<ImageInspectInfo> Inspect() = 0;
 };
 
+struct ImageDestination_interface{
+    virtual ~ImageDestination_interface()=default;
+};
+struct storageImageMetadata{
+    std::vector<int>SignatureSizes;
+    std::map<Digest, std::vector<int>> SignaturesSizes;
+    storageImageMetadata()=default;
+};
+struct storageReference;
+struct storageImageDestination:public ImageDestination_interface{
+    std::shared_ptr<storageReference> imageRef=std::make_shared<storageReference>();
+    std::string directory;
+    std::vector<uint8_t> manifest;
+    std::shared_ptr<Digest> manifestDigest=std::make_shared<Digest>();
+    std::vector<std::shared_ptr<Digest>> untrustedDiffIDValues;
+    std::vector<uint8_t> signatures;
+    std::map<Digest, std::vector<uint8_t>> signatureses;
+    std::shared_ptr<storageImageMetadata> metadata=std::make_shared<storageImageMetadata>();
+    std::map<int,std::string>indexToStorageID;
+    std::mutex lock;
 
+    storageImageDestination()=default;
+};
 
-
+struct ManifestUpdateInformation{
+    std::shared_ptr<ImageReference_interface> Destination=nullptr;
+    std::vector<BlobInfo> LayerInfos;
+    std::vector<Digest> LayerDiffIDs;
+    ManifestUpdateInformation()=default;
+};
+struct ManifestUpdateOptions{
+    std::vector<BlobInfo> LayerInfos;
+    std::shared_ptr<Named_interface> EmbeddedDockerReference;
+    std::string ManifestMIMEType;
+    std::shared_ptr<ManifestUpdateInformation> InformationOnly=std::make_shared<ManifestUpdateInformation>();
+};
 
 #endif // TYPES_TYPES_H

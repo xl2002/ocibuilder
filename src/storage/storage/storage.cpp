@@ -612,6 +612,86 @@ void containerStore::Save(containerLocations saveLocations) {
         throw;
     }
 }
+
+void containerStore::startWriting() {
+    // 空实现
+}
+void containerStore::stopWriting() {
+    // 空实现
+}
+void containerStore::startReading() {
+    // 空实现
+}
+void containerStore::stopReading() {
+// 空实现
+}
+/**
+ * @brief 创建container信息
+ * 
+ * @param id 
+ * @param names 
+ * @param image 
+ * @param layer 
+ * @param options 
+ * @return std::shared_ptr<Container> 
+ */
+std::shared_ptr<Container> containerStore::create(const std::string& id, const std::vector<std::string>& names, 
+                                    const std::string& image, const std::string& layer, 
+                                    const ContainerOptions& options) {
+    return nullptr; // 空实现
+}
+void containerStore::updateNames(const std::string& id, const std::vector<std::string>& names, 
+                    updateNameOperation op) {
+    // 空实现
+}
+std::shared_ptr<Container> containerStore::Get(const std::string& id) {
+    return nullptr; // 空实现
+}
+bool containerStore::Exists(const std::string& id) {
+    return false; // 空实现
+}
+void containerStore::Delete(const std::string& id) {
+    // 空实现
+}
+void containerStore::Wipe() {
+    // 空实现
+}
+std::string containerStore::Lookup(const std::string& name) {
+    return ""; // 空实现
+}
+std::vector<std::shared_ptr<Container>> containerStore::Containers() {
+    return {}; // 空实现
+}
+void containerStore::GarbageCollect() {
+    // 空实现
+}
+// metadataStore 和 bigDataStore 方法的空实现
+void containerStore::SetMetadata(const std::string& id, const std::string& metadata) {
+    // 空实现
+}
+void containerStore::SetBigData(const std::string& id, const std::string& key, const std::vector<uint8_t>& data) {
+    // 空实现
+}
+std::vector<uint8_t> containerStore::BigData(const std::string& id, const std::string& key)  {
+    return {}; // 空实现
+}
+int64_t containerStore::BigDataSize(const std::string& id, const std::string& key)  {
+    return 0; // 空实现
+}
+Digest containerStore::BigDataDigest(const std::string& id, const std::string& key)  {
+    return {}; // 空实现
+}
+std::vector<std::string> containerStore::BigDataNames(const std::string& id)  {
+    return {}; // 空实现
+}
+// flaggableStore_interface 方法的空实现
+void containerStore::ClearFlag(const std::string& id, const std::string& flag) {
+    // 空实现
+}
+void containerStore::SetFlag(const std::string& id, const std::string& flag, const std::string& value) {
+    // 空实现
+}
+
 //containerStore::containerLocation函数的实现
 containerLocations containerStore::containerLocation(const std::shared_ptr<Container>& container) {
     // 确保持有读锁
@@ -1102,7 +1182,7 @@ bool ImageStore::Exists(const std::string& id)  {
     return false; // 空实现
 }
 
-// std::shared_ptr<storage::Image> Get(const std::string& id)  override {
+// std::shared_ptr<storage::Image> Get(const std::string& id)  {
 //     return nullptr; // 空实现
 // }
 
@@ -1149,3 +1229,91 @@ void ImageStore::ClearFlag(const std::string& id, const std::string& flag) {
 void ImageStore::SetFlag(const std::string& id, const std::string& flag, const std::string& value) {
     // 空实现
 }
+/**
+ * @brief 得到overlay中layer
+ * 
+ * @return std::shared_ptr<rwLayerStore_interface> 
+ */
+std::shared_ptr<rwLayerStore_interface> Store::bothLayerStoreKinds(){
+// 只需要返回rwLayerStore
+    return nullptr;
+}
+/**
+ * @brief 得到overlay中layer
+ * 
+ * @return std::shared_ptr<rwLayerStore_interface> 
+ */
+std::shared_ptr<rwLayerStore_interface>  Store::bothLayerStoreKindsLocked(){
+    // 只需要primary
+    return nullptr;
+}
+/**
+ * @brief 返回overly的内容
+ * 
+ * @return std::shared_ptr<rwLayerStore_interface> 
+ */
+std::shared_ptr<rwLayerStore_interface> Store::getLayerStoreLocked(){
+    // 检查路径是否存在
+
+
+    // 调用newLayerStore返回overlay的内容
+    return nullptr;
+}
+/**
+ * @brief 读取overlay中的layer
+ * 
+ * @param rundir 
+ * @param layerdir 
+ * @param imagedir 
+ * @param driver 
+ * @param transient 
+ * @return std::shared_ptr<rwLayerStore_interface> 
+ */
+std::shared_ptr<rwLayerStore_interface> Store::newLayerStore(std::string rundir, std::string layerdir, std::string imagedir,std::shared_ptr<Driver> driver,bool transient){
+    // 检查路径是否 有效
+
+
+    // lockfile可以先不管
+    // 新建layerStore
+
+    // 调用load函数读取overlay的内容
+    
+    return nullptr;
+}
+/**
+ * @brief 在overlay中创建copy的layer，新建container的信息，并不创建文件夹
+ * 
+ * @param id 
+ * @param names 
+ * @param image 
+ * @param layer 
+ * @param metadata 
+ * @param options 
+ * @return std::shared_ptr<Container> 
+ */
+std::shared_ptr<Container> Store::CreateContainer(const std::string& id, const std::vector<std::string>& names, const std::string& image, const std::string& layer, const std::string& metadata,const std::shared_ptr<ContainerOptions> options){
+
+    //创建copy的layer层结构
+    auto rlstore=this->bothLayerStoreKinds();
+    auto layerOptions=std::make_shared<LayerOptions>();
+    auto diff=std::ifstream{};
+    std::string layerName=layer;
+    std::shared_ptr<Layer> clayer;
+    std::tie(clayer,std::ignore)=rlstore->create(layerName,nullptr,{},"",{},layerOptions,true,diff);
+
+    //创建container
+
+    return nullptr;
+}
+// /**
+//  * @brief 读取返回copy层的diff内容，注意是文件夹，可能无法读取多个文件
+//  * 
+//  * @param from 
+//  * @param to 
+//  * @param options 
+//  * @return std::ifstream 
+//  */
+// std::ifstream Store::Diff(std::string from,std::string to , std::shared_ptr<DiffOptions> options){
+//     return std::ifstream{};
+// }
+

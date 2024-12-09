@@ -7,7 +7,7 @@
 #include "filesys/graphdriver/driver_linux_windows.h"
 class Checker_interface {
 public:
-    virtual bool IsMounted(const std::string& path) const = 0;
+    virtual bool IsMounted(const std::string& path) = 0;
 };
 // fsChecker 结构体实现
 class FsChecker : public Checker_interface {
@@ -15,7 +15,7 @@ public:
     ~FsChecker() = default;
     FsChecker(FsMagic t) : t_(t) {}
 
-    bool IsMounted(const std::string& path) const override {
+    bool IsMounted(const std::string& path) override {
         bool mounted;
         // 假设 Mounted 是一个可以检查挂载状态的函数，返回值是 std::pair<bool, error> 类型
         // std::tie(mounted, std::ignore) = Mounted(t_, path); 

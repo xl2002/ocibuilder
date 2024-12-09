@@ -63,3 +63,6 @@ std::shared_ptr<Image_interface> dockerReference::NewImage(std::shared_ptr<Syste
 std::shared_ptr<ImageSource_interface> dockerReference::NewImageSource(std::shared_ptr<SystemContext>sys) {
     return nullptr;
 }
+std::shared_ptr<ImageDestination_interface> dockerReference::NewImageDestination(std::shared_ptr<SystemContext>sys) {
+    return nullptr;
+}

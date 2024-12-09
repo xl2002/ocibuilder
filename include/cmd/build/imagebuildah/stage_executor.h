@@ -16,6 +16,7 @@
 #include "cmd/build/imagebuildah/executor.h"
 #include "image/buildah/buildah.h"
 #include "cmd/build/imagebuilder/builder.h"
+#include "image/buildah/add.h"
 class Executor;
 // class VolumeSet;
 // class Copy;
@@ -67,7 +68,7 @@ public:
         bool finalInstruction
     );
     void generateBuildOutput(std::shared_ptr<BuildOutputOption>buildOutputOpts);
-
+    void performCopy(std::vector<std::string> excludes,std::vector<Copy> copies);
 };  
 
 #endif // IMAGEBUILDAH_STAGE_EXECUTOR_H)

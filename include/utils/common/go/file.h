@@ -8,6 +8,8 @@
 #include <windows.h>
 #include <sys/stat.h>
 #include <fstream>
+#include <boost/filesystem.hpp>
+namespace fs = boost::filesystem;
 
 std::string joinPath(const std::string& path1, const std::string& path2);
 
@@ -20,4 +22,6 @@ bool isRegularFile(const std::string& path);
 std::string getDirectory(const std::string& path);
 
 void  WriteFile(const std::string& iidfile, const std::string& imageID);
+
+int64_t Copy_directory(const fs::path& source, const fs::path& destination);
 #endif // GO_FILE_H

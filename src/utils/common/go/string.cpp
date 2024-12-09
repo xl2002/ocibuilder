@@ -118,3 +118,13 @@ std::string FromSlash(const std::string& path) {
 #endif
     return result;
 }
+
+// string -> vector<uint8_t>
+std::vector<uint8_t> stringToVector(const std::string& str) {
+    return std::vector<uint8_t>(str.begin(), str.end());
+}
+
+// vector<uint8_t> -> string
+std::string vectorToString(const std::vector<uint8_t>& vec) {
+    return std::string(vec.begin(), vec.end());
+}
