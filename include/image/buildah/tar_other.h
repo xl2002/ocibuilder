@@ -289,7 +289,7 @@ public:
         output_ = nullptr;
     }
 
-private:
+public:
     void set_checksum(details::TarHeader& header)
     {
         std::fill(std::begin(header.header_.chksum_), std::end(header.header_.chksum_), ' ');

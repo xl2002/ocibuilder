@@ -8,9 +8,12 @@
 #include <utility>
 #include <boost/thread/thread.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/iostreams/device/file_descriptor.hpp>
+#include <boost/iostreams/stream.hpp>
 #include "image/buildah/digester.h"
 #include "utils/common/error.h"
 #include "image/buildah/tar_other.h"
+#include "image/buildah/format.h"
 namespace fs = boost::filesystem;
 // tar 文件头结构
 // struct TarHeader {
@@ -57,6 +60,10 @@ struct tarFilterer
     // }
     void Close();
 };
+// std::shared_ptr<tarFilterer> newTarFilterer(
+//     std::ostream& writeStream,  // 写入流
+//     std::function<std::tuple<bool, bool, std::istream*>(std::shared_ptr<tarpp::details::TarHeader>)> filter  // 过滤器
+// );
 std::shared_ptr<tarFilterer> newTarFilterer(const std::string& tarFilePath,const fs::path& directory);
 
 struct tarDigester:public digester_interface{
@@ -69,5 +76,5 @@ struct tarDigester:public digester_interface{
     void close() override;
     std::shared_ptr<::Digest> Digest() override;
 };
-std::shared_ptr<digester_interface> newTarDigester(string contentType);
+std::shared_ptr<digester_interface> newTarDigester(const std::string& contentType, const std::string& tarFilePath, const fs::path& directory);
 #endif // IMAGE_BUILDAH_TAR_H)
