@@ -1,6 +1,4 @@
 #include "storage/lockfile/lastwrite.h"
-std::atomic<uint64_t> lastWriterIDCounter(0);
-const size_t lastWriterIDSize = 64;
 // newLastWrite 函数实现
 lastwrite newLastWrite() {
     // 获取 PID
@@ -27,6 +25,5 @@ lastwrite newLastWrite() {
     for (size_t i = 20; i < lastWriterIDSize; ++i) {
         res[i] = dist(rng);
     }
-
     return lastwrite(res);
 }

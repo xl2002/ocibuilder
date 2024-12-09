@@ -7,6 +7,13 @@
 #include <map>
 #include <memory>
 #include <boost/thread/once.hpp>
+class selinuxState;
+
+extern std::string readOnlyFileLabel;
+extern std::shared_ptr<selinuxState> state;
+extern bool haveThreadSelf;
+extern std::string policyRootVal;
+extern std::map<std::string, std::string> labels;
 class selinuxState {
 public:
     // mcsList 用于存储 MCS（Multi-Category Security）的状态

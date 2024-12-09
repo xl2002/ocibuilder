@@ -21,7 +21,7 @@ std::shared_ptr<OverlayOptions> parseOptions(const std::vector<std::string>& opt
 }
 string Join(const vector<string>& elem);
 // 定义 mountProgramFlagFile 常量
-const std::string mountProgramFlagFile = ".has-mount-program";
+// const std::string mountProgramFlagFile = ".has-mount-program";
 
 // getMountProgramFlagFile 函数的实现，使用 Join 函数
 std::string getMountProgramFlagFile(const std::string& path) {

@@ -10,6 +10,13 @@
 #include <iomanip>
 #include "utils/common/error.h"
 #include "cmd/build/imagebuilder/builder.h"
+#include "utils/common/regexp.h"
+#include "filesys/platforms/default_unix.h"
+// 全局变量
+extern std::shared_ptr<Regexp> obRgex;
+extern std::shared_ptr<Platform> localspec;
+extern std::map<std::string, std::string> builtinBuildArgs;
+
 
 void env(
     std::shared_ptr<Image_Builder>b,

@@ -23,49 +23,17 @@
 #include <pthread.h>
 // #define PATH_MAX 4096
 using std::string;
-/**
- * @brief 
- * 
- */
-// const string overlayDriver  = "overlay";
-// const string overlay2       = "overlay2";
-// const string storageConfEnv = "CONTAINERS_STORAGE_CONF";
-#ifdef WIN32
-/// @brief defaultConfigFile 系统范围的 storage.conf 文件的路径
-std::string defaultConfigFile = "D:\\oci_images\\storage.conf";
-// std::string storageConfEnv = "STORAGE_CONF_ENV";
-/// @brief 
-std::string defaultOverrideConfigFile = "D:\\storage.conf";
-const string defaultRunRoot = "D:\\oci_images";
-// const string defaultRunRoot = "/run/containers/storage";
-const string defaultGraphRoot = "D:\\oci_images";
-// const string defaultGraphRoot = "/var/lib/containers/storage";
-#else
-/// @brief defaultConfigFile 系统范围的 storage.conf 文件的路径
-std::string defaultConfigFile = "D:/oci_images/storage.conf";
-// std::string storageConfEnv = "STORAGE_CONF_ENV";
-/// @brief 
-std::string defaultOverrideConfigFile = "D:/storage.conf";
-const string defaultRunRoot = "D:/oci_images";
-// const string defaultRunRoot = "/run/containers/storage";
-const string defaultGraphRoot = "D:/oci_images";
-// const string defaultGraphRoot = "/var/lib/containers/storage";
-#endif
 
-const int AutoUserNsMinSize=1024;
-const int AutoUserNsMaxSize=65536;
 /**
  * @brief 检查是否已经设置了默认配置文件
  * 
  */
 std::once_flag defaultStoreOptionsFlag;
 std::once_flag defaultloadoptions;
-bool defaultConfigFileSet = false;
-StoreOptions storeptions;
-StoreOptions defaultStoreOptions;
+
+
 std::mutex storesLock;
-vector<std::shared_ptr<Store>> stores;
-ReloadConfig prevReloadConfig;
+
 void ReloadConfigurationFile(const std::string& configFile, StoreOptions* storeOptions) {
     // 实现加载配置文件的逻辑
     // 这部分需要根据实际情况来实现

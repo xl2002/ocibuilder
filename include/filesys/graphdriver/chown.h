@@ -7,6 +7,8 @@
 
 // naiveLayerIDMapUpdater 类实现
 // 假设 naiveLayerIDMapUpdater 继承自 LayerIDMapUpdater_interface
+// class ProtoDriver_interface;
+// class LayerIDMapUpdater_interface;
 class naiveLayerIDMapUpdater : public LayerIDMapUpdater_interface {
 public:
     // 构造函数接受 shared_ptr 作为参数

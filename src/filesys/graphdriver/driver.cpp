@@ -1,7 +1,7 @@
 #include "filesys/graphdriver/driver.h"
 
 using namespace std;
-const char Separator = '/';
+// const char Separator = '/';
 // 清理路径，确保路径规范化
 
 string Clean(const string& path);

@@ -1,10 +1,5 @@
 #include "image/types/reference/normalize.h"
 
-const std::string 	
-    legacyDefaultDomain = "index.docker.io",
-	defaultDomain       = "docker.io",
-	officialRepoName    = "library",
-	defaultTag          = "latest";
 
 std::pair<std::string, std::string> splitDockerDomain(const std::string& name);
 

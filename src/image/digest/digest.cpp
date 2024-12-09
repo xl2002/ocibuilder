@@ -2,11 +2,7 @@
 #include "utils/common/error.h"
 #include "utils/common/regexp.h"
 #include <regex>
-// DigestRegexp 匹配有效的摘要类型。
-const std::regex DigestRegexp("[a-z0-9]+(?:[.+_-][a-z0-9]+)*:[a-zA-Z0-9=_-]+");
 
-// DigestRegexpAnchored 匹配有效的摘要类型，要求匹配从开始到结束。
-const std::regex DigestRegexpAnchored("^[a-z0-9]+(?:[.+_-][a-z0-9]+)*:[a-zA-Z0-9=_-]+$");
 // 返回编码部分的方法
 std::string Digest::Encoded() const {
     std::size_t sepindex = sepIndex();

@@ -8,9 +8,12 @@
 #include <windows.h>
 #include <sys/stat.h>
 #include <fstream>
+#include <iostream>
+#include <sstream>
 #include <boost/filesystem.hpp>
 namespace fs = boost::filesystem;
-
+using namespace std;
+extern char Separator;
 std::string joinPath(const std::string& path1, const std::string& path2);
 
 bool fileExists(const std::string& path);
@@ -24,4 +27,8 @@ std::string getDirectory(const std::string& path);
 void  WriteFile(const std::string& iidfile, const std::string& imageID);
 
 int64_t Copy_directory(const fs::path& source, const fs::path& destination);
+
+bool IsPathSeparator(char c);
+string join(const vector<string>& elem);
+string Clean(const string& path);
 #endif // GO_FILE_H

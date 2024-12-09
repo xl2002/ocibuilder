@@ -1,6 +1,6 @@
 #include "storage/lockfile/lockfile.h"
 // 全局变量，存储不同路径的 lockFile 对象
-std::map<std::string, std::shared_ptr<lockFile>> lockFiles;
+
 std::mutex lockFilesMutex;
 
 int openHandle(const std::string& path, int mode) {
