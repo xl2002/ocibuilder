@@ -5,6 +5,11 @@
 #include <map>
 #include <memory>
 #include <tuple>
+#include <regex>
+extern std::regex reWhitespace;
+extern std::regex reComment;
+extern std::regex reHeredoc;
+extern std::regex reLeadingTabs;
 struct Heredoc {
     std::string Name;
     std::string Content;

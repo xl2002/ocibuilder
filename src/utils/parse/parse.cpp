@@ -6,27 +6,7 @@
 #include "utils/common/error.h"
 #include "utils/logger/logrus/exported.h"
 #include <boost/filesystem.hpp>
-// 定义常量字符串
-
-// SeccompDefaultPath 定义了默认的 seccomp 配置文件路径
-const string SeccompDefaultPath = "/usr/share/containers/seccomp.json",
-
-// SeccompOverridePath 如果存在，则覆盖默认的 seccomp 配置文件路径
-SeccompOverridePath = "/etc/containers/seccomp.json",
-
-// TypeBind 是用于挂载主机目录的类型
-TypeBind = "bind",
-
-// TypeTmpfs 是用于挂载 tmpfs 的类型
-TypeTmpfs = "tmpfs",
-
-// TypeCache 是用于挂载主机上常用的持久缓存的类型
-TypeCache = "cache",
-
-// mount=type=cache 必须在主机上创建一个持久目录，以便在所有连续的构建中都可用。
-// 以下目录的生命周期将继承主机如何处理临时目录的方式
-BuildahCacheDir = "buildah-cache";
-
+#include "config/defaut.h"
 /**
  * @brief 根据命令的标志来确定 pull 策略
  * 

@@ -144,7 +144,7 @@ Flagset* NewFlagSet(const string& name);
 void help_func(Command& cmd, vector<string> a);
 bool hasNoOptDefVal( string name, Flagset* flags);
 vector<string> stripFlags(vector<string> args,Command& cmd);
-void innerfind(Command* cmd,vector<string>&args,Command* ret_cmd,vector<string>& ret_args);
+Command* innerfind(Command* cmd,vector<string>&args,vector<string>& ret_args);
 bool commandNameMatches(string s, string t);
 void legacyArgs(Command*cmd,vector<string>args);
 #endif

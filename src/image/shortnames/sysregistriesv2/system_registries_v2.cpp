@@ -1,9 +1,7 @@
 #include "image/shortnames/sysregistriesv2/system_registries_v2.h"
 #include "filesys/utils/homedir_unix.h"
 #include "image/shortnames/sysregistriesv2/shortnames.h"
-const std::string builtinRegistriesConfPath="D:\\oci_images\\registries.conf";
-const std::string userRegistriesFile=".config/containers/registries.conf";
-const std::string userRegistriesDir=".config/containers/registries.conf.d";
+
 std::mutex configMutex;
 std::shared_ptr<configWrapper> newConfigWrapper(std::shared_ptr<SystemContext> ctx) {
     return newConfigWrapperWithHomeDir(ctx,homedir::Get());

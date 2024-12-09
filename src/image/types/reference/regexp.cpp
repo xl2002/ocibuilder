@@ -38,7 +38,7 @@ std::string anchoredDigest,namePat,anchoredName;
 
 std::shared_ptr<std::regex> DomainRegexp,
     TagRegexp,NameRegexp,
-    DigestRegexp,ReferenceRegexp,
+    digestRegexp,ReferenceRegexp,
     IdentifierRegexp,
     ShortIdentifierRegexp;
 
@@ -64,7 +64,7 @@ void init_regexp() {
     TagRegexp=std::make_shared<std::regex>(tag);
     anchoredTag=anchored({tag});
     anchoredTagRegexp=Delayed(anchoredTag);
-    DigestRegexp=std::make_shared<std::regex>(digestPat);
+    digestRegexp=std::make_shared<std::regex>(digestPat);
     anchoredDigest=anchored({digestPat});
     anchoredDigestRegexp=Delayed(anchoredDigest);
     namePat=expression({optional({domain,literal("/")}),

@@ -12,8 +12,10 @@
 #include "storage/storage/storage.h"
 #include "image/types/types.h"
 #include "image/types/signature/policy_types.h"
-
-
+#include "utils/common/go/string.h"
+#include "utils/common/go/file.h"
+extern std::string userPolicyFile;
+extern std::string systemDefaultPolicyPath;
 std::shared_ptr<Policy> DefaultPolicy(std::shared_ptr<SystemContext> sys);
 std::string defaultPolicyPath(std::shared_ptr<SystemContext> sys);
 std::string defaultPolicyPathWithHomeDir(std::shared_ptr<SystemContext> sys,std::string homeDir);

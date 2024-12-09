@@ -11,12 +11,8 @@
 #include "utils/logger/logrus/exported.h"
 #include <boost/any.hpp>
 // #include <boost/align.hpp>
-std::shared_ptr<myerror> cachedConfigError=nullptr;
-std::mutex cachedConfigMutex;
-std::shared_ptr<Config> cachedConfig=nullptr;
-const std::string containersConfEnv="CONTAINERS_CONF";
-const std::string containersConfOverrideEnv=containersConfEnv + "_OVERRIDE";
 
+std::mutex cachedConfigMutex;
 // New 函数返回一个 Config 对象，如 containers.conf(5) 手册页中所描述。
 std::shared_ptr<Config> New(std::shared_ptr<Options> options) {
     if (!options) {

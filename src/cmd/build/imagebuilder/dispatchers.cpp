@@ -2,20 +2,7 @@
 #include "cmd/build/imagebuilder/internals.h"
 #include "utils/cli/cobra/lex.h"
 #include <boost/algorithm/string.hpp>
-#include "utils/common/regexp.h"
-#include "filesys/platforms/default_unix.h"
-const auto obRgex=Delayed(R"(^\s*ONBUILD\s*)");
-const auto localspec = DefaultSpec();
-const std::map<std::string, std::string> builtinBuildArgs = {
-    {"TARGETPLATFORM", localspec->OS + "/" + localspec->Architecture},
-    {"TARGETOS", localspec->OS},
-    {"TARGETARCH", localspec->Architecture},
-    {"TARGETVARIANT", localspec->Variant},
-    {"BUILDPLATFORM", localspec->OS + "/" + localspec->Architecture},
-    {"BUILDOS", localspec->OS},
-    {"BUILDARCH", localspec->Architecture},
-    {"BUILDVARIANT", localspec->Variant}
-};
+
 
 // ENV foo bar
 //

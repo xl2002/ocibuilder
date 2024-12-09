@@ -5,7 +5,7 @@
 #include <memory>
 #include <regex>
 #include "image/image_types/v1/descriptor.h"
-
+extern std::regex specifierRe;
 std::shared_ptr<Platform> Normalize(std::shared_ptr<Platform> platform);
 namespace PlatForms {
     std::shared_ptr<Platform> Parse(const std::string& specifier);

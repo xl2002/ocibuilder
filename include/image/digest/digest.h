@@ -31,7 +31,8 @@ std::shared_ptr<Digest> NewDigest(std::shared_ptr<Algorithm_sha256> alg,std::sha
 std::shared_ptr<Digest> NewDigestFromBytes(std::shared_ptr<Algorithm_sha256> alg,std::vector<uint8_t> p);
 std::shared_ptr<Digest> NewDigestFromEncoded(std::shared_ptr<Algorithm_sha256> alg,std::string p);
 
-
+extern std::regex DigestRegexp;
+extern std::regex DigestRegexpAnchored;
 
 
 

@@ -3,14 +3,7 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/lexical_cast.hpp>
 
-#ifdef _WIN32
-#include <winsock2.h>
-#include <windows.h>
-using rlim_t = size_t; // 在Windows中使用size_t作为rlim_t的替代
-#else
-#include <sys/resource.h>
-//#include <unistd.h>
-#endif
+
 std::string getDefaultLockType(){
     return "shm";
 }
@@ -25,7 +18,7 @@ std::vector<std::string> getDefaultMachineVolumes(){
 // getDefaultProcessLimits 返回当前进程的nproc限制，格式为ulimits
 // 注意：nfile有时不能设置为无限制，限制硬编码为(oldMaxSize) 1048576 (2^20)，参见：http://stackoverflow.com/a/1213069/1811501
 // 在无特权容器中，这将失败，进程将使用其当前的限制
-constexpr rlim_t oldMaxSize = 1048576; // 2^20
+// constexpr rlim_t oldMaxSize = 1048576; // 2^20
 std::vector<std::string> getDefaultProcessLimits() {
     struct rlimit {
         rlim_t rlim_cur;
