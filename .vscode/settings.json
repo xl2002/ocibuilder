@@ -94,9 +94,7 @@
         "rope": "cpp",
         "slist": "cpp",
         "hash_map": "cpp",
-        "hash_set": "cpp",
-        "filesystem": "cpp",
-        "xstring": "cpp"
+        "hash_set": "cpp"
     },
     "C_Cpp.errorSquiggles": "enabled",
     "cSpell.words": [
@@ -105,6 +103,5 @@
     "CodeGPT.apiKey": "CodeGPT Plus Beta",
     "makefile.configureOnOpen": false,
     "cmake.ignoreCMakeListsMissing": true,
-    "commentTranslate.hover.enabled": true,
-    "C_Cpp.default.cppStandard": "c++11"
+    "commentTranslate.hover.enabled": true
 }
