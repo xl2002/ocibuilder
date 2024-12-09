@@ -11,5 +11,5 @@ std::string marshal(const T& obj) {
 template <typename T>
 T unmarshal(const std::string& jsonStr) {
     json::value jv = json::parse(jsonStr);
-    return jv.as<T>();
+    return json::value_to<T>(jv);
 }

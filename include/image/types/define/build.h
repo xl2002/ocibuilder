@@ -189,38 +189,9 @@ struct CommonBuildOptions  {
 	vector<string> OCIHooksDir;
 };
 
-// struct Time  {
-//     //wall 和 ext 对 wall time 秒、wall time 纳秒进行编码，
-// 	//和可选的单调时钟读数（以纳秒为单位）。
-// 	//
-// 	//从高位到低位位置，wall编码一个1位标志（hasMonotonic），
-// 	//33 位秒字段和 30 位墙壁时间纳秒字段。
-// 	//纳秒字段的范围是 [0, 999999999]。
-// 	//如果 hasMonotonic 位为 0，则 33 位字段必须为零
-// 	//自 1 年 1 月 1 日起完整签名的 64 位墙秒存储在 ext.
-//     //如果 hasMonotonic 位为 1，则 33 位字段保存 33 位
-// 	//自 1885 年 1 月 1 日以来的无符号墙秒，并且 ext 持有
-// 	//带符号的 64 位单调时钟读数，自进程启动以来的纳秒数。
-// 	uint64_t wall;
-// 	int64_t ext;
-
-// 	// loc specifies the Location that should be used to
-// 	// determine the minute, hour, month, day, and year
-// 	// that correspond to this Time.
-// 	// The nil location means UTC.
-// 	// All UTC times are represented with loc==nil, never loc==&utcLoc.
-// 	// loc *Location
-// };
-// class Duration{
-
-// };
-
-// class SBOMScanOptions{
-
-// };
-// struct IDMappingOptions;
-// struct SystemContext;
-// struct ConfidentialWorkloadOptions;
+struct IDMappingOptions;
+struct SystemContext;
+struct ConfidentialWorkloadOptions;
 struct SBOMScanOptions;
 class define_BuildOptions{
 	public:

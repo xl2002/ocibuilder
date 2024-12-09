@@ -12,8 +12,8 @@ CXXFLAGS	:= -std=c++11 -Wall -Wextra -g
 # define library paths in addition to /usr/lib
 #   if I wanted to include libraries not in /usr/lib I'd specify
 #   their path using -Lpath, something like:
-LFLAGS = -lboost_filesystem-mgw12-mt-x64-1_75 -lboost_system-mgw12-mt-x64-1_75 -lws2_32 -lboost_thread-mgw12-mt-x64-1_75 -lboost_random-mgw12-mt-x64-1_75 -lboost_thread-mgw12-mt-x64-1_75 -lboost_json-mgw12-mt-x64-1_75
-# LFLAGS = -lboost_system -lboost_filesystem -lws2_32
+LFLAGS = -lboost_filesystem-mgw12-mt-x64-1_75 -lboost_system-mgw12-mt-x64-1_75 -lws2_32 -lboost_thread-mgw12-mt-x64-1_75 -lboost_random-mgw12-mt-x64-1_75 -lboost_json-mgw12-mt-x64-1_75 -lboost_iostreams-mgw12-mt-x64-1_75 -lz
+# LFLAGS = -lboost_system-vc141-mt-s-x64-1_75 -lboost_filesystem-vc141-mt-s-x64-1_75 -lws2_32 -lboost_thread-vc141-mt-s-x64-1_75 -lboost_random-vc141-mt-s-x64-1_75 -lboost_json-vc141-mt-s-x64-1_75 -lboost_iostreams-vc141-mt-s-x64-1_75 -lz
 # define output directory
 OUTPUT	:= output
 
@@ -24,7 +24,7 @@ SRC		:= src
 # INCLUDE	:= include D:/Softwares/boost_1_75_0
 INCLUDE	:= include
 # define lib directory
-LIB		:= lib\lib64-MinGW
+LIB		:= lib\boost-MinGW lib\zlib-MinGW
 # LIB         := D:/Softwares/boost_1_75_0/lib64-msvc-14.1
 
 ifeq ($(OS),Windows_NT)

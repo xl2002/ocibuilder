@@ -49,7 +49,7 @@ struct LayerCompression{
     LayerCompression()=default;
     LayerCompression(layerCompression layer):layer(layer){};
 };
-
+class ImageReference_interface;
 struct ImageSource_interface{
     virtual ~ImageSource_interface()=default;
     virtual std::shared_ptr<ImageReference_interface> Reference() = 0;

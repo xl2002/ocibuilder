@@ -14,6 +14,9 @@ struct ImageTransport_interface;
 struct SystemContext;
 struct ImageSource_interface;
 struct ImageDestination_interface;
+namespace storage{
+    struct Image;
+}
 class ImageReference_interface{
     public:
     virtual ~ImageReference_interface()=default;

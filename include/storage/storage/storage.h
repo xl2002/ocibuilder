@@ -18,6 +18,7 @@
 #include "storage/storage/layers.h"
 #include "storage/storage/images.h"
 #include "storage/storage/storage.h"
+#include "storage/storage/store.h"
 #include <mutex>
 #include <filesystem>
 #include <boost/thread/shared_mutex.hpp>
@@ -540,6 +541,7 @@ public:
 // namespace storage {
 //     struct Image;
 // }
+struct rwLayerStore_interface;
 class Store :public Store_interface{
     public:
     string run_root;

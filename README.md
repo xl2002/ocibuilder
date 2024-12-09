@@ -16,4 +16,4 @@ oci规范的镜像构建工具，适用于windows系统
 6.错误处理时，采用抛出的方法，不使用boost::system::error_code
 
 test.cpp 运行
-g++ -std=c++11 -Wall -Wextra -g -I include -o test.exe test.cpp -L lib\lib64-MinGW -lboost_filesystem-mgw12-mt-x64-1_75
+g++ -std=c++11 -Wall -Wextra -g -I include -o ./tests/gzip_test.exe ./tests/gzip_test.cpp -L lib\boost-MinGW -L lib\zlib-MinGW -lboost_filesystem-mgw12-mt-x64-1_75 -lboost_iostreams-mgw12-mt-x64-1_75 -lz
