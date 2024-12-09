@@ -73,9 +73,9 @@ std::ofstream createTar(const std::string& tarFilePath, const fs::path& director
  * @param tarFilePath 
  * @param targetDirectory 
  */
-void TarHeader::extractTar(const std::string& tarFilePath, const fs::path& targetDirectory){
+// void TarHeader::extractTar(const std::string& tarFilePath, const fs::path& targetDirectory){
 
-}
+// }
 /**
  * @brief 根据tarfilePath和directory创建tarFilterer
  *  
