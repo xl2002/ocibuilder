@@ -28,7 +28,7 @@
  *
  * @return void
  */
-void init_config(){
+void init_configcmd(){
     configOptions options;
     string name{"config"};
     string Short{"Update image configuration settings"};

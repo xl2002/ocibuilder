@@ -24,6 +24,7 @@ extern string ErrNotSupported;
 extern string ErrPrerequisites;
 extern string ErrIncompatibleFS;
 extern string ErrLayerUnknown;
+// extern char Separator;
 struct IDMappings;
 // const myerror ErrNotSupported = myerror("driver not supported");
 // const myerror ErrPrerequisites = myerror("prerequisites for driver not satisfied (wrong filesystem?)");

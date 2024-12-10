@@ -14,21 +14,21 @@ const std::string
 	xattrNameSelinux = "security.selinux";
 
 // 全局变量
-std::string readOnlyFileLabel;
+// std::string readOnlyFileLabel;
 
-auto state=std::make_shared<selinuxState>();
+// auto state=std::make_shared<selinuxState>();
 
 // for attrPath()
 boost::once_flag attrPathOnce;
-bool haveThreadSelf = false;
+// bool haveThreadSelf = false;
 
 // for policyRoot()
 boost::once_flag policyRootOnce;
-std::string policyRootVal;
+// std::string policyRootVal;
 
 // for label()
 boost::once_flag loadLabelsOnce;
-std::map<std::string, std::string> labels;
+// std::map<std::string, std::string> labels;
 
 // 设置 enabled 状态，并返回设置后的状态
 bool selinuxState::setEnable(bool enabled) {

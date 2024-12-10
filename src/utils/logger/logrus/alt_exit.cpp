@@ -1,6 +1,5 @@
 #include "utils/logger/logrus/alt_exit.h"
-// 定义 handlers 为一个存储函数的 vector
-std::vector<std::function<void()>> handlers;
+
 
 // 用于运行单个处理程序并捕获异常
 void runHandler(const std::function<void()>& handler) {

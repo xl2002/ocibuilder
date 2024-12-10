@@ -30,6 +30,11 @@ using std::vector;
 using std::shared_ptr;
 using std::function;
 
+extern string tarExt;
+extern string solaris;
+extern string windows;
+extern string darwin;
+extern string freebsd;
 enum isolation:int{
     IsolationDefault,
     IsolationOCI,

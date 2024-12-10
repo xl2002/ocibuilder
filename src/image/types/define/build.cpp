@@ -1,10 +1,5 @@
 #include "image/types/define/build.h"
-const string
-	tarExt  = "tar",
-	solaris = "solaris",
-	windows = "windows",
-	darwin  = "darwin",
-	freebsd = "freebsd";
+
 
 /**
  * @brief 将Isolation枚举为字符串

@@ -34,6 +34,6 @@ struct configOptions
     string  os          ;       ///<更改镜像的 os
 };
 void configCmd();   
-void init_config(); 
+void init_configcmd(); 
 
 #endif

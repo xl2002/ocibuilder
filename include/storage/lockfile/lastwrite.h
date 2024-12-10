@@ -24,5 +24,6 @@ public:
     lastwrite(std::vector<uint8_t> s) : state(std::move(s)) {}
 };
 lastwrite newLastWrite();
-
+extern std::atomic<uint64_t> lastWriterIDCounter;
+extern size_t lastWriterIDSize;
 #endif

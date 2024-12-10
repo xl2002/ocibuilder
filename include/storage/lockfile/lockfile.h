@@ -63,4 +63,5 @@ public:
     lastwrite RecordWrite();
 };
 std::shared_ptr<lockFile> GetLockFile(const std::string& path);
+extern std::map<std::string, std::shared_ptr<lockFile>> lockFiles;
 #endif

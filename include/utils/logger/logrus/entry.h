@@ -14,6 +14,7 @@
 #include <boost/stacktrace.hpp>
 #include "utils/logger/logrus/bufferpool.h"
 #include "boost/xpressive/detail/utility/any.hpp"
+
 using Fields = std::unordered_map<std::string, boost::any>;  // 用户设置的所有字段
 class Logger;
 class Entry : public std::enable_shared_from_this<Entry> {

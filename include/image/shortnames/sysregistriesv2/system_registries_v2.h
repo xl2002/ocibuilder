@@ -13,6 +13,10 @@
 #include "image/shortnames/sysregistriesv2/shortnames.h"
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/ini_parser.hpp>
+
+extern std::string builtinRegistriesConfPath;
+extern std::string userRegistriesFile;
+extern std::string userRegistriesDir;
 // configWrapper 用于存储 ConfigPath 和 ConfigDirPath 的路径
 // 并作为内部缓存的键。
 struct configWrapper {

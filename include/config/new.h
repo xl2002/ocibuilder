@@ -18,6 +18,10 @@
 #include <boost/property_tree/json_parser.hpp>
 // #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/ini_parser.hpp>
+extern std::shared_ptr<myerror> cachedConfigError;
+extern std::shared_ptr<Config> cachedConfig;
+extern std::string containersConfEnv;
+extern std::string containersConfOverrideEnv;
 // Options类用于通过New()函数加载配置。
 class Options {
 public:
