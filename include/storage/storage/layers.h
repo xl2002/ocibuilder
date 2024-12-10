@@ -8,6 +8,7 @@
 #include <chrono>
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/thread/thread.hpp>
+#include <unordered_set>
 #include "storage/lockfile/lockfile.h"
 #include "storage/lockfile/lastwrite.h"
 #include "image/types/define/types.h"
