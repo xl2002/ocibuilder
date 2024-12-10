@@ -1236,7 +1236,7 @@ void ImageStore::SetFlag(const std::string& id, const std::string& flag, const s
  */
 std::shared_ptr<rwLayerStore_interface> Store::bothLayerStoreKinds(){
 // 只需要返回rwLayerStore
-    return nullptr;
+    return bothLayerStoreKindsLocked();
 }
 /**
  * @brief 得到overlay中layer

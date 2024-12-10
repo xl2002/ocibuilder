@@ -86,61 +86,17 @@ std::ofstream createTar(const std::string& tarFilePath, const fs::path& director
 // 创建 tarFilterer 函数
 std::shared_ptr<tarFilterer> newTarFilterer(const std::string& tarFilePath, const fs::path& directory)
 {
-    // 创建tarFilterer对象
+    // 创建 tarFilterer 对象
     auto filterer = std::make_shared<tarFilterer>();
 
-    // 打开输出文件流用于写tar文件
-    filterer->pipeWriter_TarHeader.open(tarFilePath, std::ios::binary);
-    if (!filterer->pipeWriter_TarHeader.is_open()) {
-        throw std::runtime_error("无法打开文件: " + tarFilePath);
+    // 直接调用 createTar 函数来创建 tar 文件
+    try {
+        filterer->pipeWriter_TarHeader = createTar(tarFilePath, directory);
+    } catch (const myerror& e) {
+        throw;
     }
 
-    // 创建tarWriter对象
-    tarpp::Tar tarWriter(filterer->pipeWriter_TarHeader);
-
-    // 使用Boost文件系统递归遍历目录
-    for (fs::recursive_directory_iterator it(directory), end; it != end; ++it) {
-        const fs::path& filePath = *it;
-        
-        if (fs::is_directory(filePath)) {
-            // 跳过目录
-            continue;
-        }
-
-        // 为每个文件创建TarHeader
-        tarpp::details::TarHeader header;
-        tarpp::details::format_name(header, filePath.filename().string());  // 格式化文件名
-        tarpp::format::format_octal(header.header_.mode_, 0644);
-        tarpp::format::format_octal(header.header_.uid_, 1000);
-        tarpp::format::format_octal(header.header_.gid_, 1000);
-        tarpp::format::format_octal_no_null(header.header_.size_, fs::file_size(filePath));
-        tarpp::format::format_octal_no_null(header.header_.mtime_, 0);
-        header.header_.type_[0] = '0';  // 常规文件
-        tarpp::format::format_string_opt_null(header.header_.linkname_, "");
-        tarpp::format::format_string(header.header_.uname_, "user");
-        tarpp::format::format_string(header.header_.gname_, "group");
-
-        // 设置校验和
-        tarWriter.set_checksum(header);
-
-        // 将Header写入tar文件
-        tarWriter.add(filePath.filename().string(), "", tarpp::TarFileOptions{});
-
-        // 处理文件内容（如果有）
-        if (header.header_.size_ != 0) {
-            std::ifstream file(filePath.string(), std::ios::binary);
-            if (!file.is_open()) {
-                throw std::runtime_error("无法打开文件: " + filePath.string());
-            }
-
-            std::string fileContent((std::istreambuf_iterator<char>(file)),
-                                     std::istreambuf_iterator<char>());
-            tarWriter.add(filePath.filename().string(), fileContent);
-        }
-    }
-
-    // 返回创建的tarFilterer对象
-    return filterer;
+    return filterer;  // 返回创建的 tarFilterer 对象
 }
 
 
