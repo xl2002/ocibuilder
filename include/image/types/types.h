@@ -110,10 +110,12 @@ struct ImageInspectInfo {
 
 struct UnparsedImage_interface{
     virtual ~UnparsedImage_interface()=default;
+    virtual std::tuple<std::vector<uint8_t>,std::string> Manifest()=0;
 };
 struct Image_interface:public UnparsedImage_interface{
     virtual ~Image_interface()=default;
     virtual std::shared_ptr<ImageInspectInfo> Inspect() = 0;
+    virtual std::vector<uint8_t> ConfigBlob() = 0;
 };
 
 struct ImageDestination_interface{

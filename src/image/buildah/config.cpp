@@ -7,7 +7,7 @@
 void Builder::initConfig(std::shared_ptr<Image_interface> img,std::shared_ptr<SystemContext> sys){
     
     if(img!=nullptr){
-
+        
     }
 }
 void Builder::SetAnnotation(std::string key,std::string value){

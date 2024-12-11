@@ -74,9 +74,12 @@ std::shared_ptr<Builder> newBuilder(std::shared_ptr<Store> store,std::shared_ptr
             throw;
         }
     }
+    std::shared_ptr<Container> container;
+    std::string tmpName="working-container";
+    auto coptions=std::make_shared<ContainerOptions>();
+    coptions->labelOpts=options->CommonBuildOpts->LabelOpts;
 
-
-
+    container=store->CreateContainer("",{tmpName},imageID,"","",coptions);
     
     auto builder=std::make_shared<Builder>();
     builder->store=store;
@@ -85,6 +88,8 @@ std::shared_ptr<Builder> newBuilder(std::shared_ptr<Store> store,std::shared_ptr
     builder->FromImageID=imageID;
     builder->FromImageDigest=imageDigest;
     builder->GroupAdd=options->GroupAdd;
+    builder->Container=tmpName;
+    builder->ContainerID=container->ID;
     builder->DefaultMountsFilePath=options->DefaultMountsFilePath;
     builder->Isolation=options->Isolation;
     builder->ConfigureNetwork=options->ConfigureNetwork;
