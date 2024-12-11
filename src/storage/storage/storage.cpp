@@ -1234,30 +1234,72 @@ void ImageStore::SetFlag(const std::string& id, const std::string& flag, const s
  * 
  * @return std::shared_ptr<rwLayerStore_interface> 
  */
-std::shared_ptr<rwLayerStore_interface> Store::bothLayerStoreKinds(){
-// 只需要返回rwLayerStore
-    return bothLayerStoreKindsLocked();
+std::shared_ptr<rwLayerStore_interface> Store::bothLayerStoreKinds() {
+    try {
+        // 只需要返回rwLayerStore
+        return bothLayerStoreKindsLocked();
+    } catch (const myerror& e) {
+        throw myerror("Error in bothLayerStoreKinds: ");  // 重新抛出myerror
+    }
 }
+
 /**
  * @brief 得到overlay中layer
  * 
  * @return std::shared_ptr<rwLayerStore_interface> 
  */
-std::shared_ptr<rwLayerStore_interface>  Store::bothLayerStoreKindsLocked(){
-    // 只需要primary
-    return nullptr;
+std::shared_ptr<rwLayerStore_interface> Store::bothLayerStoreKindsLocked() {
+    // 获取 primary layer store
+    auto primary = getLayerStoreLocked();
+    if (!primary) {
+        throw myerror("Error loading primary layer store");
+    }
+    
+    // 这里只需要返回 primary，不需要处理只读层
+    return primary;
 }
+
 /**
  * @brief 返回overly的内容
  * 
  * @return std::shared_ptr<rwLayerStore_interface> 
  */
-std::shared_ptr<rwLayerStore_interface> Store::getLayerStoreLocked(){
-    // 检查路径是否存在
+std::shared_ptr<rwLayerStore_interface> Store::getLayerStoreLocked() {
+    try {
+        // 检查路径是否存在，模拟 Go 中的路径处理
+        std::string driverPrefix = this->graph_driver_name + "-";
+        
+        // 假设 s.runRoot 是 Store 的成员变量
+        boost::filesystem::path rlpath = boost::filesystem::path(this->run_root) / (driverPrefix + "layers");
+        boost::filesystem::path glpath = boost::filesystem::path(this->graph_root) / (driverPrefix + "layers");
 
 
-    // 调用newLayerStore返回overlay的内容
-    return nullptr;
+        // 创建路径
+        if (!boost::filesystem::exists(rlpath)) {
+            boost::filesystem::create_directories(rlpath);
+        }
+        if (!boost::filesystem::exists(glpath)) {
+            boost::filesystem::create_directories(glpath);
+        }
+
+        // 检查 imageStoreDir 是否存在
+        std::string ilpath = "";
+        // if (!this->imageStoreDir.empty()) {
+        //     ilpath = this->imageStoreDir + "/" + driverPrefix + "layers";
+        // }
+
+        // 调用 newLayerStore 函数
+        auto rls = this->newLayerStore(rlpath.string(), glpath.string(), ilpath, this->graph_driver, this->transient_store);
+        if (!rls) {
+            throw myerror("Failed to create layer store");
+        }
+
+        this->layer_store_use_getters = rls;
+        return rls;
+    } catch (const myerror& e) {
+        std::cerr << "Error in getLayerStoreLocked: " << e.what() << std::endl;
+        throw;
+    }
 }
 /**
  * @brief 读取overlay中的layer
@@ -1269,16 +1311,57 @@ std::shared_ptr<rwLayerStore_interface> Store::getLayerStoreLocked(){
  * @param transient 
  * @return std::shared_ptr<rwLayerStore_interface> 
  */
-std::shared_ptr<rwLayerStore_interface> Store::newLayerStore(std::string rundir, std::string layerdir, std::string imagedir,std::shared_ptr<Driver> driver,bool transient){
-    // 检查路径是否 有效
+std::shared_ptr<rwLayerStore_interface> Store::newLayerStore(
+    std::string rundir, 
+    std::string layerdir, 
+    std::string imagedir,
+    std::shared_ptr<Driver> driver,
+    bool transient) {
 
+    try {
+        // 检查路径是否有效并创建目录
+        if (!boost::filesystem::exists(rundir)) {
+            if (!boost::filesystem::create_directories(rundir)) {
+                throw myerror("Failed to create rundir: " + rundir);
+            }
+        }
+        if (!boost::filesystem::exists(layerdir)) {
+            if (!boost::filesystem::create_directories(layerdir)) {
+                throw myerror("Failed to create layerdir: " + layerdir);
+            }
+        }
+        if (!imagedir.empty() && !boost::filesystem::exists(imagedir)) {
+            if (!boost::filesystem::create_directories(imagedir)) {
+                throw myerror("Failed to create imagedir: " + imagedir);
+            }
+        }
 
-    // lockfile可以先不管
-    // 新建layerStore
+        // 使用 std::make_shared 创建 rwLayerStore_interface 对象
+        auto layerstore = std::make_shared<layerStore>();
+        
+        // 逐个赋值初始化成员变量
+        layerstore->rundir = rundir;
+        layerstore->layerdir = layerdir;
+        layerstore->driver = driver;
+                // 初始化映射
+        layerstore->byid = std::map<std::string, std::shared_ptr<Layer>>();
+        layerstore->byname = std::map<std::string, std::shared_ptr<Layer>>();
+        layerstore->bymount = std::map<std::string,std::shared_ptr<Layer>>();
+        
+        std::string volatileDir = transient ? rundir : layerdir; // 如果 transient 为 true，使用 rundir 作为 volatileDir
+        layerstore->jsonPath[0] = (boost::filesystem::path(layerdir) / "layers.json").string();
+        layerstore->jsonPath[1] = (boost::filesystem::path(volatileDir) / "volatile-layers.json").string();
 
-    // 调用load函数读取overlay的内容
-    
-    return nullptr;
+        // 调用 load 方法读取 overlay 内容
+        if (!layerstore->load(true)) {
+            throw myerror("Failed to load overlay content.");
+        }
+
+        return layerstore;
+    } catch (const myerror& ex) {
+        std::cerr << "Layer store initialization error: " << ex.what() << std::endl;
+        return nullptr;
+    }
 }
 /**
  * @brief 在overlay中创建copy的layer，新建container的信息，并不创建文件夹

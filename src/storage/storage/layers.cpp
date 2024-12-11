@@ -1,4 +1,5 @@
 #include "storage/storage/layers.h"
+using namespace boost::json;
 std::vector<std::string> dedupeStrings(const std::vector<std::string>& names) {
     std::unordered_set<std::string> seen;  // 用于记录已出现的元素
     std::vector<std::string> deduped;  // 用于保存去重后的结果
@@ -210,6 +211,75 @@ std::tuple<std::shared_ptr<Layer>,int64_t> layerStore::create(
         throw myerror("Error: " + std::string(e.what()));
     }
 }
+void removeName(const std::shared_ptr<Layer>& layer, const std::string& name, 
+                std::map<std::string, std::shared_ptr<Layer>>& tempNames) {
+    if (!layer) {
+        throw myerror("Invalid layer: nullptr provided");
+    }
+
+    // 从 tempNames 中删除映射
+    auto it = tempNames.find(name);
+    if (it != tempNames.end() && it->second == layer) {
+        tempNames.erase(it);
+        std::cout << "Removed name: " << name << " from tempNames" << std::endl;
+    } else {
+        std::cout << "Name: " << name << " not found in tempNames for this layer" << std::endl;
+    }
+
+    // 从 layer->Names 中删除
+    auto& names = layer->Names;
+    auto nameIt = std::find(names.begin(), names.end(), name);
+    if (nameIt != names.end()) {
+        names.erase(nameIt);
+        std::cout << "Removed name: " << name << " from layer ID: " << layer->ID << std::endl;
+    } else {
+        std::cout << "Name: " << name << " not found in layer ID: " << layer->ID << std::endl;
+    }
+}
+// 从 JSON 字符串解析成 std::vector<std::shared_ptr<Layer>>
+std::vector<std::shared_ptr<Layer>> parseLayersFromJson(const std::string& jsonData) {
+    std::vector<std::shared_ptr<Layer>> layers;
+
+    try {
+        // 解析 JSON 数据字符串
+        value jv = parse(jsonData);
+        const auto& arr = jv.as_array();
+
+        for (const auto& item : arr) {
+            const auto& obj = item.as_object();
+
+            auto layer = std::make_shared<Layer>();
+            layer->ID = obj.at("ID").as_string().c_str();
+            layer->Parent = obj.at("Parent").as_string().c_str();
+            layer->Metadata = obj.at("Metadata").as_string().c_str();
+            layer->MountLabel = obj.at("MountLabel").as_string().c_str();
+            layer->MountPoint = obj.at("MountPoint").as_string().c_str();
+            layer->mountCount = obj.at("mountCount").as_int64();
+            layer->compressedSize = obj.at("compressedSize").as_int64();
+            layer->uncompressedSize = obj.at("uncompressedSize").as_int64();
+            layer->readOnly = obj.at("readOnly").as_bool();
+            layer->volatileStore = obj.at("volatileStore").as_bool();
+
+            // 解析 Names 数组
+            const auto& namesArr = obj.at("Names").as_array();
+            for (const auto& name : namesArr) {
+                layer->Names.push_back(name.as_string().c_str());
+            }
+
+            // 解析 BigDataNames 数组
+            const auto& bigDataNamesArr = obj.at("BigDataNames").as_array();
+            for (const auto& bigName : bigDataNamesArr) {
+                layer->BigDataNames.push_back(bigName.as_string().c_str());
+            }
+
+            layers.push_back(layer);
+        }
+    } catch (const std::exception& ex) {
+        std::cerr << "Failed to parse JSON: " << ex.what() << std::endl;
+    }
+
+    return layers;
+}
 /**
  * @brief 加载layer
  * 
@@ -217,7 +287,74 @@ std::tuple<std::shared_ptr<Layer>,int64_t> layerStore::create(
  * @return true 
  * @return false 
  */
-bool layerStore::load(bool lockedForWriting){
-    //比较复杂
-    return false;
+// 修改后的 layerStore::load 实现
+bool layerStore::load(bool lockedForWriting) {
+    try {
+        std::vector<std::shared_ptr<Layer>> tempLayers;
+        std::map<std::string, std::shared_ptr<Layer>> tempIds;
+
+        for (const auto& [index, path] : jsonPath) {
+            // 检查文件是否存在
+            boost::filesystem::path jsonFile(path);
+            if (!boost::filesystem::exists(jsonFile)) {
+                continue; // 文件不存在，跳过
+            }
+
+            // 读取文件内容
+            std::ifstream file(path);
+            if (!file.is_open()) {
+                throw myerror("Failed to open file: " + path);
+            }
+
+            std::string jsonData((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+            file.close();
+
+            // 调用 unmarshal 函数解析 JSON 数据
+            std::vector<std::shared_ptr<Layer>> parsedLayers = parseLayersFromJson(jsonData);
+
+            // 添加层到临时列表
+            for (const auto& layer : parsedLayers) {
+                if (tempIds.find(layer->ID) != tempIds.end()) {
+                    continue; // 忽略重复ID的层
+                }
+                tempLayers.push_back(layer);
+                tempIds[layer->ID] = layer;
+            }
+        }
+
+        std::map<std::string, std::shared_ptr<Layer>> tempNames;
+        std::map<Digest, std::vector<std::string>> tempCompressedSums;
+        std::map<Digest, std::vector<std::string>> tempUncompressedSums;
+
+        for (const auto& layer : tempLayers) {
+            for (const auto& name : layer->Names) {
+                if (tempNames.find(name) != tempNames.end()) {
+                    // 从 tempNames 和 layer->Names 中移除名称
+                    removeName(tempNames[name], name, tempNames);
+                }
+                tempNames[name] = layer;
+            }
+
+            if (!layer->CompressedDigest) {
+                tempCompressedSums[*layer->CompressedDigest].push_back(layer->ID);
+            }
+            if (!layer->UncompressedDigest) {
+                tempUncompressedSums[*layer->UncompressedDigest].push_back(layer->ID);
+            }
+
+        }
+
+        // 将临时数据赋值到正式成员
+        layers = std::move(tempLayers);
+        byid = std::move(tempIds);
+        byname = std::move(tempNames);
+        bycompressedsum = std::move(tempCompressedSums);
+        byuncompressedsum = std::move(tempUncompressedSums);
+
+        return true;
+    } catch (const myerror& e) {
+        // 捕获并处理 myerror 类型错误
+        std::cerr << "Error in layerStore::load: " << e.what() << std::endl;
+        return false;
+    }
 }
