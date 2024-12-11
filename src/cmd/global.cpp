@@ -8,7 +8,7 @@
 std::map<std::string,bool> replaceEnvAllowed;
 std::map<std::string,bool> allowWordExpansion;
 
-Command rootcmd;                         ///<声明全局根命令
+                        ///<声明全局根命令
 std::shared_ptr<Config> defaultContainerConfig;    ///<声明全局镜像config
 int exitcode;                            ///<声明全局程序结束标志
 globalFlags globalFlagOptions;           ///<声明全局标签选项
@@ -37,7 +37,7 @@ void init_cmd(){
         {"copy",true},
     };
     allowWordExpansion={{"expose",true}};
-    rootcmd=init_rootcmd(); ///<定义rootcmd，作为全局变量
+    
     defaultContainerConfig=nullptr;
     globalFlagOptions={};
     exitcode=0;

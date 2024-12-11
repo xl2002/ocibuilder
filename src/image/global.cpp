@@ -84,7 +84,7 @@ void init_image(){
     // DigestRegexpAnchored 匹配有效的摘要类型，要求匹配从开始到结束。
     DigestRegexpAnchored.assign("^[a-z0-9]+(?:[.+_-][a-z0-9]+)*:[a-zA-Z0-9=_-]+$");
 
-    builtinRegistriesConfPath="D:\\oci_images\\registries.conf";
+    builtinRegistriesConfPath=".\\oci_images\\registries.conf";
     userRegistriesFile=".config/containers/registries.conf";
     userRegistriesDir=".config/containers/registries.conf.d";
 

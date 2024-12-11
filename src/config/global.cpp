@@ -120,7 +120,7 @@ void init_config(){
     DefaultContainersConfig = "/usr/share/" + _configPath;
 	// DefaultSignaturePolicyPath is the default value for the
 	// policy.json file.
-    DefaultSignaturePolicyPath = "D:\\oci_images\\policy.json";
+    DefaultSignaturePolicyPath = ".\\oci_images\\policy.json";
     // getDefaultProcessLimits 返回当前进程的nproc限制，格式为ulimits
     // 注意：nfile有时不能设置为无限制，限制硬编码为(oldMaxSize) 1048576 (2^20)，参见：http://stackoverflow.com/a/1213069/1811501
     // 在无特权容器中，这将失败，进程将使用其当前的限制

@@ -160,17 +160,17 @@ Driver Init(const std::string& home, const driver_Options& options) {
         
         // 获取文件系统魔术值
         auto fsMagic = GetFSMagic(home);
-        std::string fsName = FsNames.count(fsMagic) ? FsNames[fsMagic] : "<unknown>";
-        
-        boost::filesystem::path runhomePath = boost::filesystem::path(options.runRoot) / boost::filesystem::path(home).filename();
+        std::string fsName = FsNames.count(fsMagic) ? FsNames[fsMagic] : "windows";
+        auto basefile=boost::filesystem::path(home).filename();
+        boost::filesystem::path runhomePath = boost::filesystem::path(options.runRoot) / basefile;
         std::string runhome = runhomePath.make_preferred().string(); // 使用make_preferred()确保路径分隔符一致
 
         int rootUID=0, rootGID=0;
         const string linkDir = "l";
         // 创建驱动程序主目录
-        if (!MkdirAllAs(Join({home, linkDir}), 0755, 0, 0)) {
-            throw myerror("Failed to create directory for home");
-        }
+        // if (!MkdirAllAs(Join({home, linkDir}), 0755, 0, 0)) {
+        //     throw myerror("Failed to create directory for home");
+        // }
 
         // // if (!options.ImageStore.empty() && !idtools::MkdirAllAs(options.ImageStore + "/" + linkDir, 0755, 0, 0)) {
         //     throw myerror("Failed to create directory for image store");

@@ -24,7 +24,7 @@
 using namespace std;
 
 enum class LockType { ReadLock, WriteLock };
-typedef std::shared_ptr<boost::filesystem::ofstream> fileHandle;
+typedef std::shared_ptr<boost::filesystem::fstream> fileHandle;
 class lockFile {
 public:
     lockFile() = default;
@@ -53,6 +53,7 @@ public:
 public:
     void Lock();
     void lock(LockType lType);
+    void Unlock();
     lastwrite GetLastWrite();
     void AssertLocked();
     bool IsReadWrite() const {
@@ -63,5 +64,6 @@ public:
     lastwrite RecordWrite();
 };
 std::shared_ptr<lockFile> GetLockFile(const std::string& path);
+void unlockAndCloseHandle(fileHandle fd);
 extern std::map<std::string, std::shared_ptr<lockFile>> lockFiles;
 #endif

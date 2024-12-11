@@ -257,7 +257,7 @@ vector<string> getContainerfiles(vector<string> files) {
     vector<string> ret_containerfiles;
     for (auto it : files) {
         if (it == "-") {
-            ret_containerfiles.emplace_back("D://");
+            ret_containerfiles.emplace_back(".//");
         } else {
             ret_containerfiles.emplace_back(it);
         }

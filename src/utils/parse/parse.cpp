@@ -7,6 +7,7 @@
 #include "utils/logger/logrus/exported.h"
 #include <boost/filesystem.hpp>
 #include "config/defaut.h"
+#include "storage/types/options.h"
 /**
  * @brief 根据命令的标志来确定 pull 策略
  * 
@@ -159,7 +160,7 @@ std::string GetTempDir() {
     //     std::cerr << "Error getting default config: " << e.what() << std::endl;
     // }
 
-    return "D:/tmp";
+    return defaultGraphRoot+"/tmp";
 }
 
 /**

@@ -992,9 +992,10 @@ void load(Store* s) {
             auto driver = s->createGraphDriverLocked(); // 创建 Driver
             if (!driver) {
                 throw myerror("Failed to create graph driver.");
-            }
+            } 
             s->graph_driver = driver;
             s->graph_driver_name = driver->String(); // 这里假设 Driver 有一个 String 方法
+            s->graph_lock->Unlock();
             return driver;
         }();
 
