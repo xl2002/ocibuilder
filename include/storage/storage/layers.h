@@ -153,7 +153,7 @@ struct layerStore:public rwLayerStore_interface{
     std::shared_ptr<multipleLockFile> lockfile=std::make_shared<multipleLockFile>();
     std::shared_ptr<lockFile> mountsLockfile=std::make_shared<lockFile>();
     std::string rundir;
-    std::map<int,string> jsonPath;
+    std::map<int,std::string> jsonPath;
     std::string layerdir;
     mutable boost::shared_mutex inProcessLock; // 可重入读写锁
     lastwrite lastWrite;                    // 最后写入时间
