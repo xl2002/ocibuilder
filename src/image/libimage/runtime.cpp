@@ -276,4 +276,29 @@ std::shared_ptr<LibImage::Image> Runtime::storageToImage(std::shared_ptr<storage
     image->storageReference=ref;
     return image;
 }
+/**
+ * @brief 从source推送镜像到destination
+ * 
+ * @param source 
+ * @param destination 
+ * @param options 
+ * @return std::vector<uint8_t> 
+ */
+std::vector<uint8_t> Runtime::Push(std::string source,std::string destination,std::shared_ptr<PushOptions> options){
+    // 1. 从镜像库里读取镜像
+    // image, resolvedSource, err := r.LookupImage(source, nil)
 
+    // 2. 获得镜像相关的信息
+    // srcRef, err := image.StorageReference()
+
+    // 3. 分析目标位置信息
+    // destRef, err := alltransports.ParseImageName(destination)
+
+    // 4. 构建dockerclient和dest准备上传镜像
+
+    // 5. 获得目标仓库的令牌token
+
+    // 6. 获得镜像所有层的ID，循环每一层，读取每一层的数据，传输到远程库相应的位置
+    // 传输逻辑：首先判断远程端是否有同名的镜像层，如果有，就跳过，如果没有，就上传
+    return std::vector<uint8_t>();
+}

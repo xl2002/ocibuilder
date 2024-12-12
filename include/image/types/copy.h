@@ -112,4 +112,6 @@ struct copyLayerData{
     std::shared_ptr<Digest> diffID=std::make_shared<Digest>();
     copyLayerData()=default;
 };
+
+
 #endif // COPY_COPY_H

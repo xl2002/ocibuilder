@@ -114,6 +114,11 @@ struct Manifest{
     std::shared_ptr<Descriptor> Subject=std::make_shared<Descriptor>();
     std::map<std::string, std::string> Annotations;
     Manifest()=default;
-
+    friend void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const Manifest& image) {
+        
+    }
+    friend void tag_invoke(boost::json::value_to_tag<Manifest>, const boost::json::value& jv, Manifest& image) {
+        
+    }
 };
 #endif // V1_CONFIG_H)

@@ -47,23 +47,23 @@ void init_storage(){
     mountProgramFlagFile = ".has-mount-program";
     #ifdef WIN32
     /// @brief defaultConfigFile 系统范围的 storage.conf 文件的路径
-    defaultConfigFile = "D:\\oci_images\\storage.conf";
+    defaultConfigFile = ".\\oci_images\\storage.conf";
     // std::string storageConfEnv = "STORAGE_CONF_ENV";
     /// @brief 
-    defaultOverrideConfigFile = "D:\\storage.conf";
-    defaultRunRoot = "D:\\oci_images";
+    defaultOverrideConfigFile = ".\\storage.conf";
+    defaultRunRoot = ".\\oci_images";
     // const string defaultRunRoot = "/run/containers/storage";
-    defaultGraphRoot = "D:\\oci_images";
+    defaultGraphRoot = ".\\oci_images";
     // const string defaultGraphRoot = "/var/lib/containers/storage";
     #else
     /// @brief defaultConfigFile 系统范围的 storage.conf 文件的路径
-    defaultConfigFile = "D:/oci_images/storage.conf";
+    defaultConfigFile = "./oci_images/storage.conf";
     // std::string storageConfEnv = "STORAGE_CONF_ENV";
     /// @brief 
-    defaultOverrideConfigFile = "D:/storage.conf";
-    defaultRunRoot = "D:/oci_images";
+    defaultOverrideConfigFile = "./storage.conf";
+    defaultRunRoot = "./oci_images";
     // const string defaultRunRoot = "/run/containers/storage";
-    defaultGraphRoot = "D:/oci_images";
+    defaultGraphRoot = "./oci_images";
     // const string defaultGraphRoot = "/var/lib/containers/storage";
     #endif
     AutoUserNsMinSize=1024;

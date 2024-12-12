@@ -417,7 +417,7 @@ struct eventsLogMaxSize{
     eventsLogMaxSize()=default;
     eventsLogMaxSize(uint64_t v):value(v){};
 };
-
+struct IPNet;
 struct SubnetPool{
     std::shared_ptr<IPNet> Base=std::make_shared<IPNet>();
     int Size=0;

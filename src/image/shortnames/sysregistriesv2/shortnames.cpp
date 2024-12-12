@@ -12,7 +12,7 @@ std::tuple<std::shared_ptr<Named_interface>,std::string> ResolveShortNameAlias(s
     }catch(const myerror& e){
         throw;
     }
-    auto confPath="D:\\oci_images\\short-name-aliases.conf";
+    auto confPath=".\\oci_images\\short-name-aliases.conf";
     std::mutex mtx;
     std::lock_guard<std::mutex> lock(mtx);
     std::shared_ptr<shortNameAliasCache> aliasCache;

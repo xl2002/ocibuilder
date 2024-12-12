@@ -38,6 +38,7 @@ std::shared_ptr<Digest> Algorithm_sha256::FromString(const std::string& data) {
  * @return std::shared_ptr<Digest> 返回对应的Digest指针
  */
 std::shared_ptr<Digest> Algorithm_sha256::FromBytes(std::vector<uint8_t> p){
+    
     return nullptr;
 }
 /**

@@ -96,18 +96,23 @@ void lockHandle(const std::string& filePath, LockType lType) {
 // openLock 实现boost版本
 fileHandle openLock(const std::string& path, bool ro) {
     namespace fs = boost::filesystem;
-    std::ios_base::openmode mode = fs::ofstream::out | fs::ofstream::binary;
+    std::ios_base::openmode mode = fs::fstream::out | fs::fstream::binary;
 
     if (ro) {
-        mode = fs::ifstream::in | fs::ifstream::binary;
+        mode = fs::fstream::in | fs::fstream::binary;
     } else {
-        mode |= fs::ifstream::in;
+        mode |= fs::fstream::in;
     }
 
     // 尝试打开文件
     try {
-        // 创建 std::shared_ptr<boost::filesystem::ofstream> 实例
-        auto fileStream = std::make_shared<fs::ofstream>(path, mode);
+        std::shared_ptr<fs::fstream> fileStream;
+        if (!fs::exists(path)) {
+            fileStream = std::make_shared<fs::fstream>(path, fs::fstream::out | fs::fstream::binary);
+        }else{
+            // 创建 std::shared_ptr<boost::filesystem::fstream> 实例
+            fileStream = std::make_shared<fs::fstream>(path, mode);
+        }
         if (!fileStream->is_open()) {
             throw myerror("Failed to open file: " + path);
         }
@@ -167,6 +172,22 @@ void lockFile::Lock() {
     } else {
         lock(LockType::WriteLock);
     }
+}
+void lockFile::Unlock(){
+    this->stateMutex.lock();
+    if(!this->locked){
+        
+    }
+    this->counter--;
+    if(this->counter == 0){
+        this->locked = false;
+        unlockAndCloseHandle(this->fd);
+    }
+    if(this->lockType==LockType::ReadLock){
+        this->rwMutex.unlock();
+    }
+    this->rwMutex.unlock();
+    this->stateMutex.unlock();
 }
 
 // 从数据创建 lastwrite 的函数
