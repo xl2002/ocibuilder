@@ -2,8 +2,22 @@
 #define NETWORK_NETWORK_H
 #include <string>
 #include <vector>
+#include <mutex>
+#include <tuple>
 #include <map>
+#include <boost/thread/once.hpp>
+#include <stdexcept>
+#include <boost/optional.hpp>
 #include <boost/asio/ip/network_v4.hpp>
+#include "image/types/define/types.h"
+#include <boost/asio.hpp>
+#include <boost/beast.hpp>
+#include <boost/json.hpp>
+namespace asio = boost::asio;
+namespace beast = boost::beast;
+namespace json = boost::json;
+using tcp = asio::ip::tcp;
+
 // #include <boost/asio/ip/network_v6.hpp>
 // #include <boost/asio.hpp>  // 使用 Boost 库中的 asio 进行网络处理
 class ContainerNetwork{
@@ -55,10 +69,94 @@ struct Network {
 };
 
 struct IPNet{
-    boost::asio::ip::address_v4 ipAddress;
+    asio::ip::address_v4 ipAddress;
     unsigned short prefixLength=0;
     IPNet() = default;
-    IPNet(boost::asio::ip::address_v4 ipAddress, unsigned short prefixLength)
+    IPNet(asio::ip::address_v4 ipAddress, unsigned short prefixLength)
         : ipAddress(ipAddress), prefixLength(prefixLength) {}
 };
+// struct DockerAuthConfig{
+//     std::string Username;
+//     std::string Password;
+//     std::string IdentityToken;
+//     // std::string serveraddress;
+// };
+struct authScope{
+    std::string resourceType;  
+    std::string remoteName;
+    std::string actions;
+    authScope() = default;
+};
+struct Userinfo{
+    std::string username;
+    std::string password;
+    bool passwordSet=false;
+    Userinfo() = default;
+};
+struct URL{
+    std::string scheme;        // 协议方案
+    std::string opaque;        // 编码的不透明数据
+    std::shared_ptr<Userinfo> user; // 用户名和密码信息
+    std::string host;          // 主机名或主机:端口
+    std::string path;          // 路径（相对路径可能省略前导斜杠）
+    std::string rawPath;       // 编码的路径提示（参见 EscapedPath 方法）
+    bool omitHost=false;             // 不输出空主机（authority）
+    bool forceQuery=false;           // 即使 RawQuery 为空也附加一个问号（'?'）
+    std::string rawQuery;      // 编码的查询值，不包括问号（'?'）
+    std::string fragment;      // 引用的片段，不包括井号（'#'）
+    std::string rawFragment;   // 编码的片段提示（参见 EscapedFragment 方法）
+    URL() = default;
+};
+struct challenge{
+    std::string Scheme;
+    std::map<std::string, std::string> Parameters;
+    challenge() = default;
+};
+struct DockerAuthConfig;
+struct SystemContext;
+struct dockerClient{
+    // 成员变量
+
+    // 以下成员由构造函数设置，之后不再更改。
+    std::shared_ptr<SystemContext> sys=std::make_shared<SystemContext>(); // 系统上下文
+    std::string registry;               // 注册表地址
+    std::string userAgent;              // 用户代理
+
+    // tlsClientConfig 由构造函数设置，可以被 detectProperties() 使用和更新。
+    // 调用者可以在此期间修改 tlsClientConfig->insecureSkipVerify。
+    // std::shared_ptr<TlsConfig> tlsClientConfig;
+    std::string tlsClientConfig;
+    // 以下成员未由构造函数设置，调用者需要在必要时手动设置。
+    std::shared_ptr<DockerAuthConfig> auth=std::make_shared<DockerAuthConfig>();                  // 鉴权配置
+    std::string registryToken;              // 注册表令牌
+    std::shared_ptr<URL> signatureBase=std::make_shared<URL>();     // 签名存储基础路径
+    bool useSigstoreAttachments=false;           // 是否使用 Sigstore 附件
+    std::shared_ptr<authScope> scope=std::make_shared<authScope>();                        // 鉴权范围
+
+    // 以下成员为检测到的注册表属性：
+    // 它们在 detectProperties() 成功后被设置，之后不再更改。
+    std::string client; // HTTP 客户端
+    std::string scheme;                // 协议方案
+    std::vector<challenge> challenges; // 挑战列表
+    bool supportsSignatures=false;           // 是否支持签名
+
+    // setupRequestAuth 的私有状态（键：string，值：BearerToken）。
+    std::map<std::string, std::string> tokenCache;
+    std::mutex tokenCacheMutex; // 保护 tokenCache 的互斥锁
+
+    // detectProperties 的私有状态：
+    boost::once_flag detectPropertiesOnce; // 确保 detectProperties() 最多执行一次。
+    boost::optional<std::string> detectPropertiesError; // 缓存初始错误。
+
+    // logResponseWarnings 的私有状态
+    std::mutex reportedWarningsLock;            // 保护 reportedWarnings 的互斥锁
+    // std::set<std::string> reportedWarnings;     // 已报告的警告集合
+
+    dockerClient()=default;
+    std::shared_ptr<URL>resolveRequestURL(std::string path);
+    bool setupRequestAuth(beast::http::request<beast::http::string_body> req,std::shared_ptr<authScope> extraScope);
+    std::tuple<beast::http::response<beast::http::string_body>,asio::streambuf> Do(asio::io_context& ioc,std::string hosttype,beast::http::request<beast::http::string_body> req);
+};
+beast::http::request<beast::http::string_body> NewRequest(std::string method, std::string path, std::map<std::string, std::string> headers,std::string body);
+
 #endif // TYPES_NETWORK_H)

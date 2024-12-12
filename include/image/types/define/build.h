@@ -198,6 +198,7 @@ struct IDMappingOptions;
 struct SystemContext;
 struct ConfidentialWorkloadOptions;
 struct SBOMScanOptions;
+struct DecryptConfig;
 class define_BuildOptions{
 	public:
 	// ContainerSuffix 为容器添加后缀的名称
