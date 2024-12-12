@@ -11,6 +11,7 @@
 #include "image/libimage/image.h"
 #include "image/types/reference/reference.h"
 #include "storage/storage/storage_transport.h"
+#include "image/libimage/push.h"
 // Runtime 负责管理镜像并将其存储在容器存储中
 struct LookupImageOptions;
 namespace LibImage{//由于头文件相互包含，提前声明
@@ -29,6 +30,7 @@ struct Runtime {
     std::tuple<std::shared_ptr<LibImage::Image>,std::string> LookupImage(std::string name,std::shared_ptr<LookupImageOptions> options);
     std::shared_ptr<LibImage::Image> lookupImageInLocalStorage(std::string name,std::string candidate,std::shared_ptr<Named_interface> namedCandidate,std::shared_ptr<LookupImageOptions> options);
     std::shared_ptr<LibImage::Image> storageToImage(std::shared_ptr<storage::Image> img,std::shared_ptr<ImageReference_interface> ref);
+    std::vector<uint8_t> Push(std::string source,std::string destination,std::shared_ptr<PushOptions> options);
 };
 struct RuntimeOptions {
     std::shared_ptr<::SystemContext> SystemContext=std::make_shared<::SystemContext>();

@@ -69,6 +69,13 @@ DEPS		:= $(OBJECTS:.o=.d)
 
 OUTPUTMAIN	:= $(call FIXPATH,$(OUTPUT)/$(MAIN))
 
+# test程序的变量
+LFLAGSTEST	:= -lboost_filesystem-mgw12-mt-x64-1_75 -lboost_iostreams-mgw12-mt-x64-1_75 -lboost_system-mgw12-mt-x64-1_75 -lboost_thread-mgw12-mt-x64-1_75 -lws2_32 -lboost_json-mgw12-mt-x64-1_75
+INCLUDETEST	:= -I include
+OUTPUTTEST		:= tests
+OUTPUTMAINTEST	:= $(call FIXPATH,$(OUTPUTTEST)/$(MAIN))
+SRCTEST		:= tests/net_test.cpp
+LIBSTEST	:= -L lib\boost-MinGW
 all: $(OUTPUT) $(MAIN)
 # $(RM) $(call FIXPATH,$(OBJECTS))
 # $(RM) $(call FIXPATH,$(DEPS))
@@ -83,6 +90,9 @@ $(MAIN): $(OBJECTS)
 # include all .d files
 -include $(DEPS)
 
+test:
+	$(CXX) $(CXXFLAGS) $(INCLUDETEST) -o $(OUTPUTMAINTEST) $(SRCTEST) $(LIBSTEST) $(LFLAGSTEST)
+# ./$(OUTPUTMAINTEST)
 # this is a suffix replacement rule for building .o's and .d's from .c's
 # it uses automatic variables $<: the name of the prerequisite of
 # the rule(a .c file) and $@: the name of the target of the rule (a .o file)
@@ -101,3 +111,4 @@ clean:
 run: all
 	./$(OUTPUTMAIN) 
 	@echo Executing 'run: all' complete!
+

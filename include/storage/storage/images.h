@@ -10,6 +10,7 @@
 #include <set>
 #include "image/digest/digest.h"
 #include "storage/lockfile/lockfile.h"
+#include <boost/json.hpp>
 namespace storage{
     // 表示一个镜像和相关的元数据的结构体
     struct Image {
@@ -56,6 +57,24 @@ namespace storage{
         // Flags 是一个可以存储任意键值对的标志集合
         std::map<std::string, std::string> Flags;
         void recomputeDigests();
+        /**
+         * @brief 反序列化
+         * 
+         * @param jv 
+         * @param image 
+         */
+        friend void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const Image& image){
+
+        }
+        /**
+         * @brief 序列化
+         * 
+         * @param jv 
+         * @param image 
+         */
+        friend void tag_invoke(boost::json::value_to_tag<Image>, const boost::json::value& jv, Image& image){
+
+        }
     };
     // struct ImageStore:public roImageStore_interface{
     //     // std::shared_ptr<::lockFile> lockfile=std::make_shared<::lockFile>();
