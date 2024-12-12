@@ -77,6 +77,34 @@
             },
             // "preLaunchTask": ""
             "preLaunchTask": "build"
+        },
+        {
+            "name": "Debugtest",
+            "type": "cppdbg",
+            "request": "launch",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "windows": {
+                "MIMode": "gdb",
+                "miDebuggerPath": "D:\\Program Files\\mingw64\\mingw64\\mingw64\\bin\\gdb.exe",
+                "program": "${workspaceFolder}/tests/main.exe"
+            },
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "logging": {
+                "engineLogging": true,
+                "trace": true // 启用跟踪
+            },
+            // "preLaunchTask": ""
+            "preLaunchTask": "build_test"
         }
     ]
 }
