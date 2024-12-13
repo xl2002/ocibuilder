@@ -1,5 +1,7 @@
 #include "storage/storage/storage.h"
 #include "utils/common/go/time.h"
+#include "utils/common/go/string.h"
+#include "utils/common/json.h"
 namespace fs = boost::filesystem;
 
 
@@ -15,76 +17,7 @@ string Join(const vector<string>& elem) {
     return join(elem);
 }
 shared_ptr<Driver> New(const string& name, const driver_Options& config);
-// shared_ptr<Driver> Store:: New(const string& name, const driver_Options& config) {
-//     if (!name.empty()) {
-//         // 如果指定了驱动名称，尝试加载指定的驱动，并记录到日志中,日志系统先不考虑
-//         // logDebug("[graphdriver] trying provided driver \"" + name + "\"");
-//         return GetDriver(name, config);
-//     }
 
-//     // 尝试加载之前使用的驱动
-//     auto driversMap = ScanPriorDrivers(config.root);
-
-//     // 使用提供的优先级列表，如果为空则使用默认的优先级列表
-//     vector<string> prioList = config.driverPriority;
-//     if (prioList.empty()) {
-//         prioList = Priority;
-//     }
-
-//     // 遍历优先级列表并尝试加载驱动
-//     for (const auto& name : prioList) {
-//         if (name == "vfs" && config.driverPriority.empty()) {
-//             // 如果优先级列表为空，跳过vfs驱动
-//             continue;
-//         }
-//         if (driversMap.find(name) != driversMap.end()) {
-//             // 如果在已加载的驱动中找到优先驱动，尝试加载并返回
-//             auto driver = getBuiltinDriver(name, config.root, config);
-//             if (!driver) {
-//                 // 如果加载失败，记录错误日志并返回错误
-//                 // logError("[graphdriver] prior storage driver " + name + " failed.");
-//                 throw myerror("Failed to load driver: " + name);
-//             }
-
-//             // 如果有多个已加载的驱动，要求用户显式选择一个驱动
-//             if (driversMap.size() - 1 > 0) {
-//                 vector<string> driversSlice;
-//                 for (const auto& kv : driversMap) {
-//                     driversSlice.push_back(kv.first);
-//                 }
-
-//                 throw myerror(config.root + " contains several valid graphdrivers: " +
-//                                 "; Please cleanup or explicitly choose storage driver (-s <DRIVER>)");
-//             }
-
-//             // logInfo("[graphdriver] using prior storage driver: " + name);
-//             return driver;
-//         }
-//     }
-
-//     // 按优先级列表顺序检查并加载驱动
-//     for (const auto& name : prioList) {
-//         auto driver = getBuiltinDriver(name, config.root, config);
-//         if (driver) {
-//             return driver;
-//         }
-//     }
-
-//     // 如果没有找到优先驱动，检查所有已注册的驱动
-//     for (auto& kv : drivers) {
-//         std::vector<std::string> pathComponents = {config.root, kv.first}; // 创建路径组件的向量
-//         std::string path = Join(pathComponents); // 连接路径
-//         driver_Options opts;
-//         opts.driverOptions = config.driverOptions; // 将现有的 vector<string> 分配给 Options 对象的 driverOptions
-//         auto driver = kv.second(path, opts); // 使用 Options 对象作为参数
-//         if (driver) {
-//             return driver;
-//         }
-//     }
-
-//     // 如果没有找到支持的存储驱动，抛出myerror类型的错误
-//     throw myerror("no supported storage backend found");
-// }
 
 shared_ptr<Driver> Store::createGraphDriverLocked() {
     // driver_Options config{
@@ -126,39 +59,48 @@ bool ImageStore::checkModified(lastwrite& lastWrite) {
 }
 // imagespath 函数的实现
 std::string ImageStore::imagespath(){
-    return Join({dir, "images.json"}); // Join 函数用于拼接路径，dir 是 imageStore 的成员变量
+    return Join({dir, "index.json"}); // Join 函数用于拼接路径，dir 是 imageStore 的成员变量
 }
 //parseJson 函数的实现
 bool parseJson(const vector<uint8_t>& data, vector<shared_ptr<storage::Image>>& images) {
     try {
+        // std::string index_str=vectorToString(data);
+        // storage::index Index=unmarshal<storage::index>(index_str);
+        // for(auto it:Index.manifests){
+        //     auto image = std::make_shared<storage::Image>();
+        //     image->ID=it.digest;
+        //     image->Names.push_back(it.annotations["org.opencontainers.image.ref.name"]);
+        //     image->Digests.emplace_back(it.digest);
+        //     images.push_back(image);
+        // }
         // Create a string from the binary data
-        std::string json_str(data.begin(), data.end());
+        // std::string json_str(data.begin(), data.end());
         
-        // Use a string stream to read the JSON
-        std::stringstream ss(json_str);
+        // // Use a string stream to read the JSON
+        // std::stringstream ss(json_str);
 
-        // Parse the JSON data
-        ptree root;
-        read_json(ss, root);
+        // // Parse the JSON data
+        // ptree root;
+        // read_json(ss, root);
+// 
+        // for (const auto& item : root) {
+        //     auto image = std::make_shared<storage::Image>();
+        //     image->ID = item.second.get<std::string>("id");
 
-        for (const auto& item : root) {
-            auto image = std::make_shared<storage::Image>();
-            image->ID = item.second.get<std::string>("id");
+        //     // Parse names
+        //     for (const auto& name : item.second.get_child("names")) {
+        //         image->Names.push_back(name.second.data());
+        //     }
 
-            // Parse names
-            for (const auto& name : item.second.get_child("names")) {
-                image->Names.push_back(name.second.data());
-            }
+        //     // Parse digests
+        //     for (const auto& digest : item.second.get_child("digests")) {
+        //         Digest d;
+        //         d.digest = digest.second.data();
+        //         image->Digests.push_back(d);
+        //     }
 
-            // Parse digests
-            for (const auto& digest : item.second.get_child("digests")) {
-                Digest d;
-                d.digest = digest.second.data();
-                image->Digests.push_back(d);
-            }
-
-            images.push_back(image);
-        }
+        //     images.push_back(image);
+        // }
     } catch (const std::exception& e) {
         throw myerror("Failed to parse JSON: " + std::string(e.what()));
     }
@@ -299,10 +241,12 @@ bool ImageStore::load(bool lockedForWriting) {
 
         // 读取镜像文件内容
         std::vector<uint8_t> data((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-
+        if(data.empty()) {
+            return false;
+        }
         std::vector<std::shared_ptr<storage::Image>> images;
         if (!data.empty()) {
-            // 使用 parseJson 函数解析数据
+            // 使用 parseJson 函数解析index数据
             if (!parseJson(data, images)) {
                 throw myerror("Failed to parse JSON from: " + rpath);
             }
@@ -440,7 +384,20 @@ shared_ptr<rwImageStore_interface> newImageStore(const string& dir) {
         if (!MkdirAll(dir)) {
             throw myerror("Failed to create directory: " + dir);
         }
-
+        if(!MkdirAll(Join({dir, "blobs/sha256"}))){
+            throw myerror("Failed to create directory: " + Join({dir, "blobs"}));
+        }
+        fs::path indexPath = Join({dir, "index.json"});
+        if(!fs::exists(indexPath)){
+            fs::ofstream file(indexPath, std::ios::out);
+            file.close();
+        }
+        fs::path layoutpath= Join({dir, "oci_layout"});
+        if(!fs::exists(layoutpath)){
+            fs::ofstream file(layoutpath, std::ios::out|std::ios::trunc);
+            file<<"{\"imageLayoutVersion\": \"1.0.0\"}";
+            file.close();
+        }
         // 获取锁文件
         auto lockfile = GetLockFile(Join({dir, "images.lock"}));
         if (!lockfile) {
@@ -449,7 +406,7 @@ shared_ptr<rwImageStore_interface> newImageStore(const string& dir) {
 
         // 初始化 ImageStore 结构
         auto istore = make_shared<ImageStore>();
-        istore->lockfile = lockfile;
+        // istore->lockfile = lockfile;
         istore->dir = dir;
 
         // 初始化 ImageStore 的其他成员
@@ -459,20 +416,20 @@ shared_ptr<rwImageStore_interface> newImageStore(const string& dir) {
         istore->bydigest = map<Digest, vector<shared_ptr<storage::Image>>>();
 
         // 开始写入操作
-        if (!istore->startWritingWithReload(false)) {
-            throw myerror("Failed to start writing with reload.");
-        }
+        // if (!istore->startWritingWithReload(false)) {
+        //     throw myerror("Failed to start writing with reload.");
+        // }
 
         // 获取最后写入的时间戳
-        istore->lastWrite = istore->lockfile->GetLastWrite();
-        if (istore->lastWrite.state.empty()) {
-            // throw myerror("Failed to get last write time.");
-        }
+        // istore->lastWrite = istore->lockfile->GetLastWrite();
+        // if (istore->lastWrite.state.empty()) {
+        //     // throw myerror("Failed to get last write time.");
+        // }
 
 
         // 加载数据
         if (!istore->load(true)) {
-            throw myerror("Failed to load image store.");
+            std::cout<<"第一次构建镜像，镜像仓库为空"<<std::endl;
         }
 
         return istore;
@@ -1005,7 +962,7 @@ void load(Store* s) {
         }
 
         // 获取 driverPrefix
-        string driverPrefix = s->graph_driver_name + "-";
+        string driverPrefix = "oci_";
 
         // 获取 imgStoreRoot 路径
         string imgStoreRoot = s->image_store_dir;
@@ -1014,7 +971,7 @@ void load(Store* s) {
         }
 
         // 创建图像存储目录
-        string gipath = Join({imgStoreRoot, driverPrefix + "images"});
+        string gipath = Join({imgStoreRoot, driverPrefix + "registry"});
         if (!MkdirAll(gipath)) {
             throw myerror("Failed to create directory: " + gipath);
         }

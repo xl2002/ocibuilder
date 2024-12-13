@@ -27,7 +27,7 @@ struct OCI1:public Manifest{
      * @param jv 
      * @param image 
      */
-    friend void tag_invoke(boost::json::value_to_tag<OCI1>, const boost::json::value& jv, OCI1& image) {
+    friend OCI1 tag_invoke(boost::json::value_to_tag<OCI1>, const boost::json::value& jv) {
         
     }
 };

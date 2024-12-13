@@ -11,6 +11,7 @@
 #include "image/digest/digest.h"
 #include "storage/lockfile/lockfile.h"
 #include <boost/json.hpp>
+#include <boost/array.hpp>
 namespace storage{
     // 表示一个镜像和相关的元数据的结构体
     struct Image {
@@ -72,25 +73,59 @@ namespace storage{
          * @param jv 
          * @param image 
          */
-        friend void tag_invoke(boost::json::value_to_tag<Image>, const boost::json::value& jv, Image& image){
+        friend Image tag_invoke(boost::json::value_to_tag<Image>, const boost::json::value& jv){
 
         }
     };
-    // struct ImageStore:public roImageStore_interface{
-    //     // std::shared_ptr<::lockFile> lockfile=std::make_shared<::lockFile>();
-    //     std::string dir;
-    //         // 以下字段需使用 inProcessLock 进行同步访问
-    //     // mutable std::shared_timed_mutex inProcessLock; // C++11 的读写锁
+    struct manifest{
+        std::string mediaType;
+        std::string digest;
+        uint64_t size=0;
+        std::map<std::string, std::string> annotations;
+        manifest()=default;
+        // 序列化
+        friend void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const manifest& m) {
+            jv = boost::json::object{
+                {"mediaType", m.mediaType},
+                {"digest", m.digest},
+                {"size", m.size}
+            };
+        }
 
-    //     // 需持有 inProcessLock 的读/写锁才能读/写以下字段
-    //     // LastWrite lastWrite;
-    //     std::vector<std::shared_ptr<Image>> images;
-    //     // TruncIndex* idindex;
-    //     std::map<std::string, std::shared_ptr<Image>> byid;
-    //     std::map<std::string, std::shared_ptr<Image>> byname;
-    //     std::map<Digest, std::vector<std::shared_ptr<Image>>> bydigest;
-    //     std::shared_ptr<Image> Get(const std::string& id) override;
-    //     std::shared_ptr<Image> lookup(const std::string& id);
-    // };
+        // 反序列化
+        friend manifest tag_invoke(boost::json::value_to_tag<manifest>, const boost::json::value& jv) {
+            const auto& obj = jv.as_object();
+            manifest m;
+            m.mediaType = obj.at("mediaType").as_string().c_str();  // 使用 as_string() 而不是 c_str()
+            m.digest = obj.at("digest").as_string().c_str();  // 使用 as_string() 而不是 c_str()
+            m.size = obj.at("size").as_uint64();
+            return m;
+        }
+    };
+    struct index{
+        std::string schemaVersion;
+        std::vector<manifest> manifests;
+        index()=default;
+        /**
+         * @brief 序列化
+         * 
+         * @param jv 
+         * @param image 
+         */
+        friend void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const index& image) {
+            jv = boost::json::object{
+                {"schemaVersion", image.schemaVersion},
+                {"manifests", boost::json::value_from(image.manifests)}
+            };
+        }
+        //反序列化
+        friend index tag_invoke(boost::json::value_to_tag<index>, const boost::json::value& jv) {
+            const auto& obj = jv.as_object();
+            index image;
+            image.schemaVersion = obj.at("schemaVersion").as_string().c_str();
+            image.manifests = boost::json::value_to<std::vector<manifest>>(obj.at("manifests"));
+            return image;
+        }
+    };
 }
 #endif // STORAGE_IMAGES_H)

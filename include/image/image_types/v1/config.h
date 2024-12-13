@@ -99,7 +99,7 @@ namespace v1 {
          * @param jv 
          * @param image 
          */
-        friend void tag_invoke(boost::json::value_to_tag<Image>, const boost::json::value& jv, Image& image) {
+        friend Image tag_invoke(boost::json::value_to_tag<Image>, const boost::json::value& jv) {
             
         }
     };
@@ -117,7 +117,7 @@ struct Manifest{
     friend void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const Manifest& image) {
         
     }
-    friend void tag_invoke(boost::json::value_to_tag<Manifest>, const boost::json::value& jv, Manifest& image) {
+    friend Manifest tag_invoke(boost::json::value_to_tag<Manifest>, const boost::json::value& jv) {
         
     }
 };

@@ -150,7 +150,7 @@ shared_ptr<Driver> New(const string& name, const driver_Options& config) {
 
 
 std::string Driver::String() {
-    return "MyDriver"; // 示例实现
+    return this->name;
 }
 void Driver::Method2() {
 
