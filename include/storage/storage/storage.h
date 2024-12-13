@@ -53,7 +53,7 @@ class Store_interface{
     virtual ~Store_interface()=default;
     // RunRoot、GraphRoot、GraphDriverName 和 GraphOptions 检索
 	//创建对象时传递给 GetStore() 的设置。
-    virtual string RunRoot()=0;
+    virtual std::string RunRoot()=0;
     virtual void DeleteContainer(std::string id)=0;
     virtual void load()=0;
     virtual std::shared_ptr<storage::Image> Image(std::string id)=0;
@@ -109,7 +109,7 @@ using updateNameOperation = int;
 // ImageBigDataOption 结构体定义
 struct ImageBigDataOption {
     // Key 是数据项的键
-    string key;
+    std::string key;
 
     // Data 是要存储的字节数据
     vector<unsigned char> data;
@@ -130,16 +130,16 @@ struct ImageOptions {
     vector<Digest> digests;
 
     // Metadata 是调用者指定的与层关联的元数据
-    string metadata;
+    std::string metadata;
 
     // BigData 是与图像一起存储的数据项集合
     vector<ImageBigDataOption> bigData;
 
     // NamesHistory 用于推测图像创建时的名称，但当前没有任何名称
-    vector<string> namesHistory;
+    vector<std::string> namesHistory;
 
     // Flags 是存储在图像中的标志及其值的集合
-    map<string, shared_ptr<void>> flags;
+    map<std::string, shared_ptr<void>> flags;
 };
 
 
@@ -308,7 +308,7 @@ struct ImageStore:public rwImageStore_interface{
     // 以下字段在构建 ImageStore 时设置，之后不能再修改。
     // 它们可以在没有其他锁定的情况下安全地访问。
     shared_ptr<lockFile> lockfile=std::make_shared<lockFile>(); // LockFile 用于区分读写和只读 image store。
-    string dir;
+    std::string dir;
 
     // inProcessLock 只能在持有 lockfile 的情况下获得。
     boost::shared_mutex inProcessLock; // 使用 C++ 的 mutex 代替 Go 的 sync.RWMutex
@@ -319,8 +319,8 @@ struct ImageStore:public rwImageStore_interface{
     vector<shared_ptr<storage::Image>> images;
     shared_ptr<TruncIndex> idindex=std::make_shared<TruncIndex>();
     //目前没用到
-    map<string, shared_ptr<storage::Image>> byid;
-    map<string, shared_ptr<storage::Image>> byname;
+    map<std::string, shared_ptr<storage::Image>> byid;
+    map<std::string, shared_ptr<storage::Image>> byname;
     map<Digest, vector<shared_ptr<storage::Image>>> bydigest;
 
         // rwImageStore_interface 方法的空实现
@@ -407,7 +407,7 @@ public:
     // std::vector<idtools::IDMap> UIDMap;
     // std::vector<idtools::IDMap> GIDMap;
     // Flags 是容器的标志映射。
-    map<string, shared_ptr<void>> Flags;
+    map<std::string, shared_ptr<void>> Flags;
     // volatileStore 如果容器来自临时 JSON 文件，则为 true。
     bool volatileStore;
 
@@ -438,11 +438,11 @@ public:
 class ContainerOptions {
 public:
     // IDMappingOptions 指定应使用的 ID 映射类型。
-    // idmappingoptions::IDMappingOptions idMappingOptions;
+    std::shared_ptr<IDMappingOptions> idMappingOptions;
     // LabelOpts 是标签选项的列表。
     std::vector<std::string> labelOpts;
     // Flags 是要与容器一起存储的命名标志及其值。
-    map<string, shared_ptr<void>> Flags;
+    map<std::string, shared_ptr<void>> Flags;
     // MountOpts 是挂载选项的列表。
     std::vector<std::string> mountOpts;
     // Volatile 指示容器是否是临时的。
@@ -544,22 +544,22 @@ public:
 struct rwLayerStore_interface;
 class Store :public Store_interface{
     public:
-    string run_root;
-    string graph_driver_name;
-    vector<string> graph_driver_priority;
+    std::string run_root;
+    std::string graph_driver_name;
+    vector<std::string> graph_driver_priority;
     
     shared_ptr<lockFile> graph_lock=std::make_shared<lockFile>();
     shared_ptr<lockFile> userns_lock=std::make_shared<lockFile>();
 
-    string graph_root;
-    vector<string> graph_options;
-    string image_store_dir;
-    map<string, string> pull_options;
+    std::string graph_root;
+    vector<std::string> graph_options;
+    std::string image_store_dir;
+    map<std::string, std::string> pull_options;
 
     // vector<idtools::IDMap> uid_map;
     // vector<idtools::IDMap> gid_map;
 
-    string auto_userns_user;
+    std::string auto_userns_user;
     uint32_t auto_ns_min_size;
     uint32_t auto_ns_max_size;
 
@@ -568,7 +568,7 @@ class Store :public Store_interface{
     vector<shared_ptr<roImageStore_interface>> ro_image_stores;
     shared_ptr<rwContainerStore_interface> container_store=nullptr;
 
-    string digest_lock_root;
+    std::string digest_lock_root;
     bool disable_volatile=false;
     bool transient_store=false;
 
@@ -583,7 +583,7 @@ class Store :public Store_interface{
 
     public:
     Store()=default;
-    string RunRoot() override;
+    std::string RunRoot() override;
     void load() override;
     void DeleteContainer(std::string id) override;
     shared_ptr<Driver> createGraphDriverLocked();
@@ -597,5 +597,3 @@ class Store :public Store_interface{
 };
 
 #endif
-
-

@@ -625,6 +625,7 @@ void containerStore::startReading() {
 void containerStore::stopReading() {
 // 空实现
 }
+std::vector<std::string> dedupeStrings(const std::vector<std::string>& names);
 /**
  * @brief 创建container信息
  * 
@@ -636,9 +637,50 @@ void containerStore::stopReading() {
  * @return std::shared_ptr<Container> 
  */
 std::shared_ptr<Container> containerStore::create(const std::string& id, const std::vector<std::string>& names, 
-                                    const std::string& image, const std::string& layer, 
-                                    const ContainerOptions& options) {
-    return nullptr; // 空实现
+                                                  const std::string& image, const std::string& layer, 
+                                                  const ContainerOptions& options) {
+    try {
+        // Step 1: 初始化 ContainerOptions
+        ContainerOptions containerOptions = options;
+
+        // Step 2: 确保 ID 唯一
+        std::string containerID = id.empty() ? GenerateRandomID() : id;
+        while (byid.find(containerID) != byid.end()) {
+            containerID = GenerateRandomID();
+        }
+
+        // Step 3: 检查名称唯一性
+        auto uniqueNames = dedupeStrings(names);
+        for (const auto& name : uniqueNames) {
+            if (byname.find(name) != byname.end()) {
+                throw std::runtime_error("Container name '" + name + "' is already in use.");
+            }
+        }
+
+        // Step 4: 初始化 Container 对象
+        auto container = std::make_shared<Container>();
+        container->ID = containerID;
+        container->Names = uniqueNames;
+        container->ImageID = image;
+        container->LayerID = layer;
+        container->Metadata = containerOptions.metadata;
+        container->Flags = containerOptions.Flags;
+        container->BigDataNames = {};
+        container->BigDataSizes = {};
+        container->Created = std::time(nullptr);
+        container->volatileStore = containerOptions.volatileFlag;
+
+        // Step 5: 更新内部存储
+        byid[containerID] = container;
+        bylayer[layer] = container;
+        for (const auto& name : uniqueNames) {
+            byname[name] = container;
+        }
+
+        return container;
+    } catch (const std::exception& ex) {
+        throw myerror(std::string("Failed to create container: ") + ex.what());
+    }
 }
 void containerStore::updateNames(const std::string& id, const std::vector<std::string>& names, 
                     updateNameOperation op) {
@@ -1375,20 +1417,54 @@ std::shared_ptr<rwLayerStore_interface> Store::newLayerStore(
  * @param options 
  * @return std::shared_ptr<Container> 
  */
-std::shared_ptr<Container> Store::CreateContainer(const std::string& id, const std::vector<std::string>& names, const std::string& image, const std::string& layer, const std::string& metadata,const std::shared_ptr<ContainerOptions> options){
+std::shared_ptr<Container> Store::CreateContainer(
+    const std::string& id, 
+    const std::vector<std::string>& names, 
+    const std::string& image, 
+    const std::string& layer, 
+    const std::string& metadata, 
+    const std::shared_ptr<ContainerOptions> options) 
+{
+    try {
+        // Step 1: 准备 layerOptions
+        auto layerOptions = std::make_shared<LayerOptions>();
+        
+        layerOptions->idMappingOptions->HostUIDMapping = options->idMappingOptions->HostUIDMapping;
+        layerOptions->idMappingOptions->HostGIDMapping = options->idMappingOptions->HostGIDMapping;
+        layerOptions->idMappingOptions->UIDMap = options->idMappingOptions->UIDMap; // 复制 UIDMap
+        layerOptions->idMappingOptions->GIDMap = options->idMappingOptions->GIDMap; // 复制 GIDMap
 
-    //创建copy的layer层结构
-    auto rlstore=this->bothLayerStoreKinds();
-    auto layerOptions=std::make_shared<LayerOptions>();
-    auto diff=std::ifstream{};
-    std::string layerName=layer;
-    std::shared_ptr<Layer> clayer;
-    std::tie(clayer,std::ignore)=rlstore->create(layerName,nullptr,{},"",{},layerOptions,true,diff);
+        // Step 2: 创建 Layer
+        auto rlstore = this->bothLayerStoreKinds();
+        std::ifstream diff;
+        std::shared_ptr<Layer> clayer;
+        std::string layerName = layer;
+        std::tie(clayer, std::ignore) = rlstore->create(
+            layerName, nullptr, {}, "", {}, layerOptions, true, diff);
 
-    //创建container
+        // Step 3: 准备 Container 元信息
+        auto containerOptions = std::make_shared<ContainerOptions>();
+        containerOptions->idMappingOptions->HostUIDMapping = options->idMappingOptions->UIDMap.empty();
+        containerOptions->idMappingOptions->HostGIDMapping = options->idMappingOptions->GIDMap.empty();
+        containerOptions->idMappingOptions->UIDMap = options->idMappingOptions->UIDMap; // 复制 UIDMap
+        containerOptions->idMappingOptions->GIDMap = options->idMappingOptions->GIDMap; // 复制 GIDMap
 
-    return nullptr;
+        // Step 4: 创建 Container
+        auto container = this->container_store->create(
+            id, 
+            names, 
+            image, 
+            clayer->ID, 
+            *containerOptions);
+
+        return container;
+
+    } catch (const myerror& e) {
+        std::cerr << "Error while creating container: " << e.what() << std::endl;
+        throw;
+    }
 }
+
 // /**
 //  * @brief 读取返回copy层的diff内容，注意是文件夹，可能无法读取多个文件
 //  * 
