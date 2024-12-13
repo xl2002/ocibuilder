@@ -114,11 +114,43 @@ struct Manifest{
     std::shared_ptr<Descriptor> Subject=std::make_shared<Descriptor>();
     std::map<std::string, std::string> Annotations;
     Manifest()=default;
-    friend void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const Manifest& image) {
+
+    // // JSON 序列化函数：将 Manifest 转换为 JSON
+    // void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const Manifest& image) {
+    //     jv = boost::json::object{
+    //         {"SchemaVersion", image.SchemaVersion},
+    //         {"MediaType", image.MediaType},
+    //         {"ArtifactType", image.ArtifactType},
+    //         {"Config", *image.Config}, // 假设 Descriptor 支持 JSON 序列化
+    //         {"Layers", boost::json::value_from(image.Layers)},
+    //         {"Subject", image.Subject ? boost::json::value_from(*image.Subject) : boost::json::value{}},
+    //         {"Annotations", image.Annotations}
+    //     };
+    // }
+
+    // // JSON 反序列化函数：从 JSON 创建 Manifest
+    // void tag_invoke(boost::json::value_to_tag<Manifest>, const boost::json::value& jv, Manifest& image) {
+    //     const auto& obj = jv.as_object();
         
-    }
-    friend void tag_invoke(boost::json::value_to_tag<Manifest>, const boost::json::value& jv, Manifest& image) {
+    //     image.SchemaVersion = boost::json::value_to<int>(obj.at("SchemaVersion"));
+    //     image.MediaType = boost::json::value_to<std::string>(obj.at("MediaType"));
+    //     image.ArtifactType = boost::json::value_to<std::string>(obj.at("ArtifactType"));
         
-    }
+    //     image.Config = std::make_shared<Descriptor>(boost::json::value_to<Descriptor>(obj.at("Config")));
+
+    //     image.Layers.clear();
+    //     for (const auto& layer : obj.at("Layers").as_array()) {
+    //         image.Layers.emplace_back(std::make_shared<Descriptor>(boost::json::value_to<Descriptor>(layer)));
+    //     }
+
+    //     if (obj.contains("Subject") && !obj.at("Subject").is_null()) {
+    //         image.Subject = std::make_shared<Descriptor>(boost::json::value_to<Descriptor>(obj.at("Subject")));
+    //     } else {
+    //         image.Subject = nullptr;
+    //     }
+
+    //     image.Annotations = boost::json::value_to<std::map<std::string, std::string>>(obj.at("Annotations"));
+    // }
+
 };
 #endif // V1_CONFIG_H)
