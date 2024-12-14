@@ -246,3 +246,15 @@ string join(const vector<string>& elem) {
     
     return "";
 }
+bool isDirectoryEmpty(const boost::filesystem::path& dirPath) {
+    try {
+        if (boost::filesystem::exists(dirPath) && boost::filesystem::is_directory(dirPath)) {
+            return boost::filesystem::directory_iterator(dirPath) == boost::filesystem::directory_iterator();
+        } else {
+            throw std::runtime_error("The path does not exist or is not a directory.");
+        }
+    } catch (const boost::filesystem::filesystem_error& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        return false; // 如果出错，返回 false
+    }
+}

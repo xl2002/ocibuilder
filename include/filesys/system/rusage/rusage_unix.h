@@ -5,13 +5,7 @@
 #include <chrono>
 #include <utility> // For std::pair
 #include "filesys/system/rusage/rusage.h"
-#ifdef _WIN32
-#include <winsock2.h>
-#include <windows.h>
-#else
-#include <sys/resource.h>
-#include <sys/time.h>
-#endif
+#include "filesys/systems.h"
 
 // 将 timeval 结构转换为 std::chrono::duration
 std::chrono::duration<double> mkDuration(const struct timeval& tv) {
@@ -23,12 +17,7 @@ std::pair<Rusage, std::exception_ptr> get() {
     Rusage r;
     r.Date = std::chrono::system_clock::now();
 
-#ifdef _WIN32
-    // Windows 平台的实现
-    // Windows API 需要特定的实现来获取资源使用情况
-    // 这里只是一个占位符示例，实际情况需要使用 Windows API
-    return {r, nullptr};
-#else
+#ifdef __linux__
     // Linux 平台的实现
     struct rusage usage;
     if (getrusage(RUSAGE_CHILDREN, &usage) != 0) {
@@ -41,17 +30,18 @@ std::pair<Rusage, std::exception_ptr> get() {
     r.Outblock = static_cast<int64_t>(usage.ru_oublock);
 
     return {r, nullptr};
+#else
+return {r, nullptr};
 #endif
 }
 
 // 检查资源使用计数器是否被支持
 bool Supported() {
-#ifdef _WIN32
-    // Windows 平台的实现
-    // 这里假设 Windows 总是支持资源计数器
+#ifdef __linux__
     return true;
 #else
-    // Linux 平台的实现
+    // Windows 平台的实现
+    // 这里假设 Windows 总是支持资源计数器
     return true;
 #endif
 }

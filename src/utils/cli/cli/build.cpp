@@ -4,8 +4,7 @@
 #include "utils/parse/parse.h"
 #include "utils/cli/cli/common.h"
 #include "image/types/define/types.h"
-#include <winsock2.h>
-#include <windows.h>
+#include "filesys/systems.h"
 #include <cstdio>
 #include <iostream>
 #include <memory>

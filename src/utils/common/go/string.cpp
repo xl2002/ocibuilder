@@ -105,15 +105,15 @@ std::tuple<std::string, std::string, bool> Cut(const std::string &str, char deli
     return std::make_tuple(str.substr(0, pos), str.substr(pos + 1), true);
 }
 
-#ifdef _WIN32
-const char pathSeparator = '\\';
-#else
+#ifdef __linux__
 const char pathSeparator = '/';
+#else
+const char pathSeparator = '\\';
 #endif
 
 std::string FromSlash(const std::string& path) {
     std::string result = path;
-#ifdef _WIN32
+#ifndef __linux__
     std::replace(result.begin(), result.end(), '/', pathSeparator);
 #endif
     return result;

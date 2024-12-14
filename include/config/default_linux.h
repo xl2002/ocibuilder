@@ -7,13 +7,11 @@
 #include <sstream>
 #include <cstdlib>         // 用于字符串转换
 #include "config/config.h"
-#ifdef _WIN32
-#include <winsock2.h>
-#include <windows.h>
-using rlim_t = size_t; // 在Windows中使用size_t作为rlim_t的替代
+#include "filesys/systems.h"
+#ifdef __linux__
+
 #else
-#include <sys/resource.h>
-//#include <unistd.h>
+using rlim_t = size_t; // 在Windows中使用size_t作为rlim_t的替代
 #endif
 std::string getDefaultLockType();
 std::string getLibpodTmpDir();

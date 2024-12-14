@@ -22,15 +22,7 @@
 #include <boost/filesystem.hpp>
 // #include <boost/system/error_code.hpp>
 #include <sys/stat.h>
-
-#ifdef _WIN32
-#include <winsock2.h>
-#include <windows.h>
-#else
-//#include <unistd.h>
-#include <pwd.h>
-#include <grp.h>
-#endif
+#include "filesys/systems.h"
 struct File{
     std::string Name;
     std::string Data;

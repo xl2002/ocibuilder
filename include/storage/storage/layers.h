@@ -90,11 +90,21 @@ struct Layer{
     // BigDataNames 是存储供调用者使用的大数据项名称
     std::vector<std::string> BigDataNames;
     // 添加友元函数 tag_invoke 进行序列化
-    // friend void tag_invoke(const boost::json::value_from_tag, boost::json::value& jv, const Layer& layer) {
-    //     auto& obj = jv.as_object();
-
-    //     obj["ID"] = layer.ID;
-    //     obj["Parent"] = layer.Parent;
+    friend void tag_invoke(const boost::json::value_from_tag, boost::json::value& jv, const Layer& layer) {
+        jv=boost::json::object{
+            {"ID", layer.ID},
+            {"Parent", layer.Parent},
+            // {"Metadata", layer.Metadata},
+            // {"MountLabel", layer.MountLabel},
+            // {"MountPoint", layer.MountPoint},
+            // {"mountCount", layer.mountCount},
+            {"compressedSize", layer.compressedSize},
+            {"uncompressedSize", layer.uncompressedSize},
+            // {"readOnly", layer.readOnly},
+            // {"volatileStore", layer.volatileStore}
+            // {"Names", boost::json::array(layer.Names.begin(), layer.Names.end())},
+        };
+    }
     //     obj["Metadata"] = layer.Metadata;
     //     obj["MountLabel"] = layer.MountLabel;
     //     obj["MountPoint"] = layer.MountPoint;
@@ -118,19 +128,18 @@ struct Layer{
     //     obj["BigDataNames"] = std::move(bigDataNamesArray);
 
     //     jv=obj;
-    // }
     // // 用于从 JSON 反序列化的 tag_invoke
-    // friend Layer tag_invoke(boost::json::value_to_tag<Layer>, const boost::json::value& jv) {
-    //     const auto& obj = jv.as_object();
-    //     Layer layer;
-    //     layer.ID = obj.at("ID").as_string().c_str();
-    //     layer.Parent = obj.at("Parent").as_string().c_str();
+    friend Layer tag_invoke(boost::json::value_to_tag<Layer>, const boost::json::value& jv) {
+        const auto& obj = jv.as_object();
+        Layer layer;
+        layer.ID = obj.at("ID").as_string().c_str();
+        layer.Parent = obj.at("Parent").as_string().c_str();
     //     layer.Metadata = obj.at("Metadata").as_string().c_str();
     //     layer.MountLabel = obj.at("MountLabel").as_string().c_str();
     //     layer.MountPoint = obj.at("MountPoint").as_string().c_str();
     //     layer.mountCount = obj.at("mountCount").as_int64();
-    //     layer.compressedSize = obj.at("compressedSize").as_int64();
-    //     layer.uncompressedSize = obj.at("uncompressedSize").as_int64();
+        layer.compressedSize = obj.at("compressedSize").as_int64();
+        layer.uncompressedSize = obj.at("uncompressedSize").as_int64();
     //     layer.readOnly = obj.at("readOnly").as_bool();
     //     layer.volatileStore = obj.at("volatileStore").as_bool();
 
@@ -141,8 +150,8 @@ struct Layer{
     //         layer.BigDataNames.push_back(bigName.as_string().c_str());
     //     }
 
-    //     return layer;
-    // }
+        return layer;
+    }
 };
 class lockFile;
 struct multipleLockFile{

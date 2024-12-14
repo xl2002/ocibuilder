@@ -14,10 +14,10 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/system/error_code.hpp>
 #include <boost/nowide/utf/convert.hpp>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
 // #include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/ini_parser.hpp>
+// #include <boost/property_tree/json_parser.hpp>
+// #include <boost/property_tree/ptree.hpp>
+// #include <boost/property_tree/ini_parser.hpp>
 extern std::shared_ptr<myerror> cachedConfigError;
 extern std::shared_ptr<Config> cachedConfig;
 extern std::string containersConfEnv;
@@ -44,6 +44,6 @@ std::tuple<std::vector<std::string>, boost::system::error_code> systemConfigs();
 std::pair<std::vector<std::string>,  boost::system::error_code>
 addConfigs(const std::string& dirPath, std::vector<std::string>& configs);
 std::tuple<std::string, boost::system::error_code> userConfigPath();
-boost::optional<myerror> readConfigFromFile(const std::string& path, std::shared_ptr<Config> config, bool ignoreErrNotExist);
+// boost::optional<myerror> readConfigFromFile(const std::string& path, std::shared_ptr<Config> config, bool ignoreErrNotExist);
 
 #endif // CONFIG_NEW_H

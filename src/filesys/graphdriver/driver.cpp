@@ -283,7 +283,9 @@ std::string getLower(const std::string& parent) {
 void Driver::create(const std::string& id, const std::string& parent, std::shared_ptr<CreateOpts> opts, bool readOnly) {
     try {
         // 1. 通过 dir2 得到子目录的路径
-        auto [dir, homedir, _] = dir2(const_cast<std::string&>(id), readOnly);
+        std::string dir;
+        std::string homedir;
+        std::tie(dir, homedir, std::ignore) = dir2(const_cast<std::string&>(id), readOnly); 
 
         // 2. 获取 UID 和 GID 映射（使用 opts 中的映射）
         int rootUID = 0;
@@ -317,48 +319,45 @@ void Driver::create(const std::string& id, const std::string& parent, std::share
             throw myerror("Failed to create 'merged' directory.");
         }
 
-        // 6. 创建符号链接
-        std::string lid = generateID();
-        std::string linkBase = "../" + id + "/diff";
-        boost::filesystem::path linkPath = homedir + "/link/" + lid;
-        boost::filesystem::path targetPath = linkBase;
+        // // 6. 创建符号链接
+        // std::string lid = generateID();
+        // std::string linkBase = "../" + id + "/diff";
+        // boost::filesystem::path linkPath = homedir + "/link/" + lid;
+        // boost::filesystem::path targetPath = linkBase;
 
-        try {
-            if (boost::filesystem::exists(linkPath)) {
-                throw myerror("Symlink already exists.");
-            }
-            boost::filesystem::create_symlink(targetPath, linkPath); // 使用Boost创建符号链接
-        }
-        catch (const boost::filesystem::filesystem_error& e) {
-            throw myerror("Failed to create symlink: " + std::string(e.what()));
-        }
+        // try {
+        //     if (boost::filesystem::exists(linkPath)) {
+        //         throw myerror("Symlink already exists.");
+        //     }
+        //     boost::filesystem::create_symlink(targetPath, linkPath); // 使用Boost创建符号链接
+        // }
+        // catch (const boost::filesystem::filesystem_error& e) {
+        //     throw myerror("Failed to create symlink: " + std::string(e.what()));
+        // }
 
-        // 7. 写入链接 ID 到 link 文件
-        std::ofstream linkFile(dir + "/link");
-        if (!linkFile) {
-            throw myerror("Failed to open link file for writing.");
-        }
-        linkFile << lid; // 写入lid内容
-        linkFile.close();
+        // // 7. 写入链接 ID 到 link 文件
+        // std::ofstream linkFile(dir + "/link");
+        // if (!linkFile) {
+        //     throw myerror("Failed to open link file for writing.");
+        // }
+        // linkFile << lid; // 写入lid内容
+        // linkFile.close();
         // 8. 如果有 parent，处理 getLower
-        if (!parent.empty()) {
-            std::string lower;
-            try {
-                lower = getLower(parent);
-                std::ofstream lowerFile(dir + "/lowers");
-                if (!lowerFile) {
-                    throw myerror("Failed to open lowers file for writing.");
-                }
-                lowerFile << lower; // 写入parent的lower信息
-                lowerFile.close();
-            }
-            catch (const myerror& e) {
-                throw myerror("Error in getLower: " + std::string(e.what()));
-            }
-        }
-    }
-    catch (const myerror& e) {
-        throw;  // 重新抛出错误
+        // if (!parent.empty()) {
+        //     std::string lower;
+        //     try {
+        //         lower = getLower(parent);
+        //         std::ofstream lowerFile(dir + "/lowers");
+        //         if (!lowerFile) {
+        //             throw myerror("Failed to open lowers file for writing.");
+        //         }
+        //         lowerFile << lower; // 写入parent的lower信息
+        //         lowerFile.close();
+        //     }
+        //     catch (const myerror& e) {
+        //         throw myerror("Error in getLower: " + std::string(e.what()));
+        //     }
+        // }
     }
     catch (const std::exception& e) {
         throw myerror("Failed to create required directories.");

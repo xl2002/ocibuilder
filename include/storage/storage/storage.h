@@ -23,8 +23,9 @@
 #include <filesystem>
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/thread/locks.hpp>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
+#include <boost/optional.hpp>
+// #include <boost/property_tree/ptree.hpp>
+// #include <boost/property_tree/json_parser.hpp>
 using std::string;
 using std::vector;
 using std::map;
@@ -33,7 +34,7 @@ using std::map;
 
 struct LayerOptions;
 using namespace std;
-using namespace boost::property_tree;
+// using namespace boost::property_tree;
 // 定义 containerLocations 类型
 typedef unsigned int containerLocations;
 // 定义位标志

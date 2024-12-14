@@ -4,8 +4,7 @@
 #include <vector>
 #include <map>
 #include <memory>
-#include <winsock2.h>
-#include <windows.h>
+#include "filesys/systems.h"
 #include <sys/stat.h>
 #include <fstream>
 #include <iostream>
@@ -31,4 +30,5 @@ int64_t Copy_directory(const fs::path& source, const fs::path& destination);
 bool IsPathSeparator(char c);
 string join(const vector<string>& elem);
 string Clean(const string& path);
+bool isDirectoryEmpty(const boost::filesystem::path& dirPath);
 #endif // GO_FILE_H

@@ -47,11 +47,11 @@ void init_filesys(){
 
     state=std::make_shared<selinuxState>();
     haveThreadSelf = false;
-    #ifdef _WIN32
-        GOOS = "windows";
-    #else
+    #ifdef __linux__
         //#include <unistd.h>
         GOOS = "linux"; // 假设默认是 Linux，可以根据实际系统修改
+    #else
+        GOOS = "windows";
     #endif
 
     #if defined(__x86_64__) || defined(_M_X64)

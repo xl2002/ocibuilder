@@ -1,6 +1,5 @@
 #include "image/util/util.h"
-#include <winsock2.h>
-#include <windows.h>
+#include "filesys/systems.h"
 #include <sys/stat.h>
 #include <vector>
 #include "utils/common/go/file.h"

@@ -511,7 +511,7 @@ std::tuple<std::vector<std::string>, std::string> ContainerIgnoreFile(
         } else {
             for (const std::string& containerfile : containerFiles) {
                 std::string containerfilePath = containerfile;
-                #ifdef _WIN32
+                #ifndef __linux__
                 boost::filesystem::path p(containerfile);
                 if(containerfilePath.empty() || !p.is_absolute()){
                     containerfilePath = contextDir + "/" + containerfile;
