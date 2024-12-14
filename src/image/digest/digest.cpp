@@ -73,7 +73,7 @@ std::shared_ptr<Digest> FromString(std::string s){
     return Canonical_sha256.FromString(s);
 }
 std::shared_ptr<Digest> NewDigest(std::shared_ptr<Algorithm_sha256> alg,std::shared_ptr<Hash_256> hash){
-    return NewDigestFromBytes(alg,hash->Hash_num(std::vector<uint8_t>()));
+    return NewDigestFromBytes(alg,hash->data);
 }
 
 std::shared_ptr<Digest> NewDigestFromBytes(std::shared_ptr<Algorithm_sha256> alg,std::vector<uint8_t> p){

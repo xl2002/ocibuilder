@@ -9,6 +9,14 @@
 #include <algorithm>
 #include "utils/logger/logrus/exported.h"
 #include "image/image_types/docker/image.h"
+
+// 定义路径分隔符，根据操作系统选择合适的分隔符
+#ifdef _WIN32
+    const char PATH_SEPARATOR = '\\';
+#else
+    const char PATH_SEPARATOR = '/';
+#endif
+
 void StageExecutor::Delete(){
     if(builder!=nullptr){
         try{
@@ -31,7 +39,7 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,bool> StageExecutor:
     auto checkForLayers=executor->layers && executor->useCache;
     auto moreStages=index< this->stages->Stages.size()-1;
     auto lastStage=!moreStages;
-    // auto onlyBaseImage=false;
+    // auto onlyBaseImage=false;builder
     auto imageIsUsedLater=moreStages && (SetHas(this->executor->baseMap,stage->Name) || SetHas(this->executor->baseMap,std::to_string(stage->Position)));
     auto rootfsIsUsedLater=moreStages && (SetHas(this->executor->rootfsMap,stage->Name) || SetHas(this->executor->rootfsMap,std::to_string(stage->Position)));
     
@@ -346,6 +354,32 @@ std::string StageExecutor::getContentSummaryAfterAddingContent(){
     summary=summary+digest.second->Encoded();
     return summary;
 }
+
+std::string toUpper(const std::string& str) {
+    std::locale loc; // 使用默认的本地化设置
+    std::string upperStr = str; // 创建原字符串的副本
+
+    // 遍历字符串，并将每个字符转换为大写
+    std::transform(upperStr.begin(), upperStr.end(), upperStr.begin(),
+                   [&loc](unsigned char c) -> unsigned char {
+                       return std::toupper(c, loc);
+                   });
+
+    return upperStr;
+}
+
+// 拆分字符串为字段（类似strings.Fields）
+std::vector<std::string> splitFields(const std::string& str) {
+    std::istringstream iss(str);
+    std::vector<std::string> fields;
+    std::string field;
+    while (iss >> field) {
+        fields.push_back(field);
+    }
+    return fields;
+}
+
+
 /**
  * @brief 构建createdByz字符串
  * 
@@ -354,8 +388,49 @@ std::string StageExecutor::getContentSummaryAfterAddingContent(){
  * @return std::string 
  */
 std::string StageExecutor::getCreatedBy(std::shared_ptr<Node> node,std::string addedContentSummary){
-    
-    return "";
+    if(node==nullptr){
+        return "/bin/sh";
+    }
+    std::string upperValue = toUpper(node->Value);
+    if(upperValue == "ARG"){
+        for (const auto& variable : splitFields(node->Original)) {
+            if (variable != "ARG") {
+                argsFromContainerfile.push_back(variable);
+            }
+        }
+        return "";
+        // std::string buildArgs = getBuildArgsKey();
+        // return "/bin/sh -c #(nop) ARG " + buildArgs;
+    }else if(upperValue=="RUN"){
+        // std::string shArg = "";
+        // std::string buildArgs = getBuildArgsResolvedForRun();
+        // if (node->Original.length() > 4) {
+        //     shArg = node->Original.substr(4);
+        // }
+        // if (!buildArgs.empty()) {
+        //     std::vector<std::string> buildArgsVec = splitFields(buildArgs);
+        //     return "|" + std::to_string(buildArgsVec.size()) + " " + buildArgs + " /bin/sh -c " + shArg;
+        // }
+        // std::string result = "/bin/sh -c " + shArg;
+        // if (!node->Heredocs.empty()) {
+        //     for (const auto& doc : node->Heredocs) {
+        //         std::string heredocContent = doc.Content;
+        //         heredocContent.erase(std::remove_if(heredocContent.begin(), heredocContent.end(), ::isspace), heredocContent.end());
+        //         result += "\n" + heredocContent;
+        //     }
+        // }
+        // return result;
+        return "";
+    }else if (upperValue == "ADD" || upperValue == "COPY"){
+        std::shared_ptr<Node> destination = node;
+        while (destination->Next!= nullptr) {
+            destination = destination->Next;
+        }
+        return "/bin/sh -c #(nop) " + upperValue + " " + addedContentSummary + " in " + destination->Value;
+    } else {
+        return "/bin/sh -c #(nop) " + node->Original;
+    }
+
 }
 std::pair<std::string,std::shared_ptr<Canonical_interface>> StageExecutor::commit(
     std::string createdBy,
@@ -514,7 +589,8 @@ void StageExecutor::EnsureContainerPathAs(std::string path,std::string user,cons
  * @param copies 
  */
 void StageExecutor::COPY(std::vector<std::string> excludes,std::vector<Copy> copies) {
-
+    this->builder->ContentDigester->Restart();
+    return this->performCopy(excludes,copies);
 }
 void StageExecutor::RUN(std::shared_ptr<Run> run) {
 
@@ -527,7 +603,106 @@ void StageExecutor::RUN(std::shared_ptr<Run> run) {
  */
 void StageExecutor::performCopy(std::vector<std::string> excludes,std::vector<Copy> copies){
 // volumeCacheInvalidate不写
+    std::vector<Copy> copiesExtend;
+    for (size_t i = 0; i < copies.size(); ++i){
+        Copy copy=copies[i];
+        std::vector<string> sources;
+        // var idMappingOptions *define.IDMappingOptions
+        std::shared_ptr<IDMappingOptions> idMappingOptions = std::make_shared<IDMappingOptions>();
+        std::vector<string> copyExcludes;
+        bool stripSetuid = false;
+        bool stripSetgid = false;
+        bool preserveOwnership = false;
+        std::string contextDir=this->executor->contextDir;
+        
+        //这里调试判断为false，直接跳过
+        if(copy.Files.size()>0){
+
+            if(copy.Src.size()>copy.Files.size()){
+                
+            }
+
+        }
+
+        //这里调试判断为false，直接跳过
+        if (copy.From.size()>0 && copy.Files.size()==0){
+
+        }else{
+            // 将 this->executor->excludes 的所有元素追加到 copyExcludes 中
+            copyExcludes.insert(copyExcludes.end(), this->executor->excludes.begin(), this->executor->excludes.end());
+            // 将 excludes 的所有元素追加到 copyExcludes 中
+            copyExcludes.insert(copyExcludes.end(), excludes.begin(), excludes.end());
+            stripSetuid = true;
+			stripSetgid = true; 
+        }
+        //调试信息，跳过
+        if (copy.Download){
+
+        }else{
+
+        }
+
+        for (size_t i = 0; i < copy.Src.size(); ++i){
+            std::string src=copy.Src[i];
+            //Source is a URL？不是
+
+            std::string joinedPath = joinPath(contextDir, src);
+            appendSource(sources, joinedPath);
+        }
+        std::shared_ptr<AddAndCopyOptions> options = std::make_shared<AddAndCopyOptions>();
+        options->Chmod=copy.Chmod;
+        options->Chown=copy.Chown;
+        options->Checksum=copy.Checksum;
+        options->PreserveOwnership=preserveOwnership;
+        options->ContextDir=contextDir;
+        options->Excludes=copyExcludes;
+        options->IgnoreFile=this->executor->ignoreFile;
+        options->IDMappingOptions=idMappingOptions;
+        options->StripSetuidBit=stripSetuid;
+        options->StripSetgidBit=stripSetgid;
+
+        if(copy.Files.size()>0){
+
+        }
+        this->builder->Add(copy.Dest,copy.Download,options,sources);
+    }
+    if(copiesExtend.size()>0){
+        return this->performCopy(excludes,copiesExtend);
+    }
     
 }
 
 
+// 模拟 Go 的 filepath.Join 函数
+std::string joinPath(const std::string& contextDir, const std::string& src) {
+    // 如果 contextDir 是空字符串，直接返回 src
+    if (contextDir.empty()) {
+        return src;
+    }
+
+    // 如果 src 是空字符串，直接返回 contextDir
+    if (src.empty()) {
+        return contextDir;
+    }
+
+    // 去除 contextDir 末尾的多余路径分隔符
+    std::string cleanContextDir = contextDir;
+    while (!cleanContextDir.empty() && cleanContextDir.back() == PATH_SEPARATOR) {
+        cleanContextDir.pop_back();
+    }
+
+    // 检查 src 是否以路径分隔符开头
+    std::string cleanSrc = src;
+    if (!cleanSrc.empty() && cleanSrc.front() == PATH_SEPARATOR) {
+        cleanSrc.erase(0, 1);  // 去除 src 开头的路径分隔符
+    }
+
+    // 将 contextDir 和 src 连接起来，并添加路径分隔符
+    return cleanContextDir + PATH_SEPARATOR + cleanSrc;
+}
+
+
+// 模拟 Go 的 append 函数
+void appendSource(std::vector<std::string>& sources, const std::string& path) {
+    sources.push_back(path);
+}

@@ -1,4 +1,6 @@
 #include "image/digest/algorithm.h"
+#include <sstream>
+#include <iomanip>
 
 // Algorithm_sha256 SHA256("sha256");
 // Algorithm_sha256 Canonical_sha256=SHA256;
@@ -28,8 +30,7 @@ std::map<Algorithm_sha256, std::string> algorithms = {
  * @return std::shared_ptr<Digest> 返回对应的Digest指针
  */
 std::shared_ptr<Digest> Algorithm_sha256::FromString(const std::string& data) {
-    return nullptr;
-
+    return this->FromBytes(std::vector<uint8_t>(data.begin(), data.end()));
 }
 /**
  * @brief 将输入的数据p计算出对应的哈希，返回Digest指针
@@ -38,7 +39,10 @@ std::shared_ptr<Digest> Algorithm_sha256::FromString(const std::string& data) {
  * @return std::shared_ptr<Digest> 返回对应的Digest指针
  */
 std::shared_ptr<Digest> Algorithm_sha256::FromBytes(std::vector<uint8_t> p){
-    return nullptr;
+    auto digester = this->Digester();
+    digester->GetHash()->data=digester->GetHash()->Hash_num(p);
+
+    return digester->Digest();
 }
 /**
  * @brief 新建一个Hash_256，参考sha256_init(SHA256_CTX *ctx)，需要初始化
@@ -46,7 +50,18 @@ std::shared_ptr<Digest> Algorithm_sha256::FromBytes(std::vector<uint8_t> p){
  * @return std::shared_ptr<Hash_256> 
  */
 std::shared_ptr<Hash_256> Algorithm_sha256::Hash() {
-    return nullptr;
+    auto hash_256=new Hash_256();
+    hash_256->sha256->datalen = 0;
+	hash_256->sha256->bitlen = 0;
+	hash_256->sha256->state[0] = 0x6a09e667;
+	hash_256->sha256->state[1] = 0xbb67ae85;
+	hash_256->sha256->state[2] = 0x3c6ef372;
+	hash_256->sha256->state[3] = 0xa54ff53a;
+	hash_256->sha256->state[4] = 0x510e527f;
+	hash_256->sha256->state[5] = 0x9b05688c;
+	hash_256->sha256->state[6] = 0x1f83d9ab;
+	hash_256->sha256->state[7] = 0x5be0cd19;
+    return std::shared_ptr<Hash_256>(hash_256);
 }
 bool Algorithm_sha256::Available(){
     if(algorithms.find(*this)!=algorithms.end()){
@@ -96,7 +111,14 @@ int Algorithm_sha256::Size() {
  * @return std::string 返回对应的string
  */
 std::string Algorithm_sha256::Encode(std::vector<uint8_t> p){
-    return "";
+    std::stringstream ss;
+
+    // 遍历每个字节，并将其转换为两位的十六进制字符串
+    for (auto byte : p) {
+        ss << std::setw(2) << std::setfill('0') << std::hex << (int)byte;
+    }
+
+    return ss.str();
 }
 /**
  * @brief 构建一个新的digester实例
@@ -104,7 +126,13 @@ std::string Algorithm_sha256::Encode(std::vector<uint8_t> p){
  * @return std::shared_ptr<Digester_interface> 返回新的digester实例指针
  */
 std::shared_ptr<Digester_interface> Algorithm_sha256::Digester(){
-    return nullptr;
+    auto hash = this->Hash();
+
+    // 构造 digester 实例，将当前算法（this）和新创建的 hash 实例传入
+    auto newDigester = std::make_shared<digester>(std::make_shared<Algorithm_sha256>(*this), hash);
+
+    return newDigester;
+    
 }
 
 std::string Algorithm_sha256::String(){
