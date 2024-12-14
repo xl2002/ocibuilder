@@ -72,7 +72,7 @@ std::shared_ptr<Algorithm> imageCopier::copyLayers(){
 std::tuple<std::shared_ptr<BlobInfo>,std::shared_ptr<Digest>> imageCopier::copyLayer(std::shared_ptr<BlobInfo> srcInfo,bool toEncrypt,int layerIndex,std::shared_ptr<Named_interface> srcRef,bool emptyLayer){
     
     // 1. 读取镜像层为文件流
-
+    
     // 2. 构建gzip压缩算法，对文件流进行压缩
 
     // 3. 计算压缩后镜像层的sha256值

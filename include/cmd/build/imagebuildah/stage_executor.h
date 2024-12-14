@@ -70,5 +70,5 @@ public:
     void generateBuildOutput(std::shared_ptr<BuildOutputOption>buildOutputOpts);
     void performCopy(std::vector<std::string> excludes,std::vector<Copy> copies);
 };  
-
+void appendSource(std::vector<std::string>& sources, const std::string& path);
 #endif // IMAGEBUILDAH_STAGE_EXECUTOR_H)
