@@ -1225,6 +1225,9 @@ std::shared_ptr<rwLayerStore_interface> Store::bothLayerStoreKindsLocked() {
  */
 std::shared_ptr<rwLayerStore_interface> Store::getLayerStoreLocked() {
     try {
+        if(!this->layer_store_use_getters) {
+            return this->layer_store_use_getters;
+        }
         // 检查路径是否存在，模拟 Go 中的路径处理
         std::string driverPrefix = this->graph_driver_name;
         
