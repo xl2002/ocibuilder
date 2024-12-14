@@ -68,6 +68,26 @@ std::tuple<std::shared_ptr<v1::Image>,std::shared_ptr<Manifest>> containerImageR
  * @return std::string 
  */
 std::string computeLayerMIMEType(std::string what,std::shared_ptr<Compression> layerCompression){
+    if (what == "empty") {
+        // 空层没有MIME类型，或者可以指定一个特定的MIME类型用于空层
+        return "application/vnd.docker.image.rootfs.diff.tar.gzip";
+    } else if (what == "dockerfs") {
+        if (layerCompression) { // 检查智能指针是否为空
+            std::string compressionType = layerCompression->String();
+            if (compressionType == "uncompressed") {
+                return "application/vnd.docker.image.rootfs.diff.tar";
+            } else if (compressionType == "gzip") {
+                return "application/vnd.docker.image.rootfs.diff.tar.gzip";
+            } else if (compressionType == "bzip2") {
+                return "application/vnd.docker.image.rootfs.diff.tar.bzip2";
+            } else if (compressionType == "xz") {
+                return "application/vnd.docker.image.rootfs.diff.tar.xz";
+            } else if (compressionType == "zstd") {
+                return "application/vnd.docker.image.rootfs.diff.tar.zst";
+            }
+        }
+    }
+    // 如果没有匹配的类型，返回一个空字符串或者错误
     return "";
 }
 

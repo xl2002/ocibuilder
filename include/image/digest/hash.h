@@ -16,6 +16,9 @@ struct Hash_256 {
     std::shared_ptr<SHA256_CTX> sha256=nullptr;
     std::vector<uint8_t> data;
     std::vector<uint8_t> Hash_num(const std::vector<uint8_t>& data);
+
+    // 添加 Process 方法
+    void Process(const std::string& input);
 };
 
 

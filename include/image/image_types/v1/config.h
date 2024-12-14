@@ -91,7 +91,30 @@ namespace v1 {
          * @param image 
          */
         friend void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const Image& image) {
-            
+            // 首先构建一个 boost::json::object
+            boost::json::object obj{
+                {"created", boost::json::value_from(image.created->time_since_epoch().count())},
+                {"author", boost::json::value_from(image.author)},
+                {"config", boost::json::value_from(*image.config)},
+                {"rootFS", boost::json::value_from(*image.rootFS)},
+            };
+
+            // 将 history 转换为 JSON 数组并添加到对象中
+            boost::json::array history_array;
+            for (const auto& history_item : image.history) {
+                // 假设已经为 History 类型定义了序列化
+                boost::json::value history_value = boost::json::value_from(history_item);
+                history_array.push_back(history_value);
+            }
+            obj.emplace("history", boost::json::value_from(history_array));
+
+            // 如果 platform 不为空，则添加到对象中
+            if (image.platform) {
+                obj.emplace("platform", boost::json::value_from(*image.platform));
+            }
+
+            // 最后将构建好的 object 赋值给 jv
+            jv = std::move(obj);
         }
         /**
          * @brief 反序列化
@@ -100,7 +123,7 @@ namespace v1 {
          * @param image 
          */
         friend Image tag_invoke(boost::json::value_to_tag<Image>, const boost::json::value& jv) {
-            
+
         }
     };
 }
