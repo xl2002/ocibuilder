@@ -350,50 +350,7 @@ std::tuple<string,std::shared_ptr<Canonical_interface>> Executor::Build(std::sha
     if (!stagesSemaphore) {
         // stagesSemaphore = std::make_shared<semaphore::Semaphore>(stages.size());
     }
-    // WaitGroup wg;
-    // wg.Add(stages->Stages.size());
-    // std::future<Result> cleanupStages = std::async(std::launch::async, [&]() ->Result {
-    //     auto cancel=false;
-    //     for (size_t stageIndex = 0; stageIndex < stages->Stages.size(); ++stageIndex) {
-    //         auto Index = stageIndex;
-    //         if (!stagesSemaphore->Acquire(1)) {
-    //             cancel = true;
-    //             Result res;
-    //             res.Index = Index;
-    //             res.Error = "build canceled";
-    //             wg.Done();
-    //             return res;
-    //         }
-    //         {
-    //             std::lock_guard<std::mutex> lock(stagesLock);
-    //             if (!cleanupStages.empty()) {;
-    //                 return res;
-    //             }
-    //         }
-    //         futures.push_back(std::async(std::launch::async, [this, stageIndex, &cleanupStages, &stages, &dependencyMap, &wg]() -> Result {
-    //             Result res;
-    //             {
-    //                 std::lock_guard<std::mutex> lock(stagesLock);
-    //                 if (!cleanupStages.empty()) {;
-    //                     return res;
-    //                 }
-    //             }
-    //             if (dependencyMap[stages[stageIndex].Name]->NeededByTarget || skipUnusedStages != types::OptionalBoolFalse) {
-    //                 res.Error = std::make_exception_ptr(std::runtime_error("not building stage"));
-    //                 return res;
-    //             }
-    //             auto stageID = buildStage(ctx, cleanupStages, stages, stageIndex);
-    //             if (stageID.second) {
-    //                 res.Error = std::make_exception_ptr(std::runtime_error("build stage failed"));
-    //             } else {
-    //                 res.ImageID = stageID.first;
-    //                 res.Ref = stageID.second;
-    //             }
-    //             return res;
-    //         }));
-    //         wg.Done();
-    //     }
-    // });
+
     boost::thread_group threads;
     std::atomic<bool> cancel(false);
     std::mutex resultMutex;
@@ -610,15 +567,15 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,bool,std::string> Ex
             if (stages->Stages.size() > 1) {
                 prefix += "[" + std::to_string(stageIndex + 1) + "/" + std::to_string(stages->Stages.size()) + "] ";
             }
-            if (hasPrefix(format, "COMMIT")) {
+            if (!hasPrefix(format, "COMMIT")) {
                 stepCounter++;
                 prefix += "STEP " + std::to_string(stepCounter);
                 if(stepCounter<=stage.Node->Children.size()+1){
-                    prefix +="/" + std::to_string(stage.Node->Children.size() + 1) ;
+                    prefix +="/" + std::to_string(stage.Node->Children.size()) ;
                 }
                 prefix += ": ";
             }
-            std::string suffix="\n";
+            std::string suffix=" ";
             auto message = prefix + format + suffix;
             *stageExecutor->executor->out<< message << vectorToString(args)<<std::endl;
             // std::printf(message.c_str(), args);

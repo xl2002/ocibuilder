@@ -2,6 +2,7 @@
 #include "filesys/graphdriver/driver.h"
 #include "filesys/system/cgroups_linux.h"
 #include "filesys/platforms/platforms.h"
+#include "filesys/platforms/default_unix.h"
 #include "filesys/system/selinux/selinux_linux.h"
 #include "storage/storage/overlay.h"
 // 全局变量定义
@@ -23,6 +24,8 @@ bool haveThreadSelf;
 std::string policyRootVal;
 std::map<std::string, std::string> labels;
 
+std::string GOOS;
+std::string GOARCH;
 /**
  * @brief 初始化filesys
  * 
@@ -44,5 +47,22 @@ void init_filesys(){
 
     state=std::make_shared<selinuxState>();
     haveThreadSelf = false;
-    
+    #ifdef _WIN32
+        GOOS = "windows";
+    #else
+        //#include <unistd.h>
+        GOOS = "linux"; // 假设默认是 Linux，可以根据实际系统修改
+    #endif
+
+    #if defined(__x86_64__) || defined(_M_X64)
+        GOARCH = "amd64";
+    #elif defined(__i386__) || defined(_M_IX86)
+        GOARCH = "386";
+    #elif defined(__arm__) || defined(_M_ARM)
+        GOARCH = "arm";
+    #elif defined(__aarch64__)
+        GOARCH = "arm64";
+    #else
+        GOARCH = "unknown";
+    #endif
 }

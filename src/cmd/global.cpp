@@ -54,9 +54,9 @@ void init_cmd(){
         {dockerfilecommand::Entrypoint,entrypoint},
         {dockerfilecommand::Volume,Volume}
     };
-    std::shared_ptr<Regexp> obRgex=Delayed(R"(^\s*ONBUILD\s*)");
-    std::shared_ptr<Platform> localspec = DefaultSpec();
-    std::map<std::string, std::string> builtinBuildArgs = {
+    obRgex=Delayed(R"(^\s*ONBUILD\s*)");
+    localspec = DefaultSpec();
+    builtinBuildArgs = {
         {"TARGETPLATFORM", localspec->OS + "/" + localspec->Architecture},
         {"TARGETOS", localspec->OS},
         {"TARGETARCH", localspec->Architecture},

@@ -38,7 +38,7 @@ void setRegistriesConfPath(std::shared_ptr<SystemContext> systemContext) {
 
 std::vector<std::shared_ptr<LibImage::Image>> Runtime::Pull(std::string name,std::shared_ptr<PullPolicy> pullPolicy,std::shared_ptr<PullOptions> options) {
     // Debugf("Pulling image %s (policy: %s)",name.c_str(),pullPolicy->String().c_str());
-    if(fs::exists(name)) {
+    if(fs::exists(name)) {//from 后面为文件夹
         auto localImages=std::vector<std::shared_ptr<LibImage::Image>>{};
         std::shared_ptr<LibImage::Image> fromimage=std::make_shared<LibImage::Image>();
         //在overlay创建layer层，并模拟出Image

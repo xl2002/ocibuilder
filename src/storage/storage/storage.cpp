@@ -64,15 +64,15 @@ std::string ImageStore::imagespath(){
 //parseJson 函数的实现
 bool parseJson(const vector<uint8_t>& data, vector<shared_ptr<storage::Image>>& images) {
     try {
-        // std::string index_str=vectorToString(data);
-        // storage::index Index=unmarshal<storage::index>(index_str);
-        // for(auto it:Index.manifests){
-        //     auto image = std::make_shared<storage::Image>();
-        //     image->ID=it.digest;
-        //     image->Names.push_back(it.annotations["org.opencontainers.image.ref.name"]);
-        //     image->Digests.emplace_back(it.digest);
-        //     images.push_back(image);
-        // }
+        std::string index_str=vectorToString(data);
+        storage::index Index=unmarshal<storage::index>(index_str);
+        for(auto it:Index.manifests){
+            auto image = std::make_shared<storage::Image>();
+            image->ID=it.digest;
+            image->Names.push_back(it.annotations["org.opencontainers.image.ref.name"]);
+            image->Digests.emplace_back(it.digest);
+            images.push_back(image);
+        }
         // Create a string from the binary data
         // std::string json_str(data.begin(), data.end());
         
@@ -683,29 +683,29 @@ void containerStore::removeName(std::shared_ptr<Container> container, const std:
 bool parseJsonContainers(const std::vector<uint8_t>& data, std::vector<std::shared_ptr<Container>>& containers) {
     try {
         // 将二进制数据转换为字符串
-        std::string json_str(data.begin(), data.end());
+        // std::string json_str(data.begin(), data.end());
         
-        // 使用字符串流读取 JSON
-        std::stringstream ss(json_str);
+        // // 使用字符串流读取 JSON
+        // std::stringstream ss(json_str);
 
-        // 解析 JSON 数据
-        ptree root;
-        read_json(ss, root);
+        // // 解析 JSON 数据
+        // ptree root;
+        // read_json(ss, root);
 
-        for (const auto& item : root) {
-            auto container = std::make_shared<Container>();
-            container->ID = item.second.get<std::string>("id");
+        // for (const auto& item : root) {
+        //     auto container = std::make_shared<Container>();
+        //     container->ID = item.second.get<std::string>("id");
 
-            // 解析名称
-            for (const auto& name : item.second.get_child("names")) {
-                container->Names.push_back(name.second.data());
-            }
+        //     // 解析名称
+        //     for (const auto& name : item.second.get_child("names")) {
+        //         container->Names.push_back(name.second.data());
+        //     }
 
-            // 解析 LayerID
-            container->LayerID = item.second.get<std::string>("layerID");
+        //     // 解析 LayerID
+        //     container->LayerID = item.second.get<std::string>("layerID");
 
-            containers.push_back(container);
-        }
+        //     containers.push_back(container);
+        // }
     } catch (const std::exception& e) {
         throw myerror("Failed to parse JSON: " + std::string(e.what()));
     }
@@ -899,9 +899,9 @@ std::shared_ptr<rwContainerStore_interface> newContainerStore(const std::string&
         // 确保 jsonPath 至少有一个元素
         cstore->jsonPath.push_back(Join({dir, "containers.json"}));
         // 确保 jsonPath 至少有一个元素
-        cstore->jsonPath.push_back(Join({dir, "containers.json"}));
-        cstore->jsonPath[0] = Join({dir, "containers.json"});
-        cstore->jsonPath[1] = Join({volatileDir, "volatile-containers.json"});
+        cstore->jsonPath.push_back(Join({volatileDir, "containers.json"}));
+        // cstore->jsonPath[0] = Join({dir, "containers.json"});
+        // cstore->jsonPath[1] = Join({volatileDir, "volatile-containers.json"});
 
         // 初始化 containerStore 的其他成员
         cstore->containers = std::vector<std::shared_ptr<Container>>();
