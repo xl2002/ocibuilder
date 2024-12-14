@@ -574,7 +574,7 @@ class Store :public Store_interface{
 
     lastwrite graph_lock_last_write;
     shared_ptr<Driver> graph_driver=std::make_shared<Driver>();
-    // rwLayerStore layer_store_use_getters;
+    std::shared_ptr<rwLayerStore_interface> layer_store_use_getters;
     // vector<roLayerStore> ro_layer_stores_use_getters;
 
     // shared_ptr<idSet> additional_uids;
