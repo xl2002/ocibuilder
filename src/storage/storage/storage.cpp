@@ -10,7 +10,7 @@ namespace fs = boost::filesystem;
 constexpr unsigned int numContainerLocationIndex = 2; // 这里的 2 是因为我们有两个容器位置的标志
 string Store:: RunRoot()
 {
-    return "";
+    return this->run_root;
 }
 
 string join(const vector<string>& elem);

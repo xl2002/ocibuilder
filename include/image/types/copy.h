@@ -103,7 +103,7 @@ struct imageCopier{
 
     imageCopier()=default;
     std::shared_ptr<Algorithm> copyLayers();
-    std::tuple<std::shared_ptr<BlobInfo>,std::shared_ptr<Digest>> copyLayer(std::shared_ptr<BlobInfo> srcInfo,bool toEncrypt,int layerIndex,std::shared_ptr<Named_interface> srcRef,bool emptyLayer);
+    std::tuple<std::shared_ptr<BlobInfo>,std::shared_ptr<Digest>> copyLayer(std::shared_ptr<BlobInfo> srcInfo,bool toEncrypt,int layerIndex,std::shared_ptr<ImageReference_interface> srcRef,bool emptyLayer);
     // std::shared_ptr<bpCompressionStepData> bpcPreserveOriginal(std::shared_ptr<bpDetectCompressionStepData>detect,bool layerCompressionChangeSupported);
 };
 

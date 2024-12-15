@@ -24,7 +24,7 @@ void Builder::AddPrependedEmptyLayer(std::shared_ptr<std::chrono::system_clock::
         created=std::make_shared<std::chrono::system_clock::time_point>(copiedTimestamp);
     }
     History emptyLayer;
-    emptyLayer.created=created;
+    emptyLayer.created=*created;
     emptyLayer.createdBy=createdBy;
     emptyLayer.author=author;
     emptyLayer.comment=comment;
@@ -41,7 +41,7 @@ void  Builder::ClearAnnotations(){
     this->ImageAnnotations.clear();
 }
 std::string  Builder::OS(){
-    return this->OCIv1->platform->OS;
+    return this->OCIv1->platform.OS;
 }
 void Builder::SetHostname(std::string name){
     this->Docker->config->Hostname=name;
@@ -53,11 +53,11 @@ void Builder::SetDomainname(std::string name){
     this->Docker->config->Domainname=name;
 }
 void Builder::SetUser(std::string spec){
-    this->OCIv1->config->user=spec;
+    this->OCIv1->config.user=spec;
     this->Docker->config->User=spec;
 }
 void Builder::ClearPorts(){
-    this->OCIv1->config->exposedPorts.clear();
+    this->OCIv1->config.exposedPorts.clear();
     this->Docker->config->ExposedPorts.clear();
 }
 void Builder::SetEnv(std::string k,std::string v){
@@ -71,27 +71,28 @@ void Builder::SetEnv(std::string k,std::string v){
         n.push_back(k+"="+v);
         s=n;
     };
-    reset(this->OCIv1->config->env);
+    reset(this->OCIv1->config.env);
     reset(this->Docker->config->Env);
 }
 
 void Builder::SetCmd(std::vector<std::string> cmd){
-    this->OCIv1->config->cmd=cmd;
+    this->OCIv1->config.cmd=cmd;
     this->Docker->config->Cmd=cmd;
 }
+
 void Builder::ClearVolumes(){
-    this->OCIv1->config->volumes.clear();
+    this->OCIv1->config.volumes.clear();
     this->Docker->config->Volumes.clear();
 }
 void Builder::ClearOnBuild(){
     this->Docker->config->OnBuild.clear();
 }
 void Builder::SetWorkDir(std::string there){
-    this->OCIv1->config->workingDir=there;
+    this->OCIv1->config.workingDir=there;
     this->Docker->config->WorkingDir=there;
 }
 void Builder::SetEntrypoint(std::vector<std::string> ep){
-    this->OCIv1->config->entrypoint=ep;
+    this->OCIv1->config.entrypoint=ep;
     this->Docker->config->Entrypoint=ep;
 }
 void Builder::SetShell(std::vector<std::string> shell){
@@ -102,7 +103,7 @@ void Builder::SetShell(std::vector<std::string> shell){
 }
 void Builder::SetStopSignal(std::string sig){
     this->Docker->config->StopSignal=sig;
-    this->OCIv1->config->stopSignal=sig;
+    this->OCIv1->config.stopSignal=sig;
 }
 void Builder::SetHealthcheck(std::shared_ptr<HealthConfig> config){
     this->Docker->config->Healthcheck=nullptr;
@@ -122,10 +123,10 @@ void Builder::SetHealthcheck(std::shared_ptr<HealthConfig> config){
 
 void Builder::ClearLabels(){
     this->Docker->config->Labels.clear();
-    this->OCIv1->config->labels.clear();
+    this->OCIv1->config.labels.clear();
 }
 void Builder::SetLabel(std::string k,std::string v){
-    this->OCIv1->config->labels[k]=v;
+    this->OCIv1->config.labels[k]=v;
     this->Docker->config->Labels[k]=v;
 }
 

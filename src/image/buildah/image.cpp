@@ -2,7 +2,7 @@
 #include "image/buildah/image.h"
 #include "utils/common/go/file.h"
 #include "utils/common/go/string.h"
-
+#include "utils/common/json.h"
 std::shared_ptr<containerImageRef> Builder::makeContainerImageRef(std::shared_ptr<CommitOptions> options){
 
     return nullptr;
@@ -85,6 +85,17 @@ std::tuple<std::vector<uint8_t>,std::string> containerImageSource::GetManifest(s
  * 
  * @return std::shared_ptr<BlobInfo> 
  */
-std::shared_ptr<BlobInfo>  containerImageSource::LayerInfos(){
-    return nullptr;
+std::vector<BlobInfo>  containerImageSource::LayerInfos(){
+    auto oci=this->OCI1FromManifest();
+    auto layers=oci->LayerInfos();
+    auto blobs = std::vector<BlobInfo>();
+    for(auto layer:layers){
+        blobs.push_back(*layer.BlobInfo);
+    }
+    return blobs;
+}
+std::shared_ptr<OCI1>containerImageSource::OCI1FromManifest(){
+    std::string manifeststr=vectorToString(this->manifest);
+    auto oci1=unmarshal<OCI1>(manifeststr);
+    return std::make_shared<OCI1>(oci1);
 }

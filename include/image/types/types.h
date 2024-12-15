@@ -54,6 +54,7 @@ struct ImageSource_interface{
     virtual ~ImageSource_interface()=default;
     virtual std::shared_ptr<ImageReference_interface> Reference() = 0;
     virtual std::tuple<std::vector<uint8_t>,std::string> GetManifest(std::shared_ptr<Digest> instanceDigest)=0;
+    virtual std::vector<BlobInfo> LayerInfos()=0;
 };
 
 // ImageInspectLayer 结构体定义
