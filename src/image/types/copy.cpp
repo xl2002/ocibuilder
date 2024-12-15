@@ -35,14 +35,21 @@ std::vector<uint8_t> Image(std::shared_ptr<PolicyContext>policyContext,std::shar
  */
 std::shared_ptr<copySingleImageResult> copier::copySingleImage(std::shared_ptr<UnparsedImage> unparsedImage,std::shared_ptr<Digest> targetInstance,std::shared_ptr<copySingleImageOptions> opts){
     // 1. 构建imagecopier结构，注意类的成员变量已不同
-
+    std::shared_ptr<imageCopier> ic = std::make_shared<imageCopier>();
+    ic->src = rawSource;
+    ic->manifestConversionPlan = std::make_shared<manifestConversionPlan>();
+    ic->diffIDsAreNeeded = true;
     // 2. 将缓存中的镜像层传输到镜像库，并且就行gzip压缩
     // compressionAlgos, err := ic.copyLayers(ctx)
-
+    std::shared_ptr<Algorithm> compressionAlgo = ic->copyLayers();
+    if (!compressionAlgo) {
+        return nullptr;
+    }
     // 3. 更新manifest和config（按理来说config不会变化），并将manifest的layer存储到oci库
 
     // 4. 返回copySingleImageResult
-    return nullptr;
+    std::shared_ptr<copySingleImageResult> result = std::make_shared<copySingleImageResult>();
+    return result;
 }
 
 /**
