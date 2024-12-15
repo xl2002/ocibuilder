@@ -83,6 +83,6 @@ struct containerImageSource: public ImageSource_interface{
     std::tuple<std::vector<uint8_t>,std::string> GetManifest(std::shared_ptr<Digest> instanceDigest) override;
 
     std::vector<BlobInfo> LayerInfos()override;
-    std::shared_ptr<OCI1>OCI1FromManifest();
+    std::shared_ptr<OCI1> OCI1FromManifest();
 };
 #endif // BUILDAH_IMAGE_H)

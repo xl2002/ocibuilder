@@ -38,14 +38,70 @@ std::vector<uint8_t> Image(std::shared_ptr<PolicyContext>policyContext,std::shar
  */
 std::shared_ptr<copySingleImageResult> copier::copySingleImage(std::shared_ptr<UnparsedImage> unparsedImage,std::shared_ptr<Digest> targetInstance,std::shared_ptr<copySingleImageOptions> opts){
     // 1. 构建imagecopier结构，注意类的成员变量已不同
-
+    std::shared_ptr<imageCopier> ic = std::make_shared<imageCopier>();
+    ic->src = rawSource;
+    ic->c=std::make_shared<copier>(*this);
+    auto manifestupdates=std::make_shared<ManifestUpdateOptions>();
+    auto info=std::make_shared<ManifestUpdateInformation>();
+    info->Destination=this->dest;
+    manifestupdates->InformationOnly=info;
+    ic->manifestUpdates=manifestupdates;
+    ic->diffIDsAreNeeded = false;
     // 2. 将缓存中的镜像层传输到镜像库，并且就行gzip压缩
     // compressionAlgos, err := ic.copyLayers(ctx)
-
+    std::shared_ptr<Algorithm> compressionAlgo = ic->copyLayers();
+    if (!compressionAlgo) {
+        return nullptr;
+    }
     // 3. 更新manifest和config（按理来说config不会变化），并将manifest的layer存储到oci库
+    auto pendingImage=std::dynamic_pointer_cast<containerImageSource>(rawSource);
+    auto manifest=pendingImage->OCI1FromManifest();
+    auto config= pendingImage->config;
+    //复制config到库
+    auto configdigest=FromBytes(config);
+    if(configdigest->String()!=pendingImage->configDigest->String()){//config可能已经变化
+        std::cerr<<"config changed"<<std::endl;
+        return nullptr;
+    }
+    std::string storepath=pendingImage->store->RunRoot()+"/blobs/sha256/"+configdigest->Encoded();
+    if(boost::filesystem::exists(storepath)){
+        std::cerr<<"config is exist"<<std::endl;
+        return nullptr;
+    }
+    boost::filesystem::ofstream file(storepath,std::ios::binary|std::ios::trunc|std::ios::out);
+    file.write(reinterpret_cast<const char*>(config.data()),config.size());
+    file.close();
+    //更新manifest
+    auto blobsinfo_gzip=ic->manifestUpdates->InformationOnly->LayerInfos;
+    if(blobsinfo_gzip.size()!=manifest->Layers.size()){
+        std::cerr<<"manifest num is not match"<<std::endl;
+        return nullptr;
+    }
+    for(int i=0;i<manifest->Layers.size();i++){
+        manifest->Layers[i].Digests=*blobsinfo_gzip[i].Digest;
+        manifest->Layers[i].Size=blobsinfo_gzip[i].Size;
+        manifest->Layers[i].MediaType=blobsinfo_gzip[i].MediaType;
+    }
 
+    //复制manifest到库
+    auto manifestbytes=marshal(*manifest);//manifest为指针，不能直接解析
+    auto manifestdigest=FromString(manifestbytes);//已经计算好的最终manifest的哈希值
+    
+    storepath=pendingImage->store->RunRoot()+"/blobs/sha256/"+manifestdigest->Encoded();
+    if(boost::filesystem::exists(storepath)){
+        std::cerr<<"manifest is exist"<<std::endl;
+        return nullptr;
+    }
+    boost::filesystem::ofstream file2(storepath,std::ios::binary|std::ios::trunc|std::ios::out);
+    file2.write(reinterpret_cast<const char*>(manifestbytes.data()),manifestbytes.size());
+    file2.close();
     // 4. 返回copySingleImageResult
-    return nullptr;
+    std::shared_ptr<copySingleImageResult> result = std::make_shared<copySingleImageResult>();
+    result->manifest=stringToVector(manifestbytes);
+    result->manifestMIMEType=pendingImage->manifestType;
+    result->manifestDigest=manifestdigest;
+    result->compressionAlgorithms.push_back(compressionAlgo);
+    return result;
 }
 
 /**
@@ -55,8 +111,8 @@ std::shared_ptr<copySingleImageResult> copier::copySingleImage(std::shared_ptr<U
  */
 std::shared_ptr<Algorithm> imageCopier::copyLayers(){
     // 1. 获得当前镜像所有层的信息
-    auto srcinfos=this->c->rawSource->LayerInfos();
-    auto src=std::dynamic_pointer_cast<containerImageSource>(this->c->rawSource);
+    auto srcinfos=this->src->LayerInfos();
+    auto src=std::dynamic_pointer_cast<containerImageSource>(this->src);
     auto numLayers=srcinfos.size();
 
     // 2. 将序列化的manifest转化为oci格式的manifest,继续返回manifest的info
@@ -102,8 +158,8 @@ std::shared_ptr<Algorithm> imageCopier::copyLayers(){
 std::tuple<std::shared_ptr<BlobInfo>,std::shared_ptr<Digest>> imageCopier::copyLayer(std::shared_ptr<BlobInfo> srcInfo,bool toEncrypt,int layerIndex,std::shared_ptr<ImageReference_interface> srcRef,bool emptyLayer){
     
     // 1. 读取镜像层的文件流
-    auto copyimage=this->c;
-    auto copysource=std::dynamic_pointer_cast<containerImageSource>(copyimage->rawSource);
+    // auto copyimage=this->c;
+    auto copysource=std::dynamic_pointer_cast<containerImageSource>(this->src);
     if(copysource==nullptr){
         std::cout<<"copysource is nullptr"<<std::endl;
         return std::make_tuple(nullptr,nullptr);

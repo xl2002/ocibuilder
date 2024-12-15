@@ -144,7 +144,7 @@ struct storageImageDestination:public ImageDestination_interface{
 };
 
 struct ManifestUpdateInformation{
-    std::shared_ptr<ImageReference_interface> Destination=nullptr;
+    std::shared_ptr<ImageDestination_interface> Destination=nullptr;
     std::vector<BlobInfo> LayerInfos;
     std::vector<Digest> LayerDiffIDs;
     ManifestUpdateInformation()=default;

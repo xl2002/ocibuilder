@@ -202,6 +202,7 @@ struct Manifest{
             {"annotations", boost::json::value_from(image.Annotations)}
         };
     }
+
     friend Manifest tag_invoke(boost::json::value_to_tag<Manifest>, const boost::json::value& jv) {
         const auto& obj = jv.as_object();
         Manifest m;
