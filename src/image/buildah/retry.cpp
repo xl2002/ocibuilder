@@ -2,7 +2,7 @@
 #include <cmath>  // 包含cmath头文件
 #include <thread>
 #include <chrono>
-
+#include <iostream>
 void RetryIfNecessary(std::function<void()> operation, std::shared_ptr<Retry::Options> options){
     try{
         IfNecessary(operation,options);
@@ -21,7 +21,16 @@ void IfNecessary(std::function<void()> operation, std::shared_ptr<Retry::Options
     try{
         operation(); // 执行操作
     }catch(const std::exception& e){
-        throw;
+        for(;attempt<options->MaxRetry;attempt++){
+            double delayInSeconds = std::chrono::duration_cast<std::chrono::seconds>(options->Delay).count();
+            std::cout<<"failed,retryong in "<<delayInSeconds*std::pow(2,attempt)<<" seconds "<<"("<<attempt+1<<"/"<<options->MaxRetry<<")"<<std::endl;
+            std::this_thread::sleep_for(options->Delay*std::pow(2,attempt));
+            try{
+                operation(); // 执行操作
+            }catch(const std::exception& e){
+                continue;
+            }
+        }
     }
     // operation(); // 执行操作
 } 

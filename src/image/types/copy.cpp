@@ -3,6 +3,7 @@
 #include "image/buildah/image.h"
 #include "image/types/internal/types.h"
 #include "utils/common/go/string.h"
+#include "storage/storage/images.h"
 /**
  * @brief // Image将图像从srcRef复制到destRef，使用policyContext来验证源图像的可接受性。 
  *  它返回写入新镜像副本的清单。
@@ -15,18 +16,58 @@
 std::vector<uint8_t> Image(std::shared_ptr<PolicyContext>policyContext,std::shared_ptr<ImageReference_interface> destRef,std::shared_ptr<ImageReference_interface> srcRef,std::shared_ptr<ImageReference_interface> registry,std::shared_ptr<copy::Options> copyOptions){
     // 1. 建立镜像够简单的缓存目录
     // publicDest, err := destRef.NewImageDestination(ctx, options.DestinationCtx)
-
+    // destRef为storageReference类型，dest为storageImageDestination类型
+    auto dest=destRef->NewImageDestination(copyOptions->destinationCtx);
     // 2. 构建copy层，并构建整个镜像的config和manifest，但是manifest的layer未压缩
     // publicRawSource, err := srcRef.NewImageSource(ctx, options.SourceCtx)
-
+    // srcRef为containerImageRef类型，rawSource为containerImageSource类型
+    auto rawSource=srcRef->NewImageSource(copyOptions->sourceCtx);
     // 3. 将缓存中的镜像传输到镜像库，并且就行gzip压缩
     // single, err := c.copySingleImage(ctx, c.unparsedToplevel, nil, copySingleImageOptions{requireCompressionFormatMatch: requireCompressionFormatMatch})
-    
+    auto c=std::make_shared<copier>();
+    c->policyContext=policyContext;
+    c->dest=dest;
+    c->rawSource=rawSource;
+    c->options=copyOptions;
+    auto unparsedToplevel=std::make_shared<UnparsedImage>();
+    unparsedToplevel->src=rawSource;
+    auto copySingleImageoptions=std::make_shared<copySingleImageOptions>();
+    copySingleImageoptions->requireCompressionFormatMatch=true;
+    auto single=c->copySingleImage(c->unparsedToplevel,nullptr,copySingleImageoptions);
     // 4. 更新镜像库的index.json
-
+    auto containerimage=std::dynamic_pointer_cast<containerImageSource>(rawSource);
+    if(containerimage==nullptr){
+        std::cerr<<"containerimage is nullptr"<<std::endl;
+        return std::vector<uint8_t>();
+    }
+    std::string indexpath=containerimage->store->RunRoot()+"oci_registry/index.json";
+    if(!boost::filesystem::exists(indexpath)){
+        std::cout<<"index.json is not exist"<<std::endl;
+        return std::vector<uint8_t>();
+    }
+    boost::filesystem::ifstream indexfile(indexpath,std::ios::binary|std::ios::app);
+    // 使用 std::ostringstream 将流的内容读取到字符串
+    std::ostringstream buffer;
+    buffer << indexfile.rdbuf();  // 读取整个文件内容
+    std::string fileContent = buffer.str();  // 转换为 std::string
+    storage::index index=unmarshal<storage::index>(fileContent);
+    indexfile.close();
+    auto newmanifest=std::make_shared<storage::manifest>();
+    newmanifest->mediaType=single->manifestMIMEType;
+    newmanifest->digest=single->manifestDigest->String();
+    newmanifest->size=single->manifest.size();
+    auto destimage=std::dynamic_pointer_cast<storageImageDestination>(dest);
+    auto tagref=std::dynamic_pointer_cast<taggedReference>(destimage->imageRef->named);
+    if(destimage!=nullptr&&tagref!=nullptr){
+        newmanifest->annotations["org.opencontainers.image.ref.name"]=tagref->String();
+    }
+    index.manifests.push_back(*newmanifest);
     // 5. 返回写入新镜像副本的清单
-
-    return std::vector<uint8_t>();
+    std::string newindexcontent=marshal<storage::index>(index);
+    std::ofstream newindexfile(indexpath,std::ios::out|std::ios::trunc);
+    newindexfile<<newindexcontent;
+    newindexfile.close();
+    return single->manifest;
 }
 /**
  * @brief 将缓存中的镜像层传输到镜像库，并且就行gzip压缩
@@ -63,7 +104,7 @@ std::shared_ptr<copySingleImageResult> copier::copySingleImage(std::shared_ptr<U
         std::cerr<<"config changed"<<std::endl;
         return nullptr;
     }
-    std::string storepath=pendingImage->store->RunRoot()+"/blobs/sha256/"+configdigest->Encoded();
+    std::string storepath=pendingImage->store->RunRoot()+"oci_registry/blobs/sha256/"+configdigest->Encoded();
     if(boost::filesystem::exists(storepath)){
         std::cerr<<"config is exist"<<std::endl;
         return nullptr;
@@ -87,7 +128,7 @@ std::shared_ptr<copySingleImageResult> copier::copySingleImage(std::shared_ptr<U
     auto manifestbytes=marshal(*manifest);//manifest为指针，不能直接解析
     auto manifestdigest=FromString(manifestbytes);//已经计算好的最终manifest的哈希值
     
-    storepath=pendingImage->store->RunRoot()+"/blobs/sha256/"+manifestdigest->Encoded();
+    storepath=pendingImage->store->RunRoot()+"oci_registry/blobs/sha256/"+manifestdigest->Encoded();
     if(boost::filesystem::exists(storepath)){
         std::cerr<<"manifest is exist"<<std::endl;
         return nullptr;
@@ -189,7 +230,7 @@ std::tuple<std::shared_ptr<BlobInfo>,std::shared_ptr<Digest>> imageCopier::copyL
     std::cout<<"copying layer: "<<blobinfo->Digest->String()<<std::endl;
     blobinfo->MediaType=srcInfo->MediaType+"+gzip";
     blobinfo->CompressionAlgorithm=alg;
-    std::string storagelayerpath=copysource->store->RunRoot()+"/blobs/sha256/"+blobinfo->Digest->Encoded();
+    std::string storagelayerpath=copysource->store->RunRoot()+"oci_registry/blobs/sha256/"+blobinfo->Digest->Encoded();
     boost::filesystem::path p(storagelayerpath);
     if(boost::filesystem::exists(p)){
         std::cout<<"layer "<< storagelayerpath<<"already exists"<<std::endl;
@@ -211,12 +252,3 @@ std::tuple<std::shared_ptr<BlobInfo>,std::shared_ptr<Digest>> imageCopier::copyL
     bloblayer.close();
     return std::make_tuple(blobinfo,digest);
 }
-// /**
-//  * @brief 
-//  * 
-//  * @param layerCompressionChangeSupported 
-//  * @return std::shared_ptr<bpCompressionStepData> 
-//  */
-// std::shared_ptr<bpCompressionStepData> imageCopier::bpcPreserveOriginal(std::shared_ptr<bpDetectCompressionStepData>detect,bool layerCompressionChangeSupported){
-//     return nullptr;
-// }

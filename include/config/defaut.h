@@ -93,7 +93,7 @@ extern std::string SeccompOverridePath;
 extern std::string SeccompDefaultPath;
 // DefaultVolumePluginTimeout is the default volume plugin timeout, in seconds
 extern int DefaultVolumePluginTimeout;
-
+extern std::string TypeLayers;
 std::shared_ptr<Config> defaultConfig();
 std::tuple<std::shared_ptr<EngineConfig>,boost::optional<myerror>> defaultEngineConfig();
 std::tuple<std::string,boost::optional<myerror>> defaultTmpDir();

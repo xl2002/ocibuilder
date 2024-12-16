@@ -97,6 +97,7 @@ std::string SeccompOverridePath;
 std::string SeccompDefaultPath;
 // DefaultVolumePluginTimeout is the default volume plugin timeout, in seconds
 int DefaultVolumePluginTimeout;
+std::string TypeLayers;
 
 std::shared_ptr<myerror> cachedConfigError;
 std::shared_ptr<Config> cachedConfig;
@@ -281,7 +282,8 @@ void init_config(){
     SeccompDefaultPath = _installPrefix + "/share/containers/seccomp.json";
     // DefaultVolumePluginTimeout is the default volume plugin timeout, in seconds
     DefaultVolumePluginTimeout = 5;
-
+    TypeLayers="layers";
+    
     cachedConfigError=nullptr;
     cachedConfig=nullptr;
     containersConfEnv="CONTAINERS_CONF";

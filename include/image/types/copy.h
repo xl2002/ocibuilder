@@ -65,7 +65,7 @@ namespace copy{
 }
 std::vector<uint8_t> Image(std::shared_ptr<PolicyContext>policyContext,std::shared_ptr<ImageReference_interface> destRef,std::shared_ptr<ImageReference_interface> srcRef,std::shared_ptr<ImageReference_interface> registry,std::shared_ptr<copy::Options> copyOptions);
 struct UnparsedImage{
-    std::shared_ptr<ImageReference_interface> src=nullptr;
+    std::shared_ptr<ImageSource_interface> src=nullptr;
     std::shared_ptr<Digest> digest=std::make_shared<Digest>();
     std::vector<uint8_t> cachedManifest;
     std::string cachedManifestMIMEType;

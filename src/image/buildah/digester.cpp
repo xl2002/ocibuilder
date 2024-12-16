@@ -24,7 +24,8 @@ std::string simpleDigester::ContentType(){
 void simpleDigester::write(const std::string& data){
     if (this->hasher) {
         // this->hasher->Process(data);
-        this->hasher->data.insert(this->hasher->data.end(), data.begin(), data.end());
+        //计算hash值
+        this->hasher->data=this->hasher->Hash_num(std::vector<uint8_t>(data.begin(), data.end()));
     }
 }
 void simpleDigester::close(){
@@ -102,7 +103,8 @@ void  CompositeDigester::Start(std::string contentType){
         auto newDigester = newSimpleDigester(contentType);
         digesters.push_back(newDigester);
     }else if(contentType=="file"|| contentType=="dir"){
-        auto digester=newTarDigester(contentType,"",fs::path{""});
+        std::shared_ptr<digester_interface> digester;
+        std::tie(digester, std::ignore)=newTarDigester(contentType,"",fs::path{""});
         closer = digester;
         digesters.push_back(digester);
     }

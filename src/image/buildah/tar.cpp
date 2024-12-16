@@ -95,67 +95,10 @@ std::shared_ptr<tarFilterer> newTarFilterer(const std::string& tarFilePath, cons
     } catch (const myerror& e) {
         throw;
     }
-
+    filterer->pipeWriter_TarHeader.close();
     return filterer;  // 返回创建的 tarFilterer 对象
 }
 
-
-
-
-// 实现newTarFilterer函数
-// std::shared_ptr<tarFilterer> newTarFilterer(
-//     std::ostream& writeStream,  // 写入流
-//     std::function<std::tuple<bool, bool, std::istream*>(std::shared_ptr<tarpp::details::TarHeader>)> filter  // 过滤器
-// ) {
-//     // 创建过滤器对象
-//     std::shared_ptr<tarFilterer> filterer = std::make_shared<tarFilterer>();
-//         // 使用标准输入流（std::cin）直接读取
-//     std::istream& inputStream = std::cin;
-
-//     // 使用boost线程库启动线程
-//     filterer->wg.create_thread([&filterer, &writeStream, filter]() {
-//         try {
-
-//             tarpp::Tar tarWriter(writeStream);
-
-//             while (true) {
-//                 tarpp::details::TarHeader header;
-//                 inputStream.read(reinterpret_cast<char*>(&header), sizeof(header));
-//                 if (inputStream.gcount() <= 0) break;  // 读取结束
-
-//                 bool skip = false;
-//                 bool replaceContents = false;
-//                 std::istream* replacementContents = nullptr;
-
-//                 // 调用过滤器进行处理
-//                 if (filter) {
-//                     std::tie(skip, replaceContents, replacementContents) = filter(std::make_shared<tarpp::details::TarHeader>(header));
-//                 }
-
-//                 // 如果不跳过，写入TarHeader和内容
-//                 if (!skip) {
-//                     tarWriter.add(header.header_.name_, std::string(), tarpp::TarFileOptions{}); // 使用TarFileOptions 默认值
-//                     if (header.header_.size_ != 0) {
-//                         if (replaceContents) {
-//                             // 通过替换内容写入
-//                             tarWriter.add(header.header_.name_, std::string(), tarpp::TarFileOptions{}); // 假设替换为其他内容
-//                         } else {
-//                             // 普通内容写入
-//                             tarWriter.add(header.header_.name_, std::string(), tarpp::TarFileOptions{}); 
-//                         }
-//                     }
-//                 }
-//             }
-
-//             // 完成后关闭所有流
-//             tarWriter.finalize();
-//             filterer->Close();
-//         } catch (const myerror& e) {
-//             std::cerr << "Error: " << e.what() << std::endl;
-//         }
-//     });
-//     return filterer;
-// }
 
 /**
  * @brief 关闭pipeWriter_TarHeader文件流
@@ -172,9 +115,15 @@ void tarFilterer::Close() {
 std::string tarDigester::ContentType(){
     return this->nested->ContentType();
 }
+/**
+ * @brief 向hash中写入数据计算sha256
+ * 
+ * @param data 
+ */
 void tarDigester::write(const std::string& data){
-    // this->nested->write(data);
+    this->nested->write(data);
 }
+
 void tarDigester::close(){
     if(this->isOpen){
         this->isOpen=false;
@@ -192,7 +141,7 @@ std::shared_ptr<::Digest> tarDigester::Digest(){
  * @return std::shared_ptr<digester_interface> 
  */
 // newTarDigester 函数实现
-std::shared_ptr<digester_interface> newTarDigester(const std::string& contentType, const std::string& tarFilePath, const fs::path& directory) {
+std::tuple<std::shared_ptr<digester_interface>,int> newTarDigester(const std::string& contentType, const std::string& tarFilePath, const fs::path& directory) {
     // 创建嵌套的 digester
     auto nested = newSimpleDigester(contentType);
 
@@ -203,7 +152,12 @@ std::shared_ptr<digester_interface> newTarDigester(const std::string& contentTyp
     auto digester = std::make_shared<tarDigester>();
     digester->isOpen = true;
     digester->nested = nested;
-    digester->tarFilterer = tarFilterer;
 
-    return digester;
+    digester->tarFilterer = tarFilterer;
+    std::ifstream tarFile(tarFilePath, std::ios::binary);
+    std::ostringstream buffer;
+    buffer << tarFile.rdbuf();
+    digester->write(buffer.str());
+    tarFile.close();
+    return std::make_tuple(digester,buffer.str().length());
 }

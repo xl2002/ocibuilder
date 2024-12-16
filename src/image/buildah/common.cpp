@@ -93,23 +93,27 @@ std::vector<byte> retryCopyImage(
     std::vector<uint8_t> manifestBytes; // 等价于 Go 的 []byte
     std::exception_ptr err = nullptr;   // 等价于 Go 的 error
     std::exception_ptr lastErr = nullptr; // 等价于 Go 的 error
-    auto operation = [&]() -> std::exception_ptr {
+    auto operation = [&](){
         try {
             manifestBytes = Image(policyContext, dest, src,registry ,copyOptions);
             if (registry && registry->Transport()->Name() != "docker") {
                 lastErr = err;
-                return nullptr; // 忽略非Docker传输的错误
+                // return // 忽略非Docker传输的错误
             }
-            return err;
+            // return err;
         } catch (const std::exception& e) {
-            return std::current_exception();
+            throw;
         }
     };
     // std::exception_ptr err = IfNecessary(operation, {maxRetries, retryDelay});
-    auto retryOptions = std::make_shared<Retry::Options>(Retry::Options{maxRetries, retryDelay});
-
-    IfNecessary(operation,retryOptions);
+    auto retryOptions = std::make_shared<Retry::Options>();
+    retryOptions->MaxRetry=maxRetries;
+    retryOptions->Delay=retryDelay;
+    try{
+        RetryIfNecessary(operation,retryOptions);
+    }catch(const std::exception& e){
+        throw;
+    }
     
-
     return manifestBytes;
 }

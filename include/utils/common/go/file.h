@@ -31,4 +31,5 @@ bool IsPathSeparator(char c);
 string join(const vector<string>& elem);
 string Clean(const string& path);
 bool isDirectoryEmpty(const boost::filesystem::path& dirPath);
+std::string MkdirTemp(std::string dir, std::string pattern);
 #endif // GO_FILE_H
