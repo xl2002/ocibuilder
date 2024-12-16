@@ -1,6 +1,8 @@
 #include "storage/storage/storage_reference.h"
 #include "utils/common/error.h"
 #include "storage/storage/storage.h"
+
+#include "utils/common/go/file.h"
 std::shared_ptr<ImageTransport_interface> storageReference::Transport(){
     auto st=std::make_shared<storageTransport>();
     st->store=this->transport->store;
@@ -60,13 +62,18 @@ std::shared_ptr<ImageSource_interface> newImageSource(std::shared_ptr<SystemCont
 std::shared_ptr<ImageSource_interface> storageReference::NewImageSource(std::shared_ptr<SystemContext>sys){
     return newImageSource(sys,std::make_shared<storageReference>(*this));
 }
+
 /**
  * @brief 在tmp目录下创建缓存目录，并且构建storageImageDestination
  * 
  * @return std::shared_ptr<storageImageDestination> 
  */
 std::shared_ptr<storageImageDestination> newImageDestination(std::shared_ptr<SystemContext>sys,std::shared_ptr<storageReference>ref){
-    
+    auto tmpdir="";
+    auto dest=std::make_shared<storageImageDestination>();
+    dest->imageRef=ref;
+    dest->directory=tmpdir;
+    return dest;
 }
 /**
  * @brief 建立镜像够简单的缓存目录

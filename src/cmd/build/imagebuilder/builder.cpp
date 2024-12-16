@@ -166,7 +166,7 @@ std::string Image_Builder::From(std::shared_ptr<Node> node){
     }catch(const myerror& e){
         throw;
     }
-    auto children=SplitChildren(node,"from");
+    auto children=SplitChildren(node,"from");//分离from操作
     if(children.size()==0){
         throw myerror("no FROM statement found");
     }else if(children.size()>1){
@@ -283,7 +283,12 @@ std::shared_ptr<Image_Builder> Image_Builder::builderForStage(std::vector<std::s
     }
     return stageBuilder;
 }
-
+/**
+ * @brief 将value对应的命令从node中分离
+ * 
+ * @param value 
+ * @return std::vector<std::shared_ptr<Node>> 
+ */
 std::vector<std::shared_ptr<Node>> SplitChildren(std::shared_ptr<Node>node,std::string value){
     auto split= std::vector<std::shared_ptr<Node>>();  // 存储分割后的节点列表
     auto children =std::vector<std::shared_ptr<Node>>();
@@ -294,7 +299,8 @@ std::vector<std::shared_ptr<Node>> SplitChildren(std::shared_ptr<Node>node,std::
             children.push_back(child);
         }
     }
-    node->Children=children;
+    // if()
+    // node->Children=children;
     return split;
 }
 

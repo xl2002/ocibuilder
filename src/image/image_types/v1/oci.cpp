@@ -6,7 +6,9 @@
  * @return std::shared_ptr<OCI1> 
  */
 std::shared_ptr<OCI1> OCI1FromManifest(std::vector<uint8_t> manifestBlob){
-    return nullptr;
+    std::string manifeststr=vectorToString(manifestBlob);
+    auto oci1=unmarshal<OCI1>(manifeststr);
+    return std::make_shared<OCI1>(oci1);
 }
 
 std::shared_ptr<OCI1> FromBlob(std::vector<uint8_t> manblob, std::string mt){
@@ -18,7 +20,14 @@ std::shared_ptr<OCI1> FromBlob(std::vector<uint8_t> manblob, std::string mt){
  * @return std::vector<LayerInfo> 
  */
 std::vector<LayerInfo> OCI1::LayerInfos(){
-    return {};
+    std::vector<LayerInfo> blobs;
+    for(auto layer: this->Layers){
+        auto blob=BlobInfoFromOCI1Descriptor(std::make_shared<Descriptor>(layer));
+        LayerInfo info;
+        info.BlobInfo=blob;
+        blobs.push_back(info);
+    }
+    return blobs;
 }
 std::shared_ptr<::BlobInfo> BlobInfoFromOCI1Descriptor(std::shared_ptr<Descriptor> desc){
     auto ret=std::make_shared<::BlobInfo>();

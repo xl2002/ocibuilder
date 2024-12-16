@@ -65,7 +65,7 @@ namespace copy{
 }
 std::vector<uint8_t> Image(std::shared_ptr<PolicyContext>policyContext,std::shared_ptr<ImageReference_interface> destRef,std::shared_ptr<ImageReference_interface> srcRef,std::shared_ptr<ImageReference_interface> registry,std::shared_ptr<copy::Options> copyOptions);
 struct UnparsedImage{
-    std::shared_ptr<ImageReference_interface> src=nullptr;
+    std::shared_ptr<ImageSource_interface> src=nullptr;
     std::shared_ptr<Digest> digest=std::make_shared<Digest>();
     std::vector<uint8_t> cachedManifest;
     std::string cachedManifestMIMEType;
@@ -103,7 +103,7 @@ struct imageCopier{
 
     imageCopier()=default;
     std::shared_ptr<Algorithm> copyLayers();
-    std::tuple<std::shared_ptr<BlobInfo>,std::shared_ptr<Digest>> copyLayer(std::shared_ptr<BlobInfo> srcInfo,bool toEncrypt,int layerIndex,std::shared_ptr<Named_interface> srcRef,bool emptyLayer);
+    std::tuple<std::shared_ptr<BlobInfo>,std::shared_ptr<Digest>> copyLayer(std::shared_ptr<BlobInfo> srcInfo,bool toEncrypt,int layerIndex,std::shared_ptr<ImageReference_interface> srcRef,bool emptyLayer);
     // std::shared_ptr<bpCompressionStepData> bpcPreserveOriginal(std::shared_ptr<bpDetectCompressionStepData>detect,bool layerCompressionChangeSupported);
 };
 

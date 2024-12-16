@@ -68,9 +68,9 @@ bool mkdirAs(const std::string& path, int mode, int ownerUID, int ownerGID, bool
         }
 
         // 创建当前目录
-        if (!boost::filesystem::create_directory(p)) {
-            throw myerror("创建目录失败: " + path);
-        }
+        // if (!boost::filesystem::create_directory(p)) {
+        //     throw myerror("创建目录失败: " + path);
+        // }
 
         // 处理权限变更
         for (const auto& pathComponent : paths) {

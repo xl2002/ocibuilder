@@ -96,7 +96,27 @@
         "hash_map": "cpp",
         "hash_set": "cpp",
         "filesystem": "cpp",
-        "xstring": "cpp"
+        "resumable": "cpp",
+        "ios": "cpp",
+        "locale": "cpp",
+        "xthread": "cpp",
+        "xfacet": "cpp",
+        "xhash": "cpp",
+        "xiosbase": "cpp",
+        "xlocale": "cpp",
+        "xlocbuf": "cpp",
+        "xlocinfo": "cpp",
+        "xlocmes": "cpp",
+        "xlocmon": "cpp",
+        "xlocnum": "cpp",
+        "xloctime": "cpp",
+        "xmemory": "cpp",
+        "xmemory0": "cpp",
+        "xstddef": "cpp",
+        "xstring": "cpp",
+        "xtr1common": "cpp",
+        "xtree": "cpp",
+        "xutility": "cpp"
     },
     "C_Cpp.errorSquiggles": "enabled",
     "cSpell.words": [
@@ -105,6 +125,5 @@
     "CodeGPT.apiKey": "CodeGPT Plus Beta",
     "makefile.configureOnOpen": false,
     "cmake.ignoreCMakeListsMissing": true,
-    "commentTranslate.hover.enabled": true,
-    "C_Cpp.default.cppStandard": "c++11"
+    "commentTranslate.hover.enabled": true
 }

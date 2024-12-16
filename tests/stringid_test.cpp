@@ -1,5 +1,18 @@
-#include "storage/storage/stringid.h"
-// 辅助函数：将字节数组转换为十六进制字符串
+#include <string>
+#include <vector>
+#include <map>
+#include <chrono>
+#include <memory>
+#include <iostream>
+// #include <vector>
+// #include <string>
+#include <sstream>
+#include <iomanip>
+#include <stdexcept>
+#include <random>
+#include <algorithm>
+#include <cctype>
+// 编码为十六进制字符串
 std::string encodeToHex(const std::vector<uint8_t>& bytes) {
     std::ostringstream oss;
     for (uint8_t byte : bytes) {
@@ -51,4 +64,9 @@ std::string generateID() {
 
 std::string GenerateRandomID() {
     return generateID();
+}
+int main(){
+    for(int i=0;i<15;i++){
+        std::cout<<GenerateRandomID()<<std::endl;
+    }
 }

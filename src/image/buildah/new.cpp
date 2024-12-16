@@ -43,7 +43,7 @@ std::shared_ptr<Builder> newBuilder(std::shared_ptr<Store> store,std::shared_ptr
             auto pulledImages=imageRuntime->Pull(options->FromImage,pullPolicy,pullOptions);
             if(pulledImages.size()>0){
                 img=pulledImages[0]->storageImage;
-                ref=pulledImages[0]->StorageReference();
+                // ref=pulledImages[0]->StorageReference();
             }
         }catch(const myerror& e){
             throw;

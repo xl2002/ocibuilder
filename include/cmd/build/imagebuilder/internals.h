@@ -14,13 +14,12 @@
 #include <algorithm>
 #include <sys/stat.h>
 #include <limits.h>
-#ifdef _WIN32
-    #include <winsock2.h>
-#include <windows.h>
-    const char PATH_SEPARATOR = '\\';
-#else
+#include "filesys/systems.h"
+#ifdef __linux__
     //#include <unistd.h>
     const char PATH_SEPARATOR = '/';
+#else
+    const char PATH_SEPARATOR = '\\';
 #endif
 #include <cstdlib>
 #include "utils/common/go/string.h"

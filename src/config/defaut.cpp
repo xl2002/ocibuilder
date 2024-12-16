@@ -301,10 +301,10 @@ std::string defaultLogDriver(){
     return "k8s-file";
 }
 std::string getDefaultSSHConfig(){
-    #ifdef _WIN32
-    return "C:\\ProgramData\\ssh\\sshd_config";
-    #elif defined __linux
+    #ifdef __linux__
     return "/root/.ssh/config";
+    #else
+    return "C:\\ProgramData\\ssh\\sshd_config";
     #endif
 }
 SubnetPool parseSubnetPool(const std::string& subnet, int size) {

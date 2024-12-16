@@ -11,8 +11,8 @@
 #include "image/types/define/types.h"
 #include <string>
 #include "image/shortnames/sysregistriesv2/shortnames.h"
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/ini_parser.hpp>
+// #include <boost/property_tree/ptree.hpp>
+// #include <boost/property_tree/ini_parser.hpp>
 
 extern std::string builtinRegistriesConfPath;
 extern std::string userRegistriesFile;

@@ -173,8 +173,8 @@ struct AutoUserNsOptions{
 struct IDMappingOptions{
 	bool HostUIDMapping=false;
 	bool HostGIDMapping=false;
-	vector<LinuxIDMapping> UIDMap;
-	vector<LinuxIDMapping> GIDMap;
+	std::vector<LinuxIDMapping> UIDMap;
+	std::vector<LinuxIDMapping> GIDMap;
 	bool AutoUserNs=false;
 	std::shared_ptr<AutoUserNsOptions> AutoUserNsOpts=std::make_shared<AutoUserNsOptions>();
 	IDMappingOptions()= default;

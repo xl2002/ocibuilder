@@ -72,11 +72,11 @@ std::shared_ptr<parsedConfig> tryUpdatingCache(std::shared_ptr<SystemContext> ct
 }
 std::shared_ptr<parsedConfig> loadConfigFile(std::string path,bool forceV2) {
 
-    boost::property_tree::ptree pt;
-    boost::property_tree::ini_parser::read_ini(path, pt);
+    // boost::property_tree::ptree pt;
+    // boost::property_tree::ini_parser::read_ini(path, pt);
     auto combinedTOML=std::make_shared<V2RegistriesConf>();
     // std::map<std::string, std::string> config_map;
-    traverse_ptree_to_map(pt, combinedTOML->UnqualifiedSearchRegistries);
+    // traverse_ptree_to_map(pt, combinedTOML->UnqualifiedSearchRegistries);
     auto res=std::make_shared<parsedConfig>();
     res->partialV2=combinedTOML;
     res->unqualifiedSearchRegistriesOrigin=path;

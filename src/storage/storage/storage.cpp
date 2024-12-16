@@ -1,5 +1,8 @@
 #include "storage/storage/storage.h"
 #include "utils/common/go/time.h"
+#include "utils/common/go/string.h"
+#include "utils/common/json.h"
+#include "utils/common/go/file.h"
 namespace fs = boost::filesystem;
 
 
@@ -7,7 +10,7 @@ namespace fs = boost::filesystem;
 constexpr unsigned int numContainerLocationIndex = 2; // 这里的 2 是因为我们有两个容器位置的标志
 string Store:: RunRoot()
 {
-    return "";
+    return this->run_root;
 }
 
 string join(const vector<string>& elem);
@@ -15,76 +18,7 @@ string Join(const vector<string>& elem) {
     return join(elem);
 }
 shared_ptr<Driver> New(const string& name, const driver_Options& config);
-// shared_ptr<Driver> Store:: New(const string& name, const driver_Options& config) {
-//     if (!name.empty()) {
-//         // 如果指定了驱动名称，尝试加载指定的驱动，并记录到日志中,日志系统先不考虑
-//         // logDebug("[graphdriver] trying provided driver \"" + name + "\"");
-//         return GetDriver(name, config);
-//     }
 
-//     // 尝试加载之前使用的驱动
-//     auto driversMap = ScanPriorDrivers(config.root);
-
-//     // 使用提供的优先级列表，如果为空则使用默认的优先级列表
-//     vector<string> prioList = config.driverPriority;
-//     if (prioList.empty()) {
-//         prioList = Priority;
-//     }
-
-//     // 遍历优先级列表并尝试加载驱动
-//     for (const auto& name : prioList) {
-//         if (name == "vfs" && config.driverPriority.empty()) {
-//             // 如果优先级列表为空，跳过vfs驱动
-//             continue;
-//         }
-//         if (driversMap.find(name) != driversMap.end()) {
-//             // 如果在已加载的驱动中找到优先驱动，尝试加载并返回
-//             auto driver = getBuiltinDriver(name, config.root, config);
-//             if (!driver) {
-//                 // 如果加载失败，记录错误日志并返回错误
-//                 // logError("[graphdriver] prior storage driver " + name + " failed.");
-//                 throw myerror("Failed to load driver: " + name);
-//             }
-
-//             // 如果有多个已加载的驱动，要求用户显式选择一个驱动
-//             if (driversMap.size() - 1 > 0) {
-//                 vector<string> driversSlice;
-//                 for (const auto& kv : driversMap) {
-//                     driversSlice.push_back(kv.first);
-//                 }
-
-//                 throw myerror(config.root + " contains several valid graphdrivers: " +
-//                                 "; Please cleanup or explicitly choose storage driver (-s <DRIVER>)");
-//             }
-
-//             // logInfo("[graphdriver] using prior storage driver: " + name);
-//             return driver;
-//         }
-//     }
-
-//     // 按优先级列表顺序检查并加载驱动
-//     for (const auto& name : prioList) {
-//         auto driver = getBuiltinDriver(name, config.root, config);
-//         if (driver) {
-//             return driver;
-//         }
-//     }
-
-//     // 如果没有找到优先驱动，检查所有已注册的驱动
-//     for (auto& kv : drivers) {
-//         std::vector<std::string> pathComponents = {config.root, kv.first}; // 创建路径组件的向量
-//         std::string path = Join(pathComponents); // 连接路径
-//         driver_Options opts;
-//         opts.driverOptions = config.driverOptions; // 将现有的 vector<string> 分配给 Options 对象的 driverOptions
-//         auto driver = kv.second(path, opts); // 使用 Options 对象作为参数
-//         if (driver) {
-//             return driver;
-//         }
-//     }
-
-//     // 如果没有找到支持的存储驱动，抛出myerror类型的错误
-//     throw myerror("no supported storage backend found");
-// }
 
 shared_ptr<Driver> Store::createGraphDriverLocked() {
     // driver_Options config{
@@ -126,39 +60,48 @@ bool ImageStore::checkModified(lastwrite& lastWrite) {
 }
 // imagespath 函数的实现
 std::string ImageStore::imagespath(){
-    return Join({dir, "images.json"}); // Join 函数用于拼接路径，dir 是 imageStore 的成员变量
+    return Join({dir, "index.json"}); // Join 函数用于拼接路径，dir 是 imageStore 的成员变量
 }
 //parseJson 函数的实现
 bool parseJson(const vector<uint8_t>& data, vector<shared_ptr<storage::Image>>& images) {
     try {
-        // Create a string from the binary data
-        std::string json_str(data.begin(), data.end());
-        
-        // Use a string stream to read the JSON
-        std::stringstream ss(json_str);
-
-        // Parse the JSON data
-        ptree root;
-        read_json(ss, root);
-
-        for (const auto& item : root) {
+        std::string index_str=vectorToString(data);
+        storage::index Index=unmarshal<storage::index>(index_str);
+        for(auto it:Index.manifests){
             auto image = std::make_shared<storage::Image>();
-            image->ID = item.second.get<std::string>("id");
-
-            // Parse names
-            for (const auto& name : item.second.get_child("names")) {
-                image->Names.push_back(name.second.data());
-            }
-
-            // Parse digests
-            for (const auto& digest : item.second.get_child("digests")) {
-                Digest d;
-                d.digest = digest.second.data();
-                image->Digests.push_back(d);
-            }
-
+            image->ID=it.digest;
+            image->Names.push_back(it.annotations["org.opencontainers.image.ref.name"]);
+            image->Digests.emplace_back(it.digest);
             images.push_back(image);
         }
+        // Create a string from the binary data
+        // std::string json_str(data.begin(), data.end());
+        
+        // // Use a string stream to read the JSON
+        // std::stringstream ss(json_str);
+
+        // // Parse the JSON data
+        // ptree root;
+        // read_json(ss, root);
+// 
+        // for (const auto& item : root) {
+        //     auto image = std::make_shared<storage::Image>();
+        //     image->ID = item.second.get<std::string>("id");
+
+        //     // Parse names
+        //     for (const auto& name : item.second.get_child("names")) {
+        //         image->Names.push_back(name.second.data());
+        //     }
+
+        //     // Parse digests
+        //     for (const auto& digest : item.second.get_child("digests")) {
+        //         Digest d;
+        //         d.digest = digest.second.data();
+        //         image->Digests.push_back(d);
+        //     }
+
+        //     images.push_back(image);
+        // }
     } catch (const std::exception& e) {
         throw myerror("Failed to parse JSON: " + std::string(e.what()));
     }
@@ -182,64 +125,64 @@ void ImageStore::removeName(std::shared_ptr<storage::Image> image, const std::st
 }
 
 //将image将 Image 对象转换为 boost::property_tree::ptree 对象
-boost::property_tree::ptree imageToPtree(const std::shared_ptr<storage::Image>& image) {
-    boost::property_tree::ptree pt;
+// boost::property_tree::ptree imageToPtree(const std::shared_ptr<storage::Image>& image) {
+//     boost::property_tree::ptree pt;
     
-    pt.put("id", image->ID);
-    pt.put("digest", image->digest->digest); // 假设 Digest 结构有一个 `digest` 字段
-    pt.put("topLayer", image->TopLayer);
-    pt.put("metadata", image->Metadata);
-    pt.put("created", time_point_to_string(image->Created)); // 使用 long long 以处理大时间戳
+//     pt.put("id", image->ID);
+//     pt.put("digest", image->digest->digest); // 假设 Digest 结构有一个 `digest` 字段
+//     pt.put("topLayer", image->TopLayer);
+//     pt.put("metadata", image->Metadata);
+//     pt.put("created", time_point_to_string(image->Created)); // 使用 long long 以处理大时间戳
 
     // Convert vectors to ptree
-    boost::property_tree::ptree digests_ptree;
-    for (const auto& digest : image->Digests) {
-        boost::property_tree::ptree item;
-        item.put("", digest.digest); // 假设 Digest 结构有一个 `digest` 字段
-        digests_ptree.push_back(std::make_pair("", item));
-    }
-    pt.add_child("digests", digests_ptree);
+    // boost::property_tree::ptree digests_ptree;
+    // for (const auto& digest : image->Digests) {
+    //     boost::property_tree::ptree item;
+    //     item.put("", digest.digest); // 假设 Digest 结构有一个 `digest` 字段
+    //     digests_ptree.push_back(std::make_pair("", item));
+    // }
+    // pt.add_child("digests", digests_ptree);
 
-    boost::property_tree::ptree names_ptree;
-    for (const auto& name : image->Names) {
-        boost::property_tree::ptree item;
-        item.put("", name);
-        names_ptree.push_back(std::make_pair("", item));
-    }
-    pt.add_child("names", names_ptree);
+    // boost::property_tree::ptree names_ptree;
+    // for (const auto& name : image->Names) {
+    //     boost::property_tree::ptree item;
+    //     item.put("", name);
+    //     names_ptree.push_back(std::make_pair("", item));
+    // }
+    // pt.add_child("names", names_ptree);
 
     // Similarly handle namesHistory, mappedTopLayers, bigDataNames
     // For map<string, int64_t> and map<string, Digest>
-    boost::property_tree::ptree bigDataSizes_ptree;
-    for (const auto& pair : image->BigDataSizes) {
-        boost::property_tree::ptree item;
-        item.put("", pair.second); // size
-        bigDataSizes_ptree.add_child(pair.first, item);
-    }
-    pt.add_child("bigDataSizes", bigDataSizes_ptree);
+    // boost::property_tree::ptree bigDataSizes_ptree;
+    // for (const auto& pair : image->BigDataSizes) {
+    //     boost::property_tree::ptree item;
+    //     item.put("", pair.second); // size
+    //     bigDataSizes_ptree.add_child(pair.first, item);
+    // }
+    // pt.add_child("bigDataSizes", bigDataSizes_ptree);
 
-    boost::property_tree::ptree bigDataDigests_ptree;
-    for (const auto& pair : image->BigDataDigests) {
-        boost::property_tree::ptree item;
-        item.put("", pair.second.digest); // digest
-        bigDataDigests_ptree.add_child(pair.first, item);
-    }
-    pt.add_child("bigDataDigests", bigDataDigests_ptree);
+    // boost::property_tree::ptree bigDataDigests_ptree;
+    // for (const auto& pair : image->BigDataDigests) {
+    //     boost::property_tree::ptree item;
+    //     item.put("", pair.second.digest); // digest
+    //     bigDataDigests_ptree.add_child(pair.first, item);
+    // }
+    // pt.add_child("bigDataDigests", bigDataDigests_ptree);
 
-    // Handle flags (assuming the flag values are serializable to JSON)
-    boost::property_tree::ptree flags_ptree;
-    for (const auto& pair : image->Flags) {
-        boost::property_tree::ptree item;
-        // Serialize item based on actual type
-        // Example below assumes void* is not directly serializable
-        flags_ptree.add_child(pair.first, item); 
-    }
-    pt.add_child("flags", flags_ptree);
+    // // Handle flags (assuming the flag values are serializable to JSON)
+    // boost::property_tree::ptree flags_ptree;
+    // for (const auto& pair : image->Flags) {
+    //     boost::property_tree::ptree item;
+    //     // Serialize item based on actual type
+    //     // Example below assumes void* is not directly serializable
+    //     flags_ptree.add_child(pair.first, item); 
+    // }
+//     pt.add_child("flags", flags_ptree);
 
-    pt.put("readOnly", image->ReadOnly);
+//     pt.put("readOnly", image->ReadOnly);
 
-    return pt;
-}
+//     return pt;
+// }
 //Save 函数的实现
 void ImageStore::Save() {
     try {
@@ -258,23 +201,23 @@ void ImageStore::Save() {
         }
 
         // 创建 Boost Property Tree 对象
-        boost::property_tree::ptree ptree_root;
-        for (const auto& image_ptr : images) {
-            boost::property_tree::ptree image_ptree = imageToPtree(image_ptr);
-            ptree_root.add_child("images.image", image_ptree);
-        }
+        // boost::property_tree::ptree ptree_root;
+        // for (const auto& image_ptr : images) {
+        //     boost::property_tree::ptree image_ptree = imageToPtree(image_ptr);
+        //     ptree_root.add_child("images.image", image_ptree);
+        // }
 
         // 写入 JSON 文件
-        std::ofstream ofs(rpath, std::ios::out | std::ios::trunc | std::ios::binary);
-        if (!ofs) {
-            throw myerror("Failed to open file for writing: " + rpath);
-        }
+        // std::ofstream ofs(rpath, std::ios::out | std::ios::trunc | std::ios::binary);
+        // if (!ofs) {
+        //     throw myerror("Failed to open file for writing: " + rpath);
+        // }
         
-        boost::property_tree::write_json(ofs, ptree_root);
-        ofs.close();
-        if (!ofs.good()) {
-            throw myerror("Failed to write data to file.");
-        }
+        // boost::property_tree::write_json(ofs, ptree_root);
+        // ofs.close();
+        // if (!ofs.good()) {
+        //     throw myerror("Failed to write data to file.");
+        // }
         
         // 记录写入时间
         lastWrite = lockfile->RecordWrite(); // 需要根据实际情况实现
@@ -299,10 +242,12 @@ bool ImageStore::load(bool lockedForWriting) {
 
         // 读取镜像文件内容
         std::vector<uint8_t> data((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-
+        if(data.empty()) {
+            return false;
+        }
         std::vector<std::shared_ptr<storage::Image>> images;
         if (!data.empty()) {
-            // 使用 parseJson 函数解析数据
+            // 使用 parseJson 函数解析index数据
             if (!parseJson(data, images)) {
                 throw myerror("Failed to parse JSON from: " + rpath);
             }
@@ -440,7 +385,20 @@ shared_ptr<rwImageStore_interface> newImageStore(const string& dir) {
         if (!MkdirAll(dir)) {
             throw myerror("Failed to create directory: " + dir);
         }
-
+        if(!MkdirAll(Join({dir, "blobs/sha256"}))){
+            throw myerror("Failed to create directory: " + Join({dir, "blobs"}));
+        }
+        fs::path indexPath = Join({dir, "index.json"});
+        if(!fs::exists(indexPath)){
+            fs::ofstream file(indexPath, std::ios::out);
+            file.close();
+        }
+        fs::path layoutpath= Join({dir, "oci_layout"});
+        if(!fs::exists(layoutpath)){
+            fs::ofstream file(layoutpath, std::ios::out|std::ios::trunc);
+            file<<"{\"imageLayoutVersion\": \"1.0.0\"}";
+            file.close();
+        }
         // 获取锁文件
         auto lockfile = GetLockFile(Join({dir, "images.lock"}));
         if (!lockfile) {
@@ -449,7 +407,7 @@ shared_ptr<rwImageStore_interface> newImageStore(const string& dir) {
 
         // 初始化 ImageStore 结构
         auto istore = make_shared<ImageStore>();
-        istore->lockfile = lockfile;
+        // istore->lockfile = lockfile;
         istore->dir = dir;
 
         // 初始化 ImageStore 的其他成员
@@ -459,20 +417,20 @@ shared_ptr<rwImageStore_interface> newImageStore(const string& dir) {
         istore->bydigest = map<Digest, vector<shared_ptr<storage::Image>>>();
 
         // 开始写入操作
-        if (!istore->startWritingWithReload(false)) {
-            throw myerror("Failed to start writing with reload.");
-        }
+        // if (!istore->startWritingWithReload(false)) {
+        //     throw myerror("Failed to start writing with reload.");
+        // }
 
         // 获取最后写入的时间戳
-        istore->lastWrite = istore->lockfile->GetLastWrite();
-        if (istore->lastWrite.state.empty()) {
-            // throw myerror("Failed to get last write time.");
-        }
+        // istore->lastWrite = istore->lockfile->GetLastWrite();
+        // if (istore->lastWrite.state.empty()) {
+        //     // throw myerror("Failed to get last write time.");
+        // }
 
 
         // 加载数据
         if (!istore->load(true)) {
-            throw myerror("Failed to load image store.");
+            std::cout<<"第一次构建镜像，镜像仓库为空"<<std::endl;
         }
 
         return istore;
@@ -489,64 +447,64 @@ containerLocations containerLocationFromIndex(int index) {
     return static_cast<containerLocations>(1 << index);
 }
 // 将 container 转换为 ptree
-boost::property_tree::ptree containerToPtree(const std::shared_ptr<Container>& container) {
-    boost::property_tree::ptree pt;
+// boost::property_tree::ptree containerToPtree(const std::shared_ptr<Container>& container) {
+//     boost::property_tree::ptree pt;
 
-    pt.put("id", container->ID);
-    pt.put("imageID", container->ImageID);
-    pt.put("layerID", container->LayerID);
-    pt.put("metadata", container->Metadata);
-    pt.put("created", static_cast<long long>(container->Created)); // 使用 long long 以处理大时间戳
-    pt.put("volatileStore", container->volatileStore);
+//     pt.put("id", container->ID);
+//     pt.put("imageID", container->ImageID);
+//     pt.put("layerID", container->LayerID);
+//     pt.put("metadata", container->Metadata);
+//     pt.put("created", static_cast<long long>(container->Created)); // 使用 long long 以处理大时间戳
+//     pt.put("volatileStore", container->volatileStore);
 
     // Convert vector of names to ptree
-    boost::property_tree::ptree names_ptree;
-    for (const auto& name : container->Names) {
-        boost::property_tree::ptree item;
-        item.put("", name);
-        names_ptree.push_back(std::make_pair("", item));
-    }
-    pt.add_child("names", names_ptree);
+    // boost::property_tree::ptree names_ptree;
+    // for (const auto& name : container->Names) {
+    //     boost::property_tree::ptree item;
+    //     item.put("", name);
+    //     names_ptree.push_back(std::make_pair("", item));
+    // }
+    // pt.add_child("names", names_ptree);
 
     // Convert vector of BigDataNames to ptree
-    boost::property_tree::ptree bigDataNames_ptree;
-    for (const auto& name : container->BigDataNames) {
-        boost::property_tree::ptree item;
-        item.put("", name);
-        bigDataNames_ptree.push_back(std::make_pair("", item));
-    }
-    pt.add_child("bigDataNames", bigDataNames_ptree);
+    // boost::property_tree::ptree bigDataNames_ptree;
+    // for (const auto& name : container->BigDataNames) {
+    //     boost::property_tree::ptree item;
+    //     item.put("", name);
+    //     bigDataNames_ptree.push_back(std::make_pair("", item));
+    // }
+    // pt.add_child("bigDataNames", bigDataNames_ptree);
 
     // Convert map of BigDataSizes to ptree
-    boost::property_tree::ptree bigDataSizes_ptree;
-    for (const auto& pair : container->BigDataSizes) {
-        boost::property_tree::ptree item;
-        item.put("", pair.second); // size
-        bigDataSizes_ptree.add_child(pair.first, item);
-    }
-    pt.add_child("bigDataSizes", bigDataSizes_ptree);
+    // boost::property_tree::ptree bigDataSizes_ptree;
+    // for (const auto& pair : container->BigDataSizes) {
+    //     boost::property_tree::ptree item;
+    //     item.put("", pair.second); // size
+    //     bigDataSizes_ptree.add_child(pair.first, item);
+    // }
+    // pt.add_child("bigDataSizes", bigDataSizes_ptree);
 
     // Convert map of BigDataDigests to ptree
-    boost::property_tree::ptree bigDataDigests_ptree;
-    for (const auto& pair : container->BigDataDigests) {
-        boost::property_tree::ptree item;
-        item.put("", pair.second.digest); // digest
-        bigDataDigests_ptree.add_child(pair.first, item);
-    }
-    pt.add_child("bigDataDigests", bigDataDigests_ptree);
+    // boost::property_tree::ptree bigDataDigests_ptree;
+    // for (const auto& pair : container->BigDataDigests) {
+    //     boost::property_tree::ptree item;
+    //     item.put("", pair.second.digest); // digest
+    //     bigDataDigests_ptree.add_child(pair.first, item);
+    // }
+    // pt.add_child("bigDataDigests", bigDataDigests_ptree);
 
     // Handle flags (assuming the flag values are serializable to JSON)
-    boost::property_tree::ptree flags_ptree;
-    for (const auto& pair : container->Flags) {
-        boost::property_tree::ptree item;
-        // Serialize item based on actual type
-        // Example below assumes void* is not directly serializable
-        flags_ptree.add_child(pair.first, item); 
-    }
-    pt.add_child("flags", flags_ptree);
+    // boost::property_tree::ptree flags_ptree;
+    // for (const auto& pair : container->Flags) {
+    //     boost::property_tree::ptree item;
+    //     // Serialize item based on actual type
+    //     // Example below assumes void* is not directly serializable
+    //     flags_ptree.add_child(pair.first, item); 
+    // }
+    // pt.add_child("flags", flags_ptree);
 
-    return pt;
-}
+//     return pt;
+// }
 //containerStore::Save函数的实现
 void containerStore::Save(containerLocations saveLocations) {
     try {
@@ -583,29 +541,29 @@ void containerStore::Save(containerLocations saveLocations) {
             }
 
             // 序列化 JSON 数据
-            boost::property_tree::ptree ptree_root;
-            for (const auto& container : subsetContainers) {
-                boost::property_tree::ptree container_ptree = containerToPtree(container);
-                ptree_root.add_child("containers.container", container_ptree);
-            }
+            // boost::property_tree::ptree ptree_root;
+            // for (const auto& container : subsetContainers) {
+            //     boost::property_tree::ptree container_ptree = containerToPtree(container);
+            //     ptree_root.add_child("containers.container", container_ptree);
+            // }
 
             // 写入 JSON 文件
-            std::ofstream ofs(rpath, std::ios::out | std::ios::trunc | std::ios::binary);
-            if (!ofs) {
-                throw myerror("Failed to open file for writing: " + rpath);
-            }
+            // std::ofstream ofs(rpath, std::ios::out | std::ios::trunc | std::ios::binary);
+            // if (!ofs) {
+            //     throw myerror("Failed to open file for writing: " + rpath);
+            // }
             
-            boost::property_tree::write_json(ofs, ptree_root);
-            ofs.close();
-            if (!ofs.good()) {
-                throw myerror("Failed to write data to file: " + rpath);
-            }
+            // boost::property_tree::write_json(ofs, ptree_root);
+            // ofs.close();
+            // if (!ofs.good()) {
+            //     throw myerror("Failed to write data to file: " + rpath);
+            // }
 
             // 处理 volatileContainerLocation 的特殊情况（如需要）
-            if (location == volatileContainerLocation) {
-                // 可以添加额外的选项或逻辑处理，如在写入文件时禁用同步等
-                // 示例：禁用同步选项的逻辑
-            }
+            // if (location == volatileContainerLocation) {
+            //     // 可以添加额外的选项或逻辑处理，如在写入文件时禁用同步等
+            //     // 示例：禁用同步选项的逻辑
+            // }
         }
 
     } catch (const myerror& ex) {
@@ -625,6 +583,7 @@ void containerStore::startReading() {
 void containerStore::stopReading() {
 // 空实现
 }
+std::vector<std::string> dedupeStrings(const std::vector<std::string>& names);
 /**
  * @brief 创建container信息
  * 
@@ -636,9 +595,50 @@ void containerStore::stopReading() {
  * @return std::shared_ptr<Container> 
  */
 std::shared_ptr<Container> containerStore::create(const std::string& id, const std::vector<std::string>& names, 
-                                    const std::string& image, const std::string& layer, 
-                                    const ContainerOptions& options) {
-    return nullptr; // 空实现
+                                                  const std::string& image, const std::string& layer, 
+                                                  const ContainerOptions& options) {
+    try {
+        // Step 1: 初始化 ContainerOptions
+        ContainerOptions containerOptions = options;
+
+        // Step 2: 确保 ID 唯一
+        std::string containerID = id.empty() ? GenerateRandomID() : id;
+        while (byid.find(containerID) != byid.end()) {
+            containerID = GenerateRandomID();
+        }
+
+        // Step 3: 检查名称唯一性
+        auto uniqueNames = dedupeStrings(names);
+        for (const auto& name : uniqueNames) {
+            if (byname.find(name) != byname.end()) {
+                throw std::runtime_error("Container name '" + name + "' is already in use.");
+            }
+        }
+
+        // Step 4: 初始化 Container 对象
+        auto container = std::make_shared<Container>();
+        container->ID = containerID;
+        container->Names = uniqueNames;
+        container->ImageID = image;
+        container->LayerID = layer;
+        container->Metadata = containerOptions.metadata;
+        container->Flags = containerOptions.Flags;
+        container->BigDataNames = {};
+        container->BigDataSizes = {};
+        container->Created = std::time(nullptr);
+        container->volatileStore = containerOptions.volatileFlag;
+
+        // Step 5: 更新内部存储
+        byid[containerID] = container;
+        bylayer[layer] = container;
+        for (const auto& name : uniqueNames) {
+            byname[name] = container;
+        }
+
+        return container;
+    } catch (const std::exception& ex) {
+        throw myerror(std::string("Failed to create container: ") + ex.what());
+    }
 }
 void containerStore::updateNames(const std::string& id, const std::vector<std::string>& names, 
                     updateNameOperation op) {
@@ -726,29 +726,29 @@ void containerStore::removeName(std::shared_ptr<Container> container, const std:
 bool parseJsonContainers(const std::vector<uint8_t>& data, std::vector<std::shared_ptr<Container>>& containers) {
     try {
         // 将二进制数据转换为字符串
-        std::string json_str(data.begin(), data.end());
+        // std::string json_str(data.begin(), data.end());
         
-        // 使用字符串流读取 JSON
-        std::stringstream ss(json_str);
+        // // 使用字符串流读取 JSON
+        // std::stringstream ss(json_str);
 
-        // 解析 JSON 数据
-        ptree root;
-        read_json(ss, root);
+        // // 解析 JSON 数据
+        // ptree root;
+        // read_json(ss, root);
 
-        for (const auto& item : root) {
-            auto container = std::make_shared<Container>();
-            container->ID = item.second.get<std::string>("id");
+        // for (const auto& item : root) {
+        //     auto container = std::make_shared<Container>();
+        //     container->ID = item.second.get<std::string>("id");
 
-            // 解析名称
-            for (const auto& name : item.second.get_child("names")) {
-                container->Names.push_back(name.second.data());
-            }
+        //     // 解析名称
+        //     for (const auto& name : item.second.get_child("names")) {
+        //         container->Names.push_back(name.second.data());
+        //     }
 
-            // 解析 LayerID
-            container->LayerID = item.second.get<std::string>("layerID");
+        //     // 解析 LayerID
+        //     container->LayerID = item.second.get<std::string>("layerID");
 
-            containers.push_back(container);
-        }
+        //     containers.push_back(container);
+        // }
     } catch (const std::exception& e) {
         throw myerror("Failed to parse JSON: " + std::string(e.what()));
     }
@@ -942,9 +942,9 @@ std::shared_ptr<rwContainerStore_interface> newContainerStore(const std::string&
         // 确保 jsonPath 至少有一个元素
         cstore->jsonPath.push_back(Join({dir, "containers.json"}));
         // 确保 jsonPath 至少有一个元素
-        cstore->jsonPath.push_back(Join({dir, "containers.json"}));
-        cstore->jsonPath[0] = Join({dir, "containers.json"});
-        cstore->jsonPath[1] = Join({volatileDir, "volatile-containers.json"});
+        cstore->jsonPath.push_back(Join({volatileDir, "containers.json"}));
+        // cstore->jsonPath[0] = Join({dir, "containers.json"});
+        // cstore->jsonPath[1] = Join({volatileDir, "volatile-containers.json"});
 
         // 初始化 containerStore 的其他成员
         cstore->containers = std::vector<std::shared_ptr<Container>>();
@@ -1005,7 +1005,7 @@ void load(Store* s) {
         }
 
         // 获取 driverPrefix
-        string driverPrefix = s->graph_driver_name + "-";
+        string driverPrefix = "oci_";
 
         // 获取 imgStoreRoot 路径
         string imgStoreRoot = s->image_store_dir;
@@ -1014,7 +1014,7 @@ void load(Store* s) {
         }
 
         // 创建图像存储目录
-        string gipath = Join({imgStoreRoot, driverPrefix + "images"});
+        string gipath = Join({imgStoreRoot, driverPrefix + "registry"});
         if (!MkdirAll(gipath)) {
             throw myerror("Failed to create directory: " + gipath);
         }
@@ -1235,30 +1235,75 @@ void ImageStore::SetFlag(const std::string& id, const std::string& flag, const s
  * 
  * @return std::shared_ptr<rwLayerStore_interface> 
  */
-std::shared_ptr<rwLayerStore_interface> Store::bothLayerStoreKinds(){
-// 只需要返回rwLayerStore
-    return nullptr;
+std::shared_ptr<rwLayerStore_interface> Store::bothLayerStoreKinds() {
+    try {
+        // 只需要返回rwLayerStore
+        return bothLayerStoreKindsLocked();
+    } catch (const myerror& e) {
+        throw myerror("Error in bothLayerStoreKinds: ");  // 重新抛出myerror
+    }
 }
+
 /**
  * @brief 得到overlay中layer
  * 
  * @return std::shared_ptr<rwLayerStore_interface> 
  */
-std::shared_ptr<rwLayerStore_interface>  Store::bothLayerStoreKindsLocked(){
-    // 只需要primary
-    return nullptr;
+std::shared_ptr<rwLayerStore_interface> Store::bothLayerStoreKindsLocked() {
+    // 获取 primary layer store
+    auto primary = getLayerStoreLocked();
+    if (!primary) {
+        throw myerror("Error loading primary layer store");
+    }
+    
+    // 这里只需要返回 primary，不需要处理只读层
+    return primary;
 }
+
 /**
  * @brief 返回overly的内容
  * 
  * @return std::shared_ptr<rwLayerStore_interface> 
  */
-std::shared_ptr<rwLayerStore_interface> Store::getLayerStoreLocked(){
-    // 检查路径是否存在
+std::shared_ptr<rwLayerStore_interface> Store::getLayerStoreLocked() {
+    try {
+        if(!this->layer_store_use_getters) {
+            return this->layer_store_use_getters;
+        }
+        // 检查路径是否存在，模拟 Go 中的路径处理
+        std::string driverPrefix = this->graph_driver_name;
+        
+        // 假设 s.runRoot 是 Store 的成员变量
+        boost::filesystem::path rlpath = boost::filesystem::path(this->run_root) / (driverPrefix );
+        boost::filesystem::path glpath = boost::filesystem::path(this->graph_root) / (driverPrefix );
 
 
-    // 调用newLayerStore返回overlay的内容
-    return nullptr;
+        // 创建路径
+        if (!boost::filesystem::exists(rlpath)) {
+            boost::filesystem::create_directories(rlpath);
+        }
+        if (!boost::filesystem::exists(glpath)) {
+            boost::filesystem::create_directories(glpath);
+        }
+
+        // 检查 imageStoreDir 是否存在
+        std::string ilpath = "";
+        // if (!this->imageStoreDir.empty()) {
+        //     ilpath = this->imageStoreDir + "/" + driverPrefix + "layers";
+        // }
+
+        // 调用 newLayerStore 函数
+        auto rls = this->newLayerStore(rlpath.string(), glpath.string(), ilpath, this->graph_driver, this->transient_store);
+        if (!rls) {
+            throw myerror("Failed to create layer store");
+        }
+
+        this->layer_store_use_getters = rls;
+        return rls;
+    } catch (const myerror& e) {
+        std::cerr << "Error in getLayerStoreLocked: " << e.what() << std::endl;
+        throw;
+    }
 }
 /**
  * @brief 读取overlay中的layer
@@ -1270,16 +1315,67 @@ std::shared_ptr<rwLayerStore_interface> Store::getLayerStoreLocked(){
  * @param transient 
  * @return std::shared_ptr<rwLayerStore_interface> 
  */
-std::shared_ptr<rwLayerStore_interface> Store::newLayerStore(std::string rundir, std::string layerdir, std::string imagedir,std::shared_ptr<Driver> driver,bool transient){
-    // 检查路径是否 有效
+std::shared_ptr<rwLayerStore_interface> Store::newLayerStore(
+    std::string rundir, 
+    std::string layerdir, 
+    std::string imagedir,
+    std::shared_ptr<Driver> driver,
+    bool transient) {
 
+    try {
+        // 检查路径是否有效并创建目录
+        if (!boost::filesystem::exists(rundir)) {
+            if (!boost::filesystem::create_directories(rundir)) {
+                throw myerror("Failed to create rundir: " + rundir);
+            }
+        }
+        if (!boost::filesystem::exists(layerdir)) {
+            if (!boost::filesystem::create_directories(layerdir)) {
+                throw myerror("Failed to create layerdir: " + layerdir);
+            }
+        }
+        if (!imagedir.empty() && !boost::filesystem::exists(imagedir)) {
+            if (!boost::filesystem::create_directories(imagedir)) {
+                throw myerror("Failed to create imagedir: " + imagedir);
+            }
+        }
+        std::string layerfile=layerdir+"/"+"layers.json";
+        if(!boost::filesystem::exists(layerfile)){
+            boost::filesystem::path file(layerfile);
+            boost::filesystem::ofstream layers(file,std::ios::out);
+            if(!layers.is_open()){
+                throw myerror("Failed to create layerfile: "+layerfile);
+            }
+            layers.close();
+        }
+        // 使用 std::make_shared 创建 rwLayerStore_interface 对象
+        auto layerstore = std::make_shared<layerStore>();
+        
+        // 逐个赋值初始化成员变量
+        layerstore->rundir = rundir;
+        layerstore->layerdir = layerdir;
+        layerstore->driver = driver;
+                // 初始化映射
+        layerstore->byid = std::map<std::string, std::shared_ptr<Layer>>();
+        layerstore->byname = std::map<std::string, std::shared_ptr<Layer>>();
+        layerstore->bymount = std::map<std::string,std::shared_ptr<Layer>>();
+        
+        std::string volatileDir = transient ? rundir : layerdir; // 如果 transient 为 true，使用 rundir 作为 volatileDir
+        layerstore->jsonPath[0] = (boost::filesystem::path(layerdir) / "layers.json").string();
+        // layerstore->jsonPath[1] = (boost::filesystem::path(volatileDir) / "volatile-layers.json").string();
+        if(isDirectoryEmpty(layerstore->rundir)){
+            return layerstore;
+        }
+        // 调用 load 方法读取 overlay 内容
+        if (!layerstore->load(true)) {
+            throw myerror("Failed to load overlay content.");
+        }
 
-    // lockfile可以先不管
-    // 新建layerStore
-
-    // 调用load函数读取overlay的内容
-    
-    return nullptr;
+        return layerstore;
+    } catch (const myerror& ex) {
+        std::cerr << "Layer store initialization error: " << ex.what() << std::endl;
+        return nullptr;
+    }
 }
 /**
  * @brief 在overlay中创建copy的layer，新建container的信息，并不创建文件夹
@@ -1292,20 +1388,54 @@ std::shared_ptr<rwLayerStore_interface> Store::newLayerStore(std::string rundir,
  * @param options 
  * @return std::shared_ptr<Container> 
  */
-std::shared_ptr<Container> Store::CreateContainer(const std::string& id, const std::vector<std::string>& names, const std::string& image, const std::string& layer, const std::string& metadata,const std::shared_ptr<ContainerOptions> options){
+std::shared_ptr<Container> Store::CreateContainer(
+    const std::string& id, 
+    const std::vector<std::string>& names, 
+    const std::string& image, 
+    const std::string& layer, 
+    const std::string& metadata, 
+    const std::shared_ptr<ContainerOptions> options) 
+{
+    try {
+        // Step 1: 准备 layerOptions
+        auto layerOptions = std::make_shared<LayerOptions>();
+        
+        layerOptions->idMappingOptions->HostUIDMapping = options->idMappingOptions->HostUIDMapping;
+        layerOptions->idMappingOptions->HostGIDMapping = options->idMappingOptions->HostGIDMapping;
+        layerOptions->idMappingOptions->UIDMap = options->idMappingOptions->UIDMap; // 复制 UIDMap
+        layerOptions->idMappingOptions->GIDMap = options->idMappingOptions->GIDMap; // 复制 GIDMap
 
-    //创建copy的layer层结构
-    auto rlstore=this->bothLayerStoreKinds();
-    auto layerOptions=std::make_shared<LayerOptions>();
-    auto diff=std::ifstream{};
-    std::string layerName=layer;
-    std::shared_ptr<Layer> clayer;
-    std::tie(clayer,std::ignore)=rlstore->create(layerName,nullptr,{},"",{},layerOptions,true,diff);
+        // Step 2: 创建 Layer
+        auto rlstore = this->bothLayerStoreKinds();
+        std::ifstream diff;
+        std::shared_ptr<Layer> clayer;
+        std::string layerName = layer;
+        std::tie(clayer, std::ignore) = rlstore->create(
+            layerName, nullptr, {}, "", {}, layerOptions, true, diff);
 
-    //创建container
+        // Step 3: 准备 Container 元信息
+        auto containerOptions = std::make_shared<ContainerOptions>();
+        containerOptions->idMappingOptions->HostUIDMapping = options->idMappingOptions->UIDMap.empty();
+        containerOptions->idMappingOptions->HostGIDMapping = options->idMappingOptions->GIDMap.empty();
+        containerOptions->idMappingOptions->UIDMap = options->idMappingOptions->UIDMap; // 复制 UIDMap
+        containerOptions->idMappingOptions->GIDMap = options->idMappingOptions->GIDMap; // 复制 GIDMap
 
-    return nullptr;
+        // Step 4: 创建 Container
+        auto container = this->container_store->create(
+            id, 
+            names, 
+            image, 
+            clayer->ID, 
+            *containerOptions);
+
+        return container;
+
+    } catch (const myerror& e) {
+        std::cerr << "Error while creating container: " << e.what() << std::endl;
+        throw;
+    }
 }
+
 // /**
 //  * @brief 读取返回copy层的diff内容，注意是文件夹，可能无法读取多个文件
 //  * 

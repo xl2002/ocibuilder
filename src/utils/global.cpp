@@ -138,10 +138,10 @@ void init_utils(){
     };
     bool precompile=false;
     // 定义路径分隔符
-    #ifdef _WIN32
-    Separator = '\\';  // Windows 下的路径分隔符
-    #else
+    #ifdef __linux__
     Separator = '/';   // Unix-like 系统下的路径分隔符
+    #else
+    Separator = '\\';  // Windows 下的路径分隔符
     #endif
     
     reWhitespace.assign(R"([\t\v\f\r ]+)");

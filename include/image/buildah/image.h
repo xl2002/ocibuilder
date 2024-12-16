@@ -13,6 +13,7 @@
 #include "image/image_types/v1/config.h"
 #include "image/image_types/manifest/docker_schema2.h"
 #include "image/image_types/v1/config.h"
+#include "image/image_types/v1/oci.h"
 // struct v1::Image;
 struct containerImageRef;
 // 容器镜像引用的结构体定义
@@ -81,6 +82,7 @@ struct containerImageSource: public ImageSource_interface{
     std::shared_ptr<ImageReference_interface> Reference()override;
     std::tuple<std::vector<uint8_t>,std::string> GetManifest(std::shared_ptr<Digest> instanceDigest) override;
 
-    std::shared_ptr<BlobInfo> LayerInfos();
+    std::vector<BlobInfo> LayerInfos()override;
+    std::shared_ptr<OCI1> OCI1FromManifest();
 };
 #endif // BUILDAH_IMAGE_H)

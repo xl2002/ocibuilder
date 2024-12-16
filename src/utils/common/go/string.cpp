@@ -105,15 +105,15 @@ std::tuple<std::string, std::string, bool> Cut(const std::string &str, char deli
     return std::make_tuple(str.substr(0, pos), str.substr(pos + 1), true);
 }
 
-#ifdef _WIN32
-const char pathSeparator = '\\';
-#else
+#ifdef __linux__
 const char pathSeparator = '/';
+#else
+const char pathSeparator = '\\';
 #endif
 
 std::string FromSlash(const std::string& path) {
     std::string result = path;
-#ifdef _WIN32
+#ifndef __linux__
     std::replace(result.begin(), result.end(), '/', pathSeparator);
 #endif
     return result;
@@ -127,4 +127,76 @@ std::vector<uint8_t> stringToVector(const std::string& str) {
 // vector<uint8_t> -> string
 std::string vectorToString(const std::vector<uint8_t>& vec) {
     return std::string(vec.begin(), vec.end());
+}
+// 将时间点转换为 ISO 8601 格式字符串（带纳秒精度）
+std::string timePointToISOString(const std::chrono::system_clock::time_point& timePoint) {
+
+    // 获取秒级时间戳
+    auto timeT = std::chrono::system_clock::to_time_t(timePoint);
+    auto duration = timePoint - std::chrono::system_clock::from_time_t(timeT);
+    auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
+
+    // 转换为本地时间（UTC 时间）
+    std::tm utcTime;
+#ifndef __linux__
+    gmtime_s(&utcTime, &timeT);
+#else
+    gmtime_r(&timeT, &utcTime);
+#endif
+
+    // 格式化秒级时间
+    std::ostringstream oss;
+    oss << std::put_time(&utcTime, "%Y-%m-%dT%H:%M:%S");
+
+    // 添加微秒部分（补零确保6位数）
+    oss << "." << std::setw(6) << std::setfill('0') << microseconds << "Z";
+
+    return oss.str();
+}
+std::chrono::system_clock::time_point parseISOStringToTimePoint(const std::string& isoString) {
+    // 定义时间点初值
+    std::chrono::system_clock::time_point timePoint;
+
+    // 去除末尾的 'Z'（如果存在）
+    std::string trimmedIsoString = isoString;
+    if (!isoString.empty() && isoString.back() == 'Z') {
+        trimmedIsoString.pop_back();
+    }
+
+    // 分离日期和小数部分
+    std::string dateTimePart;
+    std::string fractionalPart = "0"; // 默认为 0 纳秒
+    size_t dotPos = trimmedIsoString.find('.');
+    if (dotPos != std::string::npos) {
+        dateTimePart = trimmedIsoString.substr(0, dotPos);
+        fractionalPart = trimmedIsoString.substr(dotPos + 1);
+    } else {
+        dateTimePart = trimmedIsoString;
+    }
+
+    // 解析日期和时间部分
+    std::tm tm = {};
+    std::istringstream dateTimeStream(dateTimePart);
+    dateTimeStream >> std::get_time(&tm, "%Y-%m-%dT%H:%M:%S");
+    if (dateTimeStream.fail()) {
+        throw std::invalid_argument("Invalid ISO 8601 date-time format: " + isoString);
+    }
+
+    // 转换为 time_t
+    #ifndef __linux__
+    std::time_t timeT =_mkgmtime(&tm);
+    #else
+    std::time_t timeT = timegm(&tm); // 将 UTC 时间转为 time_t
+    #endif
+    // 转换到 time_point
+    timePoint = std::chrono::system_clock::from_time_t(timeT);
+
+    // 处理小数部分（纳秒或微秒）
+    if (!fractionalPart.empty()) {
+        // 转换为纳秒单位
+        int64_t fractionalNs = std::stoll(fractionalPart + std::string(9 - fractionalPart.length(), '0'));
+        timePoint += std::chrono::nanoseconds(fractionalNs);
+    }
+
+    return timePoint;
 }

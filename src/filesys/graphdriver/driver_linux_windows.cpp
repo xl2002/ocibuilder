@@ -5,10 +5,8 @@ FsMagic GetFSMagic(const std::string& rootpath) {
         // 提取文件目录
         boost::filesystem::path path = boost::filesystem::absolute(rootpath).parent_path();
 
-#ifdef _WIN32
-        // 在 Windows 平台上直接返回不支持的魔法常量
-        return FsMagicUnsupported;
-#else
+#ifdef __linux__
+        
         // 类 Unix 系统 (Linux, macOS 等) 使用 statvfs 获取文件系统魔法常量
         struct statvfs buf;
         if (statvfs(path.c_str(), &buf) != 0) {
@@ -17,6 +15,9 @@ FsMagic GetFSMagic(const std::string& rootpath) {
         }
         // 返回文件系统魔法常量
         return static_cast<FsMagic>(buf.f_fsid);
+#else
+        // 在 Windows 平台上直接返回不支持的魔法常量
+        return FsMagicUnsupported;
 #endif
     } catch (const myerror& e) {
         // 捕获 myerror 类型错误并重新抛出

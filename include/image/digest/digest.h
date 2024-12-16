@@ -5,6 +5,7 @@
 #include "image/digest/hash.h"
 #include "image/digest/algorithm.h"
 #include "image/digest/verifier.h"
+#include <boost/json.hpp>
 using std::string;
 using std::vector;
 class Algorithm_sha256;

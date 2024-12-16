@@ -1,6 +1,10 @@
 #include "utils/common/go/file.h"
 #include "utils/common/error.h"
-
+#include <boost/filesystem.hpp>
+#include <random>
+#include <string>
+#include <sstream>
+#include <iostream>
 /**
  * @brief 将两个路径字符串连接在一起
  * 
@@ -245,4 +249,50 @@ string join(const vector<string>& elem) {
     }
     
     return "";
+}
+bool isDirectoryEmpty(const boost::filesystem::path& dirPath) {
+    try {
+        if (boost::filesystem::exists(dirPath) && boost::filesystem::is_directory(dirPath)) {
+            return boost::filesystem::directory_iterator(dirPath) == boost::filesystem::directory_iterator();
+        } else {
+            throw std::runtime_error("The path does not exist or is not a directory.");
+        }
+    } catch (const boost::filesystem::filesystem_error& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        return false; // 如果出错，返回 false
+    }
+}
+std::string MkdirTemp(std::string dir, std::string pattern) {
+    // 确保 dir 路径以 '/' 或 '\' 结尾
+    if (!dir.empty() && dir.back() != '/' && dir.back() != '\\') {
+        dir += "/";
+    }
+
+    // 生成 9 位随机数
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dist(100000000, 999999999); // 9 位随机数范围
+    int randomNumber = dist(gen);
+
+    // 构造完整目录名
+    std::ostringstream tempDirName;
+    tempDirName << dir << pattern << randomNumber;
+
+    // 转换为 boost::filesystem::path
+    boost::filesystem::path tempDirPath(tempDirName.str());
+
+    // 创建目录
+    try {
+        if (boost::filesystem::create_directories(tempDirPath)) {
+            std::cout << "Directory created: " << tempDirPath.string() << std::endl;
+        } else {
+            std::cerr << "Failed to create directory: " << tempDirPath.string() << std::endl;
+        }
+    } catch (const boost::filesystem::filesystem_error& e) {
+        std::cerr << "Error creating directory: " << e.what() << std::endl;
+        throw;
+    }
+
+    // 返回创建的目录路径
+    return tempDirPath.string();
 }

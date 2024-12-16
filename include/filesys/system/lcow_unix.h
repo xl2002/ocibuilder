@@ -9,12 +9,12 @@ bool isLCOWSupported() {
 std::string getRuntimeGOOS() {
         // This should return the current OS, for example, "windows" or "linux".
         // You need to implement this according to your actual environment.
-        #ifdef _WIN32
-        return "windows";
-        #elif __linux__
+        
+        #ifdef __linux__
         return "linux";
         #else
-        return "unknown";
+        return "windows";
         #endif
+
     }
 #endif // SYSTEM_LCOW_UNIX_H

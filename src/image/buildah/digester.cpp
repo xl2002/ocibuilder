@@ -1,5 +1,6 @@
 #include "image/buildah/digester.h"
 #include "image/digest/algorithm.h"
+#include "image/buildah/tar.h"
 std::string simpleDigester::ContentType(){
     return contentType;
 }
@@ -8,8 +9,24 @@ std::string simpleDigester::ContentType(){
  * 
  * @param data 
  */
+// 实现 Process 方法
+// void Hash_256::Process(const std::string& input) {
+//     if (!sha256) {
+//         // 初始化 SHA256 上下文
+//         sha256 = std::make_shared<SHA256_CTX>();
+//         sha256_init(sha256.get());
+//     }
+//     // 将字符串输入转换为字节数组
+//     std::vector<BYTE> bytes(input.begin(), input.end());
+//     // 使用 sha256_update 更新 SHA256 上下文
+//     sha256_update(sha256.get(), bytes.data(), bytes.size());
+// }
 void simpleDigester::write(const std::string& data){
-    
+    if (this->hasher) {
+        // this->hasher->Process(data);
+        //计算hash值
+        this->hasher->data=this->hasher->Hash_num(std::vector<uint8_t>(data.begin(), data.end()));
+    }
 }
 void simpleDigester::close(){
     return;
@@ -24,7 +41,15 @@ std::shared_ptr<::Digest> simpleDigester::Digest(){
  * @return std::shared_ptr<digester_interface> 
  */
 std::shared_ptr<digester_interface> newSimpleDigester(string contentType){
-    return nullptr;
+    // 创建一个新的 simpleDigester 实例
+    auto finalDigester=Canonical_sha256.Digester();
+    auto digester = std::make_shared<simpleDigester>();
+    // 设置内容类型
+    digester->contentType = contentType;
+    // 初始化 hasher，这里假设使用 SHA256
+    digester->hasher =finalDigester->GetHash();
+    digester->digester = finalDigester;
+    return digester;
 }
 void CompositeDigester::closeOpenDigester(){
     if(closer!=nullptr){
@@ -73,7 +98,16 @@ void  CompositeDigester::Restart(){
  * @param contentType 
  */
 void  CompositeDigester::Start(std::string contentType){
-
+    this->closeOpenDigester();
+    if(contentType.empty()){
+        auto newDigester = newSimpleDigester(contentType);
+        digesters.push_back(newDigester);
+    }else if(contentType=="file"|| contentType=="dir"){
+        std::shared_ptr<digester_interface> digester;
+        std::tie(digester, std::ignore)=newTarDigester(contentType,"",fs::path{""});
+        closer = digester;
+        digesters.push_back(digester);
+    }
 }
 /**
  * @brief 返回目前实例的hasher
@@ -81,5 +115,11 @@ void  CompositeDigester::Start(std::string contentType){
  * @return std::shared_ptr<digester_interface> 
  */
 std::shared_ptr<digester_interface>  CompositeDigester::Hash(){
+    // 检查 digesters 向量是否非空
+    if (!digesters.empty()) {
+        // 返回向量中的最后一个 digester
+        return digesters.back();
+    }
+    // 如果 digesters 为空，则返回 nullptr
     return nullptr;
 }

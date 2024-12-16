@@ -22,6 +22,10 @@ struct IDPair {
 struct IDMappings {
     std::vector<IDMap> uids;
     std::vector<IDMap> gids;
+    // 构造函数
+    IDMappings(std::vector<IDMap> uids, std::vector<IDMap> gids)
+        : uids(std::move(uids)), gids(std::move(gids)) {}
+    IDMappings() = default;
     std::vector<IDMap> UIDs(){
         return uids;
     }

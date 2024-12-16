@@ -12,8 +12,7 @@
 #include "image/util/util.h"
 #include "utils/cli/cli/common.h"
 #include <stdlib.h> 
-#include <winsock2.h>
-#include <windows.h>
+#include "filesys/systems.h"
 #include <mutex>
 #include <cstring>
 #include <iostream>
@@ -180,7 +179,10 @@ std::string expandEnvPath(const std::string& path, int rootlessUID) {
         // 如果解析符号链接失败，返回绝对路径
         expandedPath = boost::filesystem::absolute(expandedPath).string();
     }
-
+    //去掉相对路径标志
+    // expandedPath = boost::filesystem::canonical(expandedPath).string();
+    // expandedPath = boost::filesystem::absolute(expandedPath).string();
+    
     return expandedPath;
 }
 std::string getEnv(const std::string& name) {
@@ -538,7 +540,11 @@ std::shared_ptr<Store> GetStore(StoreOptions options) {
 
         // 创建相关目录
         boost::filesystem::create_directories(finalOptions.run_root);
+        //去掉符号链接，并且符合win的标准
+        finalOptions.run_root = boost::filesystem::canonical(finalOptions.run_root).make_preferred().string();
         boost::filesystem::create_directories(finalOptions.graph_root);
+        finalOptions.graph_root = boost::filesystem::canonical(finalOptions.graph_root).make_preferred().string();
+
         if (!finalOptions.image_store.empty()) {
             boost::filesystem::create_directories(finalOptions.image_store);
         }

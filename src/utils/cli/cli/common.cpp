@@ -13,8 +13,7 @@
 #include <cstdlib>
 #include <stdlib.h>
 #include <algorithm>
-#include <winsock2.h>
-#include <windows.h>
+#include "filesys/systems.h"
 #include <minwindef.h>
 #include <boost/filesystem.hpp>
 #include <boost/compute/detail/getenv.hpp>

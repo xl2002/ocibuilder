@@ -21,25 +21,25 @@ std::string Builder::Domainname(){
 }
 
 std::string Builder::User(){
-    return this->OCIv1->config->user;
+    return this->OCIv1->config.user;
 }
 std::vector<std::string> Builder::Env(){
-    return this->OCIv1->config->env;
+    return this->OCIv1->config.env;
 }
 std::vector<std::string> Builder::Cmd(){
-    return this->OCIv1->config->cmd;
+    return this->OCIv1->config.cmd;
 }
 std::string Builder::WorkDir(){
-    return this->OCIv1->config->workingDir;
+    return this->OCIv1->config.workingDir;
 }
 std::vector<std::string> Builder::Entrypoint(){
-    if(this->OCIv1->config->entrypoint.size()>0){
-        return this->OCIv1->config->entrypoint;
+    if(this->OCIv1->config.entrypoint.size()>0){
+        return this->OCIv1->config.entrypoint;
     }
     return {};
 }
 std::map<std::string,std::string> Builder::Labels(){
-    return this->OCIv1->config->labels;
+    return this->OCIv1->config.labels;
 }
 std::vector<std::string> Builder::Shell(){
     return this->Docker->config->Shell;
@@ -55,5 +55,5 @@ std::string Builder::Maintainer(){
     return this->OCIv1->author;
 }
 std::string Builder::Architecture(){
-    return this->OCIv1->platform->Architecture;
+    return this->OCIv1->platform.Architecture;
 }

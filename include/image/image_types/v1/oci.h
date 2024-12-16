@@ -19,7 +19,12 @@ struct OCI1:public Manifest{
      * @param image 
      */
     friend void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const OCI1& image) {
-        
+        jv=boost::json::object{
+            {"schemaVersion",image.SchemaVersion},
+            {"config",boost::json::value_from(image.Config)},
+            {"layers",boost::json::value_from(image.Layers)},
+            {"annotations", boost::json::value_from(image.Annotations)}
+        };
     }
     /**
      * @brief 反序列化
@@ -27,8 +32,14 @@ struct OCI1:public Manifest{
      * @param jv 
      * @param image 
      */
-    friend void tag_invoke(boost::json::value_to_tag<OCI1>, const boost::json::value& jv, OCI1& image) {
-        
+    friend OCI1 tag_invoke(boost::json::value_to_tag<OCI1>, const boost::json::value& jv) {
+        const auto& obj = jv.as_object();
+        OCI1 m;
+        m.SchemaVersion=obj.at("schemaVersion").as_int64();
+        m.Config=boost::json::value_to<Descriptor>(obj.at("config"));
+        m.Layers=boost::json::value_to<std::vector<Descriptor>>(obj.at("layers"));
+        m.Annotations=boost::json::value_to<std::map<std::string, std::string>>(obj.at("annotations"));
+        return m;
     }
 };
 

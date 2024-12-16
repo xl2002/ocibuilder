@@ -6,15 +6,12 @@
 #include <string>
 #include <iomanip>
 #include <sstream>
-
-#ifdef _WIN32
-#include <windows.h>  // 用于获取Windows用户信息
-#include <cstdint>    // 用于定义 uint64_t
+#include <cstdint>      // 用于定义 uint64_t
+#include "filesys/systems.h"
+#ifdef __linux__
+#else
 typedef uint64_t uid_t;  // 为 Windows 定义与 tar 兼容的 uid_t 类型
 typedef uint64_t gid_t;  // 为 Windows 定义与 tar 兼容的 gid_t 类型
-#else
-#include <pwd.h>      // POSIX系统的用户信息
-#include <grp.h>      // POSIX系统的组信息
 #endif
 
 namespace tarpp {
@@ -31,10 +28,9 @@ inline std::string to_octal_string(uint64_t value)
 // 获取用户名称
 inline std::string get_user_name(uid_t uid)
 {
-#ifdef _WIN32
-    // Windows平台：直接返回固定值（你可以改为其他固定值或通过 Windows API 获取实际用户名）
-    return "000000";  // 模拟用户 ID 为 "000000"
-#else
+#ifdef __linux__
+ // 模拟用户 ID 为 "000000"
+
     // POSIX平台：使用getpwuid_r获取用户名
     static constexpr size_t BUFFER_SIZE = 16384;
     passwd pwd{};
@@ -47,16 +43,16 @@ inline std::string get_user_name(uid_t uid)
     }
 
     return pwd.pw_name;
+#else
+    // Windows平台：直接返回固定值（你可以改为其他固定值或通过 Windows API 获取实际用户名）
+    return "000000";
 #endif
 }
 
 // 获取组名称
 inline std::string get_group_name(gid_t gid)
 {
-#ifdef _WIN32
-    // Windows平台：直接返回固定值（你可以改为其他固定值或通过 Windows API 获取实际组名）
-    return "000000";  // 模拟组 ID 为 "000000"
-#else
+#ifdef __linux__
     // POSIX平台：使用getgrgid_r获取组名
     static constexpr size_t BUFFER_SIZE = 16384;
     group grp{};
@@ -69,6 +65,9 @@ inline std::string get_group_name(gid_t gid)
     }
 
     return grp.gr_name;
+#else
+    // Windows平台：直接返回固定值（你可以改为其他固定值或通过 Windows API 获取实际组名）
+    return "000000";  // 模拟组 ID 为 "000000"
 #endif
 }
 

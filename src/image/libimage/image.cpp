@@ -5,6 +5,7 @@
 namespace LibImage{
     
     std::shared_ptr<ImageReference_interface> Image::StorageReference(){
+        if(this->storageReference!=nullptr) return this->storageReference;
         auto ref=Transport->ParseStoreReference(this->runtime->store,"@"+this->ID());
         if(ref==nullptr) return nullptr;
         this->storageReference=ref;

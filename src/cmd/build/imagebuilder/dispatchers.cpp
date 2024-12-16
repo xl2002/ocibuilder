@@ -82,11 +82,11 @@ void from(
     }
 
     // Windows 不支持没有基础镜像的容器
-    if (name == "scratch") {
-#ifdef _WIN32
-        throw std::runtime_error("Windows does not support FROM scratch");
-#endif
-    }
+//     if (name == "scratch") {
+// #ifdef _WIN32
+//         throw std::runtime_error("Windows does not support FROM scratch");
+// #endif
+//     }
 
     // 处理标志参数
     for (const auto& a : flagArgs) {

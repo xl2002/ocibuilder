@@ -34,19 +34,19 @@ std::tuple<std::shared_ptr<Named_interface>,std::string> ResolveShortNameAlias(s
 
 }
 // 遍历ptree并将数据存储到map
-void traverse_ptree_to_map(const boost::property_tree::ptree& pt, std::map<std::string, std::string>& result_map, const std::string& path) {
-    for (const auto& kv : pt) {
-        std::string full_path = path.empty() ? kv.first : path + "." + kv.first;
+// void traverse_ptree_to_map(const boost::property_tree::ptree& pt, std::map<std::string, std::string>& result_map, const std::string& path) {
+//     for (const auto& kv : pt) {
+//         std::string full_path = path.empty() ? kv.first : path + "." + kv.first;
 
-        if (kv.second.empty()) {
-            // 如果没有子节点，将 key 和 value 存入 map
-            result_map[full_path] = kv.second.get_value<std::string>();
-        } else {
-            // 如果有子节点，递归遍历
-            traverse_ptree_to_map(kv.second, result_map, full_path);
-        }
-    }
-}
+//         if (kv.second.empty()) {
+//             // 如果没有子节点，将 key 和 value 存入 map
+//             result_map[full_path] = kv.second.get_value<std::string>();
+//         } else {
+//             // 如果有子节点，递归遍历
+//             traverse_ptree_to_map(kv.second, result_map, full_path);
+//         }
+//     }
+// }
 std::tuple<std::shared_ptr<shortNameAliasConf>,std::shared_ptr<shortNameAliasCache>> loadShortNameAliasConf(std::string confPath){
     auto config=std::make_shared<shortNameAliasConf>();
     boost::property_tree::ptree pt;
@@ -57,7 +57,7 @@ std::tuple<std::shared_ptr<shortNameAliasConf>,std::shared_ptr<shortNameAliasCac
         throw myerror("无法解析配置文件: " + confPath + ": " + e.what());
     }
     if(!pt.empty()){
-        traverse_ptree_to_map(pt,config->Aliases);
+        // traverse_ptree_to_map(pt,config->Aliases);
     }
     try{
         auto cache=newShortNameAliasCache(confPath,config);

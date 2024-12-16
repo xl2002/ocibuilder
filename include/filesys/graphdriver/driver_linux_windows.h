@@ -6,11 +6,8 @@
 #include <string>
 #include <iostream>
 #include "utils/common/error.h"
-#ifdef _WIN32
-#include <windows.h>  // Windows 特定的头文件
-#else
-#include <sys/statvfs.h>  // 类 Unix 系统的头文件
-#endif
+#include "filesys/systems.h"
+
 
 // FsMagic 代表文件系统魔法常量
 using FsMagic = uint32_t;

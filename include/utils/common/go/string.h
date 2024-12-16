@@ -15,6 +15,12 @@
 #include <map>
 #include <memory>
 #include <algorithm>
+#include <iostream>
+// #include <memory>
+#include <chrono>
+#include <iomanip>
+#include <sstream>
+#include <time.h>
 bool hasPrefix(const std::string& str, const std::string& prefix);
 bool hasSuffix(const std::string& s, const std::string& suffix);
 std::string toLower(const std::string& str);
@@ -30,4 +36,6 @@ std::tuple<std::string, std::string, bool> Cut(const std::string &str, char deli
 std::string FromSlash(const std::string& path);
 std::vector<uint8_t> stringToVector(const std::string& str);
 std::string vectorToString(const std::vector<uint8_t>& vec);
+std::string timePointToISOString(const std::chrono::system_clock::time_point& timePoint);
+std::chrono::system_clock::time_point parseISOStringToTimePoint(const std::string& isoString);
 #endif // GO_STRING_H

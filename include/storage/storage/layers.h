@@ -8,6 +8,7 @@
 #include <chrono>
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/thread/thread.hpp>
+#include <unordered_set>
 #include "storage/lockfile/lockfile.h"
 #include "storage/lockfile/lastwrite.h"
 #include "image/types/define/types.h"
@@ -15,7 +16,9 @@
 #include "filesys/utils/idtools.h"
 #include "storage/storage/stringid.h"
 #include "storage/storage/store.h"
+#include "utils/common/json.h"
 #include <boost/optional.hpp>
+#include <boost/json.hpp>
 using std::string;
 using std::vector;
 struct LayerOptions;
@@ -86,6 +89,69 @@ struct Layer{
 
     // BigDataNames 是存储供调用者使用的大数据项名称
     std::vector<std::string> BigDataNames;
+    // 添加友元函数 tag_invoke 进行序列化
+    friend void tag_invoke(const boost::json::value_from_tag, boost::json::value& jv, const Layer& layer) {
+        jv=boost::json::object{
+            {"ID", layer.ID},
+            {"Parent", layer.Parent},
+            // {"Metadata", layer.Metadata},
+            // {"MountLabel", layer.MountLabel},
+            // {"MountPoint", layer.MountPoint},
+            // {"mountCount", layer.mountCount},
+            {"compressedSize", layer.compressedSize},
+            {"uncompressedSize", layer.uncompressedSize},
+            // {"readOnly", layer.readOnly},
+            // {"volatileStore", layer.volatileStore}
+            // {"Names", boost::json::array(layer.Names.begin(), layer.Names.end())},
+        };
+    }
+    //     obj["Metadata"] = layer.Metadata;
+    //     obj["MountLabel"] = layer.MountLabel;
+    //     obj["MountPoint"] = layer.MountPoint;
+    //     obj["mountCount"] = layer.mountCount;
+    //     obj["compressedSize"] = layer.compressedSize;
+    //     obj["uncompressedSize"] = layer.uncompressedSize;
+    //     obj["readOnly"] = layer.readOnly;
+    //     obj["volatileStore"] = layer.volatileStore;
+
+    // // 手动转换 std::vector<std::string> 为 boost::json::array
+    //     boost::json::array namesArray;
+    //     for (const auto& name : layer.Names) {
+    //         namesArray.push_back(boost::json::string(name));  // 转换字符串为 boost::json::value
+    //     }
+    //     obj["Names"] = std::move(namesArray);
+
+    //     boost::json::array bigDataNamesArray;
+    //     for (const auto& bigName : layer.BigDataNames) {
+    //         bigDataNamesArray.push_back(boost::json::string(bigName));  // 转换字符串为 boost::json::value
+    //     }
+    //     obj["BigDataNames"] = std::move(bigDataNamesArray);
+
+    //     jv=obj;
+    // // 用于从 JSON 反序列化的 tag_invoke
+    friend Layer tag_invoke(boost::json::value_to_tag<Layer>, const boost::json::value& jv) {
+        const auto& obj = jv.as_object();
+        Layer layer;
+        layer.ID = obj.at("ID").as_string().c_str();
+        layer.Parent = obj.at("Parent").as_string().c_str();
+    //     layer.Metadata = obj.at("Metadata").as_string().c_str();
+    //     layer.MountLabel = obj.at("MountLabel").as_string().c_str();
+    //     layer.MountPoint = obj.at("MountPoint").as_string().c_str();
+    //     layer.mountCount = obj.at("mountCount").as_int64();
+        layer.compressedSize = obj.at("compressedSize").as_int64();
+        layer.uncompressedSize = obj.at("uncompressedSize").as_int64();
+    //     layer.readOnly = obj.at("readOnly").as_bool();
+    //     layer.volatileStore = obj.at("volatileStore").as_bool();
+
+    //     for (const auto& name : obj.at("Names").as_array()) {
+    //         layer.Names.push_back(name.as_string().c_str());
+    //     }
+    //     for (const auto& bigName : obj.at("BigDataNames").as_array()) {
+    //         layer.BigDataNames.push_back(bigName.as_string().c_str());
+    //     }
+
+        return layer;
+    }
 };
 class lockFile;
 struct multipleLockFile{
@@ -96,7 +162,7 @@ struct layerStore:public rwLayerStore_interface{
     std::shared_ptr<multipleLockFile> lockfile=std::make_shared<multipleLockFile>();
     std::shared_ptr<lockFile> mountsLockfile=std::make_shared<lockFile>();
     std::string rundir;
-    std::map<int,string> jsonPath;
+    std::map<int,std::string> jsonPath;
     std::string layerdir;
     mutable boost::shared_mutex inProcessLock; // 可重入读写锁
     lastwrite lastWrite;                    // 最后写入时间

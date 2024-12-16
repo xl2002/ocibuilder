@@ -38,14 +38,15 @@ std::vector<std::string> envMapAsSlice(const std::map<std::string, std::string>&
 
 // 根据平台返回特定的错误信息
 std::string platformSupports(const std::string& command) {
-#ifdef _WIN32
+#ifdef __linux__
+    // 如果不在 Windows 平台上，返回空错误
+    return "";
+#endif
     // Windows 平台上的不支持的命令
     if (command == "expose" || command == "user" || command == "stopsignal" || command == "arg") {
         std::string errorMessage = "The daemon on this platform does not support the command '" + command + "'";
         return errorMessage;
     }
-#endif
-    // 如果不在 Windows 平台上，返回空错误
     return "";
 }
 
