@@ -115,18 +115,18 @@ struct Manifest{
     std::map<std::string, std::string> Annotations;
     Manifest()=default;
 
-    // // JSON 序列化函数：将 Manifest 转换为 JSON
-    // void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const Manifest& image) {
-    //     jv = boost::json::object{
-    //         {"SchemaVersion", image.SchemaVersion},
-    //         {"MediaType", image.MediaType},
-    //         {"ArtifactType", image.ArtifactType},
-    //         {"Config", *image.Config}, // 假设 Descriptor 支持 JSON 序列化
-    //         {"Layers", boost::json::value_from(image.Layers)},
-    //         {"Subject", image.Subject ? boost::json::value_from(*image.Subject) : boost::json::value{}},
-    //         {"Annotations", image.Annotations}
-    //     };
-    // }
+    // JSON 序列化函数：将 Manifest 转换为 JSON
+    void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const Manifest& image) {
+        // jv = boost::json::object{
+        //     {"SchemaVersion", image.SchemaVersion},
+        //     {"MediaType", image.MediaType},
+        //     {"ArtifactType", image.ArtifactType},
+        //     {"Config", *image.Config}, // 假设 Descriptor 支持 JSON 序列化
+        //     {"Layers", boost::json::value_from(image.Layers)},
+        //     {"Subject", image.Subject ? boost::json::value_from(*image.Subject) : boost::json::value{}},
+        //     {"Annotations", image.Annotations}
+        // };
+    }
 
     // // JSON 反序列化函数：从 JSON 创建 Manifest
     // void tag_invoke(boost::json::value_to_tag<Manifest>, const boost::json::value& jv, Manifest& image) {
