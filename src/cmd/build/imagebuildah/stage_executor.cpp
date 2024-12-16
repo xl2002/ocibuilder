@@ -615,12 +615,6 @@ void StageExecutor::performCopy(std::vector<std::string> excludes,std::vector<Co
             stripSetuid = true;
 			stripSetgid = true; 
         }
-        //调试信息，跳过
-        if (copy.Download){
-
-        }else{
-
-        }
 
         for (size_t i = 0; i < copy.Src.size(); ++i){
             std::string src=copy.Src[i];

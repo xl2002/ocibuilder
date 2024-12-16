@@ -53,7 +53,6 @@ std::shared_ptr<ImageSource_interface> containerImageRef::NewImageSource(std::sh
     for(auto layer:layers){
         // 3. 将原目录下diff文件夹下的内容复制到目的缓存目录下，如果目的目录不存在则新建目录
         //  int64_t Copy_directory(const fs::path& source, const fs::path& destination)复制目录的函数已写好，并且返回数据大小
-        auto tarlayerpath=srcpath+"/"+layer+"/diff";//ocerlay下文件diff缓存
         // auto size=Copy_directory(tarlayerpath,destpath);
         auto omediaType=MediaTypeImageLayer;//TODO
         omediaType=computeLayerMIMEType(layer,this->compression);
@@ -61,16 +60,17 @@ std::shared_ptr<ImageSource_interface> containerImageRef::NewImageSource(std::sh
         auto diffOptions=std::make_shared<DiffOptions>();
         diffOptions->Compression->value=noCompression;
 
-        auto destdir=destpath+"/layer";
-        if(!boost::filesystem::exists(destdir)){
-            boost::filesystem::create_directory(destdir);
-        }
-        auto size=Copy_directory(tarlayerpath,destdir);//TODO
+        auto tarlayerpath=srcpath+"/"+layer+"/diff";//ocerlay下文件diff缓存
+        // auto destdir=destpath+"/layer";
+        // if(!boost::filesystem::exists(destdir)){
+        //     boost::filesystem::create_directory(destdir);
+        // }
+        // auto size=Copy_directory(tarlayerpath,destdir);//TODO
         // 4. 将缓存目的目录下的内容打包成tar文件，返回tar文件流
         auto tarfilepath=destpath+"/layer.tar";
         std::shared_ptr<digester_interface> tarfile;
         int tarsize;
-        std::tie(tarfile,tarsize)=newTarDigester("file",tarfilepath,destdir);//TODO
+        std::tie(tarfile,tarsize)=newTarDigester("file",tarfilepath,tarlayerpath);//TODO
         // 5. 计算tar文件的sha256值，并且重命名tar文件
         auto tardigest=tarfile->Digest()->String();//tar包的sha256
         auto finalBlobName=destpath+"/"+tardigest;//TODO
@@ -89,6 +89,7 @@ std::shared_ptr<ImageSource_interface> containerImageRef::NewImageSource(std::sh
 
         blobLayers[tardigest].ID=tarfile->Digest()->Encoded();
         blobLayers[tardigest].Size=tarsize;
+
     }
 
     // 6. 组织历史记录history，构造appendHistory函数
