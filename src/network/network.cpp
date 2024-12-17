@@ -19,7 +19,33 @@ beast::http::request<beast::http::string_body> NewRequest(std::string method, st
  * @return std::shared_ptr<URL> 
  */
 std::shared_ptr<URL> dockerClient::resolveRequestURL(std::string path){
-    return std::make_shared<URL>();
+    auto url = std::make_shared<URL>();
+
+    std::size_t colonPos = path.find(':');
+    std::size_t slashPos = path.find('/');
+    std::size_t lastSlash = path.find_last_of('/');
+
+    if (colonPos == std::string::npos || slashPos == std::string::npos || colonPos > slashPos) {
+        throw std::invalid_argument("Invalid path format");
+    }
+
+    std::string host = path.substr(0, slashPos);
+    std::string portStr = path.substr(colonPos + 1, slashPos - colonPos - 1);
+    std::string imageName;
+    std::size_t colon = path.find(':', lastSlash);
+    if (colon == std::string::npos) {
+        // 没有 ':'，说明没有 tag，直接返回 '/' 后的部分
+        imageName=path.substr(lastSlash + 1);
+    } else {
+        // 有 ':'，返回 ':' 之前的部分
+        imageName=path.substr(lastSlash + 1, colon - lastSlash - 1);
+    }
+
+    url->host=host;
+    url->port=portStr;
+    url->imageName=imageName;
+
+    return url;
 }
 /**
  * @brief 获得认证令牌，获得的令牌直接存储到dockerClient中
@@ -42,4 +68,299 @@ bool dockerClient::setupRequestAuth(beast::http::request<beast::http::string_bod
  */
 std::tuple<beast::http::response<beast::http::string_body>,asio::streambuf> dockerClient::Do(asio::io_context& ioc,std::string hosttype,beast::http::request<beast::http::string_body> req){
     
+}
+
+
+
+/**
+ * @brief 验证服务器是否支持v2协议
+ * 
+ * @param host 
+ * @param port 
+ * @return 
+ */
+bool ifSupportV2(const std::string& host,const std::string& port){
+    try {
+        std::string target = "/v2/";  // API v2 路径
+
+        // IO 服务和解析器
+        asio::io_context ioc;
+        asio::ip::tcp::resolver resolver(ioc);
+        beast::tcp_stream stream(ioc);
+
+        // 设置超时时间
+        stream.expires_after(std::chrono::seconds(5));  // 超时 5 秒
+
+        // 解析并连接
+        auto const results = resolver.resolve(host, port);
+        stream.connect(results);
+
+        // 设置 HTTP 请求
+        beast::http::request<beast::http::empty_body> req(beast::http::verb::get, target, 11);  // 发送 HEAD 请求
+        req.set(beast::http::field::host, host);
+        req.set(beast::http::field::user_agent, "Boost.Beast/248");
+
+        // 发送请求
+        beast::http::write(stream, req);
+        std::cout << "HTTP request sent." << std::endl;
+
+        // 接收响应
+        beast::flat_buffer buffer;
+        beast::http::response<beast::http::string_body> res;
+        beast::http::read(stream, buffer, res);
+        std::cout << "Response received." << std::endl;
+        // 关闭连接
+        stream.close(); 
+        // 检查响应状态码
+        if (res.result() == beast::http::status::ok) {
+            return true;
+        } else {
+            return false;
+        }
+
+
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+    }
+}
+
+
+
+
+/**
+ * @brief 该数据层是否在服务器中存在
+ * @param host 
+ * @param port 
+ * @param imageName 
+ * @param shaId 
+ * @return 
+ */
+bool ifBlobExists(const std::string& host,const std::string& port,const std::string& imageName,const std::string& shaId){                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+    try {
+        // 配置参数
+        const std::string target="/v2/"+imageName+"/blobs/sha256:"+shaId;
+        // IO 上下文
+        asio::io_context ioc;
+
+        // 解析器和流
+        asio::ip::tcp::resolver resolver(ioc);
+        beast::tcp_stream stream(ioc);
+
+        // 解析并连接到主机
+        auto const results = resolver.resolve(host, port);
+        stream.connect(results);
+
+        // 构造 HTTP HEAD 请求
+        beast::http::request<beast::http::empty_body> req(beast::http::verb::get, target, 11);
+        req.set(beast::http::field::host,host);
+        req.set(beast::http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+
+        // 发送请求
+        beast::http::write(stream, req);
+
+        // 接收响应
+        beast::flat_buffer buffer;
+        beast::http::response<beast::http::string_body> res;
+        beast::http::read(stream, buffer, res);
+        // 关闭连接
+        stream.socket().shutdown(asio::ip::tcp::socket::shutdown_both);
+        // 根据状态码判断 blob 是否存在
+        if (res.result() == beast::http::status::ok) {
+            return true;
+        } else {
+            return false;
+        } 
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << "\n";
+    }
+}
+
+
+
+/**
+ * @brief 上传数据前初始化请求，以获得uid和state
+ * @param host 
+ * @param port 
+ * @param target 
+ * @return 
+ */
+std::pair<std::string, std::string> initUpload(const std::string& host, const std::string& port,const std::string& imageName) {
+    try {
+
+        const std::string target="/v2/"+imageName+"/blobs/uploads";
+
+        asio::io_context ioc;
+        tcp::resolver resolver(ioc);
+        beast::tcp_stream stream(ioc);
+
+        auto const results = resolver.resolve(host, port);
+        stream.connect(results);
+
+        beast::http::request<beast::http::empty_body> req(beast::http::verb::post, target, 11);
+        req.set(beast::http::field::host, host);
+        req.set(beast::http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+
+        beast::http::write(stream, req);
+
+        beast::flat_buffer buffer;
+        beast::http::response<beast::http::string_body> res;
+        beast::http::read(stream, buffer, res);
+
+        stream.socket().shutdown(tcp::socket::shutdown_both);
+
+        if (res.result() != beast::http::status::accepted) {
+            throw std::runtime_error("Failed to initiate upload");
+        }
+
+        std::string location = res[beast::http::field::location].to_string();
+        std::string uid_parm;
+        std::string state_param;
+
+        auto pos = location.find("/uploads/");
+        if (pos != std::string::npos) {
+            // 截取 "/uploads/" 后面的部分
+            uid_parm = location.substr(pos + 9); // 截取 "uploads/" 后面的部分
+            // 检查 URL 后面的参数（_state=）并去掉它
+            auto state_pos = uid_parm.find("?");
+            if (state_pos != std::string::npos) {
+                uid_parm = uid_parm.substr(0, state_pos); // 去掉 "?_state=" 后面的部分
+            }
+        }
+
+        auto pos1 = location.find("_state=");
+        if (pos1 != std::string::npos) {
+            state_param = location.substr(pos1 + 7);
+            std::cout << "State parameter: " << state_param << "\n";
+        }
+        return {uid_parm,state_param};
+
+        throw std::runtime_error("Invalid Location URL format.");
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << "\n";
+        return {"", ""};
+    }
+}
+
+
+
+
+/**
+ * @brief 以层为单位上传数据
+ * @param host 
+ * @param port 
+ * @param uid 
+ * @param state 
+ * @param file_path 
+ * @param start 
+ * @param end 
+ * @param total_size 
+ * @param imageName 
+ * @return 
+ */
+std::string uploadBlobChunk(const std::string& host, const std::string& port, const std::string& uid, const std::string& state,
+                            const std::string& file_path, std::size_t start, std::size_t end, std::size_t total_size,const std::string& imageName) {
+    try {
+        std::ifstream file(file_path, std::ios::binary);
+        if (!file) {
+            throw std::runtime_error("Failed to open file: " + file_path);
+        }
+
+        std::size_t chunk_size = end - start;
+        std::vector<char> data(chunk_size);
+
+        file.seekg(start, std::ios::beg);
+        file.read(data.data(), chunk_size);
+        std::size_t bytes_read = file.gcount();
+
+        if (file.gcount() != static_cast<std::streamsize>(chunk_size)) {
+            throw std::runtime_error("Failed to read the requested chunk from file.");
+        }
+
+
+        asio::io_context ioc;
+        tcp::resolver resolver(ioc);
+        beast::tcp_stream stream(ioc);
+
+        auto const results = resolver.resolve(host, port);
+        stream.connect(results);
+
+        std::string target = "/v2/" + imageName + "/blobs/uploads/" + uid + "?_state=" + state;
+        beast::http::request<beast::http::buffer_body> req(beast::http::verb::patch, target, 11);
+        req.set(beast::http::field::host, host);
+        req.set(beast::http::field::content_type, "application/octet-stream");
+        req.set(beast::http::field::content_range, "bytes=" + std::to_string(start) + "-" + std::to_string(end - 1) + "/" + std::to_string(total_size));
+        req.set(beast::http::field::content_length, std::to_string(bytes_read));
+        req.set(beast::http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+
+        req.body().data = data.data();
+        req.body().size = bytes_read; 
+        req.body().more=false;
+        req.prepare_payload();
+
+        beast::http::write(stream, req);
+
+        beast::flat_buffer buffer_r;
+        beast::http::response<beast::http::string_body> res;
+        beast::http::read(stream, buffer_r, res);
+        stream.socket().shutdown(tcp::socket::shutdown_both);
+
+        if (res.result() != beast::http::status::accepted) {
+            throw std::runtime_error("Failed to upload blob chunk");
+        }
+
+        std::string location = res[beast::http::field::location].to_string();
+        std::string new_state;
+        auto pos1 = location.find("_state=");
+        if (pos1 != std::string::npos) {
+            new_state = location.substr(pos1 + 7);
+            std::cout << "State parameter: " << new_state << "\n";
+        }
+        return new_state;
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << "\n";
+        return state;
+    }
+}
+
+
+
+
+
+/**
+ * @brief 每次数据上传完之后的确认请求
+ * @param host 
+ * @param port 
+ * @param uid 
+ * @param shaId 
+ * @param state 
+ * @param imageName 
+ */
+void finalizeUpload(const std::string& host, const std::string& port, const std::string& uid, const std::string& shaId, const std::string& state,const std::string& imageName) {
+    try {
+        asio::io_context ioc;
+        tcp::resolver resolver(ioc);
+        beast::tcp_stream stream(ioc);
+
+        auto const results = resolver.resolve(host, port);
+        stream.connect(results);
+
+        std::string target = "/v2/" + imageName + "/blobs/uploads/" + uid + "?_state=" + state + "&digest=sha256:" + shaId;
+        beast::http::request<beast::http::empty_body> req(beast::http::verb::put, target, 11);
+        req.set(beast::http::field::host, host);
+        req.set(beast::http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+
+        beast::http::write(stream, req);
+
+        beast::flat_buffer buffer;
+        beast::http::response<beast::http::string_body> res;
+        beast::http::read(stream, buffer, res);
+
+        stream.socket().shutdown(tcp::socket::shutdown_both);
+
+        if (res.result() != beast::http::status::created) {
+            throw std::runtime_error("Failed to finalize upload");
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << "\n";
+    }
 }

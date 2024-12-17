@@ -189,7 +189,7 @@ int main() {
         std::string host = "localhost";
         std::string port = "5000";
         std::string target = "/v2/busybox/blobs/uploads/";
-        std::string file_path = "E:/work/code/OCI/ocibuilder/busybox/blobs/sha256/f0/f0a3fe58120bd28b27186346f7a7320fdf48665a91d6b76e9d20ffdcac39d15b/data";
+        std::string file_path = "E:/work/code/OCI/ocibuilder/busybox/blobs/sha256/93/9307d4acaeed71c4c6ba84494aef0464ffc446a5d91f0a7c196fa8eda1bf0590/data";
 
         std::ifstream file(file_path, std::ios::binary | std::ios::ate);
         if (!file) {
@@ -219,7 +219,7 @@ int main() {
         }
         // state = uploadBlobChunk(host, port, uid, state, file_path, start, total_size, total_size);
         // PUT 请求完成上传
-        std::string digest = "sha256:f0a3fe58120bd28b27186346f7a7320fdf48665a91d6b76e9d20ffdcac39d15b";
+        std::string digest = "sha256:9307d4acaeed71c4c6ba84494aef0464ffc446a5d91f0a7c196fa8eda1bf0590";
         finalizeUpload(host, port, uid, digest, state);
 
     } catch (const std::exception& e) {

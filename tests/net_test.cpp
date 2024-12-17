@@ -137,7 +137,7 @@
 #include <boost/json.hpp>
 #include <fstream>
 #include <string>
-
+#include "network/network.h"
 namespace asio = boost::asio;
 namespace beast = boost::beast;
 namespace json = boost::json;
@@ -235,63 +235,6 @@ void upload_file(asio::io_context& ioc, const std::string& token, const std::str
     beast::error_code ec;
     stream.socket().shutdown(tcp::socket::shutdown_both, ec);
 }
-
-void ifSupportV2(){
-    try {
-        std::cout << "start!!" << std::endl;
-        std::string host = "localhost";  // 替换为实际的 Registry 地址
-        std::string target = "/v2/";  // API v2 路径
-        int port = 5000;  // HTTP 默认端口，若使用 HTTPS，改为 443
-
-        // IO 服务和解析器
-        boost::asio::io_context ioc;
-        boost::asio::ip::tcp::resolver resolver(ioc);
-        boost::beast::tcp_stream stream(ioc);
-
-        // 设置超时时间
-        stream.expires_after(std::chrono::seconds(5));  // 超时 5 秒
-
-        // 解析并连接
-        auto const results = resolver.resolve(host, std::to_string(port));
-        stream.connect(results);
-
-        // 设置 HTTP 请求
-        boost::beast::http::request<boost::beast::http::empty_body> req(boost::beast::http::verb::get, target, 11);  // 发送 HEAD 请求
-        req.set(boost::beast::http::field::host, host);
-        req.set(boost::beast::http::field::user_agent, "Boost.Beast/248");
-
-        // 发送请求
-        boost::beast::http::write(stream, req);
-        std::cout << "HTTP request sent." << std::endl;
-
-        // 接收响应
-        boost::beast::flat_buffer buffer;
-        boost::beast::http::response<boost::beast::http::string_body> res;
-        boost::beast::http::read(stream, buffer, res);
-        std::cout << "Response received." << std::endl;
-
-        // 打印响应内容
-        std::cout << "HTTP Version: " << (res.version() / 10) << "." << (res.version() % 10) << "\n";
-        std::cout << "Status: " << res.result_int() << " " << res.reason() << "\n";
-        std::cout << "Headers:\n";
-        for (auto const& field : res) {
-            std::cout << field.name_string() << ": " << field.value() << "\n";
-        }
-
-        // 检查响应状态码
-        if (res.result() == boost::beast::http::status::ok) {
-            std::cout << "Registry supports API v2. Response Code: " << res.result_int() << std::endl;
-        } else {
-            std::cout << "Registry does not support API v2. Response Code: " << res.result_int() << std::endl;
-        }
-
-        // 关闭连接
-        stream.close();  // 使用 close() 代替 shutdown()
-    } catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
-    }
-}
-
 
 void ifSupportV2(){
     try {
@@ -493,8 +436,17 @@ int main() {
         // upload_file(ioc, token, "manifest.json");
 
         // std::cout << "File uploaded successfully!" << std::endl;
-        //ifBlobExists();
-        initUpLoad();
+        // ifBlobExists();
+        // initUpLoad();
+
+        auto url = std::make_shared<URL>();
+        dockerClient client;
+        url=client.resolveRequestURL("localhost:5111/bbbb:123");
+        std::cout<<"host"<<url->host<<"\n";
+        std::cout<<"port"<<url->port<<"\n";
+        std::cout<<"ImageName"<<url->imageName<<"\n";
+
+
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
     }
