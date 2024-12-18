@@ -31,7 +31,7 @@ struct Algorithm_sha256 {//xcy,256哈希值
     std::shared_ptr<Digester_interface> Digester();
     std::string String();
 };
-extern  Algorithm_sha256 SHA256;
+extern  Algorithm_sha256 sha_256;
 extern  Algorithm_sha256 Canonical_sha256;
 extern  std::map<Algorithm_sha256, std::regex> anchoredEncodedRegexps;
 

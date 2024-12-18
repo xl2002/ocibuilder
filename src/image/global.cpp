@@ -19,7 +19,7 @@ std::shared_ptr<PolicyTransportScopes> storageAllowedPolicyScopes;
 
 map<string,Pull_Policy>PolicyMap;
 
-Algorithm_sha256 SHA256;
+Algorithm_sha256 sha_256;
 Algorithm_sha256 Canonical_sha256;
 std::map<Algorithm_sha256, std::regex> anchoredEncodedRegexps;
 
@@ -85,9 +85,9 @@ void init_image(){
         {"ifnewer", PullIfNewer}
     };
 
-    SHA256=Algorithm_sha256("sha256");
-    Canonical_sha256=SHA256;
-    anchoredEncodedRegexps={{ SHA256, std::regex("^[a-f0-9]{64}$") }};
+    sha_256=Algorithm_sha256("sha256");
+    Canonical_sha256=sha_256;
+    anchoredEncodedRegexps={{ sha_256, std::regex("^[a-f0-9]{64}$") }};
 
     DescriptorEmptyJSON = {
         MediaTypeEmptyJSON,

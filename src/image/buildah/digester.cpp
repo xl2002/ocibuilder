@@ -9,18 +9,7 @@ std::string simpleDigester::ContentType(){
  * 
  * @param data 
  */
-// 实现 Process 方法
-// void Hash_256::Process(const std::string& input) {
-//     if (!sha256) {
-//         // 初始化 SHA256 上下文
-//         sha256 = std::make_shared<SHA256_CTX>();
-//         sha256_init(sha256.get());
-//     }
-//     // 将字符串输入转换为字节数组
-//     std::vector<BYTE> bytes(input.begin(), input.end());
-//     // 使用 sha256_update 更新 SHA256 上下文
-//     sha256_update(sha256.get(), bytes.data(), bytes.size());
-// }
+
 void simpleDigester::write(const std::string& data){
     if (this->hasher) {
         // this->hasher->Process(data);

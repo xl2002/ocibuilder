@@ -10,7 +10,8 @@
 // #include <iomanip>
 // #include <regex>
 
-#include "image/digest/sha256.h"
+// #include "image/digest/sha256.h"
+#include <openssl/sha.h>
 
 struct Hash_256 {
     std::shared_ptr<SHA256_CTX> sha256=std::make_shared<SHA256_CTX>();

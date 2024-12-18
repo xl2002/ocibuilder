@@ -18,4 +18,16 @@ oci规范的镜像构建工具，适用于windows系统
 test.cpp 运行
 g++ -std=c++11 -Wall -Wextra -g -I include -o ./tests/gzip_test.exe ./tests/gzip_test.cpp -L lib\boost-MinGW -L lib\zlib-MinGW -lboost_filesystem-mgw12-mt-x64-1_75 -lboost_iostreams-mgw12-mt-x64-1_75 -lz
 
-g++ -std=c++11 -Wall -Wextra -g -I include -o ./tests/upload_test.exe ./tests/upload_test.cpp -L lib\boost-MinGW -lboost_filesystem-mgw12-mt-x64-1_75 -lboost_iostreams-mgw12-mt-x64-1_75 -lboost_system-mgw12-mt-x64-1_75 -lboost_thread-mgw12-mt-x64-1_75 -lws2_32 -lboost_json-mgw12-mt-x64-1_75
+g++ -std=c++11 -Wall -Wextra -g -I include -o ./tests/sha256_test.exe ./tests/sha256_test.cpp -L lib\boost-MinGW -L lib\openssl -lboost_filesystem-mgw12-mt-x64-1_75 -lboost_iostreams-mgw12-mt-x64-1_75 -lboost_system-mgw12-mt-x64-1_75 -lboost_thread-mgw12-mt-x64-1_75 -lws2_32 -lboost_json-mgw12-mt-x64-1_75 -lssl -lcrypto
+
+g++ -std=c++11 -Wall -Wextra -g -I include -o ./tests/sha256_test.exe ./tests/sha256_test.cpp -L lib\boost-MinGW -L lib\openssl -lboost_filesystem-mgw12-mt-x64-1_75 -lssl -lcrypto
+
+g++ -std=c++11 -Wall -Wextra -g -I include sha256_test.cpp -o sha256_test  -L lib -lssl -lcrypto
+
+编译opanssl库
+sudo apt-get install mingw-w64
+wget https://www.openssl.org/source/openssl-1.1.1w.tar.gz
+tar -xzvf openssl-1.1.1w.tar.gz
+cd openssl-1.1.1w
+./Configure mingw64 no-shared no-dso no-tests --cross-compile-prefix=x86_64-w64-mingw32-
+make
