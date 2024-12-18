@@ -9,7 +9,7 @@
 // Sets the environment variable foo to bar, also makes interpolation
 // in the dockerfile available from the next statement on via ${foo}.
 void env(
-    std::shared_ptr<Image_Builder>b,
+    Image_Builder* b,
     std::vector<std::string>args,
     std::map<std::string,bool>attributes,
     std::vector<std::string>flagArgs,
@@ -38,7 +38,7 @@ void env(
 //
 // This sets the image the dockerfile will build on top of.
 void from(
-    std::shared_ptr<Image_Builder>b,
+    Image_Builder* b,
     std::vector<std::string>args,
     std::map<std::string,bool>attributes,
     std::vector<std::string>flagArgs,
@@ -80,6 +80,14 @@ void from(
     } catch (const std::exception& e) {
         throw std::runtime_error(e.what());
     }
+    // std::string dest = makeAbsolute(name, b->RunConfig->WorkingDir);
+
+    std::string chown;
+    std::string chmod;
+    std::string from;
+    // std::vector<std::string> userArgs = mergeEnv(envMapAsSlice(b->Args), b->Env);
+
+
 
     // Windows 不支持没有基础镜像的容器
 //     if (name == "scratch") {
@@ -101,17 +109,30 @@ void from(
             throw std::runtime_error("FROM only supports the --platform flag");
         }
     }
-
     // 设置镜像名称
     b->RunConfig->Image = name;
 
+    // 将拷贝操作添加到待处理的列表中
+    if(b->PendingCopies.size()==0){
+        boost::filesystem::path src(name);
+        auto absrc=boost::filesystem::absolute(src);
+        Copy c;
+        c.From = "from";
+        c.Src.push_back(absrc.string());
+        c.Dest = "";
+        c.Download = false;
+        c.Chown = chown;
+        c.Chmod = chmod;
+        // c.Files = files;
+        b->PendingCopies.push_back(c);
+    }
     // TODO: 处理 onbuild
 }
 // LABEL some json data describing the image
 //
 // Sets the Label variable foo to bar,
 void label(
-    std::shared_ptr<Image_Builder>b,
+    Image_Builder* b,
     std::vector<std::string>args,
     std::map<std::string,bool>attributes,
     std::vector<std::string>flagArgs,
@@ -144,7 +165,7 @@ void label(
 //
 // Same as 'ADD' but without the tar and remote url handling.
 void dispatchCopy(
-    std::shared_ptr<Image_Builder>b,
+    Image_Builder* b,
     std::vector<std::string>args,
     std::map<std::string,bool>attributes,
     std::vector<std::string>flagArgs,
@@ -190,7 +211,7 @@ void dispatchCopy(
 
     // 将拷贝操作添加到待处理的列表中
     Copy c;
-    c.From = from;
+    c.From = "copy";
     c.Src= std::vector<std::string>(args.begin(), args.begin() + last);
     c.Dest = dest;
     c.Download = false;
@@ -205,7 +226,7 @@ void dispatchCopy(
 // Expose ports for links and port mappings. This all ends up in
 // b.RunConfig.ExposedPorts for runconfig.
 void expose(
-    std::shared_ptr<Image_Builder>b,
+    Image_Builder* b,
     std::vector<std::string>args,
     std::map<std::string,bool>attributes,
     std::vector<std::string>flagArgs,
@@ -244,7 +265,7 @@ void expose(
 // Handles command processing similar to CMD and RUN, only b.RunConfig.Entrypoint
 // is initialized at NewBuilder time instead of through argument parsing.
 void entrypoint(
-    std::shared_ptr<Image_Builder>b,
+    Image_Builder* b,
     std::vector<std::string>args,
     std::map<std::string,bool>attributes,
     std::vector<std::string>flagArgs,
@@ -277,7 +298,7 @@ void entrypoint(
 //
 // Expose the volume /foo for use. Will also accept the JSON array form.
 void Volume(
-    std::shared_ptr<Image_Builder>b,
+    Image_Builder* b,
     std::vector<std::string>args,
     std::map<std::string,bool>attributes,
     std::vector<std::string>flagArgs,

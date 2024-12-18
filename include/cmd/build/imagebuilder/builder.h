@@ -88,7 +88,7 @@ public:
     std::vector<std::string> Arguments();
     void Run(
         std::shared_ptr<Step> step,
-        std::shared_ptr<Executor_Interface> exec,
+        Executor_Interface* exec,
         bool noRunsRemaining 
     );
     std::shared_ptr<container_Config>Config();
@@ -100,7 +100,7 @@ std::tuple<std::string,bool> extractNameFromNode(std::shared_ptr<Node>node);
 std::vector<std::shared_ptr<Node>> SplitChildren(std::shared_ptr<Node>node,std::string value);
 // extern const map<std::string,StepFunc> evaluateTable;
 extern std::map<std::string,bool> builtinAllowedBuildArgs;
-using StepFunc=std::function<void(std::shared_ptr<Image_Builder>,std::vector<std::string>,std::map<std::string,bool>,std::vector<std::string>,std::string,std::vector<Heredoc>)>;
+using StepFunc=std::function<void(Image_Builder*,std::vector<std::string>,std::map<std::string,bool>,std::vector<std::string>,std::string,std::vector<Heredoc>)>;
 extern std::map<std::string,StepFunc> evaluateTable;
 
 class Stage {

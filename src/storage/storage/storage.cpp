@@ -12,7 +12,13 @@ string Store:: RunRoot()
 {
     return this->run_root;
 }
-
+std::string  Store::GetImageStoragePath(){
+    return this->run_root+defaultImagestore;
+}
+std::string Store:: GetlayerStoragePath()
+{
+    return this->run_root+defaultlayerpath;
+}
 string join(const vector<string>& elem);
 string Join(const vector<string>& elem) {
     return join(elem);
@@ -430,7 +436,7 @@ shared_ptr<rwImageStore_interface> newImageStore(const string& dir) {
 
         // 加载数据
         if (!istore->load(true)) {
-            std::cout<<"第一次构建镜像，镜像仓库为空"<<std::endl;
+            std::cout<<"the image store is empty,and create a new one"<<std::endl;
         }
 
         return istore;
@@ -1267,7 +1273,7 @@ std::shared_ptr<rwLayerStore_interface> Store::bothLayerStoreKindsLocked() {
  */
 std::shared_ptr<rwLayerStore_interface> Store::getLayerStoreLocked() {
     try {
-        if(!this->layer_store_use_getters) {
+        if(this->layer_store_use_getters!=nullptr){
             return this->layer_store_use_getters;
         }
         // 检查路径是否存在，模拟 Go 中的路径处理

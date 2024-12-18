@@ -25,11 +25,12 @@ std::string getDirectory(const std::string& path);
 
 void  WriteFile(const std::string& iidfile, const std::string& imageID);
 
-int64_t Copy_directory(const fs::path& source, const fs::path& destination);
-
+// int64_t Copy_directory(const fs::path& source, const fs::path& destination);
+int64_t Copy_directory(fs::path& source, fs::path& destination);
 bool IsPathSeparator(char c);
 string join(const vector<string>& elem);
 string Clean(const string& path);
 bool isDirectoryEmpty(const boost::filesystem::path& dirPath);
 std::string MkdirTemp(std::string dir, std::string pattern);
+void Copy_file(const fs::path& src, const fs::path& dest);
 #endif // GO_FILE_H

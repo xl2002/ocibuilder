@@ -6,10 +6,53 @@
 #include "utils/common/go/file.h"
 #include "config/defaut.h"
 #include "image/buildah/tar.h"
-
+#include "utils/common/json.h"
+#include <chrono>
+#include <boost/filesystem.hpp>
 std::shared_ptr<containerImageRef> Builder::makeContainerImageRef(std::shared_ptr<CommitOptions> options){
-
-    return nullptr;
+    auto container=this->container;
+    std::string manifestType;
+    if(options->PreferredManifestType!=""){
+        manifestType=options->PreferredManifestType;
+    }else{
+        options->PreferredManifestType=MediaTypeImageManifest;
+        manifestType=options->PreferredManifestType;
+    }
+    auto oconfig=marshal<v1::Image>(*this->OCIv1);
+    std::chrono::system_clock::time_point created;
+    auto createdBy=this->CreatedBy();
+    std::string parent;
+    if(!boost::filesystem::is_directory(this->FromImage)){
+        parent=NewDigestFromEncoded(std::make_shared<Algorithm_sha256>(Canonical_sha256),this->FromImageID)->String();
+    }
+    auto ref=std::make_shared<containerImageRef>();
+    ref->fromImageName=this->FromImage;
+    ref->fromImageID=container->ImageID;
+    ref->store=this->store;
+    ref->compression=options->Compression;
+    ref->names=container->Names;
+    ref->containerID=container->ID;
+    ref->mountLabel=this->MountLabel;
+    ref->layerID=container->LayerID;
+    ref->oconfig=stringToVector(oconfig);
+    ref->created=created;
+    ref->createdBy=createdBy;
+    ref->historyComment=this->ImageHistoryComment;
+    ref->annotations=this->ImageAnnotations;
+    ref->preferredManifestType=manifestType;
+    ref->squash=options->Squash;
+    ref->confidentialWorkload=options->ConfidentialWorkloadOptions;
+    ref->omitHistory=options->OmitHistory;
+    ref->emptyLayer=options->EmptyLayer&&!options->Squash &&!options->ConfidentialWorkloadOptions->Convert;
+    ref->idMappingOptions=this->IDMappingoptions;
+    ref->parent=parent;
+    ref->blobDirectory=options->BlobDirectory;
+    ref->preEmptyLayers=this->PrependedEmptyLayers;
+    ref->postEmptyLayers=this->AppendedEmptyLayers;
+    ref->overrideChanges=options->OverrideChanges;
+    ref->overrideConfig=options->OverrideConfig;
+    ref->extraImageContent=options->ExtraImageContent;
+    return ref;
 }
 std::shared_ptr<ImageTransport_interface> containerImageRef::Transport(){
     return nullptr;
@@ -47,7 +90,7 @@ std::shared_ptr<ImageSource_interface> containerImageRef::NewImageSource(std::sh
     std::shared_ptr<Manifest> omanifest;
     std::tie(oimage,omanifest)=createConfigsAndManifests();
 
-    auto srcpath=this->store->RunRoot()+"/overlay";
+    auto srcpath=this->store->GetlayerStoragePath();
     
     std::map<Digest, blobLayerInfo> blobLayers;
     for(auto layer:layers){
@@ -72,10 +115,14 @@ std::shared_ptr<ImageSource_interface> containerImageRef::NewImageSource(std::sh
         int tarsize;
         std::tie(tarfile,tarsize)=newTarDigester("file",tarfilepath,tarlayerpath);//TODO
         // 5. 计算tar文件的sha256值，并且重命名tar文件
-        auto tardigest=tarfile->Digest()->String();//tar包的sha256
+        auto tardigest=tarfile->Digest()->Encoded();//tar包的sha256
         auto finalBlobName=destpath+"/"+tardigest;//TODO
         try {
-            boost::filesystem::rename(tarfilepath, finalBlobName);
+            auto tarlayer=boost::filesystem::absolute(boost::filesystem::path(tarfilepath).make_preferred());
+            auto newname=boost::filesystem::absolute(boost::filesystem::path(finalBlobName).make_preferred());
+            boost::filesystem::rename(tarlayer, newname);
+            // Copy_file(tarlayer, newname);
+            // fs::remove(tarlayer);
             std::cout << "File renamed successfully using Boost." << std::endl;
         } catch (const boost::filesystem::filesystem_error& e) {
             std::cerr << "Error renaming file: " << e.what() << std::endl;
@@ -96,7 +143,7 @@ std::shared_ptr<ImageSource_interface> containerImageRef::NewImageSource(std::sh
     auto now = std::chrono::system_clock::now();
     std::time_t currentTime = std::chrono::system_clock::to_time_t(now);//调试可见
     auto comment=this->historyComment;
-    comment+="FROM"+this->fromImageName;
+    comment+="FROM "+this->fromImageName;
     History onews;
     onews.created=now;
     onews.createdBy=this->createdBy;
@@ -148,6 +195,8 @@ std::tuple<std::shared_ptr<v1::Image>,std::shared_ptr<Manifest>> containerImageR
     oimage.created=now;
     oimage.rootFS.type=TypeLayers;
     oimage.author=BuildAuthor;
+    oimage.platform.OS="windows";
+    oimage.platform.Architecture="amd64";
     auto omanifest=std::make_shared<Manifest>();
     omanifest->SchemaVersion=2;
     omanifest->MediaType=MediaTypeImageManifest;
@@ -187,10 +236,12 @@ std::string computeLayerMIMEType(std::string what,std::shared_ptr<Compression> l
     if(layerCompression->value!=compression::Uncompressed){
         if(layerCompression->value==compression::Gzip){
             omediaType=MediaTypeImageLayerGzip;
+        }else{
+            std::cerr<<"compressing :"+what+"with unknown compressor(?)"<<std::endl;
         }
     }
-    std::cerr<<"compressing :"+what+"with unknown compressor(?)"<<std::endl;
-    return "";
+    
+    return omediaType;
 }
 
 std::shared_ptr<ImageDestination_interface> containerImageRef::NewImageDestination(std::shared_ptr<SystemContext>sys){

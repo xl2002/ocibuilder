@@ -564,9 +564,9 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,bool,std::string> Ex
         int stepCounter = 0;
         stageExecutor->log = [this, &stepCounter, stageIndex, stages,stage,stageExecutor](std::string format,std::vector<std::string>args) {
             std::string prefix = this->logPrefix;
-            if (stages->Stages.size() > 1) {
-                prefix += "[" + std::to_string(stageIndex + 1) + "/" + std::to_string(stages->Stages.size()) + "] ";
-            }
+            // if (stages->Stages.size() > 1) {
+            //     prefix += "[" + std::to_string(stageIndex + 1) + "/" + std::to_string(stages->Stages.size()) + "] ";
+            // }
             if (!hasPrefix(format, "COMMIT")) {
                 stepCounter++;
                 prefix += "STEP " + std::to_string(stepCounter);
@@ -709,7 +709,7 @@ std::shared_ptr<ImageReference_interface> Executor::resolveNameToImageRef(const 
     } catch (const myerror& e) {
         // 解析失败，尝试规范化名称
         auto resolved = NormalizeName(output);
-        if (!resolved) {
+        if (resolved==nullptr) {
             return nullptr;
         }
         try {

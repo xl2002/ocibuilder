@@ -35,7 +35,8 @@
             ],
             "logging": {
                 "engineLogging": true,
-                "trace": true // 启用跟踪
+                "trace": true, // 启用跟踪
+                "exceptions": true
             },
             "preLaunchTask": ""
             // "preLaunchTask": "build"

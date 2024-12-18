@@ -23,6 +23,8 @@ std::string defaultConfigFile;
 std::string defaultOverrideConfigFile;
 std::string defaultRunRoot;
 std::string defaultGraphRoot;
+std::string defaultImagestore;
+std::string defaultlayerpath;
 int AutoUserNsMinSize;
 int AutoUserNsMaxSize;
 bool defaultConfigFileSet;
@@ -62,6 +64,8 @@ void init_storage(){
     /// @brief 
     defaultOverrideConfigFile = ".\\storage.conf";
     defaultRunRoot = ".\\oci_images";
+    defaultImagestore="\\oci_registry";
+    defaultlayerpath="\\"+overlayDriver;
     // const string defaultRunRoot = "/run/containers/storage";
     defaultGraphRoot = ".\\oci_images";
     // const string defaultGraphRoot = "/var/lib/containers/storage";

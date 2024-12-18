@@ -176,7 +176,7 @@ std::string Image_Builder::From(std::shared_ptr<Node> node){
         auto NoopExecutor=std::make_shared<noopExecutor>();
         try{
             step->Resolve(children[0]);
-            Run(step,NoopExecutor,false);
+            Run(step,NoopExecutor.get(),false);
         }catch(const myerror& e){
             throw;
         }
@@ -320,14 +320,14 @@ std::shared_ptr<Step> Image_Builder::Step_new(){
 //     {dockerfilecommand::Entrypoint,entrypoint},
 //     {dockerfilecommand::Volume,Volume}
 // };
-void Image_Builder::Run(std::shared_ptr<Step> step,std::shared_ptr<Executor_Interface> exec,bool noRunsRemaining ){
+void Image_Builder::Run(std::shared_ptr<Step> step,Executor_Interface* exec,bool noRunsRemaining ){
     auto fn=evaluateTable.find(step->Command);
     if(fn==evaluateTable.end()){
         return exec->UnrecognizedInstruction(step);
     }
     try{
         auto func=fn->second;
-        func(std::make_shared<Image_Builder>(*this),step->Args,step->Attrs,step->Flags,step->Original,step->Heredocs);
+        func(this,step->Args,step->Attrs,step->Flags,step->Original,step->Heredocs);
     }catch(const myerror& e){
         throw;
     }

@@ -8,7 +8,7 @@ namespace fs = boost::filesystem;  // 使用 Boost 文件系统命名空间
 
 int main() {
     // 创建一个输出文件流，指定输出路径为 E:\example.tar
-    std::ofstream tar_file("E:\\example.tar", std::ios::binary);
+    std::ofstream tar_file(".\\example.tar", std::ios::binary);
     if (!tar_file.is_open()) {
         std::cerr << "Failed to open tar file for writing." << std::endl;
         return 1;
@@ -18,7 +18,7 @@ int main() {
     tarpp::Tar tar(tar_file);
 
     // 输入文件夹路径
-    fs::path input_dir = "E:\\test";
+    fs::path input_dir = ".\\tests";
 
     // 检查文件夹是否存在
     if (!fs::exists(input_dir) || !fs::is_directory(input_dir)) {

@@ -67,7 +67,7 @@ std::shared_ptr<Reference_interface> Parse(std::string s){
     // return ref;
 }
 std::string Domain(std::shared_ptr<Named_interface> named){
-    auto r=std::dynamic_pointer_cast<repository>(named);
+    auto r=std::dynamic_pointer_cast<namedRepository_interface>(named);
     if(r){
         return r->Domain();
     }

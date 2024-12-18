@@ -13,7 +13,7 @@
 #include "image/digest/sha256.h"
 
 struct Hash_256 {
-    std::shared_ptr<SHA256_CTX> sha256=nullptr;
+    std::shared_ptr<SHA256_CTX> sha256=std::make_shared<SHA256_CTX>();
     std::vector<uint8_t> data;//存计算好的sha256值
     std::vector<uint8_t> Hash_num(const std::vector<uint8_t>& data);
 

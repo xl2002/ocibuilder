@@ -159,7 +159,9 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,std::shared_ptr<Dige
     }catch(const myerror& e){
         throw myerror("obtaining default signature policy: "+std::string(e.what()));
     }
-    commitPolicy->Transports[Transport->Name()]=*storageAllowedPolicyScopes;
+    if(commitPolicy!=nullptr){
+        commitPolicy->Transports[Transport->Name()]=*storageAllowedPolicyScopes;
+    }
     auto policyContext=std::shared_ptr<PolicyContext>();
     try{
         policyContext=NewPolicyContext(commitPolicy);

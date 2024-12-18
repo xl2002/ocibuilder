@@ -17,7 +17,7 @@ std::shared_ptr<ImageReference_interface> ParseImageName(std::string imgName){
     }
 
     auto transport = Get(transportName);
-    if (!transport) {
+    if (transport==nullptr) {
         throw myerror("Invalid image name \"" + imgName + "\", unknown transport \"" + transportName + "\"");
     }
 

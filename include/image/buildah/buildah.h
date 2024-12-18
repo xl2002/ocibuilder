@@ -20,6 +20,7 @@
 #include "image/buildah/add.h"
 // struct v1::Image;
 class Store;
+class Container;
 struct Builder {
     std::shared_ptr<Store> store=std::make_shared<Store>();
 
@@ -52,7 +53,7 @@ struct Builder {
 
     // ContainerID 是构建容器的 ID，不应修改。
     std::string ContainerID;
-
+    std::shared_ptr<::Container> container=std::make_shared<::Container>();
     // MountPoint 是容器的根文件系统最后一次挂载的位置，不应修改。
     std::string MountPoint;
 

@@ -315,7 +315,7 @@ bool layerStore::load(bool lockedForWriting) {
             file.seekg(0, std::ios::end);
             std::streampos fileSize = file.tellg();
             if(fileSize == 0) {
-                std::cout<< "Empty file: " << path << std::endl;
+                std::cout<< "the layerstore is empty,and we will skip this layer" << std::endl;
                 return true;
             }
             std::string jsonData((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());

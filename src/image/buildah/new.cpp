@@ -90,6 +90,7 @@ std::shared_ptr<Builder> newBuilder(std::shared_ptr<Store> store,std::shared_ptr
     builder->GroupAdd=options->GroupAdd;
     builder->Container=tmpName;
     builder->ContainerID=container->ID;
+    builder->container=container;
     builder->DefaultMountsFilePath=options->DefaultMountsFilePath;
     builder->Isolation=options->Isolation;
     builder->ConfigureNetwork=options->ConfigureNetwork;

@@ -30,5 +30,10 @@ std::vector<uint8_t> Hash_256::Hash_num(const std::vector<uint8_t>& data){
     sha256_update(&ctx, byteData, strlen(reinterpret_cast<const char*>(byteData)));
     sha256_final(&ctx, buf);
     std::vector<uint8_t> hashResult(buf, buf + sizeof(buf));
+    std::stringstream ss;
+    for (auto byte : hashResult) {
+        ss << std::setw(2) << std::setfill('0') << std::hex << (int)byte;
+    }
+    std::string ret=ss.str();
     return hashResult;
 }

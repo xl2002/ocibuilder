@@ -117,8 +117,8 @@ std::string Algorithm_sha256::Encode(std::vector<uint8_t> p){
     for (auto byte : p) {
         ss << std::setw(2) << std::setfill('0') << std::hex << (int)byte;
     }
-
-    return ss.str();
+    std::string ret=ss.str();
+    return ret;
 }
 /**
  * @brief 构建一个新的digester实例

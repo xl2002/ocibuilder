@@ -7,7 +7,7 @@
 CXX = g++
 
 # define any compile-time flags
-CXXFLAGS	:= -std=c++11 -Wall -Wextra -g
+CXXFLAGS	:= -std=c++11 -Wall -Wextra -g -O0
 
 # define library paths in addition to /usr/lib
 #   if I wanted to include libraries not in /usr/lib I'd specify
@@ -74,7 +74,7 @@ LFLAGSTEST	:= -lboost_filesystem-mgw12-mt-x64-1_75 -lboost_iostreams-mgw12-mt-x6
 INCLUDETEST	:= -I include
 OUTPUTTEST		:= tests
 OUTPUTMAINTEST	:= $(call FIXPATH,$(OUTPUTTEST)/$(MAIN))
-SRCTEST		:= tests/stringid_test.cpp
+SRCTEST		:= test.cpp
 LIBSTEST	:= -L lib\boost-MinGW
 all: $(OUTPUT) $(MAIN)
 # $(RM) $(call FIXPATH,$(OBJECTS))

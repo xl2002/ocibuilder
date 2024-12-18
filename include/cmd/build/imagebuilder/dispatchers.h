@@ -19,7 +19,7 @@ extern std::map<std::string, std::string> builtinBuildArgs;
 
 
 void env(
-    std::shared_ptr<Image_Builder>b,
+    Image_Builder* b,
     std::vector<std::string>args,
     std::map<std::string,bool>attributes,
     std::vector<std::string>flagArgs,
@@ -27,7 +27,7 @@ void env(
     std::vector<Heredoc>heredocs);
 
 void from(
-    std::shared_ptr<Image_Builder>b,
+    Image_Builder* b,
     std::vector<std::string>args,
     std::map<std::string,bool>attributes,
     std::vector<std::string>flagArgs,
@@ -35,7 +35,7 @@ void from(
     std::vector<Heredoc>heredocs);
 
 void label(
-    std::shared_ptr<Image_Builder>b,
+    Image_Builder* b,
     std::vector<std::string>args,
     std::map<std::string,bool>attributes,
     std::vector<std::string>flagArgs,
@@ -43,7 +43,7 @@ void label(
     std::vector<Heredoc>heredocs);
 
 void dispatchCopy(
-    std::shared_ptr<Image_Builder>b,
+    Image_Builder* b,
     std::vector<std::string>args,
     std::map<std::string,bool>attributes,
     std::vector<std::string>flagArgs,
@@ -51,7 +51,7 @@ void dispatchCopy(
     std::vector<Heredoc>heredocs);
 
 void expose(
-    std::shared_ptr<Image_Builder>b,
+    Image_Builder* b,
     std::vector<std::string>args,
     std::map<std::string,bool>attributes,
     std::vector<std::string>flagArgs,
@@ -59,7 +59,7 @@ void expose(
     std::vector<Heredoc>heredocs);
 
 void entrypoint(
-    std::shared_ptr<Image_Builder>b,
+    Image_Builder* b,
     std::vector<std::string>args,
     std::map<std::string,bool>attributes,
     std::vector<std::string>flagArgs,
@@ -67,7 +67,7 @@ void entrypoint(
     std::vector<Heredoc>heredocs);
 
 void Volume(
-    std::shared_ptr<Image_Builder>b,
+    Image_Builder* b,
     std::vector<std::string>args,
     std::map<std::string,bool>attributes,
     std::vector<std::string>flagArgs,
