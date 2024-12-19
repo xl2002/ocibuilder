@@ -97,7 +97,9 @@ struct URL{
     std::string scheme;        // 协议方案
     std::string opaque;        // 编码的不透明数据
     std::shared_ptr<Userinfo> user; // 用户名和密码信息
-    std::string host;          // 主机名或主机:端口
+    std::string host;          // 主机名或主机
+    std::string port;          // 端口
+    std::string imageName;     //镜像名
     std::string path;          // 路径（相对路径可能省略前导斜杠）
     std::string rawPath;       // 编码的路径提示（参见 EscapedPath 方法）
     bool omitHost=false;             // 不输出空主机（authority）
@@ -159,4 +161,15 @@ struct dockerClient{
 };
 beast::http::request<beast::http::string_body> NewRequest(std::string method, std::string path, std::map<std::string, std::string> headers,std::string body);
 
+bool ifSupportV2(const std::string &host, const std::string &port);
+
+bool ifBlobExists(const std::string &host, const std::string &port, const std::string &imageName, const std::string &shaId);
+
+std::pair<std::string, std::string> initUpload(const std::string &host, const std::string &port, const std::string &imageName);
+
+std::string uploadBlobChunk(const std::string &host, const std::string &port, const std::string &uid, const std::string &state, const std::string &file_path, std::size_t start, std::size_t end, std::size_t total_size, const std::string &imageName);
+
+void finalizeUpload(const std::string &host, const std::string &port, const std::string &uid, const std::string &shaId, const std::string &state, const std::string &imageName);
+
 #endif // TYPES_NETWORK_H)
+

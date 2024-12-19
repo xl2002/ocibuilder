@@ -24,8 +24,9 @@ struct pushOptions
 {
     /* data */
     string  format;         ///<
+    std::string authfile;
 };
 
 void init_push();
-void pushCmd();
+void pushCmd(Command& cmd, vector<string> args,std::shared_ptr<pushOptions> iopts);
 #endif

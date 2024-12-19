@@ -13,8 +13,14 @@
 #include <boost/json.hpp>
 #include <boost/array.hpp>
 #include "utils/common/go/string.h"
+#include "image/image_types/v1/config.h"
+struct Manifest;
+namespace v1{
+    struct Image;
+}
 namespace storage{
     // 表示一个镜像和相关的元数据的结构体
+    struct index;
     struct Image {
         // ID 是在创建时指定的，或者由库随机生成的值
         std::string ID;
@@ -34,7 +40,10 @@ namespace storage{
 
         // TopLayer 是镜像最顶层的ID，如果镜像包含一层或多层
         std::string TopLayer;
-
+        // std::shared_ptr<index> image_index=nullptr;
+        // 镜像的manifest
+        std::shared_ptr<Manifest> image_manifest=nullptr;
+        std::shared_ptr<v1::Image> image_config=nullptr;
         // MappedTopLayers 是顶层的备用版本，它们内容相同但ID映射不同
         std::vector<std::string> MappedTopLayers;
 
@@ -131,7 +140,8 @@ namespace storage{
             manifest m;
             m.mediaType = obj.at("mediaType").as_string().c_str();  // 使用 as_string() 而不是 c_str()
             m.digest = obj.at("digest").as_string().c_str();  // 使用 as_string() 而不是 c_str()
-            m.size = obj.at("size").as_uint64();
+            // auto s=obj.at("size").get
+            m.size = static_cast<uint64_t>(obj.at("size").as_int64());
             m.annotations = boost::json::value_to<std::map<std::string, std::string>>(obj.at("annotations"));
             return m;
         }

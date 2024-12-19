@@ -303,3 +303,24 @@ std::string Abspath(const std::string& path) {
         throw myerror("Unknown error occurred.");
     }
 }
+/**
+ * @brief 模板定义
+ * 
+ * @return string 返回模板的字符串
+ */
+
+string UsageTemplate(){
+    string str{"Usage:{{if .Runnable}}\
+                {{.UseLine}}{{end}}{{if .HasAvailableSubCommands}}\
+                {{.CommandPath}} [command]{{end}}{{if gt (len .Aliases) 0}}\
+                Aliases:\
+                {{.NameAndAliases}}{{end}}{{if .HasExample}}\
+                Examples:\
+                {{.Example}}{{end}}{{if .HasAvailableSubCommands}}\
+                Available Commands:{{range .Commands}}{{if (or .IsAvailableCommand (eq .Name \"help\"))}}\
+                {{rpad .Name .NamePadding }} {{.Short}}{{end}}{{end}}{{end}}{{if .HasAvailableLocalFlags}}\
+                Flags:\
+                {{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasAvailableInheritedFlags}}\
+                {{end}}"};
+    return str;
+}

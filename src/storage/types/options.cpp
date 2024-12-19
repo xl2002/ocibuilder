@@ -574,7 +574,9 @@ std::shared_ptr<Store> GetStore(StoreOptions options) {
         s->auto_ns_max_size = auto_ns_max_size;
         s->disable_volatile = finalOptions.disable_volatile;
         s->transient_store = finalOptions.transient_store;
-        
+        if(s->image_store_dir.empty()){ 
+            s->image_store_dir = s->GetImageStoragePath();
+        }
         // 加载 store
         s->load();
 

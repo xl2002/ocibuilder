@@ -137,7 +137,7 @@
 #include <boost/json.hpp>
 #include <fstream>
 #include <string>
-
+#include "network/network.h"
 namespace asio = boost::asio;
 namespace beast = boost::beast;
 namespace json = boost::json;
@@ -244,9 +244,9 @@ void ifSupportV2(){
         int port = 5000;  // HTTP 默认端口，若使用 HTTPS，改为 443
 
         // IO 服务和解析器
-        boost::asio::io_context ioc;
-        boost::asio::ip::tcp::resolver resolver(ioc);
-        boost::beast::tcp_stream stream(ioc);
+        asio::io_context ioc;
+        asio::ip::tcp::resolver resolver(ioc);
+        beast::tcp_stream stream(ioc);
 
         // 设置超时时间
         stream.expires_after(std::chrono::seconds(5));  // 超时 5 秒
@@ -256,18 +256,18 @@ void ifSupportV2(){
         stream.connect(results);
 
         // 设置 HTTP 请求
-        boost::beast::http::request<boost::beast::http::empty_body> req(boost::beast::http::verb::get, target, 11);  // 发送 HEAD 请求
-        req.set(boost::beast::http::field::host, host);
-        req.set(boost::beast::http::field::user_agent, "Boost.Beast/248");
+        beast::http::request<beast::http::empty_body> req(beast::http::verb::get, target, 11);  // 发送 HEAD 请求
+        req.set(beast::http::field::host, host);
+        req.set(beast::http::field::user_agent, "Boost.Beast/248");
 
         // 发送请求
-        boost::beast::http::write(stream, req);
+        beast::http::write(stream, req);
         std::cout << "HTTP request sent." << std::endl;
 
         // 接收响应
-        boost::beast::flat_buffer buffer;
-        boost::beast::http::response<boost::beast::http::string_body> res;
-        boost::beast::http::read(stream, buffer, res);
+        beast::flat_buffer buffer;
+        beast::http::response<beast::http::string_body> res;
+        beast::http::read(stream, buffer, res);
         std::cout << "Response received." << std::endl;
 
         // 打印响应内容
@@ -279,7 +279,7 @@ void ifSupportV2(){
         }
 
         // 检查响应状态码
-        if (res.result() == boost::beast::http::status::ok) {
+        if (res.result() == beast::http::status::ok) {
             std::cout << "Registry supports API v2. Response Code: " << res.result_int() << std::endl;
         } else {
             std::cout << "Registry does not support API v2. Response Code: " << res.result_int() << std::endl;
@@ -289,6 +289,118 @@ void ifSupportV2(){
         stream.close();  // 使用 close() 代替 shutdown()
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
+    }
+}
+
+void ifBlobExists(){                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+    try {
+        std::string host = "localhost";  // 替换为实际的 Registry 地址
+        // 配置参数
+        const std::string target = "/v2/busybox/blobs/sha256:af47096251092caf59498806ab8d58e8173ecf5a182f024ce9d635b5b4a55d66";
+        const std::string port = "5000"; // Docker Registry 默认端口
+
+        // IO 上下文
+        asio::io_context ioc;
+
+        // 解析器和流
+        asio::ip::tcp::resolver resolver(ioc);
+        beast::tcp_stream stream(ioc);
+
+        // 解析并连接到主机
+        auto const results = resolver.resolve(host, port);
+        stream.connect(results);
+
+        // 构造 HTTP HEAD 请求
+        beast::http::request<beast::http::empty_body> req(beast::http::verb::get, target, 11);
+        req.set(beast::http::field::host,host);
+        req.set(beast::http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+
+        // 发送请求
+        beast::http::write(stream, req);
+
+        // 接收响应
+        beast::flat_buffer buffer;
+        beast::http::response<beast::http::string_body> res;
+        beast::http::read(stream, buffer, res);
+
+        // 打印响应内容
+        std::cout << "HTTP Version: " << (res.version() / 10) << "." << (res.version() % 10) << "\n";
+        std::cout << "Status: " << res.result_int() << " " << res.reason() << "\n";
+        std::cout << "Headers:\n";
+        for (auto const& field : res) {
+            std::cout << field.name_string() << ": " << field.value() << "\n";
+        }
+
+        // 根据状态码判断 blob 是否存在
+        if (res.result() == beast::http::status::ok) {
+            std::cout << "Blob exists in the registry.\n";
+        } else if (res.result() == beast::http::status::not_found) {
+            std::cout << "Blob does not exist in the registry.\n";
+        } else {
+            std::cout << "Unexpected response: " << res.result_int() << " " << res.reason() << "\n";
+        }
+
+        // 关闭连接
+        stream.socket().shutdown(asio::ip::tcp::socket::shutdown_both);
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << "\n";
+    }
+}
+
+void initUpLoad(){
+    try {
+        std::string host = "localhost";  // 替换为实际的 Registry 地址
+        // 配置参数
+        const std::string target = "/v2/busybox/blobs/uploads/";
+        const std::string port = "5000"; // Docker Registry 默认端口
+
+        // IO 上下文
+        asio::io_context ioc;
+
+        // 解析器和流
+        asio::ip::tcp::resolver resolver(ioc);
+        beast::tcp_stream stream(ioc);
+
+        // 解析并连接到主机
+        auto const results = resolver.resolve(host, port);
+        stream.connect(results);
+
+        // 构造 HTTP HEAD 请求
+        beast::http::request<beast::http::empty_body> req(beast::http::verb::post, target, 11);
+        req.set(beast::http::field::host,host);
+        req.set(beast::http::field::content_length, "0");
+        req.set(beast::http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+
+        // 发送请求
+        beast::http::write(stream, req);
+
+        // 接收响应
+        beast::flat_buffer buffer;
+        beast::http::response<beast::http::string_body> res;
+        beast::http::read(stream, buffer, res);
+
+        // 打印响应内容
+        std::cout << "HTTP Version: " << (res.version() / 10) << "." << (res.version() % 10) << "\n";
+        std::cout << "Status: " << res.result_int() << " " << res.reason() << "\n";
+        std::cout << "Headers:\n";
+        for (auto const& field : res) {
+            std::cout << field.name_string() << ": " << field.value() << "\n";
+        }
+
+        std::string location = res[beast::http::field::location].to_string();
+        std::string state_param;
+
+        auto pos = location.find("_state=");
+        if (pos != std::string::npos) {
+            state_param = location.substr(pos + 7);
+            std::cout << "State parameter: " << state_param << "\n";
+        }
+
+
+        // 关闭连接
+        stream.socket().shutdown(asio::ip::tcp::socket::shutdown_both);
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << "\n";
     }
 }
 
@@ -308,14 +420,33 @@ int main() {
         //     std::cerr << "Failed to get authentication token" << std::endl;
         //     return 1;
         // }
+        // // 获取认证令牌
+        // std::string token = get_auth_token(ioc, user, passwd);
+        // if (token.empty()) {
+        //     std::cerr << "Failed to get authentication token" << std::endl;
+        //     return 1;
+        // }
 
+        // std::cout << "Auth token: " << token << std::endl;
         // std::cout << "Auth token: " << token << std::endl;
 
         // // 上传文件到仓库
         // upload_file(ioc, token, "manifest.json");
+        // // 上传文件到仓库
+        // upload_file(ioc, token, "manifest.json");
 
         // std::cout << "File uploaded successfully!" << std::endl;
-        ifSupportV2();
+        // ifBlobExists();
+        // initUpLoad();
+
+        auto url = std::make_shared<URL>();
+        dockerClient client;
+        url=client.resolveRequestURL("localhost:5111/bbbb:123");
+        std::cout<<"host"<<url->host<<"\n";
+        std::cout<<"port"<<url->port<<"\n";
+        std::cout<<"ImageName"<<url->imageName<<"\n";
+
+
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
     }

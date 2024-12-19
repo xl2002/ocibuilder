@@ -51,7 +51,7 @@ void GenBuildOptions(Command* cmd, vector<string> inputArgs,BuildOptions* iopts,
     }
     try
     {
-        CheckAuthFile(iopts->Authfile);
+        // CheckAuthFile(iopts->Authfile);
         cleanTmpFile=MirrorToTempFileIfPathIsDescriptor(iopts->Authfile,iopts->Authfile);
         if(cleanTmpFile){
             removeAll.emplace_back(iopts->Authfile);

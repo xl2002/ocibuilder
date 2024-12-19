@@ -10,6 +10,7 @@
  */
 #include "cmd/build/build.h"
 #include "config/new.h"
+#include "utils/cli/cli/common.h"
 /**
  * @brief 返回build命令的标志
  * <p>根据BuildOptions结构体中的标志名，创建并初始化每个flag
@@ -301,21 +302,21 @@ void buildCmd(Command& cmd, vector<string> args,BuildOptions* iopts){
  * @return string 返回模板的字符串
  */
 
-string UsageTemplate(){
-    string str{"Usage:{{if .Runnable}}\
-                {{.UseLine}}{{end}}{{if .HasAvailableSubCommands}}\
-                {{.CommandPath}} [command]{{end}}{{if gt (len .Aliases) 0}}\
-                Aliases:\
-                {{.NameAndAliases}}{{end}}{{if .HasExample}}\
-                Examples:\
-                {{.Example}}{{end}}{{if .HasAvailableSubCommands}}\
-                Available Commands:{{range .Commands}}{{if (or .IsAvailableCommand (eq .Name \"help\"))}}\
-                {{rpad .Name .NamePadding }} {{.Short}}{{end}}{{end}}{{end}}{{if .HasAvailableLocalFlags}}\
-                Flags:\
-                {{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasAvailableInheritedFlags}}\
-                {{end}}"};
-    return str;
-}
+// string UsageTemplate(){
+//     string str{"Usage:{{if .Runnable}}\
+//                 {{.UseLine}}{{end}}{{if .HasAvailableSubCommands}}\
+//                 {{.CommandPath}} [command]{{end}}{{if gt (len .Aliases) 0}}\
+//                 Aliases:\
+//                 {{.NameAndAliases}}{{end}}{{if .HasExample}}\
+//                 Examples:\
+//                 {{.Example}}{{end}}{{if .HasAvailableSubCommands}}\
+//                 Available Commands:{{range .Commands}}{{if (or .IsAvailableCommand (eq .Name \"help\"))}}\
+//                 {{rpad .Name .NamePadding }} {{.Short}}{{end}}{{end}}{{end}}{{if .HasAvailableLocalFlags}}\
+//                 Flags:\
+//                 {{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasAvailableInheritedFlags}}\
+//                 {{end}}"};
+//     return str;
+// }
 
 /**
  * @brief 删除一个目录或文件

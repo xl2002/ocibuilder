@@ -3,6 +3,9 @@
 #include "utils/common/go/string.h"
 #include "utils/common/json.h"
 #include "utils/common/go/file.h"
+#include <iostream>
+#include <fstream>
+#include <sstream>
 namespace fs = boost::filesystem;
 
 
@@ -76,38 +79,18 @@ bool parseJson(const vector<uint8_t>& data, vector<shared_ptr<storage::Image>>& 
         for(auto it:Index.manifests){
             auto image = std::make_shared<storage::Image>();
             image->ID=it.digest;
-            image->Names.push_back(it.annotations["org.opencontainers.image.ref.name"]);
+            // image->digest=std::make_shared<Digest>(it.digest);
+            std::string name=it.annotations["org.opencontainers.image.ref.name"];
+            std::string newname;
+            std::tie(std::ignore,newname,std::ignore)=Cut(name,'/');
+            if(newname.size()>0){
+                name=newname;
+            }
+            image->Names.push_back(name);
             image->Digests.emplace_back(it.digest);
+            // image->image_index=std::make_shared<storage::index>(it);
             images.push_back(image);
         }
-        // Create a string from the binary data
-        // std::string json_str(data.begin(), data.end());
-        
-        // // Use a string stream to read the JSON
-        // std::stringstream ss(json_str);
-
-        // // Parse the JSON data
-        // ptree root;
-        // read_json(ss, root);
-// 
-        // for (const auto& item : root) {
-        //     auto image = std::make_shared<storage::Image>();
-        //     image->ID = item.second.get<std::string>("id");
-
-        //     // Parse names
-        //     for (const auto& name : item.second.get_child("names")) {
-        //         image->Names.push_back(name.second.data());
-        //     }
-
-        //     // Parse digests
-        //     for (const auto& digest : item.second.get_child("digests")) {
-        //         Digest d;
-        //         d.digest = digest.second.data();
-        //         image->Digests.push_back(d);
-        //     }
-
-        //     images.push_back(image);
-        // }
     } catch (const std::exception& e) {
         throw myerror("Failed to parse JSON: " + std::string(e.what()));
     }
@@ -1015,12 +998,13 @@ void load(Store* s) {
 
         // 获取 imgStoreRoot 路径
         string imgStoreRoot = s->image_store_dir;
+        
         if (imgStoreRoot.empty()) {
-            imgStoreRoot = s->graph_root;
+            imgStoreRoot = s->graph_root+"\\"+driverPrefix + "registry";
         }
 
         // 创建图像存储目录
-        string gipath = Join({imgStoreRoot, driverPrefix + "registry"});
+        string gipath=imgStoreRoot;
         if (!MkdirAll(gipath)) {
             throw myerror("Failed to create directory: " + gipath);
         }
@@ -1122,6 +1106,21 @@ std::shared_ptr<storage::Image> Store::Image(std::string id){
 std::shared_ptr<storage::Image> ImageStore::Get(const std::string& id) {
     auto image=this->lookup(id);
     if(image!=nullptr){
+        std::string manifestpath=this->dir+"/blobs/sha256/"+image->digest->Encoded();
+        std::ifstream manifestf(manifestpath,std::ios::binary);
+        std::ostringstream oss;
+        oss << manifestf.rdbuf();
+        auto manifest=unmarshal<Manifest>(oss.str());
+        image->image_manifest=std::make_shared<Manifest>(manifest);
+        manifestf.close();
+
+        std::string configfile=this->dir+"/blobs/sha256/"+manifest.Config.Digests.Encoded();
+        std::ifstream configf(configfile,std::ios::binary);
+        std::ostringstream oss2;
+        oss2 << configf.rdbuf();
+        auto config=unmarshal<v1::Image>(oss2.str());
+        image->image_config=std::make_shared<v1::Image>(config);
+        configf.close();
         return std::make_shared<storage::Image>(*image);//复制一份
     }
     return nullptr;

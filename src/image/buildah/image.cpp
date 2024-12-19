@@ -138,9 +138,9 @@ std::shared_ptr<ImageSource_interface> containerImageRef::NewImageSource(std::sh
         olayerDescriptor.Digests=*tarfile->Digest();
         olayerDescriptor.Size=tarsize;
         omanifest->Layers.push_back(olayerDescriptor);
-        oimage->rootFS.diffIDs.push_back(tardigest);
+        oimage->rootFS.diffIDs.push_back(tarfile->Digest()->String());
 
-        blobLayers[tardigest].ID=tarfile->Digest()->Encoded();
+        blobLayers[tardigest].ID=tardigest;
         blobLayers[tardigest].Size=tarsize;
         Layers.push_back(l);
     }
