@@ -146,9 +146,9 @@ void pushCmd(Command& cmd, vector<string> args,std::shared_ptr<pushOptions> iopt
         std::size_t total_size = file.tellg();
         file.close();
         //上传数据
-        state = uploadBlobChunk(url->host, url->port,uid,state,manifestPath,0,total_size,total_size, url->imageName);
-        //完成本次上传
-        finalizeUpload(url->host, url->port,uid,shaId2,state,url->imageName);
+        uploadBlobChunk(url->host, url->port,uid,state,manifestPath,0,total_size,total_size, url->imageName);
+        uploadManifest(url->host, url->port,manifestPath,0,total_size,url->imageName, url->version);
     }
+
     std::cout<<"Push success!!"<<std::endl;
 }

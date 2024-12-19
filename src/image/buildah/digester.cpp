@@ -93,8 +93,8 @@ void  CompositeDigester::Start(std::string contentType){
         digesters.push_back(newDigester);
     }else if(contentType=="file"|| contentType=="dir"){
         std::shared_ptr<digester_interface> digester;
-        std::tie(digester, std::ignore)=newTarDigester(contentType,"",fs::path{""});
-        closer = digester;
+        // std::tie(digester, std::ignore)=newTarDigester(contentType,"",fs::path{""});
+        // closer = digester;
         digesters.push_back(digester);
     }
 }

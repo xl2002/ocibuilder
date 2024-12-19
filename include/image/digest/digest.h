@@ -39,6 +39,7 @@ class Digest{
 };
 std::shared_ptr<Digest> FromString(std::string s);
 std::shared_ptr<::Digest> FromBytes(std::vector<uint8_t> p);
+std::shared_ptr<Digest> Fromfile(const std::string& filepath);
 std::shared_ptr<Digest> NewDigest(std::shared_ptr<Algorithm_sha256> alg,std::shared_ptr<Hash_256> hash);
 std::shared_ptr<Digest> NewDigestFromBytes(std::shared_ptr<Algorithm_sha256> alg,std::vector<uint8_t> p);
 std::shared_ptr<Digest> NewDigestFromEncoded(std::shared_ptr<Algorithm_sha256> alg,std::string p);

@@ -113,11 +113,11 @@ std::shared_ptr<ImageSource_interface> containerImageRef::NewImageSource(std::sh
         // auto size=Copy_directory(tarlayerpath,destdir);//TODO
         // 4. 将缓存目的目录下的内容打包成tar文件，返回tar文件流
         auto tarfilepath=destpath+"/layer.tar";
-        std::shared_ptr<digester_interface> tarfile;
+        std::shared_ptr<Digest> tarfile;
         int tarsize;
         std::tie(tarfile,tarsize)=newTarDigester("file",tarfilepath,tarlayerpath);//TODO
         // 5. 计算tar文件的sha256值，并且重命名tar文件
-        auto tardigest=tarfile->Digest()->Encoded();//tar包的sha256
+        auto tardigest=tarfile->Encoded();//tar包的sha256
         auto finalBlobName=destpath+"/"+tardigest;//TODO
         try {
             auto tarlayer=boost::filesystem::absolute(boost::filesystem::path(tarfilepath).make_preferred());
@@ -135,10 +135,10 @@ std::shared_ptr<ImageSource_interface> containerImageRef::NewImageSource(std::sh
         l->uncompressedSize=tarsize;
         Descriptor olayerDescriptor;
         olayerDescriptor.MediaType=omediaType;
-        olayerDescriptor.Digests=*tarfile->Digest();
+        olayerDescriptor.Digests=*tarfile;
         olayerDescriptor.Size=tarsize;
         omanifest->Layers.push_back(olayerDescriptor);
-        oimage->rootFS.diffIDs.push_back(tarfile->Digest()->String());
+        oimage->rootFS.diffIDs.push_back(tarfile->String());
 
         blobLayers[tardigest].ID=tardigest;
         blobLayers[tardigest].Size=tarsize;

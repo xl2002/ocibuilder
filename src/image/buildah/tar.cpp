@@ -81,6 +81,12 @@ namespace fs = boost::filesystem;
 
 //     return tarFile;
 // }
+// 将 Windows 风格的路径转换为 Linux 风格
+std::string normalize_path(const std::string& path) {
+    std::string normalized = path;
+    std::replace(normalized.begin(), normalized.end(), '\\', '/');
+    return normalized;
+}
 void createTar(const std::string& tar_path, const std::string& folder_path) {
     struct archive* a = archive_write_new();
     struct archive_entry* entry;
@@ -98,8 +104,8 @@ void createTar(const std::string& tar_path, const std::string& folder_path) {
 
     for (; dir_iter != end_iter; ++dir_iter) {
         const fs::path& file_path = dir_iter->path();
-        std::string relative_path = fs::relative(file_path, folder_path).string();
-
+        // std::string relative_path = fs::relative(file_path, folder_path).string();
+        std::string relative_path = normalize_path(fs::relative(file_path, folder_path).string());// 获取相对路径并转换为 Linux 风格
         // 如果是目录，则创建一个目录条目
         if (fs::is_directory(file_path)) {
             entry = archive_entry_new();
@@ -206,6 +212,7 @@ void tarDigester::close(){
 std::shared_ptr<::Digest> tarDigester::Digest(){
     return this->nested->Digest();
 }
+
 /**
  * @brief 新建tarDigester实例
  * 
@@ -213,7 +220,7 @@ std::shared_ptr<::Digest> tarDigester::Digest(){
  * @return std::shared_ptr<digester_interface> 
  */
 // newTarDigester 函数实现
-std::tuple<std::shared_ptr<digester_interface>,int> newTarDigester(const std::string& contentType, const std::string& tarFilePath, const fs::path& directory) {
+std::tuple<std::shared_ptr<Digest>,int> newTarDigester(const std::string& contentType, const std::string& tarFilePath, const fs::path& directory) {
     // 创建嵌套的 digester
     auto nested = newSimpleDigester(contentType);
 
@@ -226,13 +233,17 @@ std::tuple<std::shared_ptr<digester_interface>,int> newTarDigester(const std::st
     digester->nested = nested;
 
     digester->tarFilterer = tarFilterer;
+    auto tardigest=Fromfile(tarFilePath);
     std::ifstream tarFile(tarFilePath);
     // std::ifstream tarFile("E:\\BaiduSyncdisk\\OCI\\busybox\\blobs\\sha256\\b3268e691068e94bdff71d38b6b895fd5cb8a584183ac11ce8cac56d325de43f",std::ios::binary);
     // std::ifstream tarFile("E:\\BaiduSyncdisk\\OCI\\busybox\\blobs\\sha256\b3268e691068e94bdff71d38b6b895fd5cb8a584183ac11ce8cac56d325de43f");
     std::ostringstream buffer;
     buffer << tarFile.rdbuf();
-    digester->write(buffer.str());
+    // std::vector<uint8_t> data((std::istreambuf_iterator<char>(tarFile)),
+    //                           std::istreambuf_iterator<char>());
+    // digester->write(buffer.str());
+    // auto digester2=FromString(buffer.str());
     tarFile.close();
-    auto a=digester->Digest()->Encoded();
-    return std::make_tuple(digester,buffer.str().length());
+    // auto a=digester->Digest()->Encoded();
+    return std::make_tuple(tardigest,buffer.str().length());
 }

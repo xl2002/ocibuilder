@@ -1,7 +1,7 @@
 #include "image/digest/algorithm.h"
 #include <sstream>
 #include <iomanip>
-
+#include <fstream>
 
 std::map<Algorithm_sha256, std::string> algorithms = {
     { sha_256, "sha256" }
@@ -114,4 +114,36 @@ std::shared_ptr<Digester_interface> Algorithm_sha256::Digester(){
 
 std::string Algorithm_sha256::String(){
     return this->value;
+}
+std::shared_ptr<Digest> Algorithm_sha256::Fromflie(const std::string& filepath) {
+    std::ifstream file(filepath, std::ios::binary);
+    if (!file.is_open()) {
+        throw std::runtime_error("无法打开文件: " + filepath);
+    }
+
+    SHA256_CTX sha256;
+    SHA256_Init(&sha256);
+
+    char buffer[8192];
+    while (file.read(buffer, sizeof(buffer))) {
+        SHA256_Update(&sha256, buffer, file.gcount());
+    }
+    // 处理最后剩余的数据
+    if (file.gcount() > 0) {
+        SHA256_Update(&sha256, buffer, file.gcount());
+    }
+
+    unsigned char hash[SHA256_DIGEST_LENGTH];
+    SHA256_Final(hash, &sha256);
+
+    // 转换为十六进制字符串
+    std::ostringstream oss;
+    for (int i = 0; i < SHA256_DIGEST_LENGTH; ++i) {
+        oss << std::hex << std::setw(2) << std::setfill('0') << (int)hash[i];
+    }
+    file.close();
+    // return oss.str();
+    auto digest=std::make_shared<Digest>();
+    digest->digest="sha256:"+oss.str();
+    return digest;
 }

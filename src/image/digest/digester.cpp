@@ -31,20 +31,23 @@ std::vector<uint8_t> Hash_256::Hash_num(const std::vector<uint8_t>& data){
     // sha256_final(&ctx, buf);
     // std::vector<uint8_t> hashResult(buf, buf + sizeof(buf));
     // 初始化 SHA256_CTX
+    // 创建 SHA256 上下文
     SHA256_CTX sha256;
     SHA256_Init(&sha256);
 
-    // 更新哈希计算
+    // 更新 SHA256 上下文
     SHA256_Update(&sha256, data.data(), data.size());
 
-    // 生成哈希值
-    std::vector<uint8_t> hash(SHA256_DIGEST_LENGTH);
-    SHA256_Final(hash.data(), &sha256);
+    // 获取最终哈希值
+    unsigned char hash[SHA256_DIGEST_LENGTH];
+    SHA256_Final(hash, &sha256);
 
-    // std::stringstream ss;
-    // for (auto byte : hash) {
-    //     ss << std::setw(2) << std::setfill('0') << std::hex << (int)byte;
-    // }
-    // std::string ret=ss.str();
-    return hash;
+    
+    std::stringstream ss;
+    for (auto byte : hash) {
+        ss << std::setw(2) << std::setfill('0') << std::hex << (int)byte;
+    }
+    std::string ret=ss.str();
+    // 将结果存储到 vector<uint8_t> 中
+    return std::vector<uint8_t>(hash, hash + SHA256_DIGEST_LENGTH);
 }

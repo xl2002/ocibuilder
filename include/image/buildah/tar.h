@@ -75,5 +75,5 @@ struct tarDigester:public digester_interface{
     void close() override;
     std::shared_ptr<::Digest> Digest() override;
 };
-std::tuple<std::shared_ptr<digester_interface>,int> newTarDigester(const std::string& contentType, const std::string& tarFilePath, const fs::path& directory);
+std::tuple<std::shared_ptr<Digest>,int> newTarDigester(const std::string& contentType, const std::string& tarFilePath, const fs::path& directory);
 #endif // IMAGE_BUILDAH_TAR_H)

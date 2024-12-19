@@ -74,7 +74,7 @@ LFLAGSTEST	:= -lboost_filesystem-mgw12-mt-x64-1_75 -lboost_iostreams-mgw12-mt-x6
 INCLUDETEST	:= -I include
 OUTPUTTEST		:= tests
 OUTPUTMAINTEST	:= $(call FIXPATH,$(OUTPUTTEST)/$(MAIN))
-SRCTEST		:= ./tests/upload_test.cpp
+SRCTEST		:= ./tests/sha256_test.cpp
 LIBSTEST	:= -L lib\boost-MinGW -L lib\openssl -L lib\libarchive
 all: $(OUTPUT) $(MAIN)
 # $(RM) $(call FIXPATH,$(OBJECTS))

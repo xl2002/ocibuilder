@@ -202,9 +202,12 @@ void compress_gzip2(const std::string& tar_path, const std::string& gzip_path) {
 int main() {
     try {
         std::string folder = "./tests/a";  // 待打包文件夹
-        std::string tar_path = "./tests/output";
+        std::string tar_path = "./oci_images/tmp/buildah734599329/45541da1778eb7316e699580cd08e9a659aae8b4a720025ca4dff29ee7b7e3a2";
+        // std::string tar_path ="./tests/output";
+
         // std::string gzip_path = "./tests/output";
         std::string gzip_path2="./tests/output2";
+        std::cout << "Tar包SHA256: " << calculate_sha256(tar_path) << std::endl;
         // std::string path ="./tests/87ff76f62d367950186bde563642e39208c0e2b4afc833b4b3b01b8fef60ae9e";
         // std::ifstream file(path, std::ios::binary);
         // if (!file.is_open()) {
@@ -237,15 +240,15 @@ int main() {
         // compress_gzip(tar_path, gzip_path);
         // std::cout << "Gzip包SHA256: " << calculate_sha256(gzip_path) << std::endl;
             // 创建tar包
-        create_tar(folder, tar_path);
-        std::cout << "Tar包SHA256: " << calculate_sha256(tar_path) << std::endl;
+        // create_tar(folder, tar_path);
+        // std::cout << "Tar包SHA256: " << calculate_sha256(tar_path) << std::endl;
 
-        // 压缩为gzip
-        // compress_gzip(tar_path, gzip_path);
-        // std::cout << "Gzip包SHA256: " << calculate_sha256(gzip_path) << std::endl;
+        // // 压缩为gzip
+        // // compress_gzip(tar_path, gzip_path);
+        // // std::cout << "Gzip包SHA256: " << calculate_sha256(gzip_path) << std::endl;
 
-        compress_gzip2(tar_path, gzip_path2);
-        std::cout << "Gzip包SHA256: " << calculate_sha256(gzip_path2) << std::endl;
+        // compress_gzip2(tar_path, gzip_path2);
+        // std::cout << "Gzip包SHA256: " << calculate_sha256(gzip_path2) << std::endl;
     } catch (const std::exception& ex) {
         std::cerr << "错误: " << ex.what() << std::endl;
     }
