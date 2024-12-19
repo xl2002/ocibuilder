@@ -207,7 +207,9 @@ std::tuple<std::shared_ptr<v1::Image>,std::shared_ptr<Manifest>> containerImageR
     oimage.created=now;
     oimage.rootFS.type=TypeLayers;
     oimage.author=BuildAuthor;
-    oimage.platform.OS="windows";
+    oimage.config.env.push_back("PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin");
+    oimage.config.cmd.push_back("sh");
+    oimage.platform.OS="linux";
     oimage.platform.Architecture="amd64";
     auto omanifest=std::make_shared<Manifest>();
     omanifest->SchemaVersion=2;

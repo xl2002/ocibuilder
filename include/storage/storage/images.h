@@ -19,6 +19,9 @@ namespace v1{
     struct Image;
 }
 namespace storage{
+    struct manifest;
+}
+namespace storage{
     // 表示一个镜像和相关的元数据的结构体
     struct index;
     struct Image {
@@ -40,7 +43,7 @@ namespace storage{
 
         // TopLayer 是镜像最顶层的ID，如果镜像包含一层或多层
         std::string TopLayer;
-        // std::shared_ptr<index> image_index=nullptr;
+        std::shared_ptr<storage::manifest> image_index=nullptr;
         // 镜像的manifest
         std::shared_ptr<Manifest> image_manifest=nullptr;
         std::shared_ptr<v1::Image> image_config=nullptr;

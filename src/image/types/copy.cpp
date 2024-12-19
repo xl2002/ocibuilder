@@ -107,19 +107,27 @@ std::shared_ptr<copySingleImageResult> copier::copySingleImage(std::shared_ptr<U
     auto manifest=pendingImage->OCI1FromManifest();
     auto config= pendingImage->config;
     //复制config到库
-    auto configdigest=FromBytes(config);
-    if(configdigest->String()!=pendingImage->configDigest->String()){//config可能已经变化
-        std::cerr<<"config changed"<<std::endl;
-        return nullptr;
-    }
-    std::string storepath=pendingImage->store->GetImageStoragePath()+"/blobs/sha256/"+configdigest->Encoded();
-    if(boost::filesystem::exists(storepath)){
+    // auto configdigest=FromBytes(config);
+    // if(configdigest->String()!=pendingImage->configDigest->String()){//config可能已经变化
+    //     std::cerr<<"config changed"<<std::endl;
+    //     return nullptr;
+    // }
+    std::string storagepath=pendingImage->store->GetImageStoragePath()+"/blobs/sha256/";
+    std::string newname;
+    std::string configpath=storagepath+"config.json";
+    if(boost::filesystem::exists(configpath)){
         std::cerr<<"config is exist"<<std::endl;
         return nullptr;
     }
-    boost::filesystem::ofstream file(storepath,std::ios::binary|std::ios::trunc|std::ios::out);
+    boost::filesystem::ofstream file(configpath,std::ios::binary|std::ios::trunc|std::ios::out);
     file.write(reinterpret_cast<const char*>(config.data()),config.size());
     file.close();
+    auto configdigest=Fromfile(configpath);
+    newname=storagepath+configdigest->Encoded();
+    boost::filesystem::rename(configpath, newname);
+
+
+
     //更新manifest
     auto blobsinfo_gzip=ic->manifestUpdates->InformationOnly->LayerInfos;
     if(blobsinfo_gzip.size()!=manifest->Layers.size()){
@@ -134,16 +142,18 @@ std::shared_ptr<copySingleImageResult> copier::copySingleImage(std::shared_ptr<U
 
     //复制manifest到库
     auto manifestbytes=marshal(*manifest);//manifest为指针，不能直接解析
-    auto manifestdigest=FromString(manifestbytes);//已经计算好的最终manifest的哈希值
-    
-    storepath=pendingImage->store->GetImageStoragePath()+"/blobs/sha256/"+manifestdigest->Encoded();
-    if(boost::filesystem::exists(storepath)){
+    // auto manifestdigest=FromString(manifestbytes);//已经计算好的最终manifest的哈希值
+    std::string manifestpath=storagepath+"manifest.json";
+    if(boost::filesystem::exists(manifestpath)){
         std::cerr<<"manifest is exist"<<std::endl;
         return nullptr;
     }
-    boost::filesystem::ofstream file2(storepath,std::ios::binary|std::ios::trunc|std::ios::out);
+    boost::filesystem::ofstream file2(manifestpath,std::ios::binary|std::ios::trunc|std::ios::out);
     file2.write(reinterpret_cast<const char*>(manifestbytes.data()),manifestbytes.size());
     file2.close();
+    auto manifestdigest=Fromfile(manifestpath);
+    newname=storagepath+manifestdigest->Encoded();
+    boost::filesystem::rename(manifestpath, newname);
     // 4. 返回copySingleImageResult
     std::shared_ptr<copySingleImageResult> result = std::make_shared<copySingleImageResult>();
     result->manifest=stringToVector(manifestbytes);

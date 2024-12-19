@@ -134,6 +134,7 @@ void pushCmd(Command& cmd, vector<string> args,std::shared_ptr<pushOptions> iopt
     //最后上传manifest数据
     std::string shaId2=imagestore->digest->Encoded();
     std::string manifestPath=store->image_store_dir+"/blobs/sha256/"+shaId2;
+    std::string manifestType=imagestore->image_index->mediaType;
     std::string fisrtTwoC2=shaId2.substr(0, 2);
     //判断这层数据是否在服务器存在，不存在再传输
     if(!ifBlobExists(url->host,url->port,url->imageName,shaId2)){
@@ -146,8 +147,7 @@ void pushCmd(Command& cmd, vector<string> args,std::shared_ptr<pushOptions> iopt
         std::size_t total_size = file.tellg();
         file.close();
         //上传数据
-        uploadBlobChunk(url->host, url->port,uid,state,manifestPath,0,total_size,total_size, url->imageName);
-        uploadManifest(url->host, url->port,manifestPath,0,total_size,url->imageName, url->version);
+        uploadManifest(url->host, url->port,manifestPath,0,total_size,url->imageName, url->version,manifestType);
     }
 
     std::cout<<"Push success!!"<<std::endl;

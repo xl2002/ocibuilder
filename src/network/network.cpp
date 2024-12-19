@@ -341,7 +341,7 @@ std::string uploadBlobChunk(const std::string& host, const std::string& port, co
  * @param version 
  */
 void uploadManifest(const std::string& host, const std::string& port, const std::string& file_path, std::size_t start, std::size_t end, 
-                                            const std::string& imageName, const std::string version) {
+                                            const std::string& imageName, const std::string version, const std::string& ManifestType) {
     try {
         std::ifstream file(file_path, std::ios::binary);
         if (!file) {
@@ -367,7 +367,7 @@ void uploadManifest(const std::string& host, const std::string& port, const std:
 
         beast::http::request<beast::http::buffer_body> req(beast::http::verb::put, target, 11);
         req.set(beast::http::field::host, host);
-        req.set(beast::http::field::content_type, "application/vnd.docker.distribution.manifest.v2+json");
+        req.set(beast::http::field::content_type, ManifestType);
         req.set(beast::http::field::content_length, std::to_string(bytes_read));
         req.set(beast::http::field::user_agent, BOOST_BEAST_VERSION_STRING);
 

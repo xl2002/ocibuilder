@@ -88,7 +88,7 @@ bool parseJson(const vector<uint8_t>& data, vector<shared_ptr<storage::Image>>& 
             }
             image->Names.push_back(name);
             image->Digests.emplace_back(it.digest);
-            // image->image_index=std::make_shared<storage::index>(it);
+            image->image_index=std::make_shared<storage::manifest>(it);
             images.push_back(image);
         }
     } catch (const std::exception& e) {

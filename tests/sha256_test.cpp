@@ -202,7 +202,7 @@ void compress_gzip2(const std::string& tar_path, const std::string& gzip_path) {
 int main() {
     try {
         std::string folder = "./tests/a";  // 待打包文件夹
-        std::string tar_path = "./oci_images/tmp/buildah734599329/45541da1778eb7316e699580cd08e9a659aae8b4a720025ca4dff29ee7b7e3a2";
+        std::string tar_path = "./oci_images/oci_registry/blobs/sha256/9ccc81c818de8b662deadeb5d2316eafb94607d0cf6c6f5eaddde90d835183a4";
         // std::string tar_path ="./tests/output";
 
         // std::string gzip_path = "./tests/output";
