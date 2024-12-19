@@ -1,5 +1,6 @@
 #include "image/types/reference/reference.h"
 #include "image/types/reference/helpers.h"
+#include "image/types/reference/regexp.h"
 string canonical::String(){
     return "";
 }
@@ -33,9 +34,31 @@ string named::Name(){
     return "";
 }
 
-std::shared_ptr<Canonical_interface> WithDigest(std::shared_ptr<Named_interface> name,std::shared_ptr<Digest> digest){
 
-    return nullptr;
+std::shared_ptr<Canonical_interface> WithDigest(std::shared_ptr<Named_interface> name,std::shared_ptr<Digest> digest){
+    if(!anchoredDigestRegexp->Match(digest->String())){
+        throw myerror("Digest is not in a valid format");
+    }
+    auto repo=std::make_shared<repository>();
+    auto r=std::dynamic_pointer_cast<namedRepository_interface>(name);
+    if(r!=nullptr){
+        repo->domain=r->Domain();
+        repo->path=r->Path();
+    }else{
+        repo->path=name->Name();
+    }
+    auto tagged=std::dynamic_pointer_cast<Tagged_interface>(name);
+    if(tagged!=nullptr){
+        auto ref=std::make_shared<reference>();
+        ref->namedRepository=repo;
+        ref->tag=tagged->Tag();
+        ref->digest=digest;
+        return ref;
+    }
+    auto ret=std::make_shared<canonicalReference>();
+    ret->namedRepository=repo;
+    ret->digest=digest;
+    return ret;
 }
 std::shared_ptr<Reference_interface> getBestReferenceType(std::shared_ptr<reference> ref){
     // std::shared_ptr<Reference_interface> ret;
@@ -43,7 +66,11 @@ std::shared_ptr<Reference_interface> getBestReferenceType(std::shared_ptr<refere
         auto tagref=std::make_shared<taggedReference>();
         tagref->namedRepository=ref->namedRepository;
         tagref->tag=ref->tag;
-        return tagref;
+        auto ret=std::dynamic_pointer_cast<Reference_interface>(tagref);
+        if(ret==nullptr){
+            std::cerr<<"getBestReferenceType fail"<<std::endl;
+        }
+        return ret;
     }
     return ref;
 }

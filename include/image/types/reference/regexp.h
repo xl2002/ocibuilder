@@ -14,6 +14,7 @@
 
 extern std::shared_ptr<Regexp> anchoredIdentifierRegexp;
 extern std::shared_ptr<Regexp> anchoredTagRegexp;
+extern std::shared_ptr<Regexp> anchoredDigestRegexp;
 void init_regexp();
 std::string expression(std::initializer_list<std::string> res);
 std::string anchored(std::initializer_list<std::string> res);

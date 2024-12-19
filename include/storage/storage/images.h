@@ -12,6 +12,7 @@
 #include "storage/lockfile/lockfile.h"
 #include <boost/json.hpp>
 #include <boost/array.hpp>
+#include "utils/common/go/string.h"
 namespace storage{
     // 表示一个镜像和相关的元数据的结构体
     struct Image {
@@ -65,7 +66,22 @@ namespace storage{
          * @param image 
          */
         friend void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const Image& image){
-
+            jv = boost::json::object{
+                {"ID", image.ID},
+                {"digest", image.digest->digest},
+                {"Digests", boost::json::value_from(image.Digests)},
+                {"Names", boost::json::value_from(image.Names)},
+                // {"NamesHistory", boost::json::value_from(image.NamesHistory)},
+                {"TopLayer", image.TopLayer},
+                // {"MappedTopLayers", boost::json::value_from(image.MappedTopLayers)},
+                // {"Metadata", image.Metadata},
+                // {"BigDataNames", boost::json::value_from(image.BigDataNames)},
+                // {"BigDataSizes", boost::json::value_from(image.BigDataSizes)},
+                // {"BigDataDigests", boost::json::value_from(image.BigDataDigests)},
+                {"Created", timePointToISOString(image.Created)},
+                // {"ReadOnly", image.ReadOnly},
+                // {"Flags", boost::json::value_from(image.Flags)}
+            };
         }
         /**
          * @brief 序列化
@@ -74,7 +90,23 @@ namespace storage{
          * @param image 
          */
         friend Image tag_invoke(boost::json::value_to_tag<Image>, const boost::json::value& jv){
-
+            const auto& obj = jv.as_object();
+            Image image;
+            image.ID = obj.at("ID").as_string().c_str();
+            image.digest=std::make_shared<Digest>(obj.at("digest").as_string().c_str());
+            image.Digests = boost::json::value_to<std::vector<Digest>>(obj.at("Digests"));
+            image.Names = boost::json::value_to<std::vector<std::string>>(obj.at("Names"));
+            // image.NamesHistory = boost::json::value_to<std::vector<std::string>>(obj.at("NamesHistory"));
+            image.TopLayer = obj.at("TopLayer").as_string().c_str();
+            // image.MappedTopLayers = boost::json::value_to<std::vector<std::string>>(obj.at("MappedTopLayers"));
+            // image.Metadata = obj.at("Metadata").as_string().c_str();
+            // image.BigDataNames = boost::json::value_to<std::vector<std::string>>(obj.at("BigDataNames"));
+            // image.BigDataSizes = boost::json::value_to<std::map<std::string, int64_t>>(obj.at("BigDataSizes"));
+            // image.BigDataDigests = boost::json::value_to<std::map<std::string, Digest>>(obj.at("BigDataDigests"));
+            image.Created = parseISOStringToTimePoint(obj.at("Created").as_string().c_str());
+            // image.ReadOnly = obj.at("ReadOnly").as_bool();
+            // image.Flags = boost::json::value_to<std::map<std::string, std::string>>(obj.at("Flags"));
+            return image;
         }
     };
     struct manifest{
@@ -88,7 +120,8 @@ namespace storage{
             jv = boost::json::object{
                 {"mediaType", m.mediaType},
                 {"digest", m.digest},
-                {"size", m.size}
+                {"size", m.size},
+                {"annotations", boost::json::value_from(m.annotations)}
             };
         }
 
@@ -99,12 +132,14 @@ namespace storage{
             m.mediaType = obj.at("mediaType").as_string().c_str();  // 使用 as_string() 而不是 c_str()
             m.digest = obj.at("digest").as_string().c_str();  // 使用 as_string() 而不是 c_str()
             m.size = obj.at("size").as_uint64();
+            m.annotations = boost::json::value_to<std::map<std::string, std::string>>(obj.at("annotations"));
             return m;
         }
     };
     struct index{
-        std::string schemaVersion;
+        int schemaVersion;
         std::vector<manifest> manifests;
+        // std::map<std::string, std::string> annotations;
         index()=default;
         /**
          * @brief 序列化
@@ -112,18 +147,21 @@ namespace storage{
          * @param jv 
          * @param image 
          */
+
         friend void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const index& image) {
             jv = boost::json::object{
                 {"schemaVersion", image.schemaVersion},
                 {"manifests", boost::json::value_from(image.manifests)}
+                // {"annotations", boost::json::value_from(image.annotations)}
             };
         }
         //反序列化
         friend index tag_invoke(boost::json::value_to_tag<index>, const boost::json::value& jv) {
             const auto& obj = jv.as_object();
             index image;
-            image.schemaVersion = obj.at("schemaVersion").as_string().c_str();
+            image.schemaVersion = obj.at("schemaVersion").as_int64();
             image.manifests = boost::json::value_to<std::vector<manifest>>(obj.at("manifests"));
+            // image.annotations = boost::json::value_to<std::map<std::string, std::string>>(obj.at("annotations"));
             return image;
         }
     };

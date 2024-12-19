@@ -93,10 +93,12 @@ std::shared_ptr<ImageSource_interface> containerImageRef::NewImageSource(std::sh
     auto srcpath=this->store->GetlayerStoragePath();
     
     std::map<Digest, blobLayerInfo> blobLayers;
+    std::vector<std::shared_ptr<Layer>> Layers;
     for(auto layer:layers){
         // 3. 将原目录下diff文件夹下的内容复制到目的缓存目录下，如果目的目录不存在则新建目录
         //  int64_t Copy_directory(const fs::path& source, const fs::path& destination)复制目录的函数已写好，并且返回数据大小
         // auto size=Copy_directory(tarlayerpath,destpath);
+        auto  l=std::make_shared<Layer>();//TODO
         auto omediaType=MediaTypeImageLayer;//TODO
         omediaType=computeLayerMIMEType(layer,this->compression);
         auto noCompression=compression::Uncompressed;//TODO
@@ -123,10 +125,14 @@ std::shared_ptr<ImageSource_interface> containerImageRef::NewImageSource(std::sh
             boost::filesystem::rename(tarlayer, newname);
             // Copy_file(tarlayer, newname);
             // fs::remove(tarlayer);
-            std::cout << "File renamed successfully using Boost." << std::endl;
+            std::cout << "File renamed successfully, "<<"new tar layerId: " << tardigest<< std::endl;
         } catch (const boost::filesystem::filesystem_error& e) {
             std::cerr << "Error renaming file: " << e.what() << std::endl;
         }
+        l->ID=tardigest;
+        l->Names=this->names;
+        l->Parent=this->parent;
+        l->uncompressedSize=tarsize;
         Descriptor olayerDescriptor;
         olayerDescriptor.MediaType=omediaType;
         olayerDescriptor.Digests=*tarfile->Digest();
@@ -136,7 +142,7 @@ std::shared_ptr<ImageSource_interface> containerImageRef::NewImageSource(std::sh
 
         blobLayers[tardigest].ID=tarfile->Digest()->Encoded();
         blobLayers[tardigest].Size=tarsize;
-
+        Layers.push_back(l);
     }
 
     // 6. 组织历史记录history，构造appendHistory函数
@@ -151,7 +157,13 @@ std::shared_ptr<ImageSource_interface> containerImageRef::NewImageSource(std::sh
     onews.comment=comment;
     onews.emptyLayer=this->emptyLayer;
     oimage->history.push_back(onews);
-
+    //更新layerstore
+    for(auto layer:Layers){//TODO
+        layer->Created=now;
+    }
+    auto s=std::dynamic_pointer_cast<Store>(this->store);
+    auto layerstore=std::dynamic_pointer_cast<layerStore>(s->layer_store_use_getters);
+    layerstore->layers.insert(layerstore->layers.end(),Layers.begin(),Layers.end());
     // 7. 将新构建的oci config反序列化为byte，记住marshal函数返回string，需要转化为vector<uint8_t>,函数在
     // std::vector<uint8_t> stringToVector(const std::string& str)
     auto oconfig=marshal<v1::Image>(*oimage);
@@ -212,25 +224,7 @@ std::tuple<std::shared_ptr<v1::Image>,std::shared_ptr<Manifest>> containerImageR
  * @return std::string 
  */
 std::string computeLayerMIMEType(std::string what,std::shared_ptr<Compression> layerCompression){
-    // if (what == "empty") {
-    //     // 空层没有MIME类型，或者可以指定一个特定的MIME类型用于空层
-    //     return "";
-    // } else if (what == "dockerfs") {
-    //     if (layerCompression) { // 检查智能指针是否为空
-    //         std::string compressionType = layerCompression->String();
-    //         if (compressionType == "uncompressed") {
-    //             return "application/vnd.docker.image.rootfs.diff.tar";
-    //         } else if (compressionType == "gzip") {
-    //             return "application/vnd.docker.image.rootfs.diff.tar.gzip";
-    //         } else if (compressionType == "bzip2") {
-    //             return "application/vnd.docker.image.rootfs.diff.tar.bzip2";
-    //         } else if (compressionType == "xz") {
-    //             return "application/vnd.docker.image.rootfs.diff.tar.xz";
-    //         } else if (compressionType == "zstd") {
-    //             return "application/vnd.docker.image.rootfs.diff.tar.zst";
-    //         }
-    //     }
-    // }
+
     // 如果没有匹配的类型，返回一个空字符串或者错误
     auto omediaType=MediaTypeImageLayer;
     if(layerCompression->value!=compression::Uncompressed){

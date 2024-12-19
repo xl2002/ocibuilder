@@ -45,12 +45,15 @@ std::vector<uint8_t> Image(std::shared_ptr<PolicyContext>policyContext,std::shar
         std::cout<<"index.json is not exist"<<std::endl;
         return std::vector<uint8_t>();
     }
-    boost::filesystem::ifstream indexfile(indexpath,std::ios::binary|std::ios::app);
+    boost::filesystem::ifstream indexfile(indexpath,std::ios::binary);
     // 使用 std::ostringstream 将流的内容读取到字符串
     std::ostringstream buffer;
     buffer << indexfile.rdbuf();  // 读取整个文件内容
     std::string fileContent = buffer.str();  // 转换为 std::string
-    storage::index index=unmarshal<storage::index>(fileContent);
+    storage::index index;
+    if(!fileContent.empty()){
+        index=unmarshal<storage::index>(fileContent);
+    }
     indexfile.close();
     auto newmanifest=std::make_shared<storage::manifest>();
     newmanifest->mediaType=single->manifestMIMEType;
@@ -62,11 +65,16 @@ std::vector<uint8_t> Image(std::shared_ptr<PolicyContext>policyContext,std::shar
         newmanifest->annotations["org.opencontainers.image.ref.name"]=tagref->String();
     }
     index.manifests.push_back(*newmanifest);
+    index.schemaVersion=2;
+    // index.manifests->annotations["org.opencontainers.image.ref.name"]=tagref->String();
     // 5. 返回写入新镜像副本的清单
     std::string newindexcontent=marshal<storage::index>(index);
     std::ofstream newindexfile(indexpath,std::ios::out|std::ios::trunc);
     newindexfile<<newindexcontent;
     newindexfile.close();
+    // 更新layerstore的layer.json
+
+    
     return single->manifest;
 }
 /**

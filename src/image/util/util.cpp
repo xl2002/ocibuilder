@@ -88,19 +88,28 @@ std::string resolveSymlinks(const std::string& path) {
 }
 
 std::shared_ptr<ImageReference_interface> VerifyTagName(std::string imagespec){
-    try
-    {
-        return ParseImageName(imagespec);
-    }
-    catch(const myerror& e)
-    {   try{
-            return ParseImageName(DefaultTransport+imagespec);
+    // try
+    // {
+    //     return ParseImageName(imagespec);
+    // }
+    // catch(const myerror& e)
+    // {   try{
+    //         return ParseImageName(DefaultTransport+imagespec);
+    //     }
+    //     catch(const myerror& e)
+    //     {
+    //         throw;
+    //     }
+    // }
+    std::shared_ptr<ImageReference_interface> ref;
+    ref=ParseImageName(imagespec);
+    if(ref==nullptr){
+        ref=ParseImageName(DefaultTransport+imagespec);
+        if(ref==nullptr){
+            throw myerror("failed to parse image name: "+imagespec);
         }
-        catch(const myerror& e)
-        {
-            throw;
-        }
     }
+    return ref;
 }
 
 Platform NormalizePlatform(Platform platform){

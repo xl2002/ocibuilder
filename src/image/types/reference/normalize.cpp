@@ -38,8 +38,8 @@ std::shared_ptr<Named_interface> ParseNormalizedNamed(std::string s){
     // }
     // return std::shared_ptr<Named_interface>(named);
     // return ref; // 返回解析后的命名引用
-    return named;
-    // return named; // 返回解析后的命名引用
+    // return ref;
+    return named; // 返回解析后的命名引用
 }
 
 // splitDockerDomain 将仓库名称拆分为域名和剩余名称字符串。
@@ -93,8 +93,12 @@ std::shared_ptr<NamedTagged_interface> WithTag(std::shared_ptr<Named_interface> 
         //     std::make_shared<Digest>(canonical->Digests()) // 假设这里可以直接用指针
         // );
     }
-
-    return std::make_shared<taggedReference>(repo, tag);
+    auto ret=std::make_shared<taggedReference>(repo,tag);
+    auto n=std::dynamic_pointer_cast<NamedTagged_interface>(ret);
+    if(n==nullptr){
+        std::cerr<<"WithTag fail"<<std::endl;
+    }
+    return n;
 }
 
 // TagNameOnly 如果引用仅具有仓库名称，则将默认标签“latest”添加到引用中。

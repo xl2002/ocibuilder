@@ -99,7 +99,7 @@ public:
     std::shared_ptr<RefCounter> ctr; // RefCounter
     // std::shared_ptr<Control> quotaCtl; // Control
     OverlayOptions options; // overlayOptions
-    std::shared_ptr<DiffDriver_interface> naiveDiff=nullptr; // DiffDriver_interface
+    // std::shared_ptr<DiffDriver_interface> naiveDiff=nullptr; // DiffDriver_interface
     bool supportsDType=false; // 是否支持 DType
     std::shared_ptr<bool> supportsVolatile=std::make_shared<bool>(false); // 是否支持 Volatile
     bool usingMetacopy=false; // 是否使用 Metacopy

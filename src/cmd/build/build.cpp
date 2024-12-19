@@ -267,7 +267,7 @@ void buildCmd(Command& cmd, vector<string> args,BuildOptions* iopts){
         };
         budopt->DefaultMountsFilePath=globalFlagOptions.DefaultMountsFile;
         // 获取存储对象
-        auto stores=make_shared<Store>();
+        std::shared_ptr<Store> stores;
         try {
             stores =getStore(&cmd);
         } catch (const myerror& e) {

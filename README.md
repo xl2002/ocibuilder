@@ -20,7 +20,7 @@ g++ -std=c++11 -Wall -Wextra -g -I include -o ./tests/gzip_test.exe ./tests/gzip
 
 g++ -std=c++11 -Wall -Wextra -g -I include -o ./tests/sha256_test.exe ./tests/sha256_test.cpp -L lib\boost-MinGW -L lib\openssl -lboost_filesystem-mgw12-mt-x64-1_75 -lboost_iostreams-mgw12-mt-x64-1_75 -lboost_system-mgw12-mt-x64-1_75 -lboost_thread-mgw12-mt-x64-1_75 -lws2_32 -lboost_json-mgw12-mt-x64-1_75 -lssl -lcrypto
 
-g++ -std=c++11 -Wall -Wextra -g -I include -o ./tests/sha256_test.exe ./tests/sha256_test.cpp -L lib\boost-MinGW -L lib\openssl -lboost_filesystem-mgw12-mt-x64-1_75 -lssl -lcrypto
+g++ -std=c++11 -Wall -Wextra -g -I include -o ./tests/sha256_test.exe ./tests/sha256_test.cpp -L lib\boost-MinGW -L lib\openssl -L lib\libarchive -lboost_filesystem-mgw12-mt-x64-1_75 -lssl -lcrypto -larchive -lbcrypt
 
 g++ -std=c++11 -Wall -Wextra -g -I include sha256_test.cpp -o sha256_test  -L lib -lssl -lcrypto
 

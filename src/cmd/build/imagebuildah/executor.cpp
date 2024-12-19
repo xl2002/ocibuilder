@@ -347,9 +347,9 @@ std::tuple<string,std::shared_ptr<Canonical_interface>> Executor::Build(std::sha
 
     std::list<Result> results;
 
-    if (!stagesSemaphore) {
-        // stagesSemaphore = std::make_shared<semaphore::Semaphore>(stages.size());
-    }
+    // if (!stagesSemaphore) {
+    //     // stagesSemaphore = std::make_shared<semaphore::Semaphore>(stages.size());
+    // }
 
     boost::thread_group threads;
     std::atomic<bool> cancel(false);
@@ -358,64 +358,70 @@ std::tuple<string,std::shared_ptr<Canonical_interface>> Executor::Build(std::sha
     std::mutex thread_mux;
     for (size_t stageIndex = 0; stageIndex < stages->Stages.size(); ++stageIndex) {
         int index = stageIndex;
-        threads.create_thread([&]() {
-            try {
-                stagesSemaphore->Acquire( 1);  // 获取信号量
-            } catch (const myerror& e) {
-                cancel = true;
-                std::lock_guard<std::mutex> lock(resultMutex);
-                results.push_back(Result{index, "",false, nullptr, std::string(e.what())});
-                return;
-            }
-
-            std::unique_lock<std::mutex> lock(stagesLock);
-            auto cleanupstages = cleanupStages;
-            lock.unlock();
-
-            // 创建新线程执行阶段构建
-            std::unique_lock<std::mutex> lock_thread(thread_mux);
-            boost::thread_group inner_threads;
-            inner_threads.create_thread([&] {
-                // try {
-                    
-                    if (cancel ) {
-                        std::lock_guard<std::mutex> lock(resultMutex);
-                        std::string stageName = std::to_string(index);
-
-                        std::string err = "not building stage " + std::to_string(index) + ": build canceled";
-                        results.push_back(Result{index, "", false, nullptr, err});
-                        return;
-                    }
-
-                    // 模拟构建阶段
-                    std::string stageID,stageErr;
-                    std::shared_ptr<Canonical_interface> stageRef;
-                    bool stageOnlyBaseImage;
-                    std::tie (stageID, stageRef, stageOnlyBaseImage, stageErr) = buildStage(cleanupStages, stages, index);
-
-                    if (stageErr!="") {
-                        cancel = true;
-                        std::lock_guard<std::mutex> lock(resultMutex);
-                        results.push_back(Result{index, "", stageOnlyBaseImage,nullptr, stageErr});
-                        return;
-                    }
-
-                    std::lock_guard<std::mutex> lock(resultMutex);
-                    results.push_back(Result{index, stageID, stageOnlyBaseImage,stageRef, std::string("")});
-                    stagesSemaphore->Release(1);  // 释放信号量
-                // } catch (const myerror& e) {
-                //     // cancel = true;
-                //     // auto lastError = std::string(e.what());
-                //     // std::lock_guard<std::mutex> lock(resultMutex);
-                //     // results.push_back(Result{index, stageID, stageRef, stageOnlyBaseImage, lastError});
-                //     throw;
-                // }
-            });
-            inner_threads.join_all();
-            lock_thread.unlock();
-        });
+        std::unique_lock<std::mutex> lock(stagesLock);
+        auto cleanupstages = cleanupStages;
+        lock.unlock();
+        // 模拟构建阶段
+        std::string stageID,stageErr;
+        std::shared_ptr<Canonical_interface> stageRef;
+        bool stageOnlyBaseImage;
+        std::tie (stageID, stageRef, stageOnlyBaseImage, stageErr) = buildStage(cleanupStages, stages, index);
+        if (stageErr!="") {
+            cancel = true;
+            std::lock_guard<std::mutex> lock(resultMutex);
+            results.push_back(Result{index, "", stageOnlyBaseImage,nullptr, stageErr});
+            throw myerror(stageErr);
+        }
+        std::lock_guard<std::mutex> lock2(resultMutex);
+        results.push_back(Result{index, stageID, stageOnlyBaseImage,stageRef, std::string("")});
     }
-    threads.join_all();  // 等待所有线程完成
+    // 多线程构建
+    // for (size_t stageIndex = 0; stageIndex < stages->Stages.size(); ++stageIndex) {
+    //     int index = stageIndex;
+    //     threads.create_thread([&]() {
+            // try {
+            //     stagesSemaphore->Acquire( 1);  // 获取信号量
+            // } catch (const myerror& e) {
+            //     cancel = true;
+            //     std::lock_guard<std::mutex> lock(resultMutex);
+            //     results.push_back(Result{index, "",false, nullptr, std::string(e.what())});
+            //     return;
+            // }
+            // std::unique_lock<std::mutex> lock(stagesLock);
+            // auto cleanupstages = cleanupStages;
+            // lock.unlock();
+            // 创建新线程执行阶段构建
+            // std::unique_lock<std::mutex> lock_thread(thread_mux);
+            // boost::thread_group inner_threads;
+            // inner_threads.create_thread([&] {
+                // try {
+                    // if (cancel ) {
+                    //     std::lock_guard<std::mutex> lock(resultMutex);
+                    //     std::string stageName = std::to_string(index);
+                    //     std::string err = "not building stage " + std::to_string(index) + ": build canceled";
+                    //     results.push_back(Result{index, "", false, nullptr, err});
+                    //     return;
+                    // }
+                    // 模拟构建阶段
+                    // std::string stageID,stageErr;
+                    // std::shared_ptr<Canonical_interface> stageRef;
+                    // bool stageOnlyBaseImage;
+                    // std::tie (stageID, stageRef, stageOnlyBaseImage, stageErr) = buildStage(cleanupStages, stages, index);
+                    // if (stageErr!="") {
+                    //     cancel = true;
+                    //     std::lock_guard<std::mutex> lock(resultMutex);
+                    //     results.push_back(Result{index, "", stageOnlyBaseImage,nullptr, stageErr});
+                    //     return;
+                    // }
+                    // std::lock_guard<std::mutex> lock(resultMutex);
+                    // results.push_back(Result{index, stageID, stageOnlyBaseImage,stageRef, std::string("")});
+                    // // stagesSemaphore->Release(1);  // 释放信号量
+    //         });
+    //         inner_threads.join_all();
+    //         lock_thread.unlock();
+    //     });
+    // }
+    // threads.join_all();  // 等待所有线程完成
     // threads2.join_all();
     std::shared_ptr<Canonical_interface> ref;
     for (auto& r : results) {
@@ -702,24 +708,23 @@ void Executor::warnOnUnsetBuildArgs(
 
 // 解析输出名称并返回对应的 ImageReference_interface
 std::shared_ptr<ImageReference_interface> Executor::resolveNameToImageRef(const std::string& output) {
+    // 尝试解析 ImageName
+    auto imageRef = ParseImageName(output);
+    if(imageRef!=nullptr) {
+        return imageRef;
+    }
+    // 解析失败，尝试规范化名称
+    auto resolved = NormalizeName(output);
+    if (resolved==nullptr) {
+        return nullptr;
+    }
     try {
-        // 尝试解析 ImageName
-        auto imageRef = ParseImageName(output);
+        // 尝试解析 StoreReference
+        auto imageRef = Transport->ParseStoreReference(store, resolved->String());
         return imageRef;
     } catch (const myerror& e) {
-        // 解析失败，尝试规范化名称
-        auto resolved = NormalizeName(output);
-        if (resolved==nullptr) {
-            return nullptr;
-        }
-        try {
-            // 尝试解析 StoreReference
-            auto imageRef = Transport->ParseStoreReference(store, resolved->String());
-            return imageRef;
-        } catch (const myerror& e) {
-            // 解析失败，返回空和异常
-            return nullptr;
-        }
+        // 解析失败，返回空和异常
+        return nullptr;
     }
 
 }

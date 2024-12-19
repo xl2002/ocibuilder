@@ -272,10 +272,10 @@ Driver Init(const std::string& home, const driver_Options& options) {
         d.options = *opts;
 
         // 初始化 naiveDiffDriver
-        std::shared_ptr<ProtoDriver_interface> protoDriverPtr = std::shared_ptr<ProtoDriver_interface>(&d); // 使用 shared_ptr 包装
-        std::shared_ptr<LayerIDMapUpdater_interface> updaterPtr = NewNaiveLayerIDMapUpdater(protoDriverPtr); // 确保返回 std::shared_ptr
+        // std::shared_ptr<ProtoDriver_interface> protoDriverPtr = std::shared_ptr<ProtoDriver_interface>(&d); // 使用 shared_ptr 包装
+        // std::shared_ptr<LayerIDMapUpdater_interface> updaterPtr = NewNaiveLayerIDMapUpdater(protoDriverPtr); // 确保返回 std::shared_ptr
 
-        d.naiveDiff = std::make_shared<NaiveDiffDriver>(protoDriverPtr, updaterPtr);
+        // d.naiveDiff = std::make_shared<NaiveDiffDriver>(protoDriverPtr, updaterPtr);
 
         return d;
     } catch (const myerror& e) {

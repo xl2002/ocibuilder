@@ -371,11 +371,18 @@ std::string MkdirTemp(std::string dir, std::string pattern) {
         dir += "/";
     }
 
-    // 生成 9 位随机数
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dist(100000000, 999999999); // 9 位随机数范围
-    int randomNumber = dist(gen);
+    // 获取当前时间戳（秒）
+    auto now = std::chrono::system_clock::now();
+    auto duration = now.time_since_epoch();
+    auto timestamp = std::chrono::duration_cast<std::chrono::seconds>(duration).count();
+
+    // 生成9位随机数，取时间戳的一部分
+    int randomNumber = static_cast<int>(timestamp % 1000000000); // 截取时间戳的后9位
+
+    // 确保9位随机数的范围在 100000000 到 999999999 之间
+    if (randomNumber < 100000000) {
+        randomNumber += 100000000;  // 如果随机数少于9位，确保它是9位
+    }
 
     // 构造完整目录名
     std::ostringstream tempDirName;

@@ -13,7 +13,7 @@ std::shared_ptr<ImageTransport_interface> storageReference::Transport(){
 
 std::tuple<std::shared_ptr<ImageReference_interface>,std::shared_ptr<storage::Image>>ResolveReference(std::shared_ptr<ImageReference_interface>ref){
     auto sref=std::dynamic_pointer_cast<storageReference>(ref);
-    if(sref!=nullptr) {
+    if(sref==nullptr) {
         return std::make_tuple(nullptr,nullptr);
     }
     auto clone=sref;
@@ -93,5 +93,5 @@ std::vector<std::string> storageReference::PolicyConfigurationNamespaces(){
     return {};
 }
 std::shared_ptr<Named_interface> storageReference::DockerReference(){
-    return nullptr;
+    return this->named;
 }

@@ -167,26 +167,38 @@ string BuildDockerfiles(shared_ptr<Store> stores, shared_ptr<define_BuildOptions
             argsCopy[arg.first]=arg.second;
         }
         platformOptions->Args=argsCopy;
-        builds.Go([&](){
-            if(platformOptions->LogFile!="" && platformOptions->LogSplitByPlatform){
+        if(platformOptions->LogFile!="" && platformOptions->LogSplitByPlatform){
 
-            }
-            std::string thisID;
-            std::shared_ptr<Canonical_interface> thisRef;
-            std::tie(thisID,thisRef)=buildDockerfilesOnce(stores,logPrefix,platformOptions,paths,files);
-            instancesLock.lock();
-            auto ins=instance();
-            ins.ID=thisID;
-            ins.Ref=thisRef;
-            ins.platform=platformSpec;
-            instances.emplace_back(ins);
-            instancesLock.unlock();
-        });
+        }
+        std::string thisID;
+        std::shared_ptr<Canonical_interface> thisRef;
+        std::tie(thisID,thisRef)=buildDockerfilesOnce(stores,logPrefix,platformOptions,paths,files);
+        instancesLock.lock();
+        auto ins=instance();
+        ins.ID=thisID;
+        ins.Ref=thisRef;
+        ins.platform=platformSpec;
+        instances.emplace_back(ins);
+        instancesLock.unlock();
+        // builds.Go([&](){
+        //     if(platformOptions->LogFile!="" && platformOptions->LogSplitByPlatform){
+        //     }
+            // std::string thisID;
+            // std::shared_ptr<Canonical_interface> thisRef;
+            // std::tie(thisID,thisRef)=buildDockerfilesOnce(stores,logPrefix,platformOptions,paths,files);
+            // instancesLock.lock();
+            // auto ins=instance();
+            // ins.ID=thisID;
+        //     ins.Ref=thisRef;
+        //     ins.platform=platformSpec;
+        //     instances.emplace_back(ins);
+        //     instancesLock.unlock();
+        // });
     }
-    auto merr=builds.Wait();
-    if(merr!=nullptr){
-        throw myerror("failed to build: "+string(merr->what()));
-    }
+    // auto merr=builds.Wait();
+    // if(merr!=nullptr){
+    //     throw myerror("failed to build: "+string(merr->what()));
+    // }
     string id=instances[0].ID;
     ret_ref=instances[0].Ref;
     deleter();

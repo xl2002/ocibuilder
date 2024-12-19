@@ -436,7 +436,7 @@ shared_ptr<rwImageStore_interface> newImageStore(const string& dir) {
 
         // 加载数据
         if (!istore->load(true)) {
-            std::cout<<"the image store is empty,and create a new one"<<std::endl;
+            std::cout<<"the image store is empty , and create a new one"<<std::endl;
         }
 
         return istore;
