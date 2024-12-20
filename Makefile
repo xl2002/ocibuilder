@@ -24,7 +24,7 @@ SRC		:= src
 # INCLUDE	:= include D:/Softwares/boost_1_75_0
 INCLUDE	:= include
 # define lib directory
-LIB		:= lib\boost-MinGW lib\zlib-MinGW lib\openssl lib\libarchive
+LIB		:= lib\boost lib\zlib lib\openssl lib\libarchive
 # LIB         := D:/Softwares/boost_1_75_0/lib64-msvc-14.1
 
 ifeq ($(OS),Windows_NT)
@@ -74,8 +74,8 @@ LFLAGSTEST	:= -lboost_filesystem-mgw12-mt-x64-1_75 -lboost_iostreams-mgw12-mt-x6
 INCLUDETEST	:= -I include
 OUTPUTTEST		:= tests
 OUTPUTMAINTEST	:= $(call FIXPATH,$(OUTPUTTEST)/$(MAIN))
-SRCTEST		:= ./tests/sha256_test.cpp
-LIBSTEST	:= -L lib\boost-MinGW -L lib\openssl -L lib\libarchive
+SRCTEST		:= ./tests/sha356.cpp
+LIBSTEST	:= -L lib\boost -L lib\openssl -L lib\libarchive
 all: $(OUTPUT) $(MAIN)
 # $(RM) $(call FIXPATH,$(OBJECTS))
 # $(RM) $(call FIXPATH,$(DEPS))
