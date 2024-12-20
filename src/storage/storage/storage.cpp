@@ -1294,7 +1294,6 @@ std::shared_ptr<rwLayerStore_interface> Store::getLayerStoreLocked() {
         // if (!this->imageStoreDir.empty()) {
         //     ilpath = this->imageStoreDir + "/" + driverPrefix + "layers";
         // }
-        std::cout<<"this->newLayerStore"<<std::endl;std::cout<<this->graph_driver->imageStore<<std::endl;
         // 调用 newLayerStore 函数
         auto rls = this->newLayerStore(rlpath.string(), glpath.string(), ilpath, this->graph_driver, this->transient_store);
         if (!rls) {
@@ -1341,7 +1340,7 @@ std::shared_ptr<rwLayerStore_interface> Store::newLayerStore(
             if (!boost::filesystem::create_directories(imagedir)) {
                 throw myerror("Failed to create imagedir: " + imagedir);
             }
-        }std::cout<<"rundir: "<<rundir<<"layerdir: "<<layerdir<<"imagedir: "<<imagedir<<std::endl;
+        }
         std::string layerfile=layerdir+"/"+"layers.json";
         if(!boost::filesystem::exists(layerfile)){
             boost::filesystem::path file(layerfile);

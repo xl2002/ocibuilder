@@ -364,7 +364,7 @@ std::tuple<string,std::shared_ptr<Canonical_interface>> Executor::Build(std::sha
         // 模拟构建阶段
         std::string stageID,stageErr;
         std::shared_ptr<Canonical_interface> stageRef;
-        bool stageOnlyBaseImage;std::cout<<"build stage "<<index<<std::endl;
+        bool stageOnlyBaseImage;
         std::tie (stageID, stageRef, stageOnlyBaseImage, stageErr) = buildStage(cleanupStages, stages, index);
         if (stageErr!="") {
             cancel = true;
@@ -597,7 +597,7 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,bool,std::string> Ex
     std::string imageID;
     std::shared_ptr<Canonical_interface> ref;
     bool onlyBaseImage;
-    try {std::cout<<"stageExecutor->Execute(base)"<<std::endl;
+    try {
         std::tie(imageID, ref, onlyBaseImage) = stageExecutor->Execute(base);
     } catch (const myerror& e) {
         return std::make_tuple("", nullptr, onlyBaseImage, std::string(e.what()));

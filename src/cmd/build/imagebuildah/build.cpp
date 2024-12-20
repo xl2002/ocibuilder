@@ -171,7 +171,7 @@ string BuildDockerfiles(shared_ptr<Store> stores, shared_ptr<define_BuildOptions
 
         }
         std::string thisID;
-        std::shared_ptr<Canonical_interface> thisRef;std::cout<<"buildDockerfilesOnce"<<std::endl;
+        std::shared_ptr<Canonical_interface> thisRef;
         std::tie(thisID,thisRef)=buildDockerfilesOnce(stores,logPrefix,platformOptions,paths,files);
         instancesLock.lock();
         auto ins=instance();
@@ -247,7 +247,7 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>> buildDockerfilesOnc
     }
     if(options->Target!=""){
 
-    }std::cout<<"exec->Build"<<std::endl;
+    }
     return exec->Build(stages);
     // return std::make_tuple("",canonical());
 }
