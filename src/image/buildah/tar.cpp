@@ -235,15 +235,11 @@ std::tuple<std::shared_ptr<Digest>,int> newTarDigester(const std::string& conten
     digester->tarFilterer = tarFilterer;
     auto tardigest=Fromfile(tarFilePath);
     std::ifstream tarFile(tarFilePath);
-    // std::ifstream tarFile("E:\\BaiduSyncdisk\\OCI\\busybox\\blobs\\sha256\\b3268e691068e94bdff71d38b6b895fd5cb8a584183ac11ce8cac56d325de43f",std::ios::binary);
-    // std::ifstream tarFile("E:\\BaiduSyncdisk\\OCI\\busybox\\blobs\\sha256\b3268e691068e94bdff71d38b6b895fd5cb8a584183ac11ce8cac56d325de43f");
     std::ostringstream buffer;
     buffer << tarFile.rdbuf();
-    // std::vector<uint8_t> data((std::istreambuf_iterator<char>(tarFile)),
-    //                           std::istreambuf_iterator<char>());
     // digester->write(buffer.str());
     // auto digester2=FromString(buffer.str());
-    tarFile.close();
+    // tarFile.close();
     // auto a=digester->Digest()->Encoded();
     return std::make_tuple(tardigest,buffer.str().length());
 }

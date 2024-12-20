@@ -283,7 +283,7 @@ std::shared_ptr<Builder> StageExecutor::prepare(
     builderOptions->MountLabel=this->executor->mountLabel;
     builderOptions->PreserveBaseImageAnns=preserveBaseImageAnnotations;
     builderOptions->CDIConfigDir=this->executor->cdiConfigDir;
-
+    std::cout<<"NewBuilder"<<std::endl;
     std::shared_ptr<Builder> builder =NewBuilder(this->executor->store,builderOptions);
     if(this->executor->mountLabel==""&&this->executor->processLabel==""){
         this->executor->mountLabel=builder->MountLabel;

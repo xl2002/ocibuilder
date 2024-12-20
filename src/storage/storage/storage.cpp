@@ -419,7 +419,7 @@ shared_ptr<rwImageStore_interface> newImageStore(const string& dir) {
 
         // 加载数据
         if (!istore->load(true)) {
-            std::cout<<"the image store is empty , and create a new one"<<std::endl;
+            std::cout<<"the image store is empty, and create a new one"<<std::endl;
         }
 
         return istore;
@@ -1009,7 +1009,7 @@ void load(Store* s) {
             throw myerror("Failed to create directory: " + gipath);
         }
 
-        // 创建 ImageStore
+        // 创建 ImageStore,即oci_registry文件夹
         shared_ptr<rwImageStore_interface> imageStore = newImageStore(gipath);
         if (!imageStore) {
             throw myerror("Failed to create ImageStore at: " + gipath);
@@ -1022,12 +1022,10 @@ void load(Store* s) {
         if (!MkdirAll(gcpath)) {
             throw myerror("Failed to create directory: " + gcpath);
         }
-
         string rcpath = Join({s->run_root, driverPrefix + "containers"});
         if (!MkdirAll(rcpath)) {
             throw myerror("Failed to create directory: " + rcpath);
         }
-
         // 创建 ContainerStore
         shared_ptr<rwContainerStore_interface> rcs = newContainerStore(gcpath, rcpath, s->transient_store);
         if (!rcs) {
@@ -1068,10 +1066,10 @@ void load(Store* s) {
         // }
 
         // 创建锁文件目录
-        s->digest_lock_root = Join({s->run_root, driverPrefix + "locks"});
-        if (!MkdirAll(s->digest_lock_root)) {
-            throw myerror("Failed to create directory: " + s->digest_lock_root);
-        }
+        // s->digest_lock_root = Join({s->run_root, driverPrefix + "locks"});
+        // if (!MkdirAll(s->digest_lock_root)) {
+        //     throw myerror("Failed to create directory: " + s->digest_lock_root);
+        // }
 
     } catch (const myerror& e) {
         throw; // 重新抛出错误以便进一步处理
@@ -1296,7 +1294,7 @@ std::shared_ptr<rwLayerStore_interface> Store::getLayerStoreLocked() {
         // if (!this->imageStoreDir.empty()) {
         //     ilpath = this->imageStoreDir + "/" + driverPrefix + "layers";
         // }
-
+        std::cout<<"this->newLayerStore"<<std::endl;std::cout<<this->graph_driver->imageStore<<std::endl;
         // 调用 newLayerStore 函数
         auto rls = this->newLayerStore(rlpath.string(), glpath.string(), ilpath, this->graph_driver, this->transient_store);
         if (!rls) {
@@ -1343,7 +1341,7 @@ std::shared_ptr<rwLayerStore_interface> Store::newLayerStore(
             if (!boost::filesystem::create_directories(imagedir)) {
                 throw myerror("Failed to create imagedir: " + imagedir);
             }
-        }
+        }std::cout<<"rundir: "<<rundir<<"layerdir: "<<layerdir<<"imagedir: "<<imagedir<<std::endl;
         std::string layerfile=layerdir+"/"+"layers.json";
         if(!boost::filesystem::exists(layerfile)){
             boost::filesystem::path file(layerfile);
@@ -1441,15 +1439,6 @@ std::shared_ptr<Container> Store::CreateContainer(
     }
 }
 
-// /**
-//  * @brief 读取返回copy层的diff内容，注意是文件夹，可能无法读取多个文件
-//  * 
-//  * @param from 
-//  * @param to 
-//  * @param options 
-//  * @return std::ifstream 
-//  */
-// std::ifstream Store::Diff(std::string from,std::string to , std::shared_ptr<DiffOptions> options){
-//     return std::ifstream{};
-// }
-
+bool Store::savelayers(){
+    return this->layer_store_use_getters->savelayer();
+}

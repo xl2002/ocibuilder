@@ -1,4 +1,5 @@
 #include "network/network.h"
+#include "image/digest/digest.h"
 /**
  * @brief 创建新的请求
  * 
@@ -347,7 +348,7 @@ void uploadManifest(const std::string& host, const std::string& port, const std:
         if (!file) {
             throw std::runtime_error("Failed to open file: " + file_path);
         }
-        std::cout << "Uploading chunk: Start = " << start << ", End = " << end << "\n";
+        // std::cout << "Uploading chunk: Start = " << start << ", End = " << end << "\n";
 
         std::size_t chunk_size = end - start;
         std::vector<char> data(chunk_size);
@@ -430,4 +431,9 @@ void finalizeUpload(const std::string& host, const std::string& port, const std:
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << "\n";
     }
+}
+
+bool isCorrect(std::string sha256,std::string filepath){
+    auto digest = Fromfile(filepath);
+    return digest->Encoded() == sha256;
 }

@@ -94,6 +94,9 @@ void pushCmd(Command& cmd, vector<string> args,std::shared_ptr<pushOptions> iopt
         //拿到每层数据data的路径还有hash值
         std::string shaId=layers[i].Digests.Encoded();
         std::string filePath=store->image_store_dir+"/blobs/sha256/"+shaId;
+        if(!isCorrect(shaId,filePath)){
+            std::cerr<<"the blob: "+shaId+" is not correct!!"<<std::endl;
+        }
         std::string fisrtTwoC=shaId.substr(0, 2);
         //判断这层数据是否在服务器存在，不存在再传输
         if(!ifBlobExists(url->host,url->port,url->imageName,shaId)){
@@ -114,6 +117,9 @@ void pushCmd(Command& cmd, vector<string> args,std::shared_ptr<pushOptions> iopt
     //再上传config数据
     std::string shaId1=imagestore->image_manifest->Config.Digests.Encoded();
     std::string configPath=store->image_store_dir+"/blobs/sha256/"+shaId1;
+    if(!isCorrect(shaId1,configPath)){
+        std::cerr<<"the config: "+shaId1+" is not correct!!"<<std::endl;
+    }
     std::string fisrtTwoC=shaId1.substr(0, 2);
     //判断这层数据是否在服务器存在，不存在再传输
     if(!ifBlobExists(url->host,url->port,url->imageName,shaId1)){
@@ -134,6 +140,9 @@ void pushCmd(Command& cmd, vector<string> args,std::shared_ptr<pushOptions> iopt
     //最后上传manifest数据
     std::string shaId2=imagestore->digest->Encoded();
     std::string manifestPath=store->image_store_dir+"/blobs/sha256/"+shaId2;
+    if(!isCorrect(shaId2,manifestPath)){
+        std::cerr<<"the manifest: "+shaId1+" is not correct!!"<<std::endl;
+    }
     std::string manifestType=imagestore->image_index->mediaType;
     std::string fisrtTwoC2=shaId2.substr(0, 2);
     //判断这层数据是否在服务器存在，不存在再传输

@@ -174,5 +174,7 @@ void uploadManifest(const std::string &host, const std::string &port, const std:
 
 void finalizeUpload(const std::string &host, const std::string &port, const std::string &uid, const std::string &shaId, const std::string &state, const std::string &imageName);
 
+bool isCorrect(std::string sha256, std::string filepath);
+
 #endif // TYPES_NETWORK_H)
 

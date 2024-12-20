@@ -106,11 +106,7 @@ std::shared_ptr<ImageSource_interface> containerImageRef::NewImageSource(std::sh
         diffOptions->Compression->value=noCompression;
 
         auto tarlayerpath=srcpath+"/"+layer+"/diff";//ocerlay下文件diff缓存
-        // auto destdir=destpath+"/layer";
-        // if(!boost::filesystem::exists(destdir)){
-        //     boost::filesystem::create_directory(destdir);
-        // }
-        // auto size=Copy_directory(tarlayerpath,destdir);//TODO
+
         // 4. 将缓存目的目录下的内容打包成tar文件，返回tar文件流
         auto tarfilepath=destpath+"/layer.tar";
         std::shared_ptr<Digest> tarfile;
@@ -120,11 +116,13 @@ std::shared_ptr<ImageSource_interface> containerImageRef::NewImageSource(std::sh
         auto tardigest=tarfile->Encoded();//tar包的sha256
         auto finalBlobName=destpath+"/"+tardigest;//TODO
         try {
-            auto tarlayer=boost::filesystem::absolute(boost::filesystem::path(tarfilepath).make_preferred());
-            auto newname=boost::filesystem::absolute(boost::filesystem::path(finalBlobName).make_preferred());
-            boost::filesystem::rename(tarlayer, newname);
-            // Copy_file(tarlayer, newname);
-            // fs::remove(tarlayer);
+            // auto tarlayer=boost::filesystem::absolute(boost::filesystem::path(tarfilepath).make_preferred());
+            // auto newname=boost::filesystem::absolute(boost::filesystem::path(finalBlobName).make_preferred());
+            if(boost::filesystem::exists(srcpath+"/"+tardigest)){//文件存在，不重命名
+                fs::remove(srcpath+"/"+layer);
+            }
+            boost::filesystem::rename(srcpath+"/"+layer, srcpath+"/"+tardigest);//重命名overlay中的文件
+            boost::filesystem::rename(tarfilepath, finalBlobName);
             std::cout << "File renamed successfully, "<<"new tar layerId: " << tardigest<< std::endl;
         } catch (const boost::filesystem::filesystem_error& e) {
             std::cerr << "Error renaming file: " << e.what() << std::endl;
@@ -164,6 +162,9 @@ std::shared_ptr<ImageSource_interface> containerImageRef::NewImageSource(std::sh
     auto s=std::dynamic_pointer_cast<Store>(this->store);
     auto layerstore=std::dynamic_pointer_cast<layerStore>(s->layer_store_use_getters);
     layerstore->layers.insert(layerstore->layers.end(),Layers.begin(),Layers.end());
+    if(!layerstore->savelayer()){//更新overlay中的layer.json
+        std::cerr<<"save layer error"<<std::endl;
+    }
     // 7. 将新构建的oci config反序列化为byte，记住marshal函数返回string，需要转化为vector<uint8_t>,函数在
     // std::vector<uint8_t> stringToVector(const std::string& str)
     auto oconfig=marshal<v1::Image>(*oimage);
@@ -267,4 +268,48 @@ std::shared_ptr<OCI1>containerImageSource::OCI1FromManifest(){
     std::string manifeststr=vectorToString(this->manifest);
     auto oci1=unmarshal<OCI1>(manifeststr);
     return std::make_shared<OCI1>(oci1);
+}
+/**
+ * @brief 保存config文件
+ * 
+ * @return true 
+ * @return false 
+ */
+bool containerImageSource::SaveConfig(){
+    try{
+        std::string storagepath=this->store->GetImageStoragePath()+"/blobs/sha256/";
+        std::string newname;
+        std::string configpath=storagepath+"config.json";
+        boost::filesystem::ofstream file(configpath,std::ios::binary|std::ios::trunc|std::ios::out);
+        file.write(reinterpret_cast<const char*>(config.data()),config.size());
+        file.close();
+        auto configdigest=Fromfile(configpath);
+        newname=storagepath+configdigest->Encoded();
+        boost::filesystem::rename(configpath, newname);
+        return true;
+    }catch(const std::exception& e){
+        return false;
+    }
+}
+/**
+ * @brief 保存manifest文件
+ * 
+ * @param manifestbytes 
+ * @return std::shared_ptr<Digest> 
+ */
+std::shared_ptr<Digest> containerImageSource::UploadManifest(std::string manifestbytes){
+    try{
+        std::string storagepath=this->store->GetImageStoragePath()+"/blobs/sha256/";
+        std::string newname;
+        std::string manifestpath=storagepath+"manifest.json";
+        boost::filesystem::ofstream file2(manifestpath,std::ios::binary|std::ios::trunc|std::ios::out);
+        file2.write(reinterpret_cast<const char*>(manifestbytes.data()),manifestbytes.size());
+        file2.close();
+        auto manifestdigest=Fromfile(manifestpath);
+        newname=storagepath+manifestdigest->Encoded();
+        boost::filesystem::rename(manifestpath, newname);
+        return manifestdigest;
+    }catch(const std::exception& e){
+        return nullptr;
+    }
 }

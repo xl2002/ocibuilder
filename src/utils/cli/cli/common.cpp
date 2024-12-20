@@ -75,7 +75,7 @@ shared_ptr<Store> getStore(Command* cmd){
     //todo
 
     StoreOptions options = DefaultStoreOptions();
-    
+    std::cout<<"run root: "<<options.run_root<<std::endl;
     // if (cmd->Flag_find("root")->changed || cmd->Flag_find("runroot")->changed) {    
     // }
 

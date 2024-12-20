@@ -39,7 +39,7 @@ std::shared_ptr<Builder> newBuilder(std::shared_ptr<Store> store,std::shared_ptr
         pullOptions->DestinationLookupReferenceFunc=cacheLookupReferenceFunc(options->BlobDirectory,std::make_shared<LayerCompression>(layerCompression::PreserveOriginal));
         auto maxRetries=(uint32_t)(options->MaxPullRetries);
         pullOptions->MaxRetries=std::make_shared<uint32_t>(maxRetries);
-        try{
+        try{std::cout<<"imageRuntime->Pull(options->FromImage,pullPolicy,pullOptions)"<<std::endl;
             auto pulledImages=imageRuntime->Pull(options->FromImage,pullPolicy,pullOptions);
             if(pulledImages.size()>0){
                 img=pulledImages[0]->storageImage;

@@ -82,6 +82,7 @@ struct copier{
     std::shared_ptr<UnparsedImage> unparsedToplevel=nullptr;
     copier()=default;
     std::shared_ptr<copySingleImageResult> copySingleImage(std::shared_ptr<UnparsedImage> unparsedImage,std::shared_ptr<Digest> targetInstance,std::shared_ptr<copySingleImageOptions> opts);
+    
 };
 struct manifestConversionPlan{
     std::string preferredMIMEType;

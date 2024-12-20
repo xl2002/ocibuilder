@@ -161,7 +161,7 @@ struct layerStore:public rwLayerStore_interface{
         std::shared_ptr<LayerOptions>moreOptions,bool writeable,
         std::ifstream& diff) override;
     bool load(bool lockedForWriting);
-    bool savelayer();
+    bool savelayer() override;
 };
 
 struct DiffOptions{

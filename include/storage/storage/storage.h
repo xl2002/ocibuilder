@@ -78,7 +78,7 @@ class Store_interface{
     virtual std::shared_ptr<Container> CreateContainer(
         const std::string& id, const std::vector<std::string>& names, const std::string& image, 
         const std::string& layer, const std::string& metadata,const std::shared_ptr<ContainerOptions> options)=0;
-    // virtual std::ifstream Diff(std::string from,std::string to , std::shared_ptr<DiffOptions> options)=0;
+    virtual bool savelayers()=0;
 };
 struct LayerBigDataOption{
     std::string key;
@@ -598,7 +598,7 @@ class Store :public Store_interface{
     std::shared_ptr<rwLayerStore_interface> getLayerStoreLocked();
     std::shared_ptr<rwLayerStore_interface> newLayerStore(std::string rundir, std::string layerdir, std::string imagedir,std::shared_ptr<Driver> driver,bool transient);
     std::shared_ptr<Container> CreateContainer(const std::string& id, const std::vector<std::string>& names, const std::string& image, const std::string& layer, const std::string& metadata,const std::shared_ptr<ContainerOptions> options) override;
-    // std::ifstream Diff(std::string from,std::string to , std::shared_ptr<DiffOptions> options) override;
+    bool savelayers() override;
 };
 
 #endif

@@ -115,7 +115,7 @@ std::shared_ptr<Digester_interface> Algorithm_sha256::Digester(){
 std::string Algorithm_sha256::String(){
     return this->value;
 }
-std::shared_ptr<Digest> Algorithm_sha256::Fromflie(const std::string& filepath) {
+std::shared_ptr<Digest> Algorithm_sha256::Fromfile(const std::string& filepath) {
     std::ifstream file(filepath, std::ios::binary);
     if (!file.is_open()) {
         throw std::runtime_error("无法打开文件: " + filepath);
