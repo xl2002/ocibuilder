@@ -1,6 +1,13 @@
 # ocibuilder
 oci规范的镜像构建工具，适用于windows系统
+#工具使用说明
 
+1. 安装MinGW运行环境
+2. 运行mingw32-make，编译代码，main.exe文件位于./outpout下
+3. 运行main.exe前，确保同目录下存在Dockerfile文件
+~~~
+
+~~~
 
 
 
