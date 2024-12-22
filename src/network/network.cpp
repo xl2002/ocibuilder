@@ -1,4 +1,5 @@
 #include "network/network.h"
+#include "network.h"
 /**
  * @brief 创建新的请求
  * 
@@ -29,21 +30,27 @@ std::shared_ptr<URL> dockerClient::resolveRequestURL(std::string path){
         throw std::invalid_argument("Invalid path format");
     }
 
-    std::string host = path.substr(0, slashPos);
+    std::string host = path.substr(0, colonPos);
     std::string portStr = path.substr(colonPos + 1, slashPos - colonPos - 1);
     std::string imageName;
+    std::string version;
     std::size_t colon = path.find(':', lastSlash);
     if (colon == std::string::npos) {
         // 没有 ':'，说明没有 tag，直接返回 '/' 后的部分
         imageName=path.substr(lastSlash + 1);
+        version="latest";
     } else {
         // 有 ':'，返回 ':' 之前的部分
         imageName=path.substr(lastSlash + 1, colon - lastSlash - 1);
+        version=path.substr(colon+1);
     }
+
+
 
     url->host=host;
     url->port=portStr;
     url->imageName=imageName;
+    url->version=version;
 
     return url;
 }
@@ -187,7 +194,7 @@ bool ifBlobExists(const std::string& host,const std::string& port,const std::str
 std::pair<std::string, std::string> initUpload(const std::string& host, const std::string& port,const std::string& imageName) {
     try {
 
-        const std::string target="/v2/"+imageName+"/blobs/uploads";
+        const std::string target="/v2/"+imageName+"/blobs/uploads/";
 
         asio::io_context ioc;
         tcp::resolver resolver(ioc);
@@ -324,6 +331,67 @@ std::string uploadBlobChunk(const std::string& host, const std::string& port, co
 
 
 
+/**
+ * @brief 上传manifest
+ * @param host 
+ * @param port 
+ * @param file_path 
+ * @param start 
+ * @param end 
+ * @param imageName 
+ * @param version 
+ */
+void uploadManifest(const std::string& host, const std::string& port, const std::string& file_path, std::size_t start, std::size_t end, 
+                                            const std::string& imageName, const std::string version) {
+    try {
+        std::ifstream file(file_path, std::ios::binary);
+        if (!file) {
+            throw std::runtime_error("Failed to open file: " + file_path);
+        }
+        std::cout << "Uploading chunk: Start = " << start << ", End = " << end << "\n";
+
+        std::size_t chunk_size = end - start;
+        std::vector<char> data(chunk_size);
+
+        file.seekg(start, std::ios::beg);
+        file.read(data.data(), chunk_size);
+        std::size_t bytes_read = file.gcount();
+
+        asio::io_context ioc;
+        tcp::resolver resolver(ioc);
+        beast::tcp_stream stream(ioc);
+
+        auto const results = resolver.resolve(host, port);
+        stream.connect(results);
+
+        std::string target = "/v2/"+imageName+"/manifests/"+version;
+
+        beast::http::request<beast::http::buffer_body> req(beast::http::verb::put, target, 11);
+        req.set(beast::http::field::host, host);
+        req.set(beast::http::field::content_type, "application/vnd.docker.distribution.manifest.v2+json");
+        req.set(beast::http::field::content_length, std::to_string(bytes_read));
+        req.set(beast::http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+
+        req.body().data = data.data();
+        req.body().size = bytes_read; 
+        req.body().more=false;
+        req.prepare_payload();
+
+        beast::http::write(stream, req);
+
+        beast::flat_buffer buffer_r;
+        beast::http::response<beast::http::string_body> res;
+        beast::http::read(stream, buffer_r, res);
+        stream.socket().shutdown(tcp::socket::shutdown_both);
+
+        if (res.result() != beast::http::status::ok && res.result() != beast::http::status::created) {
+            throw std::runtime_error("Failed to upload manifest");
+        }
+        
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << "\n";
+    }
+}
 
 
 /**
