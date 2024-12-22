@@ -105,7 +105,6 @@ struct URL{
     std::string projectName;   //仓库中项目名
     std::string imageName;     //镜像名
     std::string version;      //镜像版本号
-    std::string projectName;
     std::string path;          // 路径（相对路径可能省略前导斜杠）
     std::string rawPath;       // 编码的路径提示（参见 EscapedPath 方法）
     bool omitHost=false;             // 不输出空主机（authority）

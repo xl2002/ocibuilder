@@ -312,6 +312,11 @@ std::pair<std::string, std::string> initUpload(const std::string& host, const st
 
         stream.socket().shutdown(tcp::socket::shutdown_both);
 
+        for (auto const& field : res) {
+            std::cout << field.name_string() << ": " << field.value() << "\n";
+        }
+
+        std::cout<<res.body()<<"\n";
         if (res.result() != beast::http::status::accepted) {
             throw std::runtime_error("Failed to initiate upload");
         }
@@ -616,7 +621,10 @@ void login(const std::string& user, const std::string& passwd,const std::string&
     beast::http::response<beast::http::string_body> res;
     beast::http::read(stream, buffer, res);
 
-
+    for (auto const& field : res) {
+        std::cout << field.name_string() << ": " << field.value() << "\n";
+    }
+    std::cout<<res.body()<<"\n";
     if(res.result() == beast::http::status::forbidden){
         // 提取 CSRF 令牌（从 Set-Cookie 头中获取）
         std::string csrf_token;
@@ -685,7 +693,7 @@ void login(const std::string& user, const std::string& passwd,const std::string&
                                 end_sid = cookie.length(); // 如果没有分号，则取到字符串结尾
                             }
                             sid=cookie.substr(sidpos,end_sid-sidpos);
-                            loginAuth.cookie=cookie+"sid="+sid+";";
+                            loginAuth.cookie="_gorilla_csrf="+csrf_token+"; sid="+sid+";";
                         }
                     }  
                 }

@@ -5,8 +5,8 @@
             "name": "Debug_nobuild",
             "type": "cppdbg",
             "request": "launch",
-            "args": ["build","--tag","busybox-image:latest","."],
-            // "args":["push","10.68.1.145:5000/busybox-image:latest"],
+            // "args": ["build","--tag","busybox-image:latest","."],
+            "args":["push","192.168.182.128:80/library/busybox-image:latest"],
             // "args": ["build","--annotation","\"version=1.0\"","--arch","amd64","--os","linux","--file","Dockerfile","--tag","busybox-image:latest","."],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
@@ -24,7 +24,7 @@
             },
             "windows": {
                 "MIMode": "gdb",
-                "miDebuggerPath": "D:\\softwares\\mingw64\\bin\\gdb.exe",
+                "miDebuggerPath": "D:\\Program Files\\mingw64\\mingw64\\mingw64\\bin\\gdb.exe",
                 "program": "${workspaceFolder}/output/main.exe"
             },
             "setupCommands": [
