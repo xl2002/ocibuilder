@@ -100,7 +100,7 @@ struct URL{
     std::string host;          // 主机名或主机
     std::string port;          // 端口
     std::string imageName;     //镜像名
-    std::string version;        // 版本  
+    std::string version;      //镜像版本号
     std::string path;          // 路径（相对路径可能省略前导斜杠）
     std::string rawPath;       // 编码的路径提示（参见 EscapedPath 方法）
     bool omitHost=false;             // 不输出空主机（authority）

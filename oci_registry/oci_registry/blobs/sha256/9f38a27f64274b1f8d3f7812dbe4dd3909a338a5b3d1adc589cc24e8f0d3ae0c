@@ -1,0 +1,28 @@
+{
+  "created": "2024-12-19T15:07:00.118557Z",
+  "architecture": "amd64",
+  "os": "windows",
+  "config": {
+    "Env": [],
+    "Cmd": [],
+    "Labels": {
+      "io.buildah.version": "1.0"
+    }
+  },
+  "rootfs": {
+    "type": "layers",
+    "diff_ids": [
+      "sha256:4dbaef2943e06a97ed29edb34438c8678644bc6a0f5d820d8bd87e9f6e069d0f",
+      "sha256:4eea432fe5243477d901abb0f4a9a1d7974f641f11aeb313f6b8080c728577c5"
+    ]
+  },
+  "history": [
+    {
+      "created": "2024-12-19T15:07:00.124558Z",
+      "created_by": "/bin/sh -c #(nop) COPY  in /usr/src/app",
+      "author": "Northwestern Polytechnical University",
+      "comment": "FROM ./baseimage",
+      "empty_layer": false
+    }
+  ]
+}
