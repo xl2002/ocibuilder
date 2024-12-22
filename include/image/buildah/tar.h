@@ -12,6 +12,8 @@
 #include <boost/iostreams/stream.hpp>
 #include "image/buildah/digester.h"
 #include "utils/common/error.h"
+// #include <libarchive/archive.h>
+// #include <libarchive/archive_entry.h>
 #include "image/buildah/tar_other.h"
 #include "image/buildah/format.h"
 namespace fs = boost::filesystem;
@@ -36,12 +38,12 @@ namespace fs = boost::filesystem;
 //     // 创建tar文件并写入文件内容
 //     std::ofstream createTar(const std::string& tarFilePath, const fs::path& directory);
 // };
-std::ofstream createTar(const std::string& tarFilePath, const fs::path& directory);
+void createTar(const std::string& tarFilePath, const fs::path& directory);
 struct tarFilterer
 {
     // 等待线程完成
     boost::thread_group wg; // 
-    std::shared_ptr<tarpp::details::TarHeader> tarHeader=std::make_shared<tarpp::details::TarHeader>();
+    // std::shared_ptr<tarpp::details::TarHeader> tarHeader=std::make_shared<tarpp::details::TarHeader>();
     std::ofstream pipeWriter_TarHeader; // 
     mutable std::mutex closedLock; // 用于保护 closed 标志
     bool closed=false; // 表示是否已关闭
@@ -73,5 +75,5 @@ struct tarDigester:public digester_interface{
     void close() override;
     std::shared_ptr<::Digest> Digest() override;
 };
-std::tuple<std::shared_ptr<digester_interface>,int> newTarDigester(const std::string& contentType, const std::string& tarFilePath, const fs::path& directory);
+std::tuple<std::shared_ptr<Digest>,int> newTarDigester(const std::string& contentType, const std::string& tarFilePath, const fs::path& directory);
 #endif // IMAGE_BUILDAH_TAR_H)

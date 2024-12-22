@@ -3,6 +3,9 @@
 #include "utils/common/go/string.h"
 #include "utils/common/json.h"
 #include "utils/common/go/file.h"
+#include <iostream>
+#include <fstream>
+#include <sstream>
 namespace fs = boost::filesystem;
 
 
@@ -12,7 +15,13 @@ string Store:: RunRoot()
 {
     return this->run_root;
 }
-
+std::string  Store::GetImageStoragePath(){
+    return this->run_root+defaultImagestore;
+}
+std::string Store:: GetlayerStoragePath()
+{
+    return this->run_root+defaultlayerpath;
+}
 string join(const vector<string>& elem);
 string Join(const vector<string>& elem) {
     return join(elem);
@@ -70,38 +79,18 @@ bool parseJson(const vector<uint8_t>& data, vector<shared_ptr<storage::Image>>& 
         for(auto it:Index.manifests){
             auto image = std::make_shared<storage::Image>();
             image->ID=it.digest;
-            image->Names.push_back(it.annotations["org.opencontainers.image.ref.name"]);
+            // image->digest=std::make_shared<Digest>(it.digest);
+            std::string name=it.annotations["org.opencontainers.image.ref.name"];
+            std::string newname;
+            std::tie(std::ignore,newname,std::ignore)=Cut(name,'/');
+            if(newname.size()>0){
+                name=newname;
+            }
+            image->Names.push_back(name);
             image->Digests.emplace_back(it.digest);
+            image->image_index=std::make_shared<storage::manifest>(it);
             images.push_back(image);
         }
-        // Create a string from the binary data
-        // std::string json_str(data.begin(), data.end());
-        
-        // // Use a string stream to read the JSON
-        // std::stringstream ss(json_str);
-
-        // // Parse the JSON data
-        // ptree root;
-        // read_json(ss, root);
-// 
-        // for (const auto& item : root) {
-        //     auto image = std::make_shared<storage::Image>();
-        //     image->ID = item.second.get<std::string>("id");
-
-        //     // Parse names
-        //     for (const auto& name : item.second.get_child("names")) {
-        //         image->Names.push_back(name.second.data());
-        //     }
-
-        //     // Parse digests
-        //     for (const auto& digest : item.second.get_child("digests")) {
-        //         Digest d;
-        //         d.digest = digest.second.data();
-        //         image->Digests.push_back(d);
-        //     }
-
-        //     images.push_back(image);
-        // }
     } catch (const std::exception& e) {
         throw myerror("Failed to parse JSON: " + std::string(e.what()));
     }
@@ -430,7 +419,7 @@ shared_ptr<rwImageStore_interface> newImageStore(const string& dir) {
 
         // 加载数据
         if (!istore->load(true)) {
-            std::cout<<"第一次构建镜像，镜像仓库为空"<<std::endl;
+            std::cout<<"the image store is empty, and create a new one"<<std::endl;
         }
 
         return istore;
@@ -1009,17 +998,18 @@ void load(Store* s) {
 
         // 获取 imgStoreRoot 路径
         string imgStoreRoot = s->image_store_dir;
+        
         if (imgStoreRoot.empty()) {
-            imgStoreRoot = s->graph_root;
+            imgStoreRoot = s->graph_root+"\\"+driverPrefix + "registry";
         }
 
         // 创建图像存储目录
-        string gipath = Join({imgStoreRoot, driverPrefix + "registry"});
+        string gipath=imgStoreRoot;
         if (!MkdirAll(gipath)) {
             throw myerror("Failed to create directory: " + gipath);
         }
 
-        // 创建 ImageStore
+        // 创建 ImageStore,即oci_registry文件夹
         shared_ptr<rwImageStore_interface> imageStore = newImageStore(gipath);
         if (!imageStore) {
             throw myerror("Failed to create ImageStore at: " + gipath);
@@ -1032,12 +1022,10 @@ void load(Store* s) {
         if (!MkdirAll(gcpath)) {
             throw myerror("Failed to create directory: " + gcpath);
         }
-
         string rcpath = Join({s->run_root, driverPrefix + "containers"});
         if (!MkdirAll(rcpath)) {
             throw myerror("Failed to create directory: " + rcpath);
         }
-
         // 创建 ContainerStore
         shared_ptr<rwContainerStore_interface> rcs = newContainerStore(gcpath, rcpath, s->transient_store);
         if (!rcs) {
@@ -1078,10 +1066,10 @@ void load(Store* s) {
         // }
 
         // 创建锁文件目录
-        s->digest_lock_root = Join({s->run_root, driverPrefix + "locks"});
-        if (!MkdirAll(s->digest_lock_root)) {
-            throw myerror("Failed to create directory: " + s->digest_lock_root);
-        }
+        // s->digest_lock_root = Join({s->run_root, driverPrefix + "locks"});
+        // if (!MkdirAll(s->digest_lock_root)) {
+        //     throw myerror("Failed to create directory: " + s->digest_lock_root);
+        // }
 
     } catch (const myerror& e) {
         throw; // 重新抛出错误以便进一步处理
@@ -1116,6 +1104,21 @@ std::shared_ptr<storage::Image> Store::Image(std::string id){
 std::shared_ptr<storage::Image> ImageStore::Get(const std::string& id) {
     auto image=this->lookup(id);
     if(image!=nullptr){
+        std::string manifestpath=this->dir+"/blobs/sha256/"+image->digest->Encoded();
+        std::ifstream manifestf(manifestpath,std::ios::binary);
+        std::ostringstream oss;
+        oss << manifestf.rdbuf();
+        auto manifest=unmarshal<Manifest>(oss.str());
+        image->image_manifest=std::make_shared<Manifest>(manifest);
+        manifestf.close();
+
+        std::string configfile=this->dir+"/blobs/sha256/"+manifest.Config.Digests.Encoded();
+        std::ifstream configf(configfile,std::ios::binary);
+        std::ostringstream oss2;
+        oss2 << configf.rdbuf();
+        auto config=unmarshal<v1::Image>(oss2.str());
+        image->image_config=std::make_shared<v1::Image>(config);
+        configf.close();
         return std::make_shared<storage::Image>(*image);//复制一份
     }
     return nullptr;
@@ -1267,7 +1270,7 @@ std::shared_ptr<rwLayerStore_interface> Store::bothLayerStoreKindsLocked() {
  */
 std::shared_ptr<rwLayerStore_interface> Store::getLayerStoreLocked() {
     try {
-        if(!this->layer_store_use_getters) {
+        if(this->layer_store_use_getters!=nullptr){
             return this->layer_store_use_getters;
         }
         // 检查路径是否存在，模拟 Go 中的路径处理
@@ -1291,7 +1294,6 @@ std::shared_ptr<rwLayerStore_interface> Store::getLayerStoreLocked() {
         // if (!this->imageStoreDir.empty()) {
         //     ilpath = this->imageStoreDir + "/" + driverPrefix + "layers";
         // }
-
         // 调用 newLayerStore 函数
         auto rls = this->newLayerStore(rlpath.string(), glpath.string(), ilpath, this->graph_driver, this->transient_store);
         if (!rls) {
@@ -1436,15 +1438,6 @@ std::shared_ptr<Container> Store::CreateContainer(
     }
 }
 
-// /**
-//  * @brief 读取返回copy层的diff内容，注意是文件夹，可能无法读取多个文件
-//  * 
-//  * @param from 
-//  * @param to 
-//  * @param options 
-//  * @return std::ifstream 
-//  */
-// std::ifstream Store::Diff(std::string from,std::string to , std::shared_ptr<DiffOptions> options){
-//     return std::ifstream{};
-// }
-
+bool Store::savelayers(){
+    return this->layer_store_use_getters->savelayer();
+}

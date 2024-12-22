@@ -25,9 +25,21 @@ class Digest{
     bool operator< (const Digest& other) const {
         return digest < other.digest;
     }
+    friend void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const Digest& d) {
+        jv = boost::json::object{
+            {"digest", d.digest}
+        };
+    }
+    friend Digest tag_invoke(boost::json::value_to_tag<Digest>, const boost::json::value& jv) {
+        const auto& obj = jv.as_object();
+        Digest d;
+        d.digest = obj.at("digest").as_string().c_str();
+        return d;
+    }
 };
 std::shared_ptr<Digest> FromString(std::string s);
 std::shared_ptr<::Digest> FromBytes(std::vector<uint8_t> p);
+std::shared_ptr<Digest> Fromfile(const std::string& filepath);
 std::shared_ptr<Digest> NewDigest(std::shared_ptr<Algorithm_sha256> alg,std::shared_ptr<Hash_256> hash);
 std::shared_ptr<Digest> NewDigestFromBytes(std::shared_ptr<Algorithm_sha256> alg,std::vector<uint8_t> p);
 std::shared_ptr<Digest> NewDigestFromEncoded(std::shared_ptr<Algorithm_sha256> alg,std::string p);

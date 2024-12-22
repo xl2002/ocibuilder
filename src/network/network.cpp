@@ -1,5 +1,5 @@
 #include "network/network.h"
-#include "network.h"
+#include "image/digest/digest.h"
 /**
  * @brief 创建新的请求
  * 
@@ -342,13 +342,13 @@ std::string uploadBlobChunk(const std::string& host, const std::string& port, co
  * @param version 
  */
 void uploadManifest(const std::string& host, const std::string& port, const std::string& file_path, std::size_t start, std::size_t end, 
-                                            const std::string& imageName, const std::string version) {
+                                            const std::string& imageName, const std::string version, const std::string& ManifestType) {
     try {
         std::ifstream file(file_path, std::ios::binary);
         if (!file) {
             throw std::runtime_error("Failed to open file: " + file_path);
         }
-        std::cout << "Uploading chunk: Start = " << start << ", End = " << end << "\n";
+        // std::cout << "Uploading chunk: Start = " << start << ", End = " << end << "\n";
 
         std::size_t chunk_size = end - start;
         std::vector<char> data(chunk_size);
@@ -368,7 +368,7 @@ void uploadManifest(const std::string& host, const std::string& port, const std:
 
         beast::http::request<beast::http::buffer_body> req(beast::http::verb::put, target, 11);
         req.set(beast::http::field::host, host);
-        req.set(beast::http::field::content_type, "application/vnd.docker.distribution.manifest.v2+json");
+        req.set(beast::http::field::content_type, ManifestType);
         req.set(beast::http::field::content_length, std::to_string(bytes_read));
         req.set(beast::http::field::user_agent, BOOST_BEAST_VERSION_STRING);
 
@@ -431,4 +431,9 @@ void finalizeUpload(const std::string& host, const std::string& port, const std:
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << "\n";
     }
+}
+
+bool isCorrect(std::string sha256,std::string filepath){
+    auto digest = Fromfile(filepath);
+    return digest->Encoded() == sha256;
 }

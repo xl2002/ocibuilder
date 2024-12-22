@@ -16,6 +16,7 @@ struct rwLayerStore_interface{
         std::string mountLabel,std::map<std::string,std::string> options,
         std::shared_ptr<LayerOptions>moreOptions,bool writeable,
         std::ifstream& diff)=0;
+        virtual bool savelayer()=0;
 };
 
 #endif // STORAGE_STORAGE_STORE_H)

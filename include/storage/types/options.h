@@ -103,6 +103,8 @@ extern std::string defaultConfigFile;
 extern std::string defaultOverrideConfigFile;
 extern std::string defaultRunRoot;
 extern std::string defaultGraphRoot;
+extern std::string defaultImagestore;
+extern std::string defaultlayerpath;
 extern int AutoUserNsMinSize;
 extern int AutoUserNsMaxSize;
 extern bool defaultConfigFileSet;

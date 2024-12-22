@@ -32,6 +32,7 @@ std::string toUpper(const std::string& str) {
 // Helper function to convert vector to string for error message
 std::string vectorToString(const std::vector<std::string>& vec) {
     std::string result;
+    if(vec.size() == 0) return "";
     for (const auto& item : vec) {
         if (!result.empty()) {
             result += ", ";

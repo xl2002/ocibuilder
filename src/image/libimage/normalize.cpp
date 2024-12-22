@@ -1,11 +1,20 @@
 #include "image/libimage/normalize.h"
+#include "image/types/reference/normalize.h"
 #include "utils/common/error.h"
 #include "image/image_types/v1/descriptor.h"
 #include "filesys/platforms/platforms.h"
 #include "filesys/platforms/default_unix.h"
-std::shared_ptr<named> NormalizeName(std::string name){
-    
-    return nullptr;
+std::shared_ptr<Named_interface> NormalizeName(std::string name){
+    auto ref=Parse(name);
+    auto named=std::dynamic_pointer_cast<Named_interface>(ref);
+    if(named==nullptr){
+        return nullptr;
+    }
+    auto registry=Domain(named);
+    name="localhost/"+name;
+    named=ParseNormalizedNamed(name);
+
+    return named;
 }
 std::shared_ptr<Named_interface>normalizeTaggedDigestedNamed(std::shared_ptr<Named_interface> named);
 std::tuple<std::string, std::shared_ptr<Named_interface>> normalizeTaggedDigestedString(std::string s) {

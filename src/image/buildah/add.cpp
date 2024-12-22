@@ -17,14 +17,18 @@ void Builder::Add(std::string destination,bool extract,std::shared_ptr<AddAndCop
     auto extractDirectory=boost::filesystem::path(mountPoint+"/diff") / boost::filesystem::path(destination);
     if(!boost::filesystem::exists(extractDirectory)){
         boost::filesystem::create_directories(extractDirectory);
+        extractDirectory.make_preferred();
     }
     for(auto source:sources){
         auto srcpath=boost::filesystem::path(source);
+        srcpath.make_preferred();
         if(!boost::filesystem::exists(srcpath)){
             std::cout<<"source is not exist"<<std::endl;
             continue;
         }
         if(boost::filesystem::is_directory(srcpath)){
+            // fs::path source = "baseimage";
+            // fs::path destination = "E:\\BaiduSyncdisk\\OCI\\oci_images\\overlay\\d874630577f501ab2e9884e45ea766ca159c3fabe8e3965017a0326ee7d9b5c6\\diff";
             Copy_directory(srcpath,extractDirectory);
         }else{
             // const boost::filesystem::path& sourcePath = srcpath.path();

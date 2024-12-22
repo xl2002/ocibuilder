@@ -1,5 +1,6 @@
 #include "image/transports/alltransports.h"
 #include "utils/common/go/string.h"
+#include "image/image_types/docker/docker_transport.h"
 // std::tuple<std::string, std::string, bool> Cut(const std::string &str, char delimiter) {
 //     size_t pos = str.find(delimiter);
 //     if (pos == std::string::npos) {
@@ -13,15 +14,18 @@ std::shared_ptr<ImageReference_interface> ParseImageName(std::string imgName){
     std::tie(transportName, withinTransport, valid) = Cut(imgName, ':');
 
     if (!valid) {
-        throw myerror("Invalid image name \"" + imgName + "\", expected colon-separated transport:reference");
+        // std::cerr << "Invalid image name \"" + imgName + "\", expected colon-separated transport:reference" << std::endl;
+        return nullptr;
     }
 
     auto transport = Get(transportName);
-    if (!transport) {
-        throw myerror("Invalid image name \"" + imgName + "\", unknown transport \"" + transportName + "\"");
+    if (transport==nullptr) {
+        // std::cerr << "Invalid image name \"" + imgName + "\", unknown transport \"" + transportName + "\"" << std::endl;
+        return nullptr;
     }
-
-    return transport->ParseReference(withinTransport);
+    std::shared_ptr<ImageReference_interface> ref;
+    std::tie(ref, std::ignore) =ParseReference(withinTransport);
+    return ref;
 }
 
 std::shared_ptr<ImageTransport_interface> TransportFromImageName(std::string imgName){

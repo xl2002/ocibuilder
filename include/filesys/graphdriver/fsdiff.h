@@ -8,17 +8,18 @@
 class NaiveDiffDriver : public ProtoDriver_interface, public DiffDriver_interface {
 public:
     // 构造函数，接受 shared_ptr 参数
-    ~NaiveDiffDriver(){
-        std::cout << "Destroying NaiveDiffDriver" << std::endl;
-        protoDriver.reset(); // 手动释放资源
-        layerIDMapUpdater.reset();
-        std::cout << "NaiveDiffDriver destroyed" << std::endl;
-    };
+    // ~NaiveDiffDriver(){
+    //     std::cout << "Destroying NaiveDiffDriver" << std::endl;
+    //     protoDriver.reset(); // 手动释放资源
+    //     layerIDMapUpdater.reset();
+    //     std::cout << "NaiveDiffDriver destroyed" << std::endl;
+    // };
+    ~NaiveDiffDriver()=default;
     NaiveDiffDriver()=default;
-    NaiveDiffDriver(std::shared_ptr<ProtoDriver_interface> protoDriver,
-                    std::shared_ptr<LayerIDMapUpdater_interface> updater)
-        : protoDriver(protoDriver ? protoDriver : throw std::invalid_argument("Invalid protoDriver")), 
-        layerIDMapUpdater(updater ? updater : throw std::invalid_argument("Invalid updater")) {}
+    // NaiveDiffDriver(std::shared_ptr<ProtoDriver_interface> protoDriver,
+    //                 std::shared_ptr<LayerIDMapUpdater_interface> updater)
+    //     : protoDriver(protoDriver ? protoDriver : throw std::invalid_argument("Invalid protoDriver")), 
+    //     layerIDMapUpdater(updater ? updater : throw std::invalid_argument("Invalid updater")) {}
 
     // 实现 ProtoDriver_interface 的 String 方法
     std::string String() override {
@@ -36,8 +37,8 @@ public:
     // void ApplyDiff(...);
     // void DiffSize(...);
 
-    std::shared_ptr<ProtoDriver_interface> protoDriver=nullptr; // 使用 shared_ptr 类型
-    std::shared_ptr<LayerIDMapUpdater_interface> layerIDMapUpdater=nullptr; // 使用 shared_ptr 类型
+    // std::shared_ptr<ProtoDriver_interface> protoDriver=nullptr; // 使用 shared_ptr 类型
+    // std::shared_ptr<LayerIDMapUpdater_interface> layerIDMapUpdater=nullptr; // 使用 shared_ptr 类型
 };
 
 // // NewNaiveDiffDriver 函数实现

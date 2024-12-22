@@ -6,6 +6,7 @@
             "type": "cppdbg",
             "request": "launch",
             "args": ["build","--tag","busybox-image:latest","."],
+            // "args":["push","10.68.1.145:5000/busybox-image:latest"],
             // "args": ["build","--annotation","\"version=1.0\"","--arch","amd64","--os","linux","--file","Dockerfile","--tag","busybox-image:latest","."],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
@@ -23,7 +24,7 @@
             },
             "windows": {
                 "MIMode": "gdb",
-                "miDebuggerPath": "D:\\Program Files\\mingw64\\mingw64\\mingw64\\bin\\g++.exe",
+                "miDebuggerPath": "D:\\softwares\\mingw64\\bin\\gdb.exe",
                 "program": "${workspaceFolder}/output/main.exe"
             },
             "setupCommands": [
@@ -35,7 +36,8 @@
             ],
             "logging": {
                 "engineLogging": true,
-                "trace": true // 启用跟踪
+                "trace": true, // 启用跟踪
+                "exceptions": true
             },
             "preLaunchTask": ""
             // "preLaunchTask": "build"
@@ -61,7 +63,7 @@
             },
             "windows": {
                 "MIMode": "gdb",
-                "miDebuggerPath": "D:\\Program Files\\mingw64\\mingw64\\mingw64\\bin\\g++.exe",
+                "miDebuggerPath": "D:\\softwares\\mingw64\\bin\\gdb.exe",
                 "program": "${workspaceFolder}/output/main.exe"
             },
             "setupCommands": [
@@ -89,7 +91,7 @@
             "externalConsole": false,
             "windows": {
                 "MIMode": "gdb",
-                "miDebuggerPath": "D:\\Program Files\\mingw64\\mingw64\\mingw64\\bin\\gdb.exe",
+                "miDebuggerPath": "D:\\softwares\\mingw64\\bin\\gdb.exe",
                 "program": "${workspaceFolder}/tests/main.exe"
             },
             "setupCommands": [

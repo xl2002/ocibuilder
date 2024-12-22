@@ -105,7 +105,7 @@ std::string makeAbsolute(const std::string& dest, const std::string& workingDir)
         bool hasSlash = (resultDest.find(PATH_SEPARATOR) != std::string::npos);
 
         // 使用 boost::filesystem::path 拼接路径，传入字符串形式的路径分隔符
-        resultDest = (boost::filesystem::path("/") / boost::filesystem::path(resultWorkingDir) / resultDest).string();
+        resultDest = (boost::filesystem::path(resultWorkingDir) / resultDest).string();
 
         // 确保保留末尾的斜杠
         if (hasSlash) {

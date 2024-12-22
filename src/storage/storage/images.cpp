@@ -42,34 +42,14 @@ void storage::Image::recomputeDigests() {
         }
 
         // 如果固定摘要为空且有效摘要不为空，设置第一个有效摘要
-        if (digest->digest.empty() && !validDigests.empty()) {
-            digest = std::make_shared<Digest>(validDigests[0]);
+        if (digest->digest.empty() && !Digests.empty()) {
+            digest = std::make_shared<Digest>(Digests[0]);
         }
 
         // 设置计算出的摘要列表
-        Digests = validDigests;
+        // Digests = validDigests;
     } catch (const myerror& e) {
         // 捕获并重新抛出 myerror 类型的异常
         throw;
     }
 }
-
-// std::shared_ptr<storage::Image> storage::ImageStore::Get(const std::string& id) {
-//     auto image=this->lookup(id);
-//     if(image!=nullptr){
-//         return std::make_shared<storage::Image>(*image);//复制一份
-//     }
-//     return nullptr;
-// }
-
-// std::shared_ptr<storage::Image> storage::ImageStore::lookup(const std::string& id){
-//     auto image=this->byid.find(id);
-//     if(image!=this->byid.end()){
-//         return image->second;
-//     }
-//     auto img2=this->byname.find(id);
-//     if(img2!=this->byname.end()){
-//         return img2->second;
-//     }
-//     return nullptr;
-// }

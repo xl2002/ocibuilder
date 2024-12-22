@@ -40,17 +40,20 @@ std::vector<uint8_t> Image(std::shared_ptr<PolicyContext>policyContext,std::shar
         std::cerr<<"containerimage is nullptr"<<std::endl;
         return std::vector<uint8_t>();
     }
-    std::string indexpath=containerimage->store->RunRoot()+"oci_registry/index.json";
+    std::string indexpath=containerimage->store->GetImageStoragePath()+"/index.json";
     if(!boost::filesystem::exists(indexpath)){
         std::cout<<"index.json is not exist"<<std::endl;
         return std::vector<uint8_t>();
     }
-    boost::filesystem::ifstream indexfile(indexpath,std::ios::binary|std::ios::app);
+    boost::filesystem::ifstream indexfile(indexpath,std::ios::binary);
     // 使用 std::ostringstream 将流的内容读取到字符串
     std::ostringstream buffer;
     buffer << indexfile.rdbuf();  // 读取整个文件内容
     std::string fileContent = buffer.str();  // 转换为 std::string
-    storage::index index=unmarshal<storage::index>(fileContent);
+    storage::index index;
+    if(!fileContent.empty()){
+        index=unmarshal<storage::index>(fileContent);
+    }
     indexfile.close();
     auto newmanifest=std::make_shared<storage::manifest>();
     newmanifest->mediaType=single->manifestMIMEType;
@@ -62,11 +65,16 @@ std::vector<uint8_t> Image(std::shared_ptr<PolicyContext>policyContext,std::shar
         newmanifest->annotations["org.opencontainers.image.ref.name"]=tagref->String();
     }
     index.manifests.push_back(*newmanifest);
+    index.schemaVersion=2;
+    // index.manifests->annotations["org.opencontainers.image.ref.name"]=tagref->String();
     // 5. 返回写入新镜像副本的清单
     std::string newindexcontent=marshal<storage::index>(index);
     std::ofstream newindexfile(indexpath,std::ios::out|std::ios::trunc);
     newindexfile<<newindexcontent;
     newindexfile.close();
+    // 更新layerstore的layer.json
+
+    
     return single->manifest;
 }
 /**
@@ -97,23 +105,28 @@ std::shared_ptr<copySingleImageResult> copier::copySingleImage(std::shared_ptr<U
     // 3. 更新manifest和config（按理来说config不会变化），并将manifest的layer存储到oci库
     auto pendingImage=std::dynamic_pointer_cast<containerImageSource>(rawSource);
     auto manifest=pendingImage->OCI1FromManifest();
-    auto config= pendingImage->config;
+    // auto config= pendingImage->config;
     //复制config到库
-    auto configdigest=FromBytes(config);
-    if(configdigest->String()!=pendingImage->configDigest->String()){//config可能已经变化
-        std::cerr<<"config changed"<<std::endl;
-        return nullptr;
+    if(pendingImage->SaveConfig()){
+        std::cout<<"save config success"<<std::endl;
     }
-    std::string storepath=pendingImage->store->RunRoot()+"oci_registry/blobs/sha256/"+configdigest->Encoded();
-    if(boost::filesystem::exists(storepath)){
-        std::cerr<<"config is exist"<<std::endl;
-        return nullptr;
-    }
-    boost::filesystem::ofstream file(storepath,std::ios::binary|std::ios::trunc|std::ios::out);
-    file.write(reinterpret_cast<const char*>(config.data()),config.size());
-    file.close();
+    // std::string storagepath=pendingImage->store->GetImageStoragePath()+"/blobs/sha256/";
+    // std::string newname;
+    // std::string configpath=storagepath+"config.json";
+    // if(boost::filesystem::exists(configpath)){
+    //     std::cerr<<"config is exist"<<std::endl;
+    //     return nullptr;
+    // }
+    // boost::filesystem::ofstream file(configpath,std::ios::binary|std::ios::trunc|std::ios::out);
+    // file.write(reinterpret_cast<const char*>(config.data()),config.size());
+    // file.close();
+    // auto configdigest=Fromfile(configpath);
+    // newname=storagepath+configdigest->Encoded();
+    // boost::filesystem::rename(configpath, newname);
+
+
     //更新manifest
-    auto blobsinfo_gzip=ic->manifestUpdates->InformationOnly->LayerInfos;
+    auto blobsinfo_gzip=ic->manifestUpdates->InformationOnly->LayerInfos;//获得压缩层的信息
     if(blobsinfo_gzip.size()!=manifest->Layers.size()){
         std::cerr<<"manifest num is not match"<<std::endl;
         return nullptr;
@@ -125,23 +138,34 @@ std::shared_ptr<copySingleImageResult> copier::copySingleImage(std::shared_ptr<U
     }
 
     //复制manifest到库
-    auto manifestbytes=marshal(*manifest);//manifest为指针，不能直接解析
-    auto manifestdigest=FromString(manifestbytes);//已经计算好的最终manifest的哈希值
-    
-    storepath=pendingImage->store->RunRoot()+"oci_registry/blobs/sha256/"+manifestdigest->Encoded();
-    if(boost::filesystem::exists(storepath)){
-        std::cerr<<"manifest is exist"<<std::endl;
-        return nullptr;
+    std::string manifestbytes=marshal(*manifest);//manifest为指针，不能直接解析
+    // auto manifestdigest1=FromString(manifestbytes);//已经计算好的最终manifest的哈希值
+    // std::string manifestpath=storagepath+"manifest.json";
+    // if(boost::filesystem::exists(manifestpath)){
+    //     std::cerr<<"manifest is exist"<<std::endl;
+    //     return nullptr;
+    // }
+    // boost::filesystem::ofstream file2(manifestpath,std::ios::binary|std::ios::trunc|std::ios::out);
+    // file2.write(reinterpret_cast<const char*>(manifestbytes.data()),manifestbytes.size());
+    // file2.close();
+    // auto manifestdigest=Fromfile(manifestpath);
+    // newname=storagepath+manifestdigest->Encoded();
+    // boost::filesystem::rename(manifestpath, newname);
+    auto manifestdigest=pendingImage->UploadManifest(manifestbytes);//保存manifest到库
+    if(manifestdigest==nullptr){
+        std::cerr<<"upload manifest failed"<<std::endl;
     }
-    boost::filesystem::ofstream file2(storepath,std::ios::binary|std::ios::trunc|std::ios::out);
-    file2.write(reinterpret_cast<const char*>(manifestbytes.data()),manifestbytes.size());
-    file2.close();
     // 4. 返回copySingleImageResult
     std::shared_ptr<copySingleImageResult> result = std::make_shared<copySingleImageResult>();
     result->manifest=stringToVector(manifestbytes);
     result->manifestMIMEType=pendingImage->manifestType;
     result->manifestDigest=manifestdigest;
     result->compressionAlgorithms.push_back(compressionAlgo);
+
+    auto removenum=boost::filesystem::remove_all(pendingImage->path);//删除缓存的buildah文件夹
+    if(removenum!=0){
+        std::cout<<"success remove tar tmp directory: "<< pendingImage->path<<std::endl;
+    }
     return result;
 }
 
@@ -206,7 +230,7 @@ std::tuple<std::shared_ptr<BlobInfo>,std::shared_ptr<Digest>> imageCopier::copyL
         return std::make_tuple(nullptr,nullptr);
     }
     std::string tmppath=copysource->path;
-    boost::filesystem::path layerpath(tmppath+"/"+srcInfo->Digest->digest);
+    boost::filesystem::path layerpath(tmppath+"/"+srcInfo->Digest->Encoded());
     if(!boost::filesystem::exists(layerpath)){
         std::cout<<"layerpath is not exist"<<std::endl;
     }
@@ -214,41 +238,52 @@ std::tuple<std::shared_ptr<BlobInfo>,std::shared_ptr<Digest>> imageCopier::copyL
 
     // 2. 构建gzip压缩算法，对文件流进行压缩
     auto alg=NewAlgorithm("gzip","gzip",std::vector<uint8_t>(),gzip_decompress,gzip_compress);
+    // std::string tempath=copysource->store->GetImageStoragePath()+"/blobs/sha256/layer.gz";
     std::ostringstream outputStream;
     alg->compressor(layerfile,outputStream);
     std::string gzipblob=outputStream.str();
-    auto buffer=stringToVector(gzipblob);
+    // auto buffer=stringToVector(gzipblob);
 
     // 3. 计算压缩后镜像层的sha256值
-    auto digest=FromBytes(buffer);
-    auto size=buffer.size();
-
-    // 4. 将压缩后的镜像层传输到镜像库
-    auto blobinfo=std::make_shared<BlobInfo>();
-    blobinfo->Digest=digest;
-    blobinfo->Size=size;
-    std::cout<<"copying layer: "<<blobinfo->Digest->String()<<std::endl;
-    blobinfo->MediaType=srcInfo->MediaType+"+gzip";
-    blobinfo->CompressionAlgorithm=alg;
-    std::string storagelayerpath=copysource->store->RunRoot()+"oci_registry/blobs/sha256/"+blobinfo->Digest->Encoded();
-    boost::filesystem::path p(storagelayerpath);
-    if(boost::filesystem::exists(p)){
-        std::cout<<"layer "<< storagelayerpath<<"already exists"<<std::endl;
-        return std::make_tuple(nullptr,nullptr);
-    }
-    boost::filesystem::ofstream bloblayer(p,std::ios::out|std::ios::binary|std::ios::trunc);
+    std::string storagelayerpath=copysource->store->GetImageStoragePath()+"/blobs/sha256/blobs";
+    boost::filesystem::ofstream bloblayer(storagelayerpath,std::ios::binary|std::ios::trunc);
     if(!bloblayer){
         std::cerr<<"Failed to open file: " << storagelayerpath << std::endl;
         return std::make_tuple(nullptr,nullptr);
     }
-    bloblayer.write(reinterpret_cast<const char*>(buffer.data()),size);
+    bloblayer<<gzipblob;
+    bloblayer.close();
+    auto BlobDigest=Fromfile(storagelayerpath);
+    std::string newBlobname=copysource->store->GetImageStoragePath()+"/blobs/sha256/"+BlobDigest->Encoded();
+    boost::filesystem::rename(storagelayerpath, newBlobname);
+    // auto digest=FromString(gzipblob);
+    auto size=gzipblob.size();
+    std::cout<<"success copying layer: "<<BlobDigest->String()<<std::endl;
+    // 4. 将压缩后的镜像层传输到镜像库
+    auto blobinfo=std::make_shared<BlobInfo>();
+    blobinfo->Digest=BlobDigest;
+    blobinfo->Size=size;
+    blobinfo->MediaType=srcInfo->MediaType+"+gzip";
+    blobinfo->CompressionAlgorithm=alg;
+    // std::string storagelayerpath=copysource->store->GetImageStoragePath()+"/blobs/sha256/"+blobinfo->Digest->Encoded();
+    // boost::filesystem::path p(storagelayerpath);
+    // if(boost::filesystem::exists(p)){
+    //     std::cout<<"layer "<< storagelayerpath<<"already exists"<<std::endl;
+    //     return std::make_tuple(nullptr,nullptr);
+    // }
+    // boost::filesystem::ofstream bloblayer(p,std::ios::binary);
+    // if(!bloblayer){
+    //     std::cerr<<"Failed to open file: " << storagelayerpath << std::endl;
+    //     return std::make_tuple(nullptr,nullptr);
+    // }
+    // bloblayer<<gzipblob;
     // 检查写入是否成功
-    if (!bloblayer) {
-        std::cerr << "Error writing to file." << std::endl;
-        return std::make_tuple(nullptr,nullptr);
-    }
+    // if (!bloblayer) {
+    //     std::cerr << "Error writing to file." << std::endl;
+    //     return std::make_tuple(nullptr,nullptr);
+    // }
     // 关闭文件流
     layerfile.close();
-    bloblayer.close();
-    return std::make_tuple(blobinfo,digest);
+    // bloblayer.close();
+    return std::make_tuple(blobinfo,BlobDigest);
 }

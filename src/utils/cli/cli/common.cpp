@@ -75,7 +75,7 @@ shared_ptr<Store> getStore(Command* cmd){
     //todo
 
     StoreOptions options = DefaultStoreOptions();
-    
+    // std::cout<<"run root: "<<options.run_root<<std::endl;
     // if (cmd->Flag_find("root")->changed || cmd->Flag_find("runroot")->changed) {    
     // }
 
@@ -302,4 +302,25 @@ std::string Abspath(const std::string& path) {
         // 捕获未知异常
         throw myerror("Unknown error occurred.");
     }
+}
+/**
+ * @brief 模板定义
+ * 
+ * @return string 返回模板的字符串
+ */
+
+string UsageTemplate(){
+    string str{"Usage:{{if .Runnable}}\
+                {{.UseLine}}{{end}}{{if .HasAvailableSubCommands}}\
+                {{.CommandPath}} [command]{{end}}{{if gt (len .Aliases) 0}}\
+                Aliases:\
+                {{.NameAndAliases}}{{end}}{{if .HasExample}}\
+                Examples:\
+                {{.Example}}{{end}}{{if .HasAvailableSubCommands}}\
+                Available Commands:{{range .Commands}}{{if (or .IsAvailableCommand (eq .Name \"help\"))}}\
+                {{rpad .Name .NamePadding }} {{.Short}}{{end}}{{end}}{{end}}{{if .HasAvailableLocalFlags}}\
+                Flags:\
+                {{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasAvailableInheritedFlags}}\
+                {{end}}"};
+    return str;
 }

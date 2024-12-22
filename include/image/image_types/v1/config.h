@@ -56,12 +56,12 @@ struct ImageConfig {
         jv=boost::json::object{
             // {"user",image.user},
             // {"exposedPorts",boost::json::value_from(image.exposedPorts)},
-            {"env",boost::json::value_from(image.env)},
+            {"Env",boost::json::value_from(image.env)},
             // {"entrypoint",boost::json::value_from(image.entrypoint)},
-            {"cmd",boost::json::value_from(image.cmd)},
+            {"Cmd",boost::json::value_from(image.cmd)},
             // {"volumes",boost::json::value_from(image.volumes)},
             // {"workingDir",image.workingDir},
-            {"labels",boost::json::value_from(image.labels)}
+            {"Labels",boost::json::value_from(image.labels)}
             // {"stopSignal",image.stopSignal},
             // {"argsEscaped",image.argsEscaped}
         };
@@ -71,12 +71,12 @@ struct ImageConfig {
         ImageConfig image;
         // image.user=obj.at("user").as_string();
         // image.exposedPorts=boost::json::value_to<std::map<std::string, bool>>(obj.at("exposedPorts"));
-        image.env=boost::json::value_to<std::vector<std::string>>(obj.at("env"));
+        image.env=boost::json::value_to<std::vector<std::string>>(obj.at("Env"));
         // image.entrypoint=boost::json::value_to<std::vector<std::string>>(obj.at("entrypoint"));
-        image.cmd=boost::json::value_to<std::vector<std::string>>(obj.at("cmd"));
+        image.cmd=boost::json::value_to<std::vector<std::string>>(obj.at("Cmd"));
         // image.volumes=boost::json::value_to<std::map<std::string, bool>>(obj.at("volumes"));
         // image.workingDir=obj.at("workingDir").as_string();
-        image.labels=boost::json::value_to<std::map<std::string, std::string>>(obj.at("labels"));
+        image.labels=boost::json::value_to<std::map<std::string, std::string>>(obj.at("Labels"));
         // image.stopSignal=obj.at("stopSignal").as_string();
         // image.argsEscaped=obj.at("argsEscaped").as_bool();
         return image;
@@ -123,8 +123,8 @@ struct History {
             {"created",timePointToISOString(image.created)},
             {"created_by",image.createdBy},
             {"author",image.author},
-            {"comment",image.comment},
-            {"empty_layer",image.emptyLayer}
+            {"comment",image.comment}
+            // {"empty_layer",image.emptyLayer}
         };
     }
     friend History tag_invoke(boost::json::value_to_tag<History>, const boost::json::value& jv) {
@@ -134,7 +134,7 @@ struct History {
         image.createdBy=obj.at("created_by").as_string().c_str();
         image.author=obj.at("author").as_string().c_str();
         image.comment=obj.at("comment").as_string().c_str();
-        image.emptyLayer=obj.at("empty_layer").as_bool();
+        // image.emptyLayer=obj.at("empty_layer").as_bool();
         return image;
     }
 };

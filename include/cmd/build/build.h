@@ -38,7 +38,7 @@ Flagset* GetFromAndBudFlags(FromAndBudResults* fr);
 Flagset* GetUserNSFlags(UserNSResults* ur);
 void init_buildcmd();
 void buildCmd(Command& cmd, vector<string> args,BuildOptions* iopts);
-string UsageTemplate();
+// string UsageTemplate();
 
 void RemoveAll(const std::string& path);
 #endif

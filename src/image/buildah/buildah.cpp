@@ -6,6 +6,8 @@
 #include "storage/storage/storage_transport.h"
 #include "image/image_types/manifest/manifest.h"
 #include "image/buildah/new.h"
+#include "utils/common/json.h"
+#include "image/image_types/v1/config.h"
 // std::shared_ptr<PolicyTransportScopes> storageAllowedPolicyScopes=std::make_shared<PolicyTransportScopes>();
 void Builder::Delete(){
     try{
@@ -159,7 +161,9 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,std::shared_ptr<Dige
     }catch(const myerror& e){
         throw myerror("obtaining default signature policy: "+std::string(e.what()));
     }
-    commitPolicy->Transports[Transport->Name()]=*storageAllowedPolicyScopes;
+    if(commitPolicy!=nullptr){
+        commitPolicy->Transports[Transport->Name()]=*storageAllowedPolicyScopes;
+    }
     auto policyContext=std::shared_ptr<PolicyContext>();
     try{
         policyContext=NewPolicyContext(commitPolicy);
@@ -218,30 +222,32 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,std::shared_ptr<Dige
     }catch(const myerror& e){
         throw myerror("copying layers and metadata for container "+this->ContainerID+": "+std::string(e.what()));
     }
-    if(dest->Transport()->Name()==Transport->Name()){
-        std::shared_ptr<storage::Image>img;
-        std::shared_ptr<ImageReference_interface>dest2=nullptr;
-        try{
-            std::tie(dest2,img)=ResolveReference(dest);
-        }catch(const myerror& e){
-            throw myerror("locating image "+ImageName(dest)+" in local storage: "+std::string(e.what()));
-        }
-        dest=dest2;
-        imgID=img->ID;
-        std::vector<std::string>toPruneNames(img->Names.size());
-        for(auto& name:img->Names){
-            if(nameToRemove!=""&& name.find(nameToRemove) != std::string::npos){
-                toPruneNames.push_back(name);
-            }
-        }
-        if(toPruneNames.size()>0){
+    // if(dest->Transport()->Name()==Transport->Name()){
+    //     std::shared_ptr<storage::Image>img;
+    //     std::shared_ptr<ImageReference_interface>dest2=nullptr;
+    //     try{
+    //         std::tie(dest2,img)=ResolveReference(dest);
+    //     }catch(const myerror& e){
+    //         throw myerror("locating image "+ImageName(dest)+" in local storage: "+std::string(e.what()));
+    //     }
+    //     dest=dest2;
+    //     imgID=img->ID;
+    //     std::vector<std::string>toPruneNames(img->Names.size());
+    //     for(auto& name:img->Names){
+    //         if(nameToRemove!=""&& name.find(nameToRemove) != std::string::npos){
+    //             toPruneNames.push_back(name);
+    //         }
+    //     }
+    //     if(toPruneNames.size()>0){
             
-        }
-        if(options->IIDFile!=""){
+    //     }
+    //     if(options->IIDFile!=""){
 
-        }
-    }
-
+    //     }
+    // }
+    //得到imgID，为镜像的config的digest
+    auto manifest=unmarshal<::Manifest>(vectorToString(manifestBytes));
+    imgID=manifest.Config.Digests.Encoded();
     for(auto m:extraLocalContent){
         auto filename=m.first;
         auto content=m.second;
@@ -253,14 +259,14 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,std::shared_ptr<Dige
         throw myerror("computing digest of manifest of new image "+this->ContainerID+": "+std::string(e.what()));
     }
     std::shared_ptr<Canonical_interface> ref=nullptr;
-    auto name=dest->DockerReference();
-    if(name!=nullptr){
-        try{
-            ref=WithDigest(name,manifestDigest);
-        }catch(const myerror& e){
-            throw; 
-        }
-    }
+    // auto name=dest->DockerReference();
+    // if(name!=nullptr){
+    //     try{
+    //         ref=WithDigest(name,manifestDigest);
+    //     }catch(const myerror& e){
+    //         throw;
+    //     }
+    // }
     if(options->Manifest!=""){
 
     }

@@ -1,6 +1,6 @@
 # 使用 BusyBox 作为基础镜像
 # FROM busybox:latest
-From ./baseimage
+FROM ./baseimage
 # 设置元数据标签
 # LABEL maintainer="your_email@example.com"
 # LABEL version="1.0"

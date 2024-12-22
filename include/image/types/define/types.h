@@ -11,17 +11,16 @@
 using std::string;
 typedef string TeeType;
 
-const std::string
-	BuilderIdentityAnnotation = "io.buildah.version",
-    Package="buildah",
-    version="1.0",
-    DefaultRuntime="runc",
-    OCIv1ImageManifest="application/vnd.oci.image.manifest.v1+json",
-    Dockerv2ImageManifest="application/vnd.docker.distribution.manifest.v2+json",
-    OCI="oci",
-    DOCKER="docker",
-	SEV="sev",
-	SNP="snp";
+extern std::string BuilderIdentityAnnotation;
+extern std::string Package;
+extern std::string version;
+extern std::string DefaultRuntime;
+extern std::string OCIv1ImageManifest;
+extern std::string Dockerv2ImageManifest;
+extern std::string OCI;
+extern std::string DOCKER;
+extern std::string SEV;
+extern std::string SNP;
 struct IDMap;
 void TempDirForURL(std::string dir,std::string prefix, std::string url,std::string& name, std::string& subdir);
 enum ShortNameMode {

@@ -1,27 +1,10 @@
 #include "image/digest/algorithm.h"
 #include <sstream>
 #include <iomanip>
+#include <fstream>
 
-// Algorithm_sha256 SHA256("sha256");
-// Algorithm_sha256 Canonical_sha256=SHA256;
-// // std::map<Algorithm, std::string (*)(const std::string&)> algorithms = {
-// //     { SHA256, [](const std::string& data) -> std::string {
-// //         unsigned char hash[SHA256_DIGEST_LENGTH];
-// //         SHA256(reinterpret_cast<const unsigned char*>(data.c_str()), data.size(), hash);
-// //         std::ostringstream oss;
-// //         for (const auto& byte : hash) {
-// //             oss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte);
-// //         }
-// //         return oss.str();
-// //     }}
-// // };
-
-// // 正则表达式映射
-// std::map<Algorithm_sha256, std::regex> anchoredEncodedRegexps = {
-//     { SHA256, std::regex("^[a-f0-9]{64}$") }
-// };
 std::map<Algorithm_sha256, std::string> algorithms = {
-    { SHA256, "sha256" }
+    { sha_256, "sha256" }
 };
 /**
  * @brief 将输入的字符串data计算出对应的哈希，返回Digest指针
@@ -51,16 +34,7 @@ std::shared_ptr<Digest> Algorithm_sha256::FromBytes(std::vector<uint8_t> p){
  */
 std::shared_ptr<Hash_256> Algorithm_sha256::Hash() {
     auto hash_256=new Hash_256();
-    hash_256->sha256->datalen = 0;
-	hash_256->sha256->bitlen = 0;
-	hash_256->sha256->state[0] = 0x6a09e667;
-	hash_256->sha256->state[1] = 0xbb67ae85;
-	hash_256->sha256->state[2] = 0x3c6ef372;
-	hash_256->sha256->state[3] = 0xa54ff53a;
-	hash_256->sha256->state[4] = 0x510e527f;
-	hash_256->sha256->state[5] = 0x9b05688c;
-	hash_256->sha256->state[6] = 0x1f83d9ab;
-	hash_256->sha256->state[7] = 0x5be0cd19;
+    SHA256_Init(hash_256->sha256.get());
     return std::shared_ptr<Hash_256>(hash_256);
 }
 bool Algorithm_sha256::Available(){
@@ -117,8 +91,8 @@ std::string Algorithm_sha256::Encode(std::vector<uint8_t> p){
     for (auto byte : p) {
         ss << std::setw(2) << std::setfill('0') << std::hex << (int)byte;
     }
-
-    return ss.str();
+    std::string ret=ss.str();
+    return ret;
 }
 /**
  * @brief 构建一个新的digester实例
@@ -140,4 +114,36 @@ std::shared_ptr<Digester_interface> Algorithm_sha256::Digester(){
 
 std::string Algorithm_sha256::String(){
     return this->value;
+}
+std::shared_ptr<Digest> Algorithm_sha256::Fromfile(const std::string& filepath) {
+    std::ifstream file(filepath, std::ios::binary);
+    if (!file.is_open()) {
+        throw std::runtime_error("无法打开文件: " + filepath);
+    }
+
+    SHA256_CTX sha256;
+    SHA256_Init(&sha256);
+
+    char buffer[8192];
+    while (file.read(buffer, sizeof(buffer))) {
+        SHA256_Update(&sha256, buffer, file.gcount());
+    }
+    // 处理最后剩余的数据
+    if (file.gcount() > 0) {
+        SHA256_Update(&sha256, buffer, file.gcount());
+    }
+
+    unsigned char hash[SHA256_DIGEST_LENGTH];
+    SHA256_Final(hash, &sha256);
+
+    // 转换为十六进制字符串
+    std::ostringstream oss;
+    for (int i = 0; i < SHA256_DIGEST_LENGTH; ++i) {
+        oss << std::hex << std::setw(2) << std::setfill('0') << (int)hash[i];
+    }
+    file.close();
+    // return oss.str();
+    auto digest=std::make_shared<Digest>();
+    digest->digest="sha256:"+oss.str();
+    return digest;
 }

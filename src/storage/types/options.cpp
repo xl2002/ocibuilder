@@ -174,6 +174,7 @@ std::string expandEnvPath(const std::string& path, int rootlessUID) {
 
     try {
         // 解析符号链接
+        std::cout<<boost::filesystem::current_path().string()<<std::endl;
         expandedPath = boost::filesystem::canonical(expandedPath).string();
     } catch (const boost::filesystem::filesystem_error&) {
         // 如果解析符号链接失败，返回绝对路径
@@ -574,7 +575,9 @@ std::shared_ptr<Store> GetStore(StoreOptions options) {
         s->auto_ns_max_size = auto_ns_max_size;
         s->disable_volatile = finalOptions.disable_volatile;
         s->transient_store = finalOptions.transient_store;
-        
+        if(s->image_store_dir.empty()){ 
+            s->image_store_dir = s->GetImageStoragePath();
+        }
         // 加载 store
         s->load();
 

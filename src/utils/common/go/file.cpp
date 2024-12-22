@@ -111,49 +111,152 @@ void  WriteFile(const std::string& iidfile, const std::string& imageID) {
         // return std::make_tuple(imageID, ref, std::current_exception());
     }
 }
+bool isDirectoryWritable(const fs::path& dirPath) {
+    try {
+        if (!fs::exists(dirPath)) {
+            std::cerr << "Directory does not exist: " << dirPath << std::endl;
+            return false;
+        }
+        if (!fs::is_directory(dirPath)) {
+            std::cerr << "Path is not a directory: " << dirPath << std::endl;
+            return false;
+        }
+
+        // 获取权限状态
+        fs::file_status status = fs::status(dirPath);
+
+        // 检查是否可写
+        if ((status.permissions() & fs::perms::owner_write) != fs::perms::no_perms) {
+            return true; // 可写
+        } else {
+            return false; // 不可写
+        }
+    } catch (const fs::filesystem_error& e) {
+        std::cerr << "Error checking directory: " << e.what() << std::endl;
+        return false;
+    }
+}
+void makeDirectoryWritable(const fs::path& dirPath) {
+    try {
+        if (!fs::exists(dirPath)) {
+            std::cerr << "Directory does not exist: " << dirPath << std::endl;
+            return;
+        }
+
+        // 修改权限，添加写权限
+        fs::permissions(dirPath, fs::perms::owner_write | fs::perms::add_perms);
+
+        std::cout << "Permissions updated. Directory is now writable." << std::endl;
+    } catch (const fs::filesystem_error& e) {
+        std::cerr << "Error changing permissions: " << e.what() << std::endl;
+    }
+}
 /**
  * @brief 递归复制目录并统计数据传输总大小
  * @param source 源目录路径
  * @param destination 目标目录路径
  * @return int64_t 传输的数据总大小（字节）
  */
-int64_t Copy_directory(const fs::path& source, const fs::path& destination) {
+// int64_t Copy_directory(const fs::path& source, const fs::path& destination) {
+//     int64_t total_size = 0; // 用于统计传输的数据大小
+
+//     try {
+//         // 检查源路径是否存在且是目录
+//         if (!fs::exists(source) || !fs::is_directory(source)) {
+//             throw std::runtime_error("Source directory does not exist or is not a directory.");
+//         }
+        
+//         // 如果目标目录不存在，创建它
+//         if (!fs::exists(destination)) {
+//             if(!isDirectoryWritable(destination)){
+//                 makeDirectoryWritable(destination);
+//             }
+//             fs::create_directories(destination);
+//         }
+
+//         // 遍历源目录内容
+//         for (const auto& entry : fs::directory_iterator(source)) {
+//             const fs::path& sourcePath = entry.path();
+//             fs::path destinationPath = destination / sourcePath.filename();
+
+//             if (fs::is_directory(sourcePath)) {
+//                 // 如果是子目录，递归调用
+//                 total_size += Copy_directory(sourcePath, destinationPath);
+//             } else if (fs::is_regular_file(sourcePath)) {
+//                 if (!fs::exists(sourcePath) || !fs::is_regular_file(sourcePath)) {
+//                     std::cerr << "Source path is not valid or not a file: " << sourcePath << std::endl;
+//                 }
+//                 fs::file_status sourceStatus = fs::status(sourcePath);
+//                 if ((sourceStatus.permissions() & fs::perms::owner_read) == fs::perms::no_perms) {
+//                     std::cerr << "Source file is not readable: " << sourcePath << std::endl;
+//                 }
+
+//                 fs::file_status destinationStatus = fs::status(destinationPath.parent_path());
+//                 if ((destinationStatus.permissions() & fs::perms::owner_write) == fs::perms::no_perms) {
+//                     std::cerr << "Destination directory is not writable: " << destinationPath << std::endl;
+//                 }
+
+//                 // 如果是文件，获取文件大小并复制
+//                 int64_t file_size = fs::file_size(sourcePath);
+//                 total_size += file_size; // 累加文件大小
+//                 fs::copy_file(sourcePath, destinationPath, fs::copy_option::overwrite_if_exists);
+//             } else {
+//                 std::cerr << "Skipping unsupported file type: " << sourcePath.string() << std::endl;
+//             }
+//         }
+//     } catch (const std::exception& e) {
+//         std::cerr << "Error copying directory: " << e.what() << std::endl;
+//     }
+
+//     return total_size; // 返回总传输大小
+// }
+int64_t Copy_directory(fs::path& source, fs::path& destination) {
+    // 检查源目录是否存在
     int64_t total_size = 0; // 用于统计传输的数据大小
-
-    try {
-        // 检查源路径是否存在且是目录
-        if (!fs::exists(source) || !fs::is_directory(source)) {
-            throw std::runtime_error("Source directory does not exist or is not a directory.");
-        }
-
-        // 如果目标目录不存在，创建它
-        if (!fs::exists(destination)) {
-            fs::create_directories(destination);
-        }
-
-        // 遍历源目录内容
-        for (const auto& entry : fs::directory_iterator(source)) {
-            const fs::path& sourcePath = entry.path();
-            fs::path destinationPath = destination / sourcePath.filename();
-
-            if (fs::is_directory(sourcePath)) {
-                // 如果是子目录，递归调用
-                total_size += Copy_directory(sourcePath, destinationPath);
-            } else if (fs::is_regular_file(sourcePath)) {
-                // 如果是文件，获取文件大小并复制
-                int64_t file_size = fs::file_size(sourcePath);
-                total_size += file_size; // 累加文件大小
-                fs::copy_file(sourcePath, destinationPath, fs::copy_option::overwrite_if_exists);
-            } else {
-                std::cerr << "Skipping unsupported file type: " << sourcePath.string() << std::endl;
-            }
-        }
-    } catch (const std::exception& e) {
-        std::cerr << "Error copying directory: " << e.what() << std::endl;
+    source=fs::absolute(source);
+    if (!fs::exists(source) || !fs::is_directory(source)) {
+        throw std::runtime_error("源目录不存在或不是一个目录: " + source.string());
     }
 
-    return total_size; // 返回总传输大小
+    // 检查目标路径是否存在，不存在则创建
+    if (!fs::exists(destination)) {
+        fs::create_directories(destination);
+    } else if (!fs::is_directory(destination)) {
+        throw std::runtime_error("目标路径已存在但不是一个目录: " + destination.string());
+    }
+
+    // int64_t copy_count = 0; // 成功复制的文件和目录计数
+
+    // 遍历源目录中的所有文件和子目录
+    for (fs::recursive_directory_iterator it(source), end; it != end; ++it) {
+        const fs::path& current = it->path();
+        fs::path relative_path = fs::relative(current, source); // 计算相对路径
+        fs::path target = destination / relative_path;          // 构造目标路径
+
+        try {
+            if (fs::is_directory(current)) {
+                // 如果是目录，则创建对应目录
+                fs::create_directory(target);
+                // ++copy_count;
+            } else if (fs::is_regular_file(current)) {
+                // 如果是文件，则复制到目标路径
+                // 如果是文件，获取文件大小并复制
+                int64_t file_size = fs::file_size(current);
+                total_size += file_size; // 累加文件大小
+                fs::copy_file(current, target, fs::copy_option::overwrite_if_exists);
+                // ++copy_count;
+            } else {
+                // 跳过符号链接或其他类型的文件
+                std::cerr << "跳过不支持的文件类型: " << current << std::endl;
+            }
+        } catch (const fs::filesystem_error& e) {
+            std::cerr << "复制失败: " << current << " -> " << target << "\n原因: " << e.what() << std::endl;
+        }
+    }
+
+    return total_size;
 }
+
 bool IsPathSeparator(char c) {
     return c == Separator;
 }
@@ -268,11 +371,18 @@ std::string MkdirTemp(std::string dir, std::string pattern) {
         dir += "/";
     }
 
-    // 生成 9 位随机数
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dist(100000000, 999999999); // 9 位随机数范围
-    int randomNumber = dist(gen);
+    // 获取当前时间戳（秒）
+    auto now = std::chrono::system_clock::now();
+    auto duration = now.time_since_epoch();
+    auto timestamp = std::chrono::duration_cast<std::chrono::seconds>(duration).count();
+
+    // 生成9位随机数，取时间戳的一部分
+    int randomNumber = static_cast<int>(timestamp % 1000000000); // 截取时间戳的后9位
+
+    // 确保9位随机数的范围在 100000000 到 999999999 之间
+    if (randomNumber < 100000000) {
+        randomNumber += 100000000;  // 如果随机数少于9位，确保它是9位
+    }
 
     // 构造完整目录名
     std::ostringstream tempDirName;
@@ -295,4 +405,27 @@ std::string MkdirTemp(std::string dir, std::string pattern) {
 
     // 返回创建的目录路径
     return tempDirPath.string();
+}
+namespace fs = boost::filesystem;
+
+void Copy_file(const fs::path& src, const fs::path& dest) {
+    try {
+        // 检查源文件是否存在
+        if (!fs::exists(src) || !fs::is_regular_file(src)) {
+            throw std::runtime_error("Source file does not exist or is not a regular file: " + src.string());
+        }
+
+        // 检查目标文件的父目录是否存在，不存在则创建
+        if (!fs::exists(dest.parent_path())) {
+            fs::create_directories(dest.parent_path());
+        }
+
+        // 使用 Boost.Filesystem 的文件复制功能
+        fs::copy_file(src, dest, fs::copy_option::overwrite_if_exists);
+        std::cout << "File copied successfully from " << src.string() << " to " << dest.string() << std::endl;
+    } catch (const fs::filesystem_error& ex) {
+        std::cerr << "Filesystem error: " << ex.what() << std::endl;
+    } catch (const std::exception& ex) {
+        std::cerr << "Error: " << ex.what() << std::endl;
+    }
 }

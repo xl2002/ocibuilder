@@ -14,13 +14,13 @@ class Reference_interface{
     virtual string String()=0;
 };
 
-class Named_interface:public Reference_interface{
+class Named_interface:virtual public Reference_interface{
     public:
     virtual ~Named_interface()=default;
     virtual string Name()=0;
 };
 
-class Canonical_interface:public Named_interface{
+class Canonical_interface:virtual public Named_interface{
     public:
     virtual ~Canonical_interface()=default;
     virtual Digest Digests()=0;
@@ -37,7 +37,7 @@ class canonical:public Canonical_interface{
     string Name() override;
     Digest Digests() override;
 };
-class NamedTagged_interface:public Named_interface{
+class NamedTagged_interface:virtual public Named_interface{
     public:
     virtual ~NamedTagged_interface()=default;
     virtual string Tag()=0;
@@ -49,13 +49,13 @@ class Digested_interface:public Reference_interface{
     virtual ~Digested_interface()=default;
     virtual Digest Digest()=0;
 };
-class Tagged_interface:public Reference_interface{
+class Tagged_interface:virtual public Reference_interface{
     public:
     virtual ~Tagged_interface()=default;
     virtual string Tag()=0;
     // string String() override;
 };
-class namedRepository_interface:public Named_interface{
+class namedRepository_interface:virtual public Named_interface{
     public:
     virtual ~namedRepository_interface()=default;
     virtual std::string Domain()=0;
@@ -95,7 +95,7 @@ class repository:public namedRepository_interface{
     string Path() override;
 };
 
-struct taggedReference:public NamedTagged_interface{
+struct taggedReference:public Tagged_interface,public NamedTagged_interface,public namedRepository_interface{
     std::shared_ptr<namedRepository_interface> namedRepository=nullptr;
     std::string tag;
 
@@ -103,13 +103,39 @@ struct taggedReference:public NamedTagged_interface{
     taggedReference(std::shared_ptr<namedRepository_interface> repo, const std::string& t)
         : namedRepository(repo), tag(t) {}
     std::string String()override{
-        return namedRepository->Name() + ":" + tag;
+        return this->Name() + ":" + tag;
     }
     string Name() override{
         return namedRepository->Name();
     }
     std::string Tag() override{
         return tag;
+    }
+    std::string Domain() override{
+        return namedRepository->Domain();
+    }
+    std::string Path() override{
+        return namedRepository->Path();
+    }
+};
+struct canonicalReference:public Canonical_interface{
+    std::shared_ptr<namedRepository_interface> namedRepository=nullptr;
+    std::shared_ptr<Digest> digest=std::make_shared<Digest>();
+    canonicalReference()=default;
+    std::string String()override{
+        if(namedRepository==nullptr){
+            return digest->String();
+        }
+        return namedRepository->Name() + "@" + digest->String();
+    }
+    std::string Name()override{
+        if(namedRepository==nullptr){
+            return digest->String();
+        }
+        return namedRepository->Name();
+    }
+    Digest Digests()override{
+        return *digest;
     }
 };
 std::shared_ptr<Canonical_interface> WithDigest(std::shared_ptr<Named_interface> name,std::shared_ptr<Digest> digest);

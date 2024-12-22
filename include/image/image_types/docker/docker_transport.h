@@ -26,5 +26,5 @@ public:
     std::shared_ptr<ImageSource_interface> NewImageSource(std::shared_ptr<SystemContext>sys) override;
     std::shared_ptr<ImageDestination_interface> NewImageDestination(std::shared_ptr<SystemContext>sys) override;
 };
-
+std::tuple<std::shared_ptr<ImageReference_interface>,std::shared_ptr<myerror>> ParseReference(std::string refString);
 #endif // DOCKER_DOCKER_TRANSPORT_H

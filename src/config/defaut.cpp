@@ -289,7 +289,7 @@ std::vector<std::string> getDefaultComposeProviders(){
     return defaultUnixComposeProviders;
 }
 std::string getDefaultTmpDir(){
-    return "/var/tmp";
+    return defaultRunRoot+"\\tmp";
 }
 std::string defaultCgroupManager(){
     return CgroupfsCgroupsManager;

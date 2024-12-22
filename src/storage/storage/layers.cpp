@@ -1,5 +1,6 @@
 #include "storage/storage/layers.h"
 #include "utils/common/json.h"
+#include <boost/filesystem.hpp>
 using namespace boost::json;
 std::vector<std::string> dedupeStrings(const std::vector<std::string>& names) {
     std::unordered_set<std::string> seen;  // 用于记录已出现的元素
@@ -102,18 +103,7 @@ std::tuple<std::shared_ptr<Layer>,int64_t> layerStore::create(
             parent = parentLayer->ID;
         }
         // 2. 定义相关变量
-        // 	var (
-        // 	templateIDMappings         *idtools.IDMappings
-        // 	templateMetadata           string
-        // 	templateCompressedDigest   digest.Digest
-        // 	templateCompressedSize     int64
-        // 	templateUncompressedDigest digest.Digest
-        // 	templateTOCDigest          digest.Digest
-        // 	templateUncompressedSize   int64
-        // 	templateCompressionType    archive.Compression
-        // 	templateUIDs, templateGIDs []uint32
-        // 	templateTSdata             []byte
-        // )
+
         // 初始化模板层相关变量
         std::shared_ptr<IDMappings> templateIDMappings = nullptr;
         std::string templateMetadata = "";
@@ -248,38 +238,7 @@ std::vector<std::shared_ptr<Layer>> parseLayersFromJson(const std::string& jsonD
         for(auto& layer:layers){
             Layers.push_back(std::make_shared<Layer>(layer));
         }
-        // value jv = parse(jsonData);
-        // const auto& arr = jv.as_array();
 
-        // for (const auto& item : arr) {
-        //     const auto& obj = item.as_object();
-
-        //     auto layer = std::make_shared<Layer>();
-        //     layer->ID = obj.at("ID").as_string().c_str();
-        //     layer->Parent = obj.at("Parent").as_string().c_str();
-        //     layer->Metadata = obj.at("Metadata").as_string().c_str();
-        //     layer->MountLabel = obj.at("MountLabel").as_string().c_str();
-        //     layer->MountPoint = obj.at("MountPoint").as_string().c_str();
-        //     layer->mountCount = obj.at("mountCount").as_int64();
-        //     layer->compressedSize = obj.at("compressedSize").as_int64();
-        //     layer->uncompressedSize = obj.at("uncompressedSize").as_int64();
-        //     layer->readOnly = obj.at("readOnly").as_bool();
-        //     layer->volatileStore = obj.at("volatileStore").as_bool();
-
-        //     // 解析 Names 数组
-        //     const auto& namesArr = obj.at("Names").as_array();
-        //     for (const auto& name : namesArr) {
-        //         layer->Names.push_back(name.as_string().c_str());
-        //     }
-
-        //     // 解析 BigDataNames 数组
-        //     const auto& bigDataNamesArr = obj.at("BigDataNames").as_array();
-        //     for (const auto& bigName : bigDataNamesArr) {
-        //         layer->BigDataNames.push_back(bigName.as_string().c_str());
-        //     }
-
-        //     layers.push_back(layer);
-        // }
     } catch (const std::exception& ex) {
         std::cerr << "Failed to parse JSON: " << ex.what() << std::endl;
     }
@@ -315,7 +274,7 @@ bool layerStore::load(bool lockedForWriting) {
             file.seekg(0, std::ios::end);
             std::streampos fileSize = file.tellg();
             if(fileSize == 0) {
-                std::cout<< "Empty file: " << path << std::endl;
+                std::cout<< "the layer store is empty, and we will skip this layer" << std::endl;
                 return true;
             }
             std::string jsonData((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
@@ -369,4 +328,23 @@ bool layerStore::load(bool lockedForWriting) {
         std::cerr << "Error in layerStore::load: " << e.what() << std::endl;
         return false;
     }
+}
+bool layerStore::savelayer(){
+    std::vector<Layer> Layers;
+    for(const auto& layer:layers){
+        Layers.push_back(*layer);
+    }
+    std::string jsonData = marshal(Layers);
+    for(const auto& [index, path]:jsonPath){
+        if(!boost::filesystem::exists(path)){
+            continue;
+        }
+        std::ofstream file(path,std::ios::trunc);
+        if(!file.is_open()){
+            return false;
+        }
+        file<<jsonData;
+        file.close();
+    }
+    return true;
 }

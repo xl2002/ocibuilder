@@ -23,7 +23,7 @@ void gzip_compress(std::istream& inputStream, std::ostream& outputStream) {
         filterStream << inputStream.rdbuf();
         filterStream.reset(); // 确保所有数据被刷新到输出流
 
-        std::cout << "Compression successful." << std::endl;
+        // std::cout << "Compression successful." << std::endl;
     } catch (const std::exception& e) {
         std::cerr << "Error during compression: " << e.what() << std::endl;
     }

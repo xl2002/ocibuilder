@@ -7,13 +7,13 @@
 CXX = g++
 
 # define any compile-time flags
-CXXFLAGS	:= -std=c++11 -Wall -Wextra -g
+CXXFLAGS	:= -std=c++11 -Wall -Wextra -g -O0
 
 # define library paths in addition to /usr/lib
 #   if I wanted to include libraries not in /usr/lib I'd specify
 #   their path using -Lpath, something like:
-LFLAGS = -lboost_filesystem-mgw12-mt-x64-1_75 -lboost_system-mgw12-mt-x64-1_75 -lws2_32 -lboost_thread-mgw12-mt-x64-1_75 -lboost_random-mgw12-mt-x64-1_75 -lboost_json-mgw12-mt-x64-1_75 -lboost_iostreams-mgw12-mt-x64-1_75 -lz
-# LFLAGS = -lboost_system-vc141-mt-s-x64-1_75 -lboost_filesystem-vc141-mt-s-x64-1_75 -lws2_32 -lboost_thread-vc141-mt-s-x64-1_75 -lboost_random-vc141-mt-s-x64-1_75 -lboost_json-vc141-mt-s-x64-1_75 -lboost_iostreams-vc141-mt-s-x64-1_75 -lz
+LFLAGS = -lboost_filesystem-mgw12-mt-x64-1_75 -lboost_system-mgw12-mt-x64-1_75 -lws2_32 -lboost_thread-mgw12-mt-x64-1_75 -lboost_random-mgw12-mt-x64-1_75 -lboost_json-mgw12-mt-x64-1_75 -lboost_iostreams-mgw12-mt-x64-1_75 -lssl -lcrypto -lz 
+# LFLAGS = -lboost_filesystem-mgw8-mt-sd-x64-1_75 -lboost_system-mgw8-mt-sd-x64-1_75 -lboost_thread-mgw8-mt-sd-x64-1_75 -lboost_random-mgw8-mt-sd-x64-1_75 -lboost_json-mgw8-mt-sd-x64-1_75 -lboost_iostreams-mgw8-mt-sd-x64-1_75 -lws2_32 -lssl -lcrypto -lz 
 # define output directory
 OUTPUT	:= output
 
@@ -24,7 +24,7 @@ SRC		:= src
 # INCLUDE	:= include D:/Softwares/boost_1_75_0
 INCLUDE	:= include
 # define lib directory
-LIB		:= lib\boost-MinGW lib\zlib-MinGW
+LIB		:= lib\boost lib\zlib lib\openssl
 # LIB         := D:/Softwares/boost_1_75_0/lib64-msvc-14.1
 
 ifeq ($(OS),Windows_NT)
@@ -59,7 +59,7 @@ SOURCES		:= $(wildcard $(patsubst %,%/*.cpp, $(SOURCEDIRS)))
 OBJECTS		:= $(SOURCES:.cpp=.o)
 
 # define the dependency output files
-DEPS		:= $(OBJECTS:.o=.d)
+# DEPS		:= $(OBJECTS:.o=.d)
 
 #
 # The following part of the makefile is generic; it can be used to
@@ -70,12 +70,12 @@ DEPS		:= $(OBJECTS:.o=.d)
 OUTPUTMAIN	:= $(call FIXPATH,$(OUTPUT)/$(MAIN))
 
 # test程序的变量
-LFLAGSTEST	:= -lboost_filesystem-mgw12-mt-x64-1_75 -lboost_iostreams-mgw12-mt-x64-1_75 -lboost_system-mgw12-mt-x64-1_75 -lboost_thread-mgw12-mt-x64-1_75 -lws2_32 -lboost_json-mgw12-mt-x64-1_75 -lboost_random-mgw12-mt-x64-1_75
+LFLAGSTEST	:= -lboost_filesystem-mgw12-mt-x64-1_75 -lboost_iostreams-mgw12-mt-x64-1_75 -lboost_system-mgw12-mt-x64-1_75 -lboost_thread-mgw12-mt-x64-1_75 -lws2_32 -lboost_json-mgw12-mt-x64-1_75 -lboost_random-mgw12-mt-x64-1_75 -lssl -lcrypto -larchive -lz -lbcrypt
 INCLUDETEST	:= -I include
 OUTPUTTEST		:= tests
 OUTPUTMAINTEST	:= $(call FIXPATH,$(OUTPUTTEST)/$(MAIN))
-SRCTEST		:= tests/net_test.cpp
-LIBSTEST	:= -L lib\boost-MinGW
+SRCTEST		:= ./tests/sha356.cpp
+LIBSTEST	:= -L lib\boost -L lib\openssl -L lib\libarchive
 all: $(OUTPUT) $(MAIN)
 # $(RM) $(call FIXPATH,$(OBJECTS))
 # $(RM) $(call FIXPATH,$(DEPS))
@@ -88,7 +88,7 @@ $(MAIN): $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -o $(OUTPUTMAIN) $(OBJECTS) $(LIBS) $(LFLAGS)
 
 # include all .d files
--include $(DEPS)
+# -include $(DEPS)
 
 test:
 	$(CXX) $(CXXFLAGS) $(INCLUDETEST) -o $(OUTPUTMAINTEST) $(SRCTEST) $(LIBSTEST) $(LFLAGSTEST)
@@ -105,7 +105,7 @@ test:
 clean:
 	$(RM) $(OUTPUTMAIN)
 	$(RM) $(call FIXPATH,$(OBJECTS))
-	$(RM) $(call FIXPATH,$(DEPS))
+# $(RM) $(call FIXPATH,$(DEPS))
 	@echo Cleanup complete!
 
 run: all

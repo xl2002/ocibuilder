@@ -55,6 +55,8 @@ class Store_interface{
     // RunRoot、GraphRoot、GraphDriverName 和 GraphOptions 检索
 	//创建对象时传递给 GetStore() 的设置。
     virtual std::string RunRoot()=0;
+    virtual std::string GetlayerStoragePath()=0;
+    virtual std::string GetImageStoragePath()=0;
     virtual void DeleteContainer(std::string id)=0;
     virtual void load()=0;
     virtual std::shared_ptr<storage::Image> Image(std::string id)=0;
@@ -76,7 +78,7 @@ class Store_interface{
     virtual std::shared_ptr<Container> CreateContainer(
         const std::string& id, const std::vector<std::string>& names, const std::string& image, 
         const std::string& layer, const std::string& metadata,const std::shared_ptr<ContainerOptions> options)=0;
-    // virtual std::ifstream Diff(std::string from,std::string to , std::shared_ptr<DiffOptions> options)=0;
+    virtual bool savelayers()=0;
 };
 struct LayerBigDataOption{
     std::string key;
@@ -439,7 +441,7 @@ public:
 class ContainerOptions {
 public:
     // IDMappingOptions 指定应使用的 ID 映射类型。
-    std::shared_ptr<IDMappingOptions> idMappingOptions;
+    std::shared_ptr<IDMappingOptions> idMappingOptions=std::make_shared<IDMappingOptions>();
     // LabelOpts 是标签选项的列表。
     std::vector<std::string> labelOpts;
     // Flags 是要与容器一起存储的命名标志及其值。
@@ -585,6 +587,8 @@ class Store :public Store_interface{
     public:
     Store()=default;
     std::string RunRoot() override;
+    std::string GetlayerStoragePath() override;
+    std::string GetImageStoragePath() override;
     void load() override;
     void DeleteContainer(std::string id) override;
     shared_ptr<Driver> createGraphDriverLocked();
@@ -594,7 +598,7 @@ class Store :public Store_interface{
     std::shared_ptr<rwLayerStore_interface> getLayerStoreLocked();
     std::shared_ptr<rwLayerStore_interface> newLayerStore(std::string rundir, std::string layerdir, std::string imagedir,std::shared_ptr<Driver> driver,bool transient);
     std::shared_ptr<Container> CreateContainer(const std::string& id, const std::vector<std::string>& names, const std::string& image, const std::string& layer, const std::string& metadata,const std::shared_ptr<ContainerOptions> options) override;
-    // std::ifstream Diff(std::string from,std::string to , std::shared_ptr<DiffOptions> options) override;
+    bool savelayers() override;
 };
 
 #endif

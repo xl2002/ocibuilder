@@ -19,6 +19,7 @@
 #include "utils/common/json.h"
 #include <boost/optional.hpp>
 #include <boost/json.hpp>
+#include "utils/common/go/string.h"
 using std::string;
 using std::vector;
 struct LayerOptions;
@@ -94,6 +95,8 @@ struct Layer{
         jv=boost::json::object{
             {"ID", layer.ID},
             {"Parent", layer.Parent},
+            {"Names", boost::json::array(layer.Names.begin(), layer.Names.end())},
+            {"Created", timePointToISOString(layer.Created)},
             // {"Metadata", layer.Metadata},
             // {"MountLabel", layer.MountLabel},
             // {"MountPoint", layer.MountPoint},
@@ -105,35 +108,13 @@ struct Layer{
             // {"Names", boost::json::array(layer.Names.begin(), layer.Names.end())},
         };
     }
-    //     obj["Metadata"] = layer.Metadata;
-    //     obj["MountLabel"] = layer.MountLabel;
-    //     obj["MountPoint"] = layer.MountPoint;
-    //     obj["mountCount"] = layer.mountCount;
-    //     obj["compressedSize"] = layer.compressedSize;
-    //     obj["uncompressedSize"] = layer.uncompressedSize;
-    //     obj["readOnly"] = layer.readOnly;
-    //     obj["volatileStore"] = layer.volatileStore;
-
-    // // 手动转换 std::vector<std::string> 为 boost::json::array
-    //     boost::json::array namesArray;
-    //     for (const auto& name : layer.Names) {
-    //         namesArray.push_back(boost::json::string(name));  // 转换字符串为 boost::json::value
-    //     }
-    //     obj["Names"] = std::move(namesArray);
-
-    //     boost::json::array bigDataNamesArray;
-    //     for (const auto& bigName : layer.BigDataNames) {
-    //         bigDataNamesArray.push_back(boost::json::string(bigName));  // 转换字符串为 boost::json::value
-    //     }
-    //     obj["BigDataNames"] = std::move(bigDataNamesArray);
-
-    //     jv=obj;
-    // // 用于从 JSON 反序列化的 tag_invoke
     friend Layer tag_invoke(boost::json::value_to_tag<Layer>, const boost::json::value& jv) {
         const auto& obj = jv.as_object();
         Layer layer;
         layer.ID = obj.at("ID").as_string().c_str();
         layer.Parent = obj.at("Parent").as_string().c_str();
+        layer.Names = boost::json::value_to<std::vector<std::string>>(obj.at("Names"));
+        layer.Created = parseISOStringToTimePoint(obj.at("Created").as_string().c_str());
     //     layer.Metadata = obj.at("Metadata").as_string().c_str();
     //     layer.MountLabel = obj.at("MountLabel").as_string().c_str();
     //     layer.MountPoint = obj.at("MountPoint").as_string().c_str();
@@ -142,14 +123,6 @@ struct Layer{
         layer.uncompressedSize = obj.at("uncompressedSize").as_int64();
     //     layer.readOnly = obj.at("readOnly").as_bool();
     //     layer.volatileStore = obj.at("volatileStore").as_bool();
-
-    //     for (const auto& name : obj.at("Names").as_array()) {
-    //         layer.Names.push_back(name.as_string().c_str());
-    //     }
-    //     for (const auto& bigName : obj.at("BigDataNames").as_array()) {
-    //         layer.BigDataNames.push_back(bigName.as_string().c_str());
-    //     }
-
         return layer;
     }
 };
@@ -188,6 +161,7 @@ struct layerStore:public rwLayerStore_interface{
         std::shared_ptr<LayerOptions>moreOptions,bool writeable,
         std::ifstream& diff) override;
     bool load(bool lockedForWriting);
+    bool savelayer() override;
 };
 
 struct DiffOptions{

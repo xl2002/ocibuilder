@@ -1,5 +1,6 @@
 #include "storage/storage/storage_transport.h"
 #include "utils/common/go/string.h"
+#include "image/types/reference/normalize.h"
 // const std::shared_ptr<StoreTransport_interface> Transport= std::make_shared<storageTransport>();
 
 std::string storageTransport::Name(){
@@ -12,6 +13,7 @@ std::shared_ptr<storageReference>storageTransport::ParseStoreReference(std::shar
         id=img->ID;
     }
     std::shared_ptr<Named_interface> named=nullptr;
+    named=ParseNormalizedNamed(reference);
     auto result=this->NewStoreReference(store,named,id);
     if(result!=nullptr){
         return result;

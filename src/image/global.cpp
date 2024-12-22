@@ -13,12 +13,13 @@
 #include "image/types/define/build.h"
 #include "image/types/reference/normalize.h"
 #include "image/types/signature/policy_config.h"
+#include "image/types/define/types.h"
 // 全局变量定义
 std::shared_ptr<PolicyTransportScopes> storageAllowedPolicyScopes;
 
 map<string,Pull_Policy>PolicyMap;
 
-Algorithm_sha256 SHA256;
+Algorithm_sha256 sha_256;
 Algorithm_sha256 Canonical_sha256;
 std::map<Algorithm_sha256, std::regex> anchoredEncodedRegexps;
 
@@ -60,6 +61,16 @@ std::string defaultTag;
 std::string userPolicyFile;
 std::string systemDefaultPolicyPath;
 
+std::string BuilderIdentityAnnotation;
+std::string Package;
+std::string version;
+std::string DefaultRuntime;
+std::string OCIv1ImageManifest;
+std::string Dockerv2ImageManifest;
+std::string OCI;
+std::string DOCKER;
+std::string SEV;
+std::string SNP;
 /**
  * @brief 初始化image的全局变量
  * 
@@ -74,9 +85,9 @@ void init_image(){
         {"ifnewer", PullIfNewer}
     };
 
-    SHA256=Algorithm_sha256("sha256");
-    Canonical_sha256=SHA256;
-    anchoredEncodedRegexps={{ SHA256, std::regex("^[a-f0-9]{64}$") }};
+    sha_256=Algorithm_sha256("sha256");
+    Canonical_sha256=sha_256;
+    anchoredEncodedRegexps={{ sha_256, std::regex("^[a-f0-9]{64}$") }};
 
     DescriptorEmptyJSON = {
         MediaTypeEmptyJSON,
@@ -134,4 +145,15 @@ void init_image(){
 
     userPolicyFile=FromSlash("/.config/containers/policy.json");
     systemDefaultPolicyPath="/etc/containers/policy.json";
+
+	BuilderIdentityAnnotation = "io.buildah.version";
+    Package="buildah";
+    version="1.0";
+    DefaultRuntime="runc";
+    OCIv1ImageManifest="application/vnd.oci.image.manifest.v1+json";
+    Dockerv2ImageManifest="application/vnd.docker.distribution.manifest.v2+json";
+    OCI="oci";
+    DOCKER="docker";
+	SEV="sev";
+	SNP="snp";
 }

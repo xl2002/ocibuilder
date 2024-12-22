@@ -170,16 +170,16 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,bool> StageExecutor:
         }
         auto noRunsRemaining=false;
 
-        if(moreInstructions){
-            auto n=std::make_shared<Node>();
-            n->Children.insert(n->Children.end(),node->Children.begin()+i+1,node->Children.end());
-            noRunsRemaining=!ib->RequiresStart(n);
-        }
+        // if(moreInstructions){
+        //     auto n=std::make_shared<Node>();
+        //     n->Children.insert(n->Children.end(),node->Children.begin()+i+1,node->Children.end());
+        //     noRunsRemaining=!ib->RequiresStart(n);
+        // }
         if(!this->executor->layers){
             this->didExecute=true;
             try{
-                std::shared_ptr<StageExecutor>stage_p(this);
-                ib->Run(step,stage_p,noRunsRemaining);
+                // auto stage_p=std::make_shared<StageExecutor>(*this);
+                ib->Run(step,this,noRunsRemaining);//将镜像层内容复制到overlay
             }catch(const myerror& e){
                 throw myerror("building at STEP \""+step->Message+"\": "+std::string(e.what()));
             }
@@ -243,9 +243,9 @@ std::shared_ptr<Builder> StageExecutor::prepare(
     }
     if(initializeIBConfig&&rebase){
         // Debugf("FROM %s\n",displayFrom.c_str());
-        if(!this->executor->quiet){
-            this->log("FROM ",std::vector<std::string>({displayFrom}));
-        }
+        // if(!this->executor->quiet){
+        //     this->log("FROM ",std::vector<std::string>({displayFrom}));
+        // }
     }
     auto builderSystemContext=this->executor->systemContext;
     if(stage->image_builder->Platform!=""){
@@ -283,7 +283,6 @@ std::shared_ptr<Builder> StageExecutor::prepare(
     builderOptions->MountLabel=this->executor->mountLabel;
     builderOptions->PreserveBaseImageAnns=preserveBaseImageAnnotations;
     builderOptions->CDIConfigDir=this->executor->cdiConfigDir;
-
     std::shared_ptr<Builder> builder =NewBuilder(this->executor->store,builderOptions);
     if(this->executor->mountLabel==""&&this->executor->processLabel==""){
         this->executor->mountLabel=builder->MountLabel;
@@ -341,8 +340,10 @@ std::shared_ptr<Builder> StageExecutor::prepare(
 std::string StageExecutor::getContentSummaryAfterAddingContent(){
     auto digest=this->builder->ContentDigester->Digest();
     auto summary=digest.first;
-    if(digest.second->digest!=""){
+    if(digest.second!=nullptr&&digest.second->digest!=""){
         summary=summary+":";
+    }else{
+        return "";
     }
     summary=summary+digest.second->Encoded();
     return summary;
@@ -603,7 +604,12 @@ void StageExecutor::performCopy(std::vector<std::string> excludes,std::vector<Co
             }
 
         }
+        if(copy.From=="from"){
+            this->builder->MountPoint=this->builder->store->GetlayerStoragePath()+"\\"+this->builder->FromImageID;
 
+        }else{
+            this->builder->MountPoint=this->builder->store->GetlayerStoragePath()+"\\"+this->builder->container->LayerID;
+        }
         //这里调试判断为false，直接跳过
         if (copy.From.size()>0 && copy.Files.size()==0){
 
@@ -620,8 +626,8 @@ void StageExecutor::performCopy(std::vector<std::string> excludes,std::vector<Co
             std::string src=copy.Src[i];
             //Source is a URL？不是
 
-            std::string joinedPath = joinPath(contextDir, src);
-            appendSource(sources, joinedPath);
+            // std::string joinedPath = joinPath(contextDir, src);
+            appendSource(sources, src);
         }
         std::shared_ptr<AddAndCopyOptions> options = std::make_shared<AddAndCopyOptions>();
         options->Chmod=copy.Chmod;
