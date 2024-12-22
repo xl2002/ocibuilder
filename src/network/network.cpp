@@ -32,9 +32,17 @@ std::shared_ptr<URL> dockerClient::resolveRequestURL(std::string path){
 
     std::string host = path.substr(0, colonPos);
     std::string portStr = path.substr(colonPos + 1, slashPos - colonPos - 1);
+
+    std::size_t firstSlashAfterHost = path.find('/', colonPos + 1);
+    std::size_t secondSlashAfterHost = path.find('/', firstSlashAfterHost + 1);
+
+    std::string projectName;
     std::string imageName;
     std::string version;
     std::size_t colon = path.find(':', lastSlash);
+
+    projectName = path.substr(firstSlashAfterHost + 1, secondSlashAfterHost - firstSlashAfterHost - 1);
+
     if (colon == std::string::npos) {
         // 没有 ':'，说明没有 tag，直接返回 '/' 后的部分
         imageName=path.substr(lastSlash + 1);
@@ -45,12 +53,11 @@ std::shared_ptr<URL> dockerClient::resolveRequestURL(std::string path){
         version=path.substr(colon+1);
     }
 
-
-
     url->host=host;
     url->port=portStr;
     url->imageName=imageName;
     url->version=version;
+    url->projectName=projectName;
 
     return url;
 }
@@ -437,3 +444,4 @@ bool isCorrect(std::string sha256,std::string filepath){
     auto digest = Fromfile(filepath);
     return digest->Encoded() == sha256;
 }
+

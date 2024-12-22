@@ -4,7 +4,7 @@
 #include <boost/json.hpp>
 #include <fstream>
 #include <string>
-#include "network/network.h"
+// #include "network/network.h"
 namespace asio = boost::asio;
 namespace beast = boost::beast;
 namespace json = boost::json;
@@ -291,6 +291,32 @@ void login(const std::string& user, const std::string& passwd) {
                 std::cout << field.name_string() << ": " << field.value() << "\n";
             }
 
+            std::string sid;
+            int sidNum=0;
+            for (auto const& field : res1) {
+                if (field.name_string() == "Set-Cookie") {
+                    std::string cookie = field.value().to_string();
+                    std::size_t sidpos=cookie.find("sid=");
+                    if(sidpos!=std::string::npos){
+                        sidNum++;
+                        if(sidNum==2){
+                            sidpos+=4;
+                            std::size_t end_sid = cookie.find(";", sidpos);
+                            if (end_sid == std::string::npos) {
+                                end_sid = cookie.length(); // 如果没有分号，则取到字符串结尾
+                            }
+                            sid=cookie.substr(sidpos,end_sid-sidpos);
+                            std::cout<< "The sid:"<<sid<<"\n";
+                            // loginAuth.cookie=cookie+"sid="+sid+";";
+                        }
+                    }  
+                }
+                if (field.name_string() == "X-Harbor-Csrf-Token") {
+                    std::string token = field.value().to_string();
+                    harbor_csrf_token = token;
+                }
+            }
+
             std::cout << res1.result() << "\n";
             std::cout << "\nResponse Body:\n";
             std::cout << res1.body() << "\n";
@@ -528,7 +554,44 @@ void initUpLoad(){
 }
 
 
+void resolveRequestURL(std::string path){
+    std::size_t colonPos = path.find(':');
+    std::size_t slashPos = path.find('/');
+    std::size_t lastSlash = path.find_last_of('/');
 
+    if (colonPos == std::string::npos || slashPos == std::string::npos || colonPos > slashPos) {
+        throw std::invalid_argument("Invalid path format");
+    }
+
+    std::string host = path.substr(0, colonPos);
+    std::string portStr = path.substr(colonPos + 1, slashPos - colonPos - 1);
+
+    std::size_t firstSlashAfterHost = path.find('/', colonPos + 1);
+    std::size_t secondSlashAfterHost = path.find('/', firstSlashAfterHost + 1);
+
+    std::string projectName;
+    std::string imageName;
+    std::string version;
+    std::size_t colon = path.find(':', lastSlash);
+
+    projectName = path.substr(firstSlashAfterHost + 1, secondSlashAfterHost - firstSlashAfterHost - 1);
+
+    if (colon == std::string::npos) {
+        // 没有 ':'，说明没有 tag，直接返回 '/' 后的部分
+        imageName=path.substr(lastSlash + 1);
+        version="latest";
+    } else {
+        // 有 ':'，返回 ':' 之前的部分
+        imageName=path.substr(lastSlash + 1, colon - lastSlash - 1);
+        version=path.substr(colon+1);
+    }
+    std::cout<<"HOST: "<<host<<"\n";
+    std::cout<<"port: "<<portStr<<"\n";
+    std::cout<<"projectName: "<<projectName<<"\n";
+    std::cout<<"imageName: "<<imageName<<"\n";
+    std::cout<<"version: "<<version<<"\n";
+
+}
 
 int main() {
     try {
@@ -571,11 +634,13 @@ int main() {
         // std::cout<<"port"<<url->port<<"\n";
         // std::cout<<"ImageName"<<url->imageName<<"\n";
 
-        // login("admin","Harbor12345");
-        std::string cookie = "_gorilla_csrf=MTczNDg3Mjg0NXxJbUpKZGxFNUwzQm1RamRGZW5GRlNrSm5aV1ptT0dwREwzcHFhemRqV2tSeFVXYzROWGx5Vm05eE5UQTlJZ289fLAperNqJGnO0kWux4zpdo3rNHhL5sQYRXjw3csgriq7;sid=238f99d6c796386af39196d230d82790;";
+        login("admin","Harbor12345");
+        // std::string cookie = "_gorilla_csrf=MTczNDg3Mjg0NXxJbUpKZGxFNUwzQm1RamRGZW5GRlNrSm5aV1ptT0dwREwzcHFhemRqV2tSeFVXYzROWGx5Vm05eE5UQTlJZ289fLAperNqJGnO0kWux4zpdo3rNHhL5sQYRXjw3csgriq7;sid=238f99d6c796386af39196d230d82790;";
         // ifSupportV2(cookie);
-        ifBlobExists(cookie);
+        // ifBlobExists(cookie);
         // getToken("192.168.182.128","80",cookie);
+
+        // resolveRequestURL("localhost:5000/p/busybox:34.1");
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
     }
