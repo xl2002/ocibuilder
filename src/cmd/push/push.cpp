@@ -70,13 +70,12 @@ void pushCmd(Command& cmd, vector<string> args,std::shared_ptr<pushOptions> iopt
     //分析镜像名
     std::string urlpath, withinTransport;
     std::tie(urlpath, withinTransport, std::ignore) = Cut(src, '/');
-
+    std::tie(std::ignore,withinTransport,std::ignore)=Cut(withinTransport,'/');
     auto imagestore=store->Image(withinTransport);
 
 
 
-    //  执行登录请求
-    login("admin","Harbor12345","192.168.1.107","7777");
+
 
     //拿到push命令中的这一部分
 
@@ -84,6 +83,10 @@ void pushCmd(Command& cmd, vector<string> args,std::shared_ptr<pushOptions> iopt
     //解析出来host、port、镜像名等
     dockerClient client;
     auto url=client.resolveRequestURL(src);
+
+    //  执行登录请求
+    login("admin","Harbor12345",url->host,url->port);
+
     //url->host  url->port  url->imageName
     if(!ifSupportV2(url->host,url->port)){
         std::cout<<"Can't push!!"<<"\n";
