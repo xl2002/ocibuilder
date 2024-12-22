@@ -76,7 +76,7 @@ void pushCmd(Command& cmd, vector<string> args,std::shared_ptr<pushOptions> iopt
 
 
     //  执行登录请求
-    login("admin","Harbor12345","192.168.182.128","80");
+    login("admin","Harbor12345","192.168.1.107","7777");
 
     //拿到push命令中的这一部分
 
