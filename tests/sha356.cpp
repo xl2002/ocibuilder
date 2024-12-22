@@ -63,7 +63,7 @@ std::string calculate_sha256(const std::string& filepath) {
     return oss.str();
 }
 int main() {
-    std::string filepath = "tests/44c6d8eb73faf2764e5966327386eb9213471ed0bc21f1ea700bce46c1d31e00";
+    std::string filepath = "tests/182f7fe5f39439844fa081ef621851a9d5f4c6b6d5d1be9a008ece843c62eeb6";
 
     std::ifstream file(filepath, std::ios::binary);
 

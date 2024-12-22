@@ -12,10 +12,10 @@
 #include <boost/iostreams/stream.hpp>
 #include "image/buildah/digester.h"
 #include "utils/common/error.h"
-#include <libarchive/archive.h>
-#include <libarchive/archive_entry.h>
-// #include "image/buildah/tar_other.h"
-// #include "image/buildah/format.h"
+// #include <libarchive/archive.h>
+// #include <libarchive/archive_entry.h>
+#include "image/buildah/tar_other.h"
+#include "image/buildah/format.h"
 namespace fs = boost::filesystem;
 // tar 文件头结构
 // struct TarHeader {
@@ -38,7 +38,7 @@ namespace fs = boost::filesystem;
 //     // 创建tar文件并写入文件内容
 //     std::ofstream createTar(const std::string& tarFilePath, const fs::path& directory);
 // };
-void createTar(const std::string& tar_path,const std::string& folder_path);
+void createTar(const std::string& tarFilePath, const fs::path& directory);
 struct tarFilterer
 {
     // 等待线程完成
