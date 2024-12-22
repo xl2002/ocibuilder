@@ -85,6 +85,8 @@ struct authScope{
     std::string resourceType;  
     std::string remoteName;
     std::string actions;
+    std::string cookie;
+    std::string harborToken;
     authScope() = default;
 };
 extern authScope loginAuth;
@@ -100,6 +102,7 @@ struct URL{
     std::shared_ptr<Userinfo> user; // 用户名和密码信息
     std::string host;          // 主机名或主机
     std::string port;          // 端口
+    std::string projectName;   //仓库中项目名
     std::string imageName;     //镜像名
     std::string version;      //镜像版本号
     std::string projectName;
@@ -165,19 +168,26 @@ struct dockerClient{
 };
 beast::http::request<beast::http::string_body> NewRequest(std::string method, std::string path, std::map<std::string, std::string> headers,std::string body);
 
+std::string extractToken(const std::string &response_body);
+
+std::string getToken(const std::string &host, const std::string &port, const ::string &projectName, const ::string &imagetName);
+
 bool ifSupportV2(const std::string &host, const std::string &port);
 
-bool ifBlobExists(const std::string &host, const std::string &port, const std::string &imageName, const std::string &shaId);
+bool ifBlobExists(const std::string &host, const std::string &port, const std::string &imageName, const std::string &shaId, const std::string &projectName);
 
-std::pair<std::string, std::string> initUpload(const std::string &host, const std::string &port, const std::string &imageName);
+std::pair<std::string, std::string> initUpload(const std::string &host, const std::string &port, const std::string &imageName, const std::string &projectName);
 
-std::string uploadBlobChunk(const std::string &host, const std::string &port, const std::string &uid, const std::string &state, const std::string &file_path, std::size_t start, std::size_t end, std::size_t total_size, const std::string &imageName);
+std::string uploadBlobChunk(const std::string &host, const std::string &port, const std::string &uid, const std::string &state, const std::string &file_path, std::size_t start, std::size_t end, std::size_t total_size, const std::string &imageName, const std::string &projectName);
 
-void uploadManifest(const std::string &host, const std::string &port, const std::string &file_path, std::size_t start, std::size_t end, const std::string &imageName, const std::string version, const std::string &ManifestType);
 
-void finalizeUpload(const std::string &host, const std::string &port, const std::string &uid, const std::string &shaId, const std::string &state, const std::string &imageName);
+void uploadManifest(const std::string &host, const std::string &port, const std::string &file_path, std::size_t start, std::size_t end, const std::string &imageName, const std::string version, const std::string &ManifestType, const std::string &projectName);
+
+void finalizeUpload(const std::string &host, const std::string &port, const std::string &uid, const std::string &shaId, const std::string &state, const std::string &imageName, const std::string &projectName);
 
 bool isCorrect(std::string sha256, std::string filepath);
+
+void login(const std::string &user, const std::string &passwd, const std::string &host, const std::string &port);
 
 #endif // TYPES_NETWORK_H)
 

@@ -73,6 +73,11 @@ void pushCmd(Command& cmd, vector<string> args,std::shared_ptr<pushOptions> iopt
 
     auto imagestore=store->Image(withinTransport);
 
+
+
+    //  执行登录请求
+    login("admin","Harbor12345","192.168.182.128","80");
+
     //拿到push命令中的这一部分
 
     // std::string image="localhost:5000/busybox:latest";
@@ -99,8 +104,8 @@ void pushCmd(Command& cmd, vector<string> args,std::shared_ptr<pushOptions> iopt
         }
         std::string fisrtTwoC=shaId.substr(0, 2);
         //判断这层数据是否在服务器存在，不存在再传输
-        if(!ifBlobExists(url->host,url->port,url->imageName,shaId)){
-            std::pair<std::string, std::string> initResult = initUpload(url->host, url->port, url->imageName);
+        if(!ifBlobExists(url->host,url->port,url->imageName,shaId,url->projectName)){
+            std::pair<std::string, std::string> initResult = initUpload(url->host, url->port, url->imageName,url->projectName);
             uid = initResult.first;
             state = initResult.second;
             //拿到data数据大小
@@ -108,9 +113,9 @@ void pushCmd(Command& cmd, vector<string> args,std::shared_ptr<pushOptions> iopt
             std::size_t total_size = file.tellg();
             file.close();
             //上传数据
-            state = uploadBlobChunk(url->host, url->port,uid,state,filePath,0,total_size,total_size, url->imageName);
+            state = uploadBlobChunk(url->host, url->port,uid,state,filePath,0,total_size,total_size, url->imageName,url->projectName);
             //完成本次上传
-            finalizeUpload(url->host, url->port,uid,shaId,state,url->imageName);
+            finalizeUpload(url->host, url->port,uid,shaId,state,url->imageName,url->projectName);
         }
     }
 
@@ -122,8 +127,8 @@ void pushCmd(Command& cmd, vector<string> args,std::shared_ptr<pushOptions> iopt
     }
     std::string fisrtTwoC=shaId1.substr(0, 2);
     //判断这层数据是否在服务器存在，不存在再传输
-    if(!ifBlobExists(url->host,url->port,url->imageName,shaId1)){
-        std::pair<std::string, std::string> initResult = initUpload(url->host, url->port, url->imageName);
+    if(!ifBlobExists(url->host,url->port,url->imageName,shaId1,url->projectName)){
+        std::pair<std::string, std::string> initResult = initUpload(url->host, url->port, url->imageName,url->projectName);
         uid = initResult.first;
         state = initResult.second;
 
@@ -132,9 +137,9 @@ void pushCmd(Command& cmd, vector<string> args,std::shared_ptr<pushOptions> iopt
         std::size_t total_size = file.tellg();
         file.close();
         //上传数据
-        state = uploadBlobChunk(url->host, url->port,uid,state,configPath,0,total_size,total_size, url->imageName);
+        state = uploadBlobChunk(url->host, url->port,uid,state,configPath,0,total_size,total_size, url->imageName,url->projectName);
         //完成本次上传
-        finalizeUpload(url->host, url->port,uid,shaId1,state,url->imageName);
+        finalizeUpload(url->host, url->port,uid,shaId1,state,url->imageName,url->projectName);
     }
 
     //最后上传manifest数据
@@ -146,7 +151,7 @@ void pushCmd(Command& cmd, vector<string> args,std::shared_ptr<pushOptions> iopt
     std::string manifestType=imagestore->image_index->mediaType;
     std::string fisrtTwoC2=shaId2.substr(0, 2);
     //判断这层数据是否在服务器存在，不存在再传输
-    if(!ifBlobExists(url->host,url->port,url->imageName,shaId2)){
+    if(!ifBlobExists(url->host,url->port,url->imageName,shaId2,url->projectName)){
         // std::pair<std::string, std::string> initResult = initUpload(url->host, url->port, url->imageName);
         // std::string uid = initResult.first;
         // std::string state = initResult.second;
@@ -156,7 +161,7 @@ void pushCmd(Command& cmd, vector<string> args,std::shared_ptr<pushOptions> iopt
         std::size_t total_size = file.tellg();
         file.close();
         //上传数据
-        uploadManifest(url->host, url->port,manifestPath,0,total_size,url->imageName, url->version,manifestType);
+        uploadManifest(url->host, url->port,manifestPath,0,total_size,url->imageName, url->version,manifestType,url->projectName);
     }
 
     std::cout<<"Push success!!"<<std::endl;
