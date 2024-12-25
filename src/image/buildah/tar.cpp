@@ -25,9 +25,6 @@ void createTar(const std::string& tarFilePath, const fs::path& directory) {
         for (auto& entry : fs::recursive_directory_iterator(directory)) {
             try {
                 if (fs::is_regular_file(entry.status())) {
-                    // 获取文件的最后修改时间
-                    // std::time_t lastWriteTime = fs::last_write_time(entry.path());
-                    std::time_t lastWriteTime = FIXED_TIME;
                     // 读取文件内容
                     std::ifstream file(entry.path().string(), std::ios::binary);
                     if (!file) {
@@ -44,16 +41,10 @@ void createTar(const std::string& tarFilePath, const fs::path& directory) {
                     // 使用 Boost 转换路径分隔符为正斜杠 '/'
                     std::replace(relativePath.begin(), relativePath.end(), '\\', '/');
 
-                    // 创建 TarFileOptions 可选项，并设置文件的时间戳
-                    tarpp::TarFileOptions options(tarpp::details::DEFAULT_MODE(), 0, 0, lastWriteTime, tarpp::FileType::REGULAR, "", "", "");
-
-                    // 将文件添加到 tar 中
-                    tar.add(relativePath, fileContent, options);
+                    // 将文件添加到 tar 中（使用默认 TarFileOptions）
+                    tar.add(relativePath, fileContent);
                 }
                 else if (fs::is_directory(entry.status())) {
-                    // 获取目录的最后修改时间
-                    // std::time_t lastWriteTime = fs::last_write_time(entry.path());
-                    std::time_t lastWriteTime = FIXED_TIME;
                     // 如果是目录，加入空文件夹（以保证目录结构存在）
                     std::string dirName = entry.path().string();
                     dirName = dirName.substr(directory.string().length() + 1);
@@ -62,7 +53,7 @@ void createTar(const std::string& tarFilePath, const fs::path& directory) {
                     std::replace(dirName.begin(), dirName.end(), '\\', '/');
 
                     // 目录需要以 '/' 结尾，并且在 tar 中要以 "目录" 类型保存
-                    tar.add(dirName + "/", "", tarpp::TarFileOptions(tarpp::details::DEFAULT_MODE(), 0, 0, lastWriteTime, tarpp::FileType::DIRECTORY, "", "", ""));
+                    tar.add(dirName + "/", "");
                 }
             }
             catch (const myerror& e) {

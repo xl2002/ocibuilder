@@ -30,9 +30,6 @@ int main() {
     for (fs::recursive_directory_iterator it(input_dir), end_it; it != end_it; ++it) {
         const fs::path& file_path = *it;
 
-        // 获取时间戳，使用 Boost 获取最后修改时间
-        std::time_t last_write_time = fs::last_write_time(file_path);
-
         // 如果是目录，添加目录条目到 tar 中
         if (fs::is_directory(file_path)) {
             std::string dir_name = file_path.string().substr(input_dir.string().size() + 1);  // 获取相对路径
@@ -43,8 +40,8 @@ int main() {
             // 使用 Boost 转换路径分隔符为正斜杠 '/'
             std::replace(dir_name.begin(), dir_name.end(), '\\', '/');
 
-            // 添加目录到 tar 文件，设置时间戳
-            tar.add(dir_name, "", tarpp::TarFileOptions(tarpp::details::DEFAULT_MODE(), 0, 0, last_write_time, tarpp::FileType::DIRECTORY, "", "", ""));
+            // 添加目录到 tar 文件（使用默认 TarFileOptions）
+            tar.add(dir_name, "");
             std::cout << "Added directory: " << dir_name << std::endl;
         }
         // 如果是普通文件，添加文件内容到 tar 中
@@ -60,8 +57,8 @@ int main() {
                 // 使用 Boost 转换路径分隔符为正斜杠 '/'
                 std::replace(tar_name.begin(), tar_name.end(), '\\', '/');
 
-                // 添加文件内容到 tar 中，设置时间戳
-                tar.add(tar_name, content, tarpp::TarFileOptions(tarpp::details::DEFAULT_MODE(), 0, 0, last_write_time, tarpp::FileType::REGULAR, "", "", ""));
+                // 添加文件内容到 tar 中（使用默认 TarFileOptions）
+                tar.add(tar_name, content);
 
                 // 打印信息
                 std::cout << "Added file: " << tar_name << std::endl;
