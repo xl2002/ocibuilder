@@ -61,7 +61,7 @@ SOURCES		:= $(wildcard $(patsubst %,%/*.cpp, $(SOURCEDIRS)))
 OBJECTS		:= $(SOURCES:.cpp=.o)
 
 # define the dependency output files
-# DEPS		:= $(OBJECTS:.o=.d)
+DEPS		:= $(OBJECTS:.o=.d)
 
 #
 # The following part of the makefile is generic; it can be used to
@@ -90,7 +90,7 @@ $(MAIN): $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -o $(OUTPUTMAIN) $(OBJECTS) $(LIBS) $(LFLAGS)
 
 # include all .d files
-# -include $(DEPS)
+-include $(DEPS)
 
 test:
 	$(CXX) $(CXXFLAGS) $(INCLUDETEST) -o $(OUTPUTMAINTEST) $(SRCTEST) $(LIBSTEST) $(LFLAGSTEST)
@@ -107,7 +107,7 @@ test:
 clean:
 	$(RM) $(OUTPUTMAIN)
 	$(RM) $(call FIXPATH,$(OBJECTS))
-# $(RM) $(call FIXPATH,$(DEPS))
+	$(RM) $(call FIXPATH,$(DEPS))
 	@echo Cleanup complete!
 
 run: all
