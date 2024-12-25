@@ -86,6 +86,6 @@ struct containerImageSource: public ImageSource_interface{
     std::shared_ptr<OCI1> OCI1FromManifest();
 
     bool SaveConfig();
-    std::shared_ptr<Digest> UploadManifest(std::string  manifestbytes);
+    std::shared_ptr<Digest> UploadManifest(std::string&  manifestbytes);
 };
 #endif // BUILDAH_IMAGE_H)

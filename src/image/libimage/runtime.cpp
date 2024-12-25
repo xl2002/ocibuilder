@@ -52,6 +52,11 @@ std::vector<std::shared_ptr<LibImage::Image>> Runtime::Pull(std::string name,std
         fromimage->storageImage->ID=clayer->ID;
         localImages.push_back(fromimage);
         return localImages;
+    }else if(name=="scratch") {//基础镜像为空
+        auto localImages=std::vector<std::shared_ptr<LibImage::Image>>{};
+        std::shared_ptr<LibImage::Image> fromimage=std::make_shared<LibImage::Image>();
+        localImages.push_back(fromimage);
+        return localImages;
     }else{
         std::cerr<<"Dockerfile FROM path not found: "<<name<<std::endl;
     }

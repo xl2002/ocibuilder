@@ -461,6 +461,17 @@ std::tuple<std::shared_ptr<Node>, std::map<std::string, bool>> parseMaybeJSON(
     node->Value=rest;
     return std::make_tuple(node, std::map<std::string, bool>());
 }
+std::tuple<std::shared_ptr<Node>, std::map<std::string, bool>> parseString(
+    const std::string& rest,
+    const std::shared_ptr<Directive> d
+){
+    if(rest==""){
+        return std::make_tuple(nullptr, std::map<std::string, bool>());
+    }
+    auto node=std::make_shared<Node>();
+    node->Value=rest;
+    return std::make_tuple(node, std::map<std::string, bool>());
+}
 std::tuple<std::shared_ptr<Node>, std::map<std::string, bool>> parseIgnore(
     const std::string& rest,
     const std::shared_ptr<Directive> d

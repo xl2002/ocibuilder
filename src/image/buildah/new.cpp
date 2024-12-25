@@ -12,9 +12,9 @@
 std::shared_ptr<Builder> newBuilder(std::shared_ptr<Store> store,std::shared_ptr<BuilderOptions> options){
     std::shared_ptr<ImageReference_interface> ref=nullptr;
     std::shared_ptr<storage::Image> img=std::make_shared<storage::Image>();
-    if(options->FromImage=="scratch"){
-        options->FromImage="";
-    }
+    // if(options->FromImage=="scratch"){
+    //     options->FromImage="";
+    // }
     if(options->NetworkInterface){
         //暂时搁置网络模块
         // options->NetworkInterface=getNetworkInterface();
@@ -113,7 +113,7 @@ std::shared_ptr<Builder> newBuilder(std::shared_ptr<Store> store,std::shared_ptr
         throw;
     }
     if(!options->PreserveBaseImageAnns){
-        builder->SetAnnotation(AnnotationBaseImageDigest,imageDigest);
+        // builder->SetAnnotation(AnnotationBaseImageDigest,imageDigest);
         builder->SetAnnotation(AnnotationBaseImageName,imageSpec);
     }
     return builder;

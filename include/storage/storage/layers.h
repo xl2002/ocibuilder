@@ -162,6 +162,8 @@ struct layerStore:public rwLayerStore_interface{
         std::ifstream& diff) override;
     bool load(bool lockedForWriting);
     bool savelayer() override;
+    void deleteLayer(std::string layerID);
+    std::shared_ptr<Layer> lookup(const std::string& id);
 };
 
 struct DiffOptions{

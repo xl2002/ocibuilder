@@ -334,7 +334,7 @@ bool layerStore::savelayer(){
     for(const auto& layer:layers){
         Layers.push_back(*layer);
     }
-    std::string jsonData = marshal(Layers);
+    std::string jsonData = marshal<std::vector<Layer>>(Layers);
     for(const auto& [index, path]:jsonPath){
         if(!boost::filesystem::exists(path)){
             continue;
@@ -347,4 +347,44 @@ bool layerStore::savelayer(){
         file.close();
     }
     return true;
+}
+void layerStore::deleteLayer(std::string layerID){
+    auto layer=this->lookup(layerID);
+    if(layer==nullptr){
+        std::cerr<<"layer not found"<<std::endl;
+    }
+    //删除layers中的记录
+    for(auto i=0;i<layers.size();i++){
+        if(layers[i]->ID==layerID){
+            layers.erase(layers.begin()+i);
+            break;
+        }
+    }
+    auto id = layer->ID;
+    //删除byid中的记录
+    byid.erase(id);
+    //删除byname中的记录
+    for(auto i=0;i<layer->Names.size();i++){
+        byname.erase(layer->Names[i]);
+    }
+    //删除bycompressedsum中的记录
+    if(layer->CompressedDigest!=nullptr){
+        bycompressedsum.erase(*layer->CompressedDigest);
+    }
+    //删除byuncompressedsum中的记录
+    if(layer->UncompressedDigest!=nullptr){
+        byuncompressedsum.erase(*layer->UncompressedDigest);
+    }
+}   
+
+std::shared_ptr<Layer> layerStore::lookup(const std::string& id){
+    auto it=byid.find(id);
+    if(it!=byid.end()){
+        return it->second;
+    }
+    auto name=byname.find(id);
+    if(name!=byname.end()){
+        return name->second;
+    }
+    return nullptr;
 }

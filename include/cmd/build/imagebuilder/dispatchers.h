@@ -74,6 +74,13 @@ void Volume(
     std::string original,
     std::vector<Heredoc>heredocs);
 
+void workdir(
+    Image_Builder* b,
+    std::vector<std::string>args,
+    std::map<std::string,bool>attributes,
+    std::vector<std::string>flagArgs,
+    std::string original,
+    std::vector<Heredoc>heredocs);
 
 std::vector<File> processHereDocs(const std::string& originalInstruction, const std::vector<Heredoc>& heredocs, const std::vector<std::string>& args);
 void checkChmodConversion(const std::string& chmod);

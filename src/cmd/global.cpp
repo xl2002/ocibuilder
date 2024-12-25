@@ -52,7 +52,8 @@ void init_cmd(){
         {dockerfilecommand::Copy,dispatchCopy},
         {dockerfilecommand::Expose,expose},
         {dockerfilecommand::Entrypoint,entrypoint},
-        {dockerfilecommand::Volume,Volume}
+        {dockerfilecommand::Volume,Volume},
+        {dockerfilecommand::Workdir,workdir}
     };
     obRgex=Delayed(R"(^\s*ONBUILD\s*)");
     localspec = DefaultSpec();

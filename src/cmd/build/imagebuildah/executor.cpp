@@ -598,6 +598,7 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,bool,std::string> Ex
     std::shared_ptr<Canonical_interface> ref;
     bool onlyBaseImage;
     try {
+        //执行镜像构建
         std::tie(imageID, ref, onlyBaseImage) = stageExecutor->Execute(base);
     } catch (const myerror& e) {
         return std::make_tuple("", nullptr, onlyBaseImage, std::string(e.what()));

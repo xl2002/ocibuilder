@@ -48,6 +48,9 @@ struct Port{
         }
         return parts[1];
     }
+    std::string String(){
+        return p;
+    }
 };
 struct PortSet{
     std::set<Port> ports;
@@ -66,7 +69,7 @@ public:
     int64_t CPUShares = 0;
     std::string CPUSet;
     std::vector<std::string> PortSpecs;
-    std::map<std::string, Port> ExposedPorts; // 这里将Port类型替换为std::string
+    std::vector<Port> ExposedPorts; // 这里将Port类型替换为std::string
     std::string PublishService;
     std::string StopSignal;
     int StopTimeout = 0;
@@ -94,6 +97,7 @@ public:
     bool StdinOnce = false;
     bool NetworkDisabled = false;
     std::string VolumesFrom;
+    container_Config() = default;
 };
 
 struct V1Image {

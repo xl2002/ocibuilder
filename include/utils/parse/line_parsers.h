@@ -20,4 +20,6 @@ std::tuple<std::shared_ptr<Node>, std::map<std::string, bool>>
 parseMaybeJSON(const std::string& rest,const std::shared_ptr<Directive> d);
 std::tuple<std::shared_ptr<Node>, std::map<std::string, bool>> 
 parseIgnore(const std::string& rest,const std::shared_ptr<Directive> d);
+std::tuple<std::shared_ptr<Node>, std::map<std::string, bool>> 
+parseString(const std::string& rest,const std::shared_ptr<Directive> d);
 #endif // PARSE_LINE_PARSERS_H

@@ -290,7 +290,7 @@ std::shared_ptr<Builder> StageExecutor::prepare(
     }
     if(initializeIBConfig){
         auto volumes=std::map<std::string, std::string>();
-        auto ports=std::map<std::string, Port>();
+        auto ports=std::vector<Port>();
         auto dConfig=std::make_shared<container_Config>();
         dConfig->Hostname=builder->Hostname();
         dConfig->Domainname=builder->Domainname();
@@ -440,10 +440,10 @@ std::pair<std::string,std::shared_ptr<Canonical_interface>> StageExecutor::commi
     this->builder->SetHostname(config->Hostname);
     this->builder->SetDomainname(config->Domainname);
     if(this->executor->os!=""){
-        
+        this->builder->SetOS(this->executor->os);
     }
     if(this->executor->osVersion!=""){
-        
+        this->builder->SetOSVersion(this->executor->osVersion);
     }
     for(auto& osFeatureSpec:this->executor->osFeatures){
         
@@ -451,7 +451,7 @@ std::pair<std::string,std::shared_ptr<Canonical_interface>> StageExecutor::commi
     this->builder->SetUser(config->User);
     this->builder->ClearPorts();
     for(auto& p:config->ExposedPorts){
-        
+        this->builder->SetPorts(p.String());
     }
     for(auto& envSpec:config->Env){
         std::string key,val;
@@ -464,7 +464,7 @@ std::pair<std::string,std::shared_ptr<Canonical_interface>> StageExecutor::commi
     this->builder->SetCmd(config->Cmd);
     this->builder->ClearVolumes();
     for(auto& v:config->Volumes){
-        
+        this->builder->AddVolume(v.first,v.second);
     }
     this->builder->ClearOnBuild();
     for(auto& onBuildSpec:config->OnBuild){
@@ -481,10 +481,14 @@ std::pair<std::string,std::shared_ptr<Canonical_interface>> StageExecutor::commi
     }
     this->builder->ClearLabels();
     if(output==""){
-        
+        for(auto l:this->executor->layerLabels){
+            std::string key,val;
+            std::tie(key,val,std::ignore)=Cut(l,'=');
+            this->builder->SetLabel(key,val);
+        }
     }
     for(auto& v:config->Labels){
-        
+        this->builder->SetLabel(v.first,v.second);
     }
     if(this->executor->commonBuildOptions->IdentityLabel==OptionalBool::OptionalBoolUndefined || this->executor->commonBuildOptions->IdentityLabel==OptionalBool::OptionalBoolTrue){
         this->builder->SetLabel(BuilderIdentityAnnotation,version);
@@ -493,7 +497,9 @@ std::pair<std::string,std::shared_ptr<Canonical_interface>> StageExecutor::commi
         
     }
     for(auto& annotationSpec:this->executor->annotations){
-
+        std::string key,val;
+        std::tie(key,val,std::ignore)=Cut(annotationSpec,'=');
+        this->builder->SetAnnotation(key,val);
     }
     if(imageRef!=nullptr){
         auto logName=ImageName(imageRef);
@@ -554,7 +560,22 @@ void StageExecutor::UnrecognizedInstruction(std::shared_ptr<Step> step){
     return;
 }
 void StageExecutor::Preserve(std::string path){
-
+    std::string mountpath;
+    if(this->mountPoint==""){
+        this->builder->MountPoint=this->builder->store->GetlayerStoragePath()+"\\"+this->builder->container->LayerID;
+        this->mountPoint=this->builder->MountPoint;
+    }
+    if(this->mountPoint!=""){
+        mountpath=this->mountPoint;
+    }else{
+        mountpath=this->builder->MountPoint;
+    }
+    std::string volumePath=mountpath+"/diff"+path;
+    auto path1=boost::filesystem::path(volumePath);
+    // path.make_preferred();
+    if(!boost::filesystem::exists(path1)){
+        boost::filesystem::create_directories(path1);
+    }
 }
 void StageExecutor::EnsureContainerPath(std::string path){
 
@@ -604,12 +625,17 @@ void StageExecutor::performCopy(std::vector<std::string> excludes,std::vector<Co
             }
 
         }
+        // if(this->builder->MountPoint==""){
         if(copy.From=="from"){
             this->builder->MountPoint=this->builder->store->GetlayerStoragePath()+"\\"+this->builder->FromImageID;
 
         }else{
             this->builder->MountPoint=this->builder->store->GetlayerStoragePath()+"\\"+this->builder->container->LayerID;
+            this->mountPoint=this->builder->MountPoint;
         }
+        // }
+        
+        
         //这里调试判断为false，直接跳过
         if (copy.From.size()>0 && copy.Files.size()==0){
 

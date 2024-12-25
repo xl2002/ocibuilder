@@ -137,7 +137,7 @@ std::string shellWord::processSingleQuote() {
     // 所有单引号之间的字符原样保留
     // 注意，你不能转义 '
     std::string result;
-    scanner.get(); // 跳过单引号
+    // scanner.get(); // 跳过单引号
 
     char ch;
     while (scanner.get(ch)) {
@@ -158,7 +158,7 @@ std::string shellWord::processDoubleQuote() {
     // 所有字符直到下一个 " 都原样保留，除了 $ 字符
     // 但可以用 \ 转义 "
     std::string result;
-    scanner.get(); // 跳过双引号
+    // scanner.get(); // 跳过双引号
 
     char ch;
     while (scanner.get(ch)) {
@@ -190,7 +190,7 @@ std::string shellWord::processDoubleQuote() {
 }
 
 std::string shellWord::processDollar() {
-    scanner.get(); // 跳过美元符号
+    // scanner.get(); // 跳过美元符号
     char ch = scanner.peek();
     if (ch == '{') {
         scanner.get(); // 跳过 {

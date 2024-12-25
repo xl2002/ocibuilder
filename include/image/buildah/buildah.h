@@ -143,6 +143,10 @@ struct Builder {
     std::string CreatedBy();
     void ClearAnnotations();
     std::string OS();
+    void SetOS(std::string os);
+    std::string OSVersion();
+    void SetOSVersion(std::string osVersion);
+    void SetPorts(std::string port);
     void SetHostname(std::string name);
     void SetDomainname(std::string name);
     void SetUser(std::string spec);
@@ -150,6 +154,7 @@ struct Builder {
     void SetEnv(std::string k,std::string v);
     void SetCmd(std::vector<std::string> cmd);
     void ClearVolumes();
+    void AddVolume(std::string k,std::string v);
     void ClearOnBuild();
     void SetWorkDir(std::string there);
     void SetEntrypoint(std::vector<std::string> ep);

@@ -4,6 +4,7 @@
 #include "image/types/internal/types.h"
 #include "utils/common/go/string.h"
 #include "storage/storage/images.h"
+#include "image/image_types/v1/annotations.h"
 /**
  * @brief // Image将图像从srcRef复制到destRef，使用policyContext来验证源图像的可接受性。 
  *  它返回写入新镜像副本的清单。
@@ -136,9 +137,11 @@ std::shared_ptr<copySingleImageResult> copier::copySingleImage(std::shared_ptr<U
         manifest->Layers[i].Size=blobsinfo_gzip[i].Size;
         manifest->Layers[i].MediaType=blobsinfo_gzip[i].MediaType;
     }
-
+    // if(manifest->Annotations[AnnotationBaseImageDigest]==""){
+    //     manifest->Annotations[AnnotationBaseImageDigest]=manifest->Layers[0].Digests.String();
+    // }
     //复制manifest到库
-    std::string manifestbytes=marshal(*manifest);//manifest为指针，不能直接解析
+    std::string manifestbytes=marshal<OCI1>(*manifest);//manifest为指针，不能直接解析
     // auto manifestdigest1=FromString(manifestbytes);//已经计算好的最终manifest的哈希值
     // std::string manifestpath=storagepath+"manifest.json";
     // if(boost::filesystem::exists(manifestpath)){

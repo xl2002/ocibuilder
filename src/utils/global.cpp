@@ -134,7 +134,8 @@ void init_utils(){
         {dockerfilecommand::Env,parseEnv},
         {dockerfilecommand::Expose,parseStringsWhitespaceDelimited},
         {dockerfilecommand::Entrypoint,parseMaybeJSON},
-        {dockerfilecommand::Volume,parseMaybeJSONToList}
+        {dockerfilecommand::Volume,parseMaybeJSONToList},
+        {dockerfilecommand::Workdir,parseString}
     };
     bool precompile=false;
     // 定义路径分隔符

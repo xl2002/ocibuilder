@@ -43,7 +43,7 @@ std::string platformSupports(const std::string& command) {
     return "";
 #endif
     // Windows 平台上的不支持的命令
-    if (command == "expose" || command == "user" || command == "stopsignal" || command == "arg") {
+    if (command == "user" || command == "stopsignal" || command == "arg") {
         std::string errorMessage = "The daemon on this platform does not support the command '" + command + "'";
         return errorMessage;
     }

@@ -20,7 +20,7 @@ struct ImageConfig {
     std::string user;
 
     // ExposedPorts a set of ports to expose from a container running this image.
-    std::map<std::string, bool> exposedPorts;
+    std::map<std::string, boost::json::object> exposedPorts;
 
     // Env is a list of environment variables to be used in a container.
     std::vector<std::string> env;
@@ -32,7 +32,7 @@ struct ImageConfig {
     std::vector<std::string> cmd;
 
     // Volumes is a set of directories describing where the process is likely to write data specific to a container instance.
-    std::map<std::string, bool> volumes;
+    std::map<std::string, std::string> volumes;
 
     // WorkingDir sets the current working directory of the entrypoint process in the container.
     std::string workingDir;
@@ -55,12 +55,12 @@ struct ImageConfig {
     friend void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const ImageConfig& image) {
         jv=boost::json::object{
             // {"user",image.user},
-            // {"exposedPorts",boost::json::value_from(image.exposedPorts)},
             {"Env",boost::json::value_from(image.env)},
-            // {"entrypoint",boost::json::value_from(image.entrypoint)},
             {"Cmd",boost::json::value_from(image.cmd)},
-            // {"volumes",boost::json::value_from(image.volumes)},
-            // {"workingDir",image.workingDir},
+            {"Volumes",boost::json::value_from(image.volumes)},
+            {"WorkingDir",image.workingDir},
+            {"Entrypoint",boost::json::value_from(image.entrypoint)},
+            {"ExposedPorts",boost::json::value_from(image.exposedPorts)},
             {"Labels",boost::json::value_from(image.labels)}
             // {"stopSignal",image.stopSignal},
             // {"argsEscaped",image.argsEscaped}
@@ -70,12 +70,12 @@ struct ImageConfig {
         const auto& obj = jv.as_object();
         ImageConfig image;
         // image.user=obj.at("user").as_string();
-        // image.exposedPorts=boost::json::value_to<std::map<std::string, bool>>(obj.at("exposedPorts"));
         image.env=boost::json::value_to<std::vector<std::string>>(obj.at("Env"));
-        // image.entrypoint=boost::json::value_to<std::vector<std::string>>(obj.at("entrypoint"));
         image.cmd=boost::json::value_to<std::vector<std::string>>(obj.at("Cmd"));
-        // image.volumes=boost::json::value_to<std::map<std::string, bool>>(obj.at("volumes"));
-        // image.workingDir=obj.at("workingDir").as_string();
+        image.volumes=boost::json::value_to<std::map<std::string, std::string>>(obj.at("Volumes"));
+        image.workingDir=obj.at("WorkingDir").as_string().c_str();
+        image.entrypoint=boost::json::value_to<std::vector<std::string>>(obj.at("Entrypoint"));
+        image.exposedPorts=boost::json::value_to<std::map<std::string, boost::json::object>>(obj.at("ExposedPorts"));
         image.labels=boost::json::value_to<std::map<std::string, std::string>>(obj.at("Labels"));
         // image.stopSignal=obj.at("stopSignal").as_string();
         // image.argsEscaped=obj.at("argsEscaped").as_bool();
@@ -202,6 +202,7 @@ struct Manifest{
             {"annotations", boost::json::value_from(image.Annotations)}
         };
     }
+
 
     friend Manifest tag_invoke(boost::json::value_to_tag<Manifest>, const boost::json::value& jv) {
         const auto& obj = jv.as_object();

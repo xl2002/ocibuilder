@@ -20,7 +20,6 @@ OUTPUT	:= output
 # define source directory
 SRC		:= src
 
-BUILD	:= build
 # define include directory
 # INCLUDE	:= include D:/Softwares/boost_1_75_0
 INCLUDE	:= include
@@ -33,12 +32,10 @@ OCI		:= oci_images
 ifeq ($(OS),Windows_NT)
 MAIN	:= main.exe
 SOURCEDIRS	:= $(SRC) $(shell dir /s /b /ad $(SRC))
-BUILDDIRS	:= $(subst $(SRC),$(BUILD),$(SOURCEDIRS))
 INCLUDEDIRS	:= $(INCLUDE)
 LIBDIRS		:= $(LIB)
 FIXPATH = $(subst /,\,$1)
 RM			:= del /q /f
-RMDIR		:= rmdir /s /q
 MD	:= mkdir
 else
 MAIN	:= main
@@ -63,9 +60,6 @@ SOURCES		:= $(wildcard $(patsubst %,%/*.cpp, $(SOURCEDIRS)))
 # define the C object files
 OBJECTS		:= $(SOURCES:.cpp=.o)
 
-BUILDS 		:= $(subst $(SRC),$(BUILD),$(OBJECTS))
-# define the dependency output files.
-DEPS		:= $(BUILDS:.o=.d)
 # define the dependency output files
 # DEPS		:= $(OBJECTS:.o=.d)
 
@@ -84,7 +78,7 @@ OUTPUTTEST		:= tests
 OUTPUTMAINTEST	:= $(call FIXPATH,$(OUTPUTTEST)/$(MAIN))
 SRCTEST		:= ./tests/sha356.cpp
 LIBSTEST	:= -L lib\boost -L lib\openssl -L lib\libarchive
-all: dirmk $(OUTPUT) $(MAIN)
+all: $(OUTPUT) $(MAIN)
 # $(RM) $(call FIXPATH,$(OBJECTS))
 # $(RM) $(call FIXPATH,$(DEPS))
 	@echo Executing 'all' complete!
@@ -92,21 +86,12 @@ all: dirmk $(OUTPUT) $(MAIN)
 $(OUTPUT):
 	$(MD) $(OUTPUT)
 
-# $(MAIN): $(OBJECTS)
-# 	$(CXX) $(CXXFLAGS) $(INCLUDES) -o $(OUTPUTMAIN) $(OBJECTS) $(LIBS) $(LFLAGS)
 $(MAIN): $(OBJECTS)
-	$(CXX) $(CXXFLAGS) $(INCLUDES) -o $(OUTPUTMAIN) $(BUILDS) $(LIBS) $(LFLAGS)
-# include all .d files
--include $(DEPS)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -o $(OUTPUTMAIN) $(OBJECTS) $(LIBS) $(LFLAGS)
 
-dirmk:
-# @echo $(BUILDDIRS)
-# $(MD) $(BUILDDIRS)
-	@for %%D in ($(BUILDDIRS)) do ( \
-		if not exist "%%D" ( \
-			echo Creating directory %%D & $(MD) "%%D" \
-		) \
-	)
+# include all .d files
+# -include $(DEPS)
+
 test:
 	$(CXX) $(CXXFLAGS) $(INCLUDETEST) -o $(OUTPUTMAINTEST) $(SRCTEST) $(LIBSTEST) $(LFLAGSTEST)
 # ./$(OUTPUTMAINTEST)
@@ -115,16 +100,14 @@ test:
 # the rule(a .c file) and $@: the name of the target of the rule (a .o file)
 # -MMD generates dependency output files same name as the .o file
 # (see the gnu make manual section about automatic variables)
-# .cpp.o:
-# 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c -MMD $<  -o $@
-%.o:%.cpp
-	$(CXX) $(CXXFLAGS) $(INCLUDES) -c -MMD $<  -o $(subst $(SRC),$(BUILD),$@)
+.cpp.o:
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c -MMD $<  -o $@
 
 .PHONY: clean
 clean:
 	$(RM) $(OUTPUTMAIN)
 	$(RM) $(call FIXPATH,$(OBJECTS))
-	$(RM) $(call FIXPATH,$(DEPS))
+# $(RM) $(call FIXPATH,$(DEPS))
 	@echo Cleanup complete!
 
 run: all
@@ -144,10 +127,3 @@ else
 	@rm -rf $(OCI)
 endif
 	@echo Cleanup OCI complete!
-
-cleanbuild:
-	$(RM) $(OUTPUTMAIN)
-# $(RM) $(call FIXPATH,$(BUILDS))
-# $(RM) $(call FIXPATH,$(DEPS))
-	$(RMDIR) $(BUILD)
-	@echo Cleanup complete!

@@ -113,7 +113,7 @@ void from(
     b->RunConfig->Image = name;
 
     // 将拷贝操作添加到待处理的列表中
-    if(b->PendingCopies.size()==0){
+    if(b->PendingCopies.size()==0&&name!="scratch"){
         boost::filesystem::path src(name);
         auto absrc=boost::filesystem::absolute(src);
         Copy c;
@@ -239,21 +239,21 @@ void expose(
 
     // 如果 ExposedPorts 为 null，初始化为空的 map
     if (b->RunConfig->ExposedPorts.empty()) {
-        b->RunConfig->ExposedPorts = std::map<std::string, Port>();
+        b->RunConfig->ExposedPorts = std::vector<Port>();
     }
 
     // 记录现有的端口
     std::set<std::string> existingPorts;
     for (auto& entry : b->RunConfig->ExposedPorts) {
-        existingPorts.insert(entry.second.port());
+        existingPorts.insert(entry.port());
     }
 
     // 处理每个端口
     for (auto& portStr : args) {
         Port dp(portStr);
-        std::string portKey = dp.port() + "/" + dp.proto();
+        std::string portKey = dp.port()+ "/" + dp.proto();
         if (existingPorts.find(portKey) == existingPorts.end()) {
-            b->RunConfig->ExposedPorts[portKey] =Port();
+            b->RunConfig->ExposedPorts.push_back(Port(portKey));
         }
     }
 }
@@ -313,14 +313,33 @@ void Volume(
     }
     for(auto& v:args){
         v=TrimSpace(v);
+        std::string src,dest;
+        std::tie(src, dest,std::ignore)=Cut(v,':');
         if(v==""){
             throw myerror("Volume specified can not be an empty string");
         }
-        b->RunConfig->Volumes[v]="";
+        b->RunConfig->Volumes[src]=dest;
         b->PendingVolumes->Add(v);
     }
 }
-
+void workdir(
+    Image_Builder* b,
+    std::vector<std::string>args,
+    std::map<std::string,bool>attributes,
+    std::vector<std::string>flagArgs,
+    std::string original,
+    std::vector<Heredoc>heredocs)
+{
+    if(args.size()!=1){
+        throw errExactlyOneArgument("WORKDIR");
+    }
+    boost::filesystem::path workdir(args[0]);
+    if(!workdir.is_absolute()){
+        workdir=boost::filesystem::path(b->RunConfig->WorkingDir)/workdir;
+    }
+    b->RunConfig->WorkingDir=workdir.string();
+    return;
+}
 // 处理 HereDoc 的函数
 std::vector<File> processHereDocs(const std::string& originalInstruction, const std::vector<Heredoc>& heredocs, const std::vector<std::string>& args) {
     std::vector<File> files;

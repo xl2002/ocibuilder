@@ -45,6 +45,18 @@ void  Builder::ClearAnnotations(){
 std::string  Builder::OS(){
     return this->OCIv1->platform.OS;
 }
+void Builder::SetOS(std::string os){
+    this->OCIv1->platform.OS=os;
+}
+std::string Builder::OSVersion(){
+    return this->OCIv1->platform.OSVersion;
+}
+void Builder::SetOSVersion(std::string osVersion){
+    this->OCIv1->platform.OSVersion=osVersion;
+}
+void Builder::SetPorts(std::string port){
+    this->OCIv1->config.exposedPorts[port]=boost::json::object();
+}
 void Builder::SetHostname(std::string name){
     this->Docker->config->Hostname=name;
 }
@@ -66,7 +78,7 @@ void Builder::SetEnv(std::string k,std::string v){
     auto reset=[&](std::vector<std::string>& s){
         std::vector<std::string> n;
         for(auto i=0;i<s.size();i++){
-            if(hasPrefix(s[i],k+"=")){
+            if(!hasPrefix(s[i],k+"=")){
                 n.push_back(s[i]);
             }
         }
@@ -74,8 +86,9 @@ void Builder::SetEnv(std::string k,std::string v){
         s=n;
     };
     reset(this->OCIv1->config.env);
-    reset(this->Docker->config->Env);
+    // reset(this->Docker->config->Env);
 }
+
 
 void Builder::SetCmd(std::vector<std::string> cmd){
     this->OCIv1->config.cmd=cmd;
@@ -85,6 +98,9 @@ void Builder::SetCmd(std::vector<std::string> cmd){
 void Builder::ClearVolumes(){
     this->OCIv1->config.volumes.clear();
     this->Docker->config->Volumes.clear();
+}
+void Builder::AddVolume(std::string k,std::string v){
+    this->OCIv1->config.volumes[k]=v;
 }
 void Builder::ClearOnBuild(){
     this->Docker->config->OnBuild.clear();

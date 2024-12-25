@@ -18,7 +18,7 @@ std::shared_ptr<containerImageRef> Builder::makeContainerImageRef(std::shared_pt
         options->PreferredManifestType=MediaTypeImageManifest;
         manifestType=options->PreferredManifestType;
     }
-    auto oconfig=marshal<v1::Image>(*this->OCIv1);
+    auto oconfig=marshal<v1::Image>(*this->OCIv1);//拿到config的配置
     std::chrono::system_clock::time_point created;
     auto createdBy=this->CreatedBy();
     std::string parent;
@@ -81,7 +81,10 @@ std::shared_ptr<ImageSource_interface> containerImageRef::NewImageSource(std::sh
     // 1. 得到整个镜像所有层的ID
     auto manifestType=this->preferredManifestType;
     std::vector<std::string>layers;
-    layers.push_back(this->fromImageID);
+    if(this->fromImageID!=""&&this->fromImageName!="scratch"){
+        layers.push_back(this->fromImageID);//当FROM后面为scratch时，fromImageID为空
+    }
+    // layers.push_back(this->fromImageID);
     layers.push_back(this->layerID);
     auto destpath=MkdirTemp(getDefaultTmpDir(),"buildah");
 
@@ -93,12 +96,22 @@ std::shared_ptr<ImageSource_interface> containerImageRef::NewImageSource(std::sh
     auto srcpath=this->store->GetlayerStoragePath();
     
     std::map<Digest, blobLayerInfo> blobLayers;
-    std::vector<std::shared_ptr<Layer>> Layers;
+    // std::vector<std::shared_ptr<Layer>> Layers;
+    
+    auto s=std::dynamic_pointer_cast<Store>(this->store);
+    auto layerstore=std::dynamic_pointer_cast<layerStore>(s->layer_store_use_getters);
+    auto now = std::chrono::system_clock::now();
+
     for(auto layer:layers){
         // 3. 将原目录下diff文件夹下的内容复制到目的缓存目录下，如果目的目录不存在则新建目录
         //  int64_t Copy_directory(const fs::path& source, const fs::path& destination)复制目录的函数已写好，并且返回数据大小
         // auto size=Copy_directory(tarlayerpath,destpath);
-        auto  l=std::make_shared<Layer>();//TODO
+        // auto  l=std::make_shared<Layer>();//TODO
+        auto l=layerstore->lookup(layer);
+        if(l==nullptr){
+            std::cerr<<"layer not found"<<std::endl;
+            continue;
+        }
         auto omediaType=MediaTypeImageLayer;//TODO
         omediaType=computeLayerMIMEType(layer,this->compression);
         auto noCompression=compression::Uncompressed;//TODO
@@ -131,6 +144,7 @@ std::shared_ptr<ImageSource_interface> containerImageRef::NewImageSource(std::sh
         l->Names=this->names;
         l->Parent=this->parent;
         l->uncompressedSize=tarsize;
+        l->Created=now;
         Descriptor olayerDescriptor;
         olayerDescriptor.MediaType=omediaType;
         olayerDescriptor.Digests=*tarfile;
@@ -140,11 +154,11 @@ std::shared_ptr<ImageSource_interface> containerImageRef::NewImageSource(std::sh
 
         blobLayers[tardigest].ID=tardigest;
         blobLayers[tardigest].Size=tarsize;
-        Layers.push_back(l);
+        // Layers.push_back(l);
+
     }
 
     // 6. 组织历史记录history，构造appendHistory函数
-    auto now = std::chrono::system_clock::now();
     std::time_t currentTime = std::chrono::system_clock::to_time_t(now);//调试可见
     auto comment=this->historyComment;
     comment+="FROM "+this->fromImageName;
@@ -156,12 +170,11 @@ std::shared_ptr<ImageSource_interface> containerImageRef::NewImageSource(std::sh
     onews.emptyLayer=this->emptyLayer;
     oimage->history.push_back(onews);
     //更新layerstore
-    for(auto layer:Layers){//TODO
-        layer->Created=now;
-    }
-    auto s=std::dynamic_pointer_cast<Store>(this->store);
-    auto layerstore=std::dynamic_pointer_cast<layerStore>(s->layer_store_use_getters);
-    layerstore->layers.insert(layerstore->layers.end(),Layers.begin(),Layers.end());
+    // for(auto layer:Layers){//TODO
+    //     layer->Created=now;
+    // }
+    //删除原有的layer记录
+    // layerstore->layers.insert(layerstore->layers.end(),Layers.begin(),Layers.end());
     if(!layerstore->savelayer()){//更新overlay中的layer.json
         std::cerr<<"save layer error"<<std::endl;
     }
@@ -277,6 +290,8 @@ std::shared_ptr<OCI1>containerImageSource::OCI1FromManifest(){
  */
 bool containerImageSource::SaveConfig(){
     try{
+        std::mutex m;
+        std::lock_guard<std::mutex> lock(m);//必须加锁，否则写入内容不一致
         std::string storagepath=this->store->GetImageStoragePath()+"/blobs/sha256/";
         std::string newname;
         std::string configpath=storagepath+"config.json";
@@ -297,17 +312,26 @@ bool containerImageSource::SaveConfig(){
  * @param manifestbytes 
  * @return std::shared_ptr<Digest> 
  */
-std::shared_ptr<Digest> containerImageSource::UploadManifest(std::string manifestbytes){
+std::shared_ptr<Digest> containerImageSource::UploadManifest(std::string& manifestbytes){
     try{
+        std::mutex m;
+        std::lock_guard<std::mutex> lock(m);//必须加锁，否则写入内容不一致
         std::string storagepath=this->store->GetImageStoragePath()+"/blobs/sha256/";
         std::string newname;
         std::string manifestpath=storagepath+"manifest.json";
-        boost::filesystem::ofstream file2(manifestpath,std::ios::binary|std::ios::trunc|std::ios::out);
-        file2.write(reinterpret_cast<const char*>(manifestbytes.data()),manifestbytes.size());
+        boost::filesystem::ofstream file2(manifestpath,std::ios::binary|std::ios::trunc);
+        // file2.write(reinterpret_cast<const char*>(manifestbytes.data()),manifestbytes.size());
+        // std::cout<<manifestbytes<<std::endl;
+        file2<<manifestbytes;
         file2.close();
         auto manifestdigest=Fromfile(manifestpath);
         newname=storagepath+manifestdigest->Encoded();
         boost::filesystem::rename(manifestpath, newname);
+
+        // std::ifstream file3(newname, std::ios::binary);
+        // std::stringstream buffer;
+        // buffer << file3.rdbuf();
+        // std::cout << "Written JSON content:\n" << buffer.str() << std::endl;
         return manifestdigest;
     }catch(const std::exception& e){
         return nullptr;

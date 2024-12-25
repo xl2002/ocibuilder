@@ -337,7 +337,10 @@ void Image_Builder::Run(std::shared_ptr<Step> step,Executor_Interface* exec,bool
 	this->PendingRuns.clear();
 
     for (auto& path : this->PendingVolumes->Volumes){
-
+        std::string src,dest;
+        std::tie(src,dest,std::ignore)=Cut(path,':');//src为容器里的路径，dest为主机上的路径
+        this->Volumes->Add(src);
+        exec->Preserve(src);
     }
     try{
         exec->COPY(this->Excludes,copies);
