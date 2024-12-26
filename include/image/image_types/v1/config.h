@@ -32,8 +32,8 @@ struct ImageConfig {
     std::vector<std::string> cmd;
 
     // Volumes is a set of directories describing where the process is likely to write data specific to a container instance.
-    std::map<std::string, std::string> volumes;
-
+    // std::map<std::string, std::string> volumes;
+    std::map<std::string, boost::json::object> volumes;
     // WorkingDir sets the current working directory of the entrypoint process in the container.
     std::string workingDir;
 
@@ -72,7 +72,8 @@ struct ImageConfig {
         // image.user=obj.at("user").as_string();
         image.env=boost::json::value_to<std::vector<std::string>>(obj.at("Env"));
         image.cmd=boost::json::value_to<std::vector<std::string>>(obj.at("Cmd"));
-        image.volumes=boost::json::value_to<std::map<std::string, std::string>>(obj.at("Volumes"));
+        // image.volumes=boost::json::value_to<std::map<std::string, std::string>>(obj.at("Volumes"));
+        image.volumes=boost::json::value_to<std::map<std::string, boost::json::object>>(obj.at("Volumes"));
         image.workingDir=obj.at("WorkingDir").as_string().c_str();
         image.entrypoint=boost::json::value_to<std::vector<std::string>>(obj.at("Entrypoint"));
         image.exposedPorts=boost::json::value_to<std::map<std::string, boost::json::object>>(obj.at("ExposedPorts"));

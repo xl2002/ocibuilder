@@ -100,7 +100,9 @@ void Builder::ClearVolumes(){
     this->Docker->config->Volumes.clear();
 }
 void Builder::AddVolume(std::string k,std::string v){
-    this->OCIv1->config.volumes[k]=v;
+    // this->OCIv1->config.volumes[k]=v;
+    this->OCIv1->config.volumes[k]=boost::json::object();
+
 }
 void Builder::ClearOnBuild(){
     this->Docker->config->OnBuild.clear();
