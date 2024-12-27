@@ -1,7 +1,7 @@
 {
     "tasks": [
         {
-            "type": "cppbuild",
+            "type": "process",
             "label": "build",
             "command": "mingw32-make",
             "args": [
@@ -20,7 +20,7 @@
             "detail": "编译器: D:\\softwares\\mingw64\\bin\\g++.exe"
         },
         {
-            "type": "cppbuild",
+            "type": "process",
             "label": "build_test",
             "command": "mingw32-make",
             "args": [
