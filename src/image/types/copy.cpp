@@ -56,14 +56,32 @@ std::vector<uint8_t> Image(std::shared_ptr<PolicyContext>policyContext,std::shar
         index=unmarshal<storage::index>(fileContent);
     }
     indexfile.close();
+    // index.addManifest(c,single);//更新index.json
     auto newmanifest=std::make_shared<storage::manifest>();
     newmanifest->mediaType=single->manifestMIMEType;
     newmanifest->digest=single->manifestDigest->String();
     newmanifest->size=single->manifest.size();
     auto destimage=std::dynamic_pointer_cast<storageImageDestination>(dest);
     auto tagref=std::dynamic_pointer_cast<taggedReference>(destimage->imageRef->named);
+    std::string newname=tagref->String();
     if(destimage!=nullptr&&tagref!=nullptr){
-        newmanifest->annotations["org.opencontainers.image.ref.name"]=tagref->String();
+        newmanifest->annotations["org.opencontainers.image.ref.name"]=newname;
+    }
+    //检测manifest中是否已经有相同的镜像，如果有，删除
+    // index.manifests.erase(std::remove_if(index.manifests.begin(), index.manifests.end(), 
+    //     [newname](const storage::manifest& manifest) {
+    //         auto it = manifest.annotations.find("org.opencontainers.image.ref.name");
+    //         return it != manifest.annotations.end() && it->second == newname;
+    //         }), index.manifests.end());
+    auto m=std::find_if(index.manifests.begin(), index.manifests.end(), 
+        [newname](const storage::manifest& manifest) {
+            auto it = manifest.annotations.find("org.opencontainers.image.ref.name");
+            return it != manifest.annotations.end() && it->second == newname;
+            });
+    if(m!=index.manifests.end()){
+        newmanifest->historyTags=m->historyTags;
+        newmanifest->historyTags.push_back(m->digest);
+        index.manifests.erase(m);
     }
     index.manifests.push_back(*newmanifest);
     index.schemaVersion=2;
@@ -73,9 +91,6 @@ std::vector<uint8_t> Image(std::shared_ptr<PolicyContext>policyContext,std::shar
     std::ofstream newindexfile(indexpath,std::ios::out|std::ios::trunc);
     newindexfile<<newindexcontent;
     newindexfile.close();
-    // 更新layerstore的layer.json
-
-    
     return single->manifest;
 }
 /**
@@ -111,20 +126,6 @@ std::shared_ptr<copySingleImageResult> copier::copySingleImage(std::shared_ptr<U
     if(pendingImage->SaveConfig()){
         std::cout<<"save config success"<<std::endl;
     }
-    // std::string storagepath=pendingImage->store->GetImageStoragePath()+"/blobs/sha256/";
-    // std::string newname;
-    // std::string configpath=storagepath+"config.json";
-    // if(boost::filesystem::exists(configpath)){
-    //     std::cerr<<"config is exist"<<std::endl;
-    //     return nullptr;
-    // }
-    // boost::filesystem::ofstream file(configpath,std::ios::binary|std::ios::trunc|std::ios::out);
-    // file.write(reinterpret_cast<const char*>(config.data()),config.size());
-    // file.close();
-    // auto configdigest=Fromfile(configpath);
-    // newname=storagepath+configdigest->Encoded();
-    // boost::filesystem::rename(configpath, newname);
-
 
     //更新manifest
     auto blobsinfo_gzip=ic->manifestUpdates->InformationOnly->LayerInfos;//获得压缩层的信息
@@ -142,18 +143,6 @@ std::shared_ptr<copySingleImageResult> copier::copySingleImage(std::shared_ptr<U
     // }
     //复制manifest到库
     std::string manifestbytes=marshal<OCI1>(*manifest);//manifest为指针，不能直接解析
-    // auto manifestdigest1=FromString(manifestbytes);//已经计算好的最终manifest的哈希值
-    // std::string manifestpath=storagepath+"manifest.json";
-    // if(boost::filesystem::exists(manifestpath)){
-    //     std::cerr<<"manifest is exist"<<std::endl;
-    //     return nullptr;
-    // }
-    // boost::filesystem::ofstream file2(manifestpath,std::ios::binary|std::ios::trunc|std::ios::out);
-    // file2.write(reinterpret_cast<const char*>(manifestbytes.data()),manifestbytes.size());
-    // file2.close();
-    // auto manifestdigest=Fromfile(manifestpath);
-    // newname=storagepath+manifestdigest->Encoded();
-    // boost::filesystem::rename(manifestpath, newname);
     auto manifestdigest=pendingImage->UploadManifest(manifestbytes);//保存manifest到库
     if(manifestdigest==nullptr){
         std::cerr<<"upload manifest failed"<<std::endl;
@@ -258,7 +247,11 @@ std::tuple<std::shared_ptr<BlobInfo>,std::shared_ptr<Digest>> imageCopier::copyL
     bloblayer.close();
     auto BlobDigest=Fromfile(storagelayerpath);
     std::string newBlobname=copysource->store->GetImageStoragePath()+"/blobs/sha256/"+BlobDigest->Encoded();
-    boost::filesystem::rename(storagelayerpath, newBlobname);
+    if(boost::filesystem::exists(newBlobname)){
+        boost::filesystem::remove_all(storagelayerpath);
+    }else{
+        boost::filesystem::rename(storagelayerpath, newBlobname);
+    }
     // auto digest=FromString(gzipblob);
     auto size=gzipblob.size();
     std::cout<<"success copying layer: "<<BlobDigest->String()<<std::endl;
@@ -268,23 +261,7 @@ std::tuple<std::shared_ptr<BlobInfo>,std::shared_ptr<Digest>> imageCopier::copyL
     blobinfo->Size=size;
     blobinfo->MediaType=srcInfo->MediaType+"+gzip";
     blobinfo->CompressionAlgorithm=alg;
-    // std::string storagelayerpath=copysource->store->GetImageStoragePath()+"/blobs/sha256/"+blobinfo->Digest->Encoded();
-    // boost::filesystem::path p(storagelayerpath);
-    // if(boost::filesystem::exists(p)){
-    //     std::cout<<"layer "<< storagelayerpath<<"already exists"<<std::endl;
-    //     return std::make_tuple(nullptr,nullptr);
-    // }
-    // boost::filesystem::ofstream bloblayer(p,std::ios::binary);
-    // if(!bloblayer){
-    //     std::cerr<<"Failed to open file: " << storagelayerpath << std::endl;
-    //     return std::make_tuple(nullptr,nullptr);
-    // }
-    // bloblayer<<gzipblob;
-    // 检查写入是否成功
-    // if (!bloblayer) {
-    //     std::cerr << "Error writing to file." << std::endl;
-    //     return std::make_tuple(nullptr,nullptr);
-    // }
+
     // 关闭文件流
     layerfile.close();
     // bloblayer.close();

@@ -9,5 +9,5 @@ else
 endif
 
 # 默认目标（可以选择执行主Makefile中的默认目标）
-all:
-	@echo "Executing"
+# all:
+# 	@echo "Executing"

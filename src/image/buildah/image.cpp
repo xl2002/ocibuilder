@@ -92,7 +92,6 @@ std::shared_ptr<ImageSource_interface> containerImageRef::NewImageSource(std::sh
     std::shared_ptr<v1::Image> oimage;
     std::shared_ptr<Manifest> omanifest;
     std::tie(oimage,omanifest)=createConfigsAndManifests();
-
     auto srcpath=this->store->GetlayerStoragePath();
     
     std::map<Digest, blobLayerInfo> blobLayers;
@@ -129,12 +128,13 @@ std::shared_ptr<ImageSource_interface> containerImageRef::NewImageSource(std::sh
         auto tardigest=tarfile->Encoded();//tar包的sha256
         auto finalBlobName=destpath+"/"+tardigest;//TODO
         try {
-            // auto tarlayer=boost::filesystem::absolute(boost::filesystem::path(tarfilepath).make_preferred());
-            // auto newname=boost::filesystem::absolute(boost::filesystem::path(finalBlobName).make_preferred());
             if(boost::filesystem::exists(srcpath+"/"+tardigest)){//文件存在，不重命名
-                fs::remove(srcpath+"/"+layer);
+                fs::remove_all(srcpath+"/"+layer);
+                layerstore->deleteLayer(tardigest);//删除存在的记录，后面添加最新的记录
+
+            }else{
+                boost::filesystem::rename(srcpath+"/"+layer, srcpath+"/"+tardigest);//重命名overlay中的文件
             }
-            boost::filesystem::rename(srcpath+"/"+layer, srcpath+"/"+tardigest);//重命名overlay中的文件
             boost::filesystem::rename(tarfilepath, finalBlobName);
             std::cout << "File renamed successfully, "<<"new tar layerId: " << tardigest<< std::endl;
         } catch (const boost::filesystem::filesystem_error& e) {
@@ -223,8 +223,12 @@ std::tuple<std::shared_ptr<v1::Image>,std::shared_ptr<Manifest>> containerImageR
     oimage.author=BuildAuthor;
     oimage.config.env.push_back("PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin");
     oimage.config.cmd.push_back("sh");
-    oimage.platform.OS="linux";
-    oimage.platform.Architecture="amd64";
+    if(oimage.platform.OS==""){
+        oimage.platform.OS="linux";
+    }
+    if(oimage.platform.Architecture==""){
+        oimage.platform.Architecture="amd64";
+    }
     auto omanifest=std::make_shared<Manifest>();
     omanifest->SchemaVersion=2;
     omanifest->MediaType=MediaTypeImageManifest;
@@ -320,9 +324,9 @@ std::shared_ptr<Digest> containerImageSource::UploadManifest(std::string& manife
         std::string newname;
         std::string manifestpath=storagepath+"manifest.json";
         boost::filesystem::ofstream file2(manifestpath,std::ios::binary|std::ios::trunc);
-        // file2.write(reinterpret_cast<const char*>(manifestbytes.data()),manifestbytes.size());
+        file2.write(reinterpret_cast<const char*>(manifestbytes.data()),manifestbytes.size());
         // std::cout<<manifestbytes<<std::endl;
-        file2<<manifestbytes;
+        // file2<<manifestbytes;
         file2.close();
         auto manifestdigest=Fromfile(manifestpath);
         newname=storagepath+manifestdigest->Encoded();

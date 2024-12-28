@@ -142,6 +142,7 @@ struct Builder {
     void SetCreatedBy(std::string how);
     std::string CreatedBy();
     void ClearAnnotations();
+    void SetArchitecture(std::string arch);
     std::string OS();
     void SetOS(std::string os);
     std::string OSVersion();

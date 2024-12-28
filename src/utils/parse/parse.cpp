@@ -115,10 +115,10 @@ shared_ptr< SystemContext> SystemContextFromOptions(Command* c){
         }
         ctx->DockerRegistryUserAgent="Buildah/"+version;
         if(c->Flag_find("os")!=nullptr && c->Flag_find("os")->changed){
-
+            ctx->OSChoice=flags->GetString("os");
         }
         if(c->Flag_find("arch")!=nullptr && c->Flag_find("arch")->changed){
-            
+            ctx->ArchitectureChoice=flags->GetString("arch");
         }
         if(c->Flag_find("variant")!=nullptr && c->Flag_find("variant")->changed){
             
@@ -455,13 +455,13 @@ shared_ptr<NamespaceOptions> idmappingOptions(Command* cmd,shared_ptr<Isolation>
 std::vector<platforms> PlatformsFromOptions(Command* cmd){
     std::string os,arch,variant;
     if(cmd->Flag_find("os")->changed){
-
+        os=cmd->Flags()->GetString("os");
     }
     if(cmd->Flag_find("arch")->changed){
-
+        arch=cmd->Flags()->GetString("arch");
     }
     if(cmd->Flag_find("variant")->changed){
-
+        variant=cmd->Flags()->GetString("variant");
     }
     auto Platforms=std::vector<platforms>();
     auto p=platforms();

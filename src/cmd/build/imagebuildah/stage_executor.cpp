@@ -439,6 +439,9 @@ std::pair<std::string,std::shared_ptr<Canonical_interface>> StageExecutor::commi
     }
     this->builder->SetHostname(config->Hostname);
     this->builder->SetDomainname(config->Domainname);
+    if(this->executor->architecture!=""){
+        this->builder->SetArchitecture(this->executor->architecture);
+    }
     if(this->executor->os!=""){
         this->builder->SetOS(this->executor->os);
     }

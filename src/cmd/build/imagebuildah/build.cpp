@@ -146,12 +146,13 @@ string BuildDockerfiles(shared_ptr<Store> stores, shared_ptr<define_BuildOptions
     for(auto platform : options->PlatformsList){
         auto platformContext=*systemContext;
 
-        auto platformSpec=NormalizePlatform(Platform{platform.OS,platform.Arch,platform.Variant});
+        auto platformSpec=NormalizePlatform(Platform{platform.Arch,platform.OS,platform.Variant});
         if(platform.OS!=""){
-
+            platformContext.OSChoice=platform.OS;
         }
         if(platform.Arch!=""){
-
+            platformContext.ArchitectureChoice=platformSpec.Architecture;
+            platformContext.VariantChoice=platformSpec.Variant;
         }
         auto platformOptions=options;
         platformOptions->systemContext=make_shared<SystemContext>(platformContext);//&platformContext;

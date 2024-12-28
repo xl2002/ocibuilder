@@ -277,9 +277,11 @@ bool layerStore::load(bool lockedForWriting) {
                 std::cout<< "the layer store is empty, and we will skip this layer" << std::endl;
                 return true;
             }
+            // 将文件指针重置到开始处
+            file.seekg(0, std::ios::beg);
             std::string jsonData((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
             file.close();
-
+            
             // 调用 unmarshal 函数解析 JSON 数据
             std::vector<std::shared_ptr<Layer>> parsedLayers = parseLayersFromJson(jsonData);
 
@@ -301,7 +303,7 @@ bool layerStore::load(bool lockedForWriting) {
             for (const auto& name : layer->Names) {
                 if (tempNames.find(name) != tempNames.end()) {
                     // 从 tempNames 和 layer->Names 中移除名称
-                    removeName(tempNames[name], name, tempNames);
+                    // removeName(tempNames[name], name, tempNames);
                 }
                 tempNames[name] = layer;
             }
@@ -351,7 +353,7 @@ bool layerStore::savelayer(){
 void layerStore::deleteLayer(std::string layerID){
     auto layer=this->lookup(layerID);
     if(layer==nullptr){
-        std::cerr<<"layer not found"<<std::endl;
+        return;
     }
     //删除layers中的记录
     for(auto i=0;i<layers.size();i++){

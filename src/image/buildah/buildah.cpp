@@ -42,6 +42,9 @@ std::string  Builder::CreatedBy(){
 void  Builder::ClearAnnotations(){
     this->ImageAnnotations.clear();
 }
+void  Builder::SetArchitecture(std::string arch){
+    this->OCIv1->platform.Architecture=arch;
+}
 std::string  Builder::OS(){
     return this->OCIv1->platform.OS;
 }
@@ -101,7 +104,9 @@ void Builder::ClearVolumes(){
 }
 void Builder::AddVolume(std::string k,std::string v){
     // this->OCIv1->config.volumes[k]=v;
-    this->OCIv1->config.volumes[k]=boost::json::object();
+    std::string volume=k+":"+v;
+    
+    this->OCIv1->config.volumes[volume]=boost::json::object();
 
 }
 void Builder::ClearOnBuild(){

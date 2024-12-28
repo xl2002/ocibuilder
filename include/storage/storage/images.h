@@ -14,6 +14,7 @@
 #include <boost/array.hpp>
 #include "utils/common/go/string.h"
 #include "image/image_types/v1/config.h"
+// #include "image/types/copy.h"
 struct Manifest;
 namespace v1{
     struct Image;
@@ -126,6 +127,7 @@ namespace storage{
         std::string digest;
         uint64_t size=0;
         std::map<std::string, std::string> annotations;
+        std::vector<std::string> historyTags;
         manifest()=default;
         // 序列化
         friend void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const manifest& m) {
@@ -133,7 +135,8 @@ namespace storage{
                 {"mediaType", m.mediaType},
                 {"digest", m.digest},
                 {"size", m.size},
-                {"annotations", boost::json::value_from(m.annotations)}
+                {"annotations", boost::json::value_from(m.annotations)},
+                {"historyTags", boost::json::value_from(m.historyTags)}
             };
         }
 
@@ -146,6 +149,7 @@ namespace storage{
             // auto s=obj.at("size").get
             m.size = static_cast<uint64_t>(obj.at("size").as_int64());
             m.annotations = boost::json::value_to<std::map<std::string, std::string>>(obj.at("annotations"));
+            m.historyTags = boost::json::value_to<std::vector<std::string>>(obj.at("historyTags"));
             return m;
         }
     };
@@ -177,6 +181,7 @@ namespace storage{
             // image.annotations = boost::json::value_to<std::map<std::string, std::string>>(obj.at("annotations"));
             return image;
         }
+        // void addManifest(std::shared_ptr<copier> c,std::shared_ptr<copySingleImageResult> single);
     };
 }
 #endif // STORAGE_IMAGES_H)
