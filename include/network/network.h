@@ -13,9 +13,11 @@
 #include <boost/asio.hpp>
 #include <boost/beast.hpp>
 #include <boost/json.hpp>
+#include <boost/filesystem.hpp>
 namespace asio = boost::asio;
 namespace beast = boost::beast;
 namespace json = boost::json;
+namespace fs = boost::filesystem;
 using tcp = asio::ip::tcp;
 
 // #include <boost/asio/ip/network_v6.hpp>
@@ -87,6 +89,7 @@ struct authScope{
     std::string actions;
     std::string cookie;
     std::string harborToken;
+    std::string bearerToken;
     authScope() = default;
 };
 extern authScope loginAuth;
@@ -187,6 +190,10 @@ void finalizeUpload(const std::string &host, const std::string &port, const std:
 bool isCorrect(std::string sha256, std::string filepath);
 
 void login(const std::string &user, const std::string &passwd, const std::string &host, const std::string &port);
+
+void pullBlob(const std::string &host, const std::string &port, const ::string &projectName, const ::string &imageName, const std::string digest);
+
+void pullManifestAndBlob(const std::string &host, const std::string &port, const ::string &projectName, const ::string &imageName, const std::string version);
 
 #endif // TYPES_NETWORK_H)
 
