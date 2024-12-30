@@ -38,4 +38,5 @@ shared_ptr<DecryptConfig> DecryptConfigs(vector<string>decryptionKeys);
 std::vector<std::string> LookupEnvVarReferences(const std::vector<std::string>& specs);
 std::string Abspath(const std::string& path);
 string UsageTemplate();
+void tmpl(std::ostream& out, const std::string& text,Command& data);
 #endif

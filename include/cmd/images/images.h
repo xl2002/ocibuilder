@@ -28,5 +28,5 @@ struct imagesOptions
 };
 
 void init_images();     
-void imagesCmd();       
+void imagesCmd(Command& cmd, vector<string> args,std::shared_ptr<imagesOptions> iopts);     
 #endif

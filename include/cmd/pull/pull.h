@@ -27,5 +27,6 @@ struct pullOptions
     string  os;                     ///<
     string  arch;                   ///<
 };
-
+void pullCmd(Command& cmd, vector<string> args,std::shared_ptr<pullOptions> iopts);
+void init_pull();
 #endif

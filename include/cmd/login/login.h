@@ -29,5 +29,5 @@ struct LoginOptions
 };
 
 void init_login();      
-void loginCmd();        
+void loginCmd(Command& cmd, vector<string> args,std::shared_ptr<LoginOptions> iopts);      
 #endif

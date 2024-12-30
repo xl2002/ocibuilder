@@ -15,3 +15,19 @@ function<bool(Command&,vector<string>&)> MaximumNArgs(int n){
     };
     // error_code
 }
+/**
+ * @brief 设置参数列表最小的数量
+ * 
+ * @param n 
+ * @return function<bool(Command&,vector<string>&)> 
+ */
+function<bool(Command&,vector<string>&)> MinimumNArgs(int n){
+    return [n](Command& cmd,vector<string>& args)->bool{
+        if(args.size()<n){
+            throw myerror("accepts at least "+to_string(n)+ " arg(s), only received "+to_string(args.size()));
+            return false;
+        }
+        return true;
+    };
+    // error_code
+}

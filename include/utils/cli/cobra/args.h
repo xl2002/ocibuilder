@@ -22,5 +22,6 @@ using std::function;
 using std::cerr;
 
 function<bool(Command&,vector<string>&)> MaximumNArgs(int);
+function<bool(Command&,vector<string>&)> MinimumNArgs(int n);
 
 #endif

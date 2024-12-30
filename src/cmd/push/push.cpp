@@ -23,9 +23,7 @@ void init_push(){
     string name{"push"};
     string Short{"Push an image to a specified destination"};
     string Long{"Pushes an image to a specified location."};
-    string example{"buildah pull imagename\n\
-                    buildah pull docker-daemon:imagename:imagetag\n\
-                    buildah pull myregistry/myrepository/imagename:imagetag"};
+    string example{"buildah pull imagename\n  buildah pull docker-daemon:imagename:imagetag\n  buildah pull myregistry/myrepository/imagename:imagetag"};
     Command* pushCommand=new Command{name,Short,Long,example};
     string Template=UsageTemplate();
     pushCommand->SetUsageTemplate(Template);

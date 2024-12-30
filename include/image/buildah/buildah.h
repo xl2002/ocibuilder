@@ -187,6 +187,7 @@ struct Builder {
     std::string Architecture();
     std::string Mount(std::string label);
     void Add(std::string destination,bool extract,std::shared_ptr<AddAndCopyOptions> options,std::vector<std::string> sources);
+    void Save();
 };
 
 struct BuilderInfo {
@@ -246,6 +247,9 @@ struct BuilderInfo {
     std::vector<std::string> DeviceSpecs;
     // CDIConfigDir 是CDI配置文件路径
     std::string CDIConfigDir;
+    friend void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const BuilderInfo& image) {
+        
+    }
 };
 struct BuilderOptions {
     // Args 定义用户在构建时可以传递给构建器的变量

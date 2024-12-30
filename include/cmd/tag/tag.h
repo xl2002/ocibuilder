@@ -13,10 +13,11 @@
 #include <string>
 #include <vector>
 #include "utils/cli/cobra/command.h"
+#include "utils/cli/cobra/args.h"
 #include "cmd/root/root.h"
 using std::string;
 using std::vector;
 
-void tagCmd();
+void tagCmd(Command& cmd, vector<string> args);
 void init_tag();
 #endif

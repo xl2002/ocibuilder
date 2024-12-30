@@ -9,6 +9,7 @@
  * 
  */
 #include "utils/cli/cobra/command.h"
+#include "utils/cli/cli/common.h"
 /**
  * @brief Command类的列表构造函数
  * <p>对命令的名称，介绍，使用例子进行初始化的构造函数
@@ -153,7 +154,12 @@ void Command::ExecuteC(int argc, char const *argv[]){
     }
     catch(const myerror& e)
     {
-        throw ;
+        std::string err_msg=e.what();
+        if(err_msg=="help requested"){
+            cmd->Helpfunc()(*cmd,args);
+        }else{
+            throw ;
+        }
     }
     
     
@@ -265,6 +271,11 @@ void help_func(Command& cmd, vector<string> a){
     cmd.mergePersistentFlags();
     // The help should be sent to stdout
     //err := tmpl(c.OutOrStdout(), c.HelpTemplate(), c)
+    try{
+        tmpl(std::cout,cmd.HelpTemplate(),cmd);
+    }catch(const myerror& e){
+        std::cerr<<"help error: "<<e.what()<<std::endl;
+    }
 }
 /**
  * @brief Helpfunc函数返回一个函数指针
@@ -291,6 +302,16 @@ bool Command::HasParent(){
     }else{
         return false;
     }
+}
+std::string Command::HelpTemplate(){
+    if(this->helpTemplate!=""){
+        return this->helpTemplate;
+    }
+    if(this->HasParent()){
+        return Parent()->HelpTemplate();
+    }
+    std::string str{"\t%1%\n\nUsage:\n  %2%\n\nAliases:\n  %3%\n\nExamples:\n  %4%\n\nFlags:\n"};
+    return str;
 }
 /**
  * @brief Root函数返回Command对象命令树的根命令
@@ -376,7 +397,7 @@ string Command::Name(){
 void Command::InitDefaultHelpFlag(){
     mergePersistentFlags();
     if(Flags()->Lookup("help")==nullptr){
-        string usage("help for");
+        string usage("help for ");
         if(Name()==""){
             usage=usage+"this command";
         }else{
@@ -639,7 +660,7 @@ void Command::execute(vector<string> args){
     }
     
     if(helpval){
-        return;
+        throw myerror("help requested");
     }
     if(!Runnable()){
         return;

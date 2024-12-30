@@ -17,6 +17,6 @@
 using std::string;
 using std::vector;
 
-void inspectCmd();      
+void inspectCmd(Command& cmd, vector<string> args);      
 void init_inspect();    
 #endif

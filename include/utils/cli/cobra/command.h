@@ -44,13 +44,14 @@ class Command{
         // string category; ///<
         map<string,string> Annotations;
         string usageTemplate;           ///<useTemplate 是用户定义的使用模板。
+        string helpTemplate;           ///<helpTemplate 是用户定义的帮助模板。
+
         string version;                 ///<命令版本
         vector<string> args;            ///<args 是从标志解析的实际参数。
 
         vector<Command*> Son_command;   ///<该程序支持的子命令
         Command* parent_Command=nullptr;        ///<parent 是该命令的父命令。
         Command* helpCommand=nullptr;           ///<helpCommand 是使用“help”的命令。
-
         Flagset* flags=nullptr;                  ///<flags 是全套完整标志。
         Flagset* persistent_flags=nullptr;       ///<persistent_flags 包含持久标志。
         Flagset* local_flags=nullptr;            ///<local_flags 包含本地标志。
@@ -112,6 +113,7 @@ class Command{
         void Help();
         void (*Helpfunc())(Command& cmd, vector<string> str);
         bool HasParent();
+        std::string HelpTemplate();
         Command* Root();
         Command* Parent();
         bool HasSubCommands();
@@ -125,8 +127,8 @@ class Command{
         vector<string> argsMinusFirstX(vector<string>args,string x);
         void ParseFlags(vector<string> args);
         bool Runnable();
-        void preRun();
-        void postRun();
+        // void preRun();
+        // void postRun();
         bool ValidateRequiredFlags();
         bool ValidateFlagGroups();
         void mergePersistentFlags();

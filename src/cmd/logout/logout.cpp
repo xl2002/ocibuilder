@@ -9,21 +9,26 @@
  * 
  */
 #include "cmd/logout/logout.h"
+#include "utils/cli/cli/common.h"
 /**
  * @brief 初始化 logout 命令的内容
  * 
  */
 void init_logout(){
-    logoutOptions options;
+    std::shared_ptr<logoutOptions> options=std::make_shared<logoutOptions>();
     string name{"logout"};
     string Short{"Logout of a container registry"};
     string Long{"Remove the cached username and password for the registry."};
     string example{"buildah logout quay.io"};
     Command* logoutCommand=new Command(name,Short,Long,example);
-    // logoutCommand.Run=logoutCmd;
+    string Template=UsageTemplate();
+    logoutCommand->SetUsageTemplate(Template);
     Flagset* flags=logoutCommand->Flags();
-    // flags.BoolVar();
-
+    flags->SetInterspersed(false);
+    flags->BoolVar(options->all,"all",false,"remove all cached credentials");
+    logoutCommand->Run=[=](Command& cmd, vector<string> args){
+        logoutCmd(cmd,args,options);
+    };
     rootcmd.AddCommand({logoutCommand});
     // return imagesCommand;
 }
@@ -32,6 +37,6 @@ void init_logout(){
  * @brief logout 命令Run操作的
  * 
  */
-void logoutCmd(){
+void logoutCmd(Command& cmd, vector<string> args,std::shared_ptr<logoutOptions> iopts){
 
 }

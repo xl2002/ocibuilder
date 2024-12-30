@@ -9,6 +9,7 @@
  * 
  */
 #include "cmd/tag/tag.h"
+#include "utils/cli/cli/common.h"
 /**
  * @brief 初始化 tag 命令的内容
  * 
@@ -17,17 +18,21 @@ void init_tag(){
     string name{"tag"};
     string Short{"Add an additional name to a local image"};
     string Long{"Adds one or more additional names to locally-stored image."};
-    string example{"buildah tag imageName firstNewName\n\
-                    buildah tag imageName firstNewName SecondNewName"};
-    Command tagCommand={name,Short,Long,example};
-    // tagCommand.Run=tagCmd;
-    rootcmd.AddCommand({&tagCommand});
+    string example{"buildah tag imageName firstNewName\n  buildah tag imageName firstNewName SecondNewName"};
+    Command* tagCommand=new Command(name,Short,Long,example);
+    string Template=UsageTemplate();
+    tagCommand->SetUsageTemplate(Template);
+    tagCommand->Args=MinimumNArgs(2);
+    tagCommand->Run=[=](Command& cmd, vector<string> args){
+        tagCmd(cmd,args);
+    };
+    rootcmd.AddCommand({tagCommand});
 }
 
 /**
  * @brief tag 命令Run操作的
  * 
  */
-void tagCmd(){
+void tagCmd(Command& cmd, vector<string> args){
 
 }
