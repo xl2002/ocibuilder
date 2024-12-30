@@ -369,6 +369,7 @@ struct ImageStore:public rwImageStore_interface{
     void Save();
     std::shared_ptr<storage::Image> Get(const std::string& id) override;
     std::shared_ptr<storage::Image> lookup(const std::string& id);
+    void newtag(std::string name,std::string newname);
 };
 
 

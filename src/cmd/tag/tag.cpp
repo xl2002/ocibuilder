@@ -30,9 +30,13 @@ void init_tag(){
 }
 
 /**
- * @brief tag 命令Run操作的
+ * @brief tag命令给镜像添加新的名称
  * 
  */
 void tagCmd(Command& cmd, vector<string> args){
+    //1. 加载镜像仓库
 
+    //2. 添加新的名称，通过imagestore->newtag(name,newname)实现
+
+    
 }

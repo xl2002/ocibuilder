@@ -34,9 +34,11 @@ void init_version(){
 }
 
 /**
- * @brief version 命令Run操作的
+ * @brief version输出版本信息
  * 
  */
 void versionCmd(std::shared_ptr<versionOptions> iopts){
+    //1. 构建versionInfo对象，
 
+    //3. 格式化输出，如果json=true，则输出json格式
 }

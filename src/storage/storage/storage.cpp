@@ -121,65 +121,7 @@ void ImageStore::removeName(std::shared_ptr<storage::Image> image, const std::st
     image->Names = stringSliceWithoutValue(image->Names, name);
 }
 
-//将image将 Image 对象转换为 boost::property_tree::ptree 对象
-// boost::property_tree::ptree imageToPtree(const std::shared_ptr<storage::Image>& image) {
-//     boost::property_tree::ptree pt;
-    
-//     pt.put("id", image->ID);
-//     pt.put("digest", image->digest->digest); // 假设 Digest 结构有一个 `digest` 字段
-//     pt.put("topLayer", image->TopLayer);
-//     pt.put("metadata", image->Metadata);
-//     pt.put("created", time_point_to_string(image->Created)); // 使用 long long 以处理大时间戳
 
-    // Convert vectors to ptree
-    // boost::property_tree::ptree digests_ptree;
-    // for (const auto& digest : image->Digests) {
-    //     boost::property_tree::ptree item;
-    //     item.put("", digest.digest); // 假设 Digest 结构有一个 `digest` 字段
-    //     digests_ptree.push_back(std::make_pair("", item));
-    // }
-    // pt.add_child("digests", digests_ptree);
-
-    // boost::property_tree::ptree names_ptree;
-    // for (const auto& name : image->Names) {
-    //     boost::property_tree::ptree item;
-    //     item.put("", name);
-    //     names_ptree.push_back(std::make_pair("", item));
-    // }
-    // pt.add_child("names", names_ptree);
-
-    // Similarly handle namesHistory, mappedTopLayers, bigDataNames
-    // For map<string, int64_t> and map<string, Digest>
-    // boost::property_tree::ptree bigDataSizes_ptree;
-    // for (const auto& pair : image->BigDataSizes) {
-    //     boost::property_tree::ptree item;
-    //     item.put("", pair.second); // size
-    //     bigDataSizes_ptree.add_child(pair.first, item);
-    // }
-    // pt.add_child("bigDataSizes", bigDataSizes_ptree);
-
-    // boost::property_tree::ptree bigDataDigests_ptree;
-    // for (const auto& pair : image->BigDataDigests) {
-    //     boost::property_tree::ptree item;
-    //     item.put("", pair.second.digest); // digest
-    //     bigDataDigests_ptree.add_child(pair.first, item);
-    // }
-    // pt.add_child("bigDataDigests", bigDataDigests_ptree);
-
-    // // Handle flags (assuming the flag values are serializable to JSON)
-    // boost::property_tree::ptree flags_ptree;
-    // for (const auto& pair : image->Flags) {
-    //     boost::property_tree::ptree item;
-    //     // Serialize item based on actual type
-    //     // Example below assumes void* is not directly serializable
-    //     flags_ptree.add_child(pair.first, item); 
-    // }
-//     pt.add_child("flags", flags_ptree);
-
-//     pt.put("readOnly", image->ReadOnly);
-
-//     return pt;
-// }
 //Save 函数的实现
 void ImageStore::Save() {
     try {
@@ -1147,6 +1089,19 @@ std::shared_ptr<storage::Image> ImageStore::lookup(const std::string& id){
     }
     return nullptr;
 }
+/**
+ * @brief 给镜像添加新的tag
+ * 
+ * @param name 
+ * @param newname 
+ */
+void ImageStore::newtag(std::string name,std::string newname){
+    //1. 通过name查找镜像
+
+    //2. 读取index.json文件，添加新的tag记录
+
+    //3. 保存index.json文件
+}
 void ImageStore::startWriting() {
     // 空实现
 }
@@ -1165,9 +1120,21 @@ void ImageStore::updateNames(const std::string& id, const std::vector<std::strin
                 updateNameOperation op) {
     // 空实现
 }
-
+/**
+ * @brief 删除某个镜像
+ * 
+ * @param id 
+ */
 void ImageStore::Delete(const std::string& id) {
-    // 空实现
+    //1. 通过id查找镜像
+
+    //2. 查找index.json文件，
+    //如果id是镜像ID，如果index.json中同manifest的只有一条记录，则删除对应的所有config和manifest文件和镜像层文件，否则只删除config和manifest文件
+    //如果id是镜像name，并且index.json中同manifest的只有一条记录，则删除对应的所有config和manifest文件和镜像层文件
+    //如果id是镜像name，并且index.json中同manifest的有多条记录，则只删除index.json中对应的记录
+
+    //3. 删除index.json的记录
+
 }
 
 void ImageStore::addMappedTopLayer(const std::string& id, const std::string& layer) {

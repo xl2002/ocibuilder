@@ -71,10 +71,6 @@ void pushCmd(Command& cmd, vector<string> args,std::shared_ptr<pushOptions> iopt
     std::tie(std::ignore,withinTransport,std::ignore)=Cut(withinTransport,'/');
     auto imagestore=store->Image(withinTransport);
 
-
-
-
-
     //拿到push命令中的这一部分
 
     // std::string image="localhost:5000/busybox:latest";
