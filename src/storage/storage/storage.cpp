@@ -72,13 +72,21 @@ std::string ImageStore::imagespath(){
     return Join({dir, "index.json"}); // Join 函数用于拼接路径，dir 是 imageStore 的成员变量
 }
 //parseJson 函数的实现
-bool parseJson(const vector<uint8_t>& data, vector<shared_ptr<storage::Image>>& images) {
+bool parseJson(const vector<uint8_t>& data, vector<shared_ptr<storage::Image>>& images, const string& dir) {
     try {
         std::string index_str=vectorToString(data);
         storage::index Index=unmarshal<storage::index>(index_str);
         for(auto it:Index.manifests){
             auto image = std::make_shared<storage::Image>();
-            image->ID=it.digest;
+            // image->ID=it.digest.substr(0,12);
+            std::string manifestpath=dir+"/blobs/sha256/"+it.digest.substr(7);
+            std::ifstream manifestf(manifestpath,std::ios::binary);
+            std::ostringstream oss;
+            oss << manifestf.rdbuf();
+            auto manifest=unmarshal<Manifest>(oss.str());
+            // image->image_manifest=std::make_shared<Manifest>(manifest);
+            image->ID=manifest.Config.Digests.Encoded().substr(0,12);//获得镜像的config的digest的前12位
+            manifestf.close();
             // image->digest=std::make_shared<Digest>(it.digest);
             std::string name=it.annotations["org.opencontainers.image.ref.name"];
             std::string newname;
@@ -237,7 +245,7 @@ bool ImageStore::load(bool lockedForWriting) {
         std::vector<std::shared_ptr<storage::Image>> images;
         if (!data.empty()) {
             // 使用 parseJson 函数解析index数据
-            if (!parseJson(data, images)) {
+            if (!parseJson(data, images,this->dir)) {
                 throw myerror("Failed to parse JSON from: " + rpath);
             }
         }
@@ -1125,13 +1133,17 @@ std::shared_ptr<storage::Image> ImageStore::Get(const std::string& id) {
 }
 
 std::shared_ptr<storage::Image> ImageStore::lookup(const std::string& id){
-    auto image=this->byid.find(id);
-    if(image!=this->byid.end()){
-        return image->second;
-    }
-    auto img2=this->byname.find(id);
-    if(img2!=this->byname.end()){
-        return img2->second;
+    auto it=id.find(':');
+    if(it==std::string::npos){//id是digest
+        auto image=this->byid.find(id);
+        if(image!=this->byid.end()){
+            return image->second;
+        }
+    }else{
+        auto img2=this->byname.find(id);
+        if(img2!=this->byname.end()){
+            return img2->second;
+        }
     }
     return nullptr;
 }
@@ -1189,8 +1201,16 @@ bool ImageStore::Exists(const std::string& id)  {
 // std::shared_ptr<storage::Image> Get(const std::string& id)  {
 //     return nullptr; // 空实现
 // }
-
+/**
+ * @brief 获取所有镜像
+ * 
+ * @return std::vector<storage::Image> 
+ */
 std::vector<storage::Image> ImageStore::Images()  {
+    //2. map<std::string, shared_ptr<storage::Image>> byname;中存储了所有镜像的名字和镜像的指针
+
+    //3. 参考std::shared_ptr<storage::Image> ImageStore::Get(const std::string& id)方法获得镜像的详细信息得到vector<storage::Image> images
+    //4. 返回images
     return {}; // 空实现
 }
 

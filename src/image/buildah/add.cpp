@@ -37,3 +37,10 @@ void Builder::Add(std::string destination,bool extract,std::shared_ptr<AddAndCop
         }
     }
 }
+/**
+ * @brief 将更新好的config和manifest保存到镜像库中
+ * 
+ */
+void Builder::Save(){
+
+}

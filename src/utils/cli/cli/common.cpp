@@ -17,6 +17,7 @@
 #include <minwindef.h>
 #include <boost/filesystem.hpp>
 #include <boost/compute/detail/getenv.hpp>
+#include <boost/format.hpp>
 /**
  * @brief 根据分隔符对字符串进行拆分，最多拆分max_splits-1次，返回一个包含拆分结果的vector<string>。
  * 
@@ -323,4 +324,28 @@ string UsageTemplate(){
                 {{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasAvailableInheritedFlags}}\
                 {{end}}"};
     return str;
+}
+void tmpl(std::ostream& out, const std::string& text,Command& data){
+    try {
+        // 模拟帮助命令数据
+        // HelpData data = {"help", "Displays this help message"};
+        // // 模拟模板文本
+        // std::string text = "Command: %1%\nDescription: %2%";
+        // std::string description =data.Short+'\n'+data.Long;
+        std::string Usage =data.parent_Command->name+' '+data.name+' '+"[flags]";
+        std::string Aliases=data.Name();
+        std::string Examples=data.example;
+        auto flags=data.flags->order_formal_flags;
+
+        boost::format fmt(text);
+        fmt % data.Long % Usage % Aliases % Examples;
+        out << fmt.str();
+        std::string Flagstext;
+        for(auto flag:flags){
+            out<<std::left<<std::setw(30)<<"--"+flag->name<<std::setw(80)<<flag->usage_help<<std::endl;
+            // Flagstext+=+"\t\t\t"+flag->usage_help+'\n';
+        }
+    } catch (const std::exception& e) {
+        throw myerror("Failed to execute template: " + std::string(e.what()));
+    }
 }

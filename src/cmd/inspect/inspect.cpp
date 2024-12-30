@@ -9,6 +9,7 @@
  * 
  */
 #include "cmd/inspect/inspect.h"
+#include "utils/cli/cli/common.h"
 /**
  * @brief 初始化 inspect 命令的内容
  * 
@@ -17,16 +18,26 @@ void init_inspect(){
     string name{"inspect"};
     string Short{"Inspect the configuration of a container or image"};
     string Long{"Inspects a build container's or built image's configuration."};
-    string example{"buildah inspect"};
-    Command inspectCommand={name,Short,Long,example};
-    // inspectCommand.Run=inspectCmd;
-    rootcmd.AddCommand({&inspectCommand});
+    string example{"buildah inspect imageName/imageID"};
+    Command* inspectCommand=new Command(name,Short,Long,example);
+    string Template=UsageTemplate();
+    inspectCommand->SetUsageTemplate(Template);
+    inspectCommand->Run=[=](Command& cmd, vector<string> args){
+        inspectCmd(cmd,args);
+    };
+    rootcmd.AddCommand({inspectCommand});
 }
 
 /**
- * @brief inspect 命令Run操作的
+ * @brief inspect返回镜像的信息
  * 
  */
-void inspectCmd(){
+void inspectCmd(Command& cmd, vector<string> args){
+    //1. 加载镜像仓库
 
+    //2. 获得指定镜像的信息auto imagestore=store->Image(imageName/imageID);
+
+    //3. 根据获得imagestore构造BuilderInfo，只需要填充OCI镜像部分
+
+    //4. 打印镜像信息
 }

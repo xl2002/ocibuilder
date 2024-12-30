@@ -9,6 +9,7 @@
  * 
  */
 #include "cmd/rmi/rmi.h"
+#include "utils/cli/cli/common.h"
 /**
  * @brief 初始化 rmi 命令的内容
  * 
@@ -18,15 +19,21 @@ void init_rmi(){
     string Short{"Remove one or more images from local storage"};
     string Long{"Removes one or more locally stored images."};
     string example{"buildah rmi imageID"};
-    Command rmiCommand={name,Short,Long,example};
-    // rmiCommand.Run=rmiCmd;
-    rootcmd.AddCommand({&rmiCommand});
+    Command* rmiCommand=new Command(name,Short,Long,example);
+    string Template=UsageTemplate();
+    rmiCommand->SetUsageTemplate(Template);
+    Flagset* flags=rmiCommand->Flags();
+    flags->SetInterspersed(false);
+    rmiCommand->Run=[=](Command& cmd, vector<string> args){
+        rmiCmd(cmd,args);
+    };
+    rootcmd.AddCommand({rmiCommand});
 }
 
 /**
  * @brief rmi 命令Run操作的
  * 
  */
-void rmiCmd(){
+void rmiCmd(Command& cmd, vector<string> args){
 
 }

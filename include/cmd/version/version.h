@@ -27,5 +27,5 @@ struct versionOptions
 };
 
 void init_version();
-void versionCmd();
+void versionCmd(std::shared_ptr<versionOptions> iopts);
 #endif

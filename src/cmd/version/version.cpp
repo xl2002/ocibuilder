@@ -9,21 +9,26 @@
  * 
  */
 #include "cmd/version/version.h"
+#include "utils/cli/cli/common.h"
 /**
  * @brief 初始化 version 命令的内容
  * 
  */
 void init_version(){
-    versionOptions options;
+    std::shared_ptr<versionOptions> options=std::make_shared<versionOptions>();
     string name{"version"};
     string Short{"Display the Buildah version information"};
     string Long{"Displays Buildah version information."};
     string example{"buildah version [--json]"};
     Command* versionCommand=new Command{name,Short,Long,example};
-    // versionCommand.Run=versionCmd;
-    Flagset* flags=versionCommand->Flags();
-    // flags.BoolVar();
+    string Template=UsageTemplate();
+    versionCommand->SetUsageTemplate(Template);
 
+    Flagset* flags=versionCommand->Flags();
+    flags->BoolVar(options->json,"json",false,"Display the version information in JSON format");
+    versionCommand->Run=[=](Command& cmd, vector<string> args){
+        versionCmd(options);
+    };
     rootcmd.AddCommand({versionCommand});
     // return imagesCommand;
 }
@@ -32,6 +37,6 @@ void init_version(){
  * @brief version 命令Run操作的
  * 
  */
-void versionCmd(){
+void versionCmd(std::shared_ptr<versionOptions> iopts){
 
 }

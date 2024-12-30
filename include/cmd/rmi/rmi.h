@@ -17,6 +17,6 @@
 using std::string;
 using std::vector;
 
-void rmiCmd();
+void rmiCmd(Command& cmd, vector<string> args);
 void init_rmi();
 #endif

@@ -9,21 +9,27 @@
  * 
  */
 #include "cmd/login/login.h"
+#include "utils/cli/cli/common.h"
 /**
  * @brief 初始化 login 命令的内容
  * 
  */
 void init_login(){
-    LoginOptions options;
+    std::shared_ptr<LoginOptions> options=std::make_shared<LoginOptions>();
     string name{"login"};
     string Short{"Login to a container registry"};
     string Long{"Login to a container registry on a specified server."};
     string example{"buildah login quay.io"};
     Command* loginCommand=new Command(name,Short,Long,example);
-    // loginCommand.Run=loginCmd;
+    string Template=UsageTemplate();
+    loginCommand->SetUsageTemplate(Template);
     Flagset* flags=loginCommand->Flags();
-    // flags.BoolVar();
-
+    flags->StringVar(options->username,"username","","username for the registry");
+    flags->StringVar(options->password,"password","","password for the registry");
+    flags->BoolVar(options->getLogin,"get-login",false,"get the login command for the registry");
+    loginCommand->Run=[=](Command& cmd, vector<string> args){
+        loginCmd(cmd,args,options);
+    };
     rootcmd.AddCommand({loginCommand});
     // return imagesCommand;
 }
@@ -32,6 +38,6 @@ void init_login(){
  * @brief login 命令Run操作的
  * 
  */
-void loginCmd(){
+void loginCmd(Command& cmd, vector<string> args,std::shared_ptr<LoginOptions> iopts){
 
 }

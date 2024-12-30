@@ -9,25 +9,29 @@
  * 
  */
 #include "cmd/pull/pull.h"
+#include "utils/cli/cli/common.h"
 /**
  * @brief 初始化 pull 命令的内容
  * 
  */
 void init_pull(){
-    pullOptions options;
+    std::shared_ptr<pullOptions> options=std::make_shared<pullOptions>();
     string name{"pull"};
     string Short{"Pull an image from the specified location"};
-    string Long{"Pulls an image from a registry and stores it locally.\n\
-                An image can be pulled using its tag or digest. If a tag is not\n\
-                specified, the image with the 'latest' tag (if it exists) is pulled."};
-    string example{"buildah pull imagename\n\
-                    buildah pull docker-daemon:imagename:imagetag\n\
-                    buildah pull myregistry/myrepository/imagename:imagetag"};
+    string Long{"Pulls an image from a registry and stores it locally.\n\tAn image can be pulled using its tag or digest. If a tag is not\n\tspecified, the image with the 'latest' tag (if it exists) is pulled."};
+    string example{"buildah pull imagename\n  buildah pull docker-daemon:imagename:imagetag\n  buildah pull myregistry/myrepository/imagename:imagetag"};
     Command* pullCommand=new Command{name,Short,Long,example};
-    // pullCommand.Run=pullCmd;
+    string Template=UsageTemplate();
+    pullCommand->SetUsageTemplate(Template);
     Flagset* flags=pullCommand->Flags();
-    // flags.BoolVar();
-
+    flags->SetInterspersed(false);
+    //初始化每个flag的内容
+    flags->BoolVar(options->allTags,"all-tags",false,"pull all tags for the specified image");
+    flags->String("os","linux","set the OS of the image (e.g., linux, windows) (default unset)");
+    flags->String("arch","amd64","set the architecture of the image (e.g., amd64, arm, ppc64le) (default unset)");
+    pullCommand->Run=[=](Command& cmd, vector<string> args){
+        pullCmd(cmd,args,options);
+    };
     rootcmd.AddCommand({pullCommand});
     // return imagesCommand;
 }
@@ -36,6 +40,6 @@ void init_pull(){
  * @brief pull 命令Run操作的
  * 
  */
-void pullCmd(){
+void pullCmd(Command& cmd, vector<string> args,std::shared_ptr<pullOptions> iopts){
 
 }

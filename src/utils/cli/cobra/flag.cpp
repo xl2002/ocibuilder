@@ -346,7 +346,7 @@ bool Flagset:: Changed(string name ) {
 void Flagset::MarkHidden(string name){
     Flag* flag=Lookup(name);
     if(flag==nullptr){
-        throw myerror("flag "+name+"does not exit");
+        throw myerror("flag "+name+" does not exit");
         // cerr<<"flag "<<name<<"does not exit"<<endl;
     }else{
         flag->hidden=true;
