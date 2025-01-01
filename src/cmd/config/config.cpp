@@ -72,8 +72,45 @@ std::shared_ptr<Builder> openBuilder(std::shared_ptr<Store> store,std::string na
     auto imagestore=store->Image(name);
 
     //构建新的Builder对象，根据imagestore中的config和manifest，构建新的Builder对象
+    auto builder = std::make_shared<Builder>();
+    builder->FromImageID=imagestore->ID;
+    builder->FromImageDigest=imagestore->digest->digest;
+    builder->Config  = unmarshal<std::vector<uint8_t>>(marshal(*imagestore->image_config));
+    builder->Manifest = unmarshal<std::vector<uint8_t>>(marshal(*imagestore->image_manifest));
+    builder->store =store;
 
-    return nullptr;
+    return builder;
+}
+// 更新 Entrypoint 的方法
+void updateEntrypoint(std::shared_ptr<Builder> builder, const std::string& entrypoint) {
+    if (entrypoint.empty()) {
+        // 如果 entrypoint 为空，设置为空
+        builder->SetEntrypoint({});
+        return;
+    }
+
+    // 尝试将 entrypoint 解析为 JSON 数组
+    try {
+        // 尝试将 entrypoint 作为 JSON 数组解析
+        boost::json::value jv = boost::json::parse(entrypoint);
+        if (jv.is_array()) {
+            std::vector<std::string> entrypointVec;
+            for (const auto& elem : jv.as_array()) {
+                entrypointVec.push_back(elem.as_string().c_str());
+            }
+            builder->SetEntrypoint(entrypointVec);
+
+            std::cout << "Entrypoint set as JSON array." << std::endl;
+        } else {
+            throw myerror("Invalid JSON format");
+        }
+    } catch (const std::exception& e) {
+        // 如果解析失败，则将 entrypoint 作为普通字符串传递给 shell
+        std::vector<std::string> entrypointVec = {"/bin/sh", "-c", entrypoint};
+        builder->SetEntrypoint(entrypointVec);
+
+        std::cout << "Entrypoint set as shell command: " << entrypoint << std::endl;
+    }
 }
 /**
  * @brief 更新Builder对象中的镜像配置
@@ -82,22 +119,103 @@ std::shared_ptr<Builder> openBuilder(std::shared_ptr<Store> store,std::string na
  * @param c 
  * @param iopts 
  */
-void updateConfig(std::shared_ptr<Builder> builder,Command& c,std::shared_ptr<configOptions> iopts){
-    //根据iops中的配置，更新builder中的镜像配置
-    //只关注我们实现的部分
+void updateConfig(std::shared_ptr<Builder> builder, Command& c, std::shared_ptr<configOptions> iopts) {
+    try {
+        // 根据 iopts 中的配置更新 builder 中的镜像配置
 
+        // 更新 author
+        if (c.flags->Changed("author")) {
+            builder->SetMaintainer(iopts->author);
+        }
+
+        // 更新 architecture
+        if (c.flags->Changed("arch")) {
+            builder->SetArchitecture(iopts->arch);
+        }
+
+        // 更新 os
+        if (c.flags->Changed("os")) {
+            builder->SetOS(iopts->os);
+        }
+
+        // 更新 env
+        if (c.flags->Changed("env")) {
+            for (const auto& envSpec : iopts->env) {
+                auto env = split(envSpec, '='); // 假设您有一个 split 函数可以分割字符串
+                if (env.size() > 1) {
+                    builder->SetEnv(env[0], env[1]);
+                } else {
+                    // 错误处理或默认行为，您可以选择抛出 myerror 异常
+                    throw myerror("setting env " + env[0] + ": no value given");
+                }
+            }
+        }
+
+        // 更新 label
+        if (c.flags->Changed("label")) {
+            for (const auto& labelSpec : iopts->label) {
+                auto label = split(labelSpec, '='); // 假设您有一个 split 函数
+                if (label.size() > 1) {
+                    builder->SetLabel(label[0], label[1]);
+                } else {
+                    // 错误处理或默认行为，您可以选择将空字符串设置为默认值
+                    builder->SetLabel(label[0], "");
+                }
+            }
+        }
+
+        // 更新 entrypoint
+        if (c.flags->Changed("entrypoint")) {
+            updateEntrypoint(builder, iopts->entrypoint);
+        }
+
+    } catch (const myerror& e) {
+        // 处理 myerror 类型的异常
+        // 此处您可以根据需要进行日志记录或其他处理
+        std::cerr << "Error: " << e.what() << std::endl;
+        throw; // 重新抛出异常以供外层捕获
+    }
 }
+
+
+
 /**
  * @brief config命令Run操作的
  * 
  */
-void configCmd(Command& cmd, vector<string> args,std::shared_ptr<configOptions> iopts){
-    //1. 加载存储store
+void configCmd(Command& cmd, std::vector<std::string> args, std::shared_ptr<configOptions> iopts) {
+    try {
+        // 1. 检查是否提供了有效的容器ID参数
+        if (args.empty()) {
+            throw myerror("container ID must be specified");
+        }
+        if (args.size() > 1) {
+            throw myerror("too many arguments specified");
+        }
+        std::string name = args[0];
 
-    //2. 构建镜像的builder
+        // 2. 获取存储对象（store）
+        auto store = getStore(&cmd);
+        if (!store) {
+            throw myerror("failed to get store");
+        }
 
-    //3. 更新builder中镜像的配置
+        // 3. 创建Builder对象
+        auto builder = openBuilder(store, name);
+        if (!builder) {
+            throw myerror("reading build container failed: " + name);
+        }
 
-    //4. 保存镜像配置
-    return;
+        // 4. 更新配置
+        updateConfig(builder, cmd, iopts);
+          
+
+        // 5. 保存镜像配置
+        builder->Save();
+
+    } catch (const myerror& e) {
+        // 输出错误信息并终止执行
+        std::cerr << "Error: " << e.what() << std::endl;
+        return;
+    }
 }
