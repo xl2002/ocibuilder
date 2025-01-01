@@ -142,6 +142,7 @@ struct Builder {
     void SetCreatedBy(std::string how);
     std::string CreatedBy();
     void ClearAnnotations();
+    void SetMaintainer(std::string who);
     void SetArchitecture(std::string arch);
     std::string OS();
     void SetOS(std::string os);
@@ -187,7 +188,7 @@ struct Builder {
     std::string Architecture();
     std::string Mount(std::string label);
     void Add(std::string destination,bool extract,std::shared_ptr<AddAndCopyOptions> options,std::vector<std::string> sources);
-    void Save();
+    void Save(std::string name);
 };
 
 struct BuilderInfo {

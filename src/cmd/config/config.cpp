@@ -73,10 +73,7 @@ std::shared_ptr<Builder> openBuilder(std::shared_ptr<Store> store,std::string na
 
     //构建新的Builder对象，根据imagestore中的config和manifest，构建新的Builder对象
     auto builder = std::make_shared<Builder>();
-    builder->FromImageID=imagestore->ID;
-    builder->FromImageDigest=imagestore->digest->digest;
-    builder->Config  = unmarshal<std::vector<uint8_t>>(marshal(*imagestore->image_config));
-    builder->Manifest = unmarshal<std::vector<uint8_t>>(marshal(*imagestore->image_manifest));
+    builder->OCIv1 = imagestore->image_config;
     builder->store =store;
 
     return builder;
@@ -211,7 +208,7 @@ void configCmd(Command& cmd, std::vector<std::string> args, std::shared_ptr<conf
           
 
         // 5. 保存镜像配置
-        builder->Save();
+        builder->Save(name);
 
     } catch (const myerror& e) {
         // 输出错误信息并终止执行

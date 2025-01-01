@@ -41,6 +41,112 @@ void Builder::Add(std::string destination,bool extract,std::shared_ptr<AddAndCop
  * @brief 将更新好的config和manifest保存到镜像库中
  * 
  */
-void Builder::Save(){
+void Builder::Save(std::string name){
+    // 获取config对象
+    auto config = OCIv1;
+    // 序列化config
+    auto configjson = marshal(*config);
+    
+    // 获取存储路径
+    std::string storagedir = this->store->GetImageStoragePath() + "/blobs/sha256/";
+    
+    // 保存config文件
+    std::string configPath = storagedir + "config";
+    boost::filesystem::ofstream configFile(configPath, std::ios::binary | std::ios::trunc);
+    if (!configFile) {
+        std::cerr << "Failed to open config file for writing: " << configPath << std::endl;
+        return;
+    }
+    configFile << configjson; // 将config内容写入文件
+    configFile.close();
+    
+    // 计算config文件的sha256哈希值
+    auto configDigest = Fromfile(configPath); // 假设Fromfile返回一个包含SHA256值的对象
+    std::string newConfigName = storagedir + configDigest->Encoded();
+    
+    // 如果文件已经存在，则删除
+    if (boost::filesystem::exists(newConfigName)) {
+        boost::filesystem::remove_all(configPath);
+    } else {
+        boost::filesystem::rename(configPath, newConfigName);
+    }
+
+    // 打印保存成功信息
+    // std::cout << "Config saved successfully, new name: " << newConfigName << std::endl;
+
+    // 保存manifest文件
+    auto imagestore = this->store->Image(name);
+    auto manifest = imagestore->image_manifest;
+    auto oldconfigdigest = manifest->Config.Digests;
+    auto newconfigdigest = *configDigest;
+    manifest->Config.Digests=newconfigdigest;
+    std::string manifestBytes = marshal(*manifest); // 序列化manifest
+    
+    // 获取存储路径
+    std::string manifestPath = storagedir + "manifest";
+    boost::filesystem::ofstream manifestFile(manifestPath, std::ios::binary | std::ios::trunc);
+    if (!manifestFile) {
+        std::cerr << "Failed to open manifest file for writing: " << manifestPath << std::endl;
+        return;
+    }
+    manifestFile << manifestBytes; // 将manifest内容写入文件
+    manifestFile.close();
+    
+    // 计算manifest文件的sha256哈希值
+    auto manifestDigest = Fromfile(manifestPath); // 假设Fromfile返回一个包含SHA256值的对象
+    std::string newManifestName = storagedir + manifestDigest->Encoded();
+    
+    // 如果文件已经存在，则删除
+    if (boost::filesystem::exists(newManifestName)) {
+        boost::filesystem::remove_all(manifestPath);
+    } else {
+        boost::filesystem::rename(manifestPath, newManifestName);
+    }
+
+    //更新index.json
+    std::string indexpath = this->store->GetImageStoragePath() + "/index.json";
+    if (!boost::filesystem::exists(indexpath)) {
+        std::cout << "index.json is not exist" << std::endl;
+    }
+    boost::filesystem::ifstream indexfile(indexpath, std::ios::binary);
+    std::ostringstream buffer;
+    buffer << indexfile.rdbuf();
+    std::string fileContent = buffer.str();
+    storage::index index;
+    if (!fileContent.empty()) {
+        index = unmarshal<storage::index>(fileContent);
+    }
+    indexfile.close();
+
+    auto newmanifest=std::make_shared<storage::manifest>();
+    newmanifest->digest=manifestDigest->String();
+    newmanifest->annotations=manifest->Annotations;
+    newmanifest->mediaType=manifest->MediaType;
+
+    // 检查index.manifests中是否已存在相同的镜像，如果存在，更新
+    auto m = std::find_if(index.manifests.begin(), index.manifests.end(),
+        [newmanifest](const storage::manifest& manifest) {
+            auto it = manifest.annotations.find("org.opencontainers.image.ref.name");
+            return it != manifest.annotations.end() && it->second == newmanifest->annotations.at("org.opencontainers.image.ref.name");
+        });
+
+    if (m != index.manifests.end()) {
+        // 如果找到了相同的镜像，将其历史标签合并
+        newmanifest->historyTags = m->historyTags;
+        newmanifest->historyTags.push_back(m->digest);  // 将旧的manifest的digest添加到历史标签
+        index.manifests.erase(m);  // 删除原先的manifest
+    }
+
+    // 将新的manifest添加到manifests列表
+    index.manifests.push_back(*newmanifest);
+
+    // 更新schemaVersion
+    index.schemaVersion = 2;
+
+    // 将更新后的index序列化并写回文件
+    std::string updatedIndexContent = marshal<storage::index>(index);
+    boost::filesystem::ofstream updatedIndexFile(indexpath, std::ios::binary | std::ios::trunc);
+    updatedIndexFile << updatedIndexContent;
+    updatedIndexFile.close();
 
 }
