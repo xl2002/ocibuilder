@@ -23,5 +23,6 @@ T unmarshal(const std::string& jsonStr) {
     json::value jv = json::parse(jsonStr);
     return json::value_to<T>(jv);
 }
+std::string format_json(const boost::json::value& jv, int indent = 0);
 
 #endif // UTILS_COMMON_JSON_H)

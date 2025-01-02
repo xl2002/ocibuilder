@@ -86,53 +86,6 @@ shared_ptr<Store> getStore(Command* cmd){
     if (cmd->Flag_find("storage-opt")->changed) {
     }
 
-    // if (geteuid() != 0 && options.graph_driver_name != "vfs") {
-    //     cerr << "Cannot mount using driver " << options.graph_driver_name << " in rootless mode. You need to run it in a `buildah unshare` session" << endl;
-    //     return nullptr;
-    // }
-    ///<检查用户是否为root且存储引擎设置是否为vfs
-
-    // if (!globalFlagOptions.UserNSUID.empty()) {
-    //     vector<string> uopts = globalFlagResults.UserNSUID;
-    //     vector<string> gopts = globalFlagResults.UserNSGID;
-
-    //     if (gopts.empty()) {
-    //         gopts = uopts;
-    //     }
-
-    //     try {
-    //         tie(options.UIDMap, options.GIDMap) = ParseIDMappings(uopts, gopts);
-    //     } catch (const exception& e) {
-    //         cerr << e.what() << endl;
-    //         return nullptr;
-    //     }
-    // } else if (!globalFlagResults.UserNSGID.empty()) {
-    //     cerr << "option --userns-gid-map cannot be used without --userns-uid-map" << endl;
-    //     return nullptr;
-    // }
-    ///<以上注释代码处理用户命名空间映射，用户命名空间映射的目的和意义：
-    ///<用户命名空间（User Namespace）是Linux内核的一项功能，
-    ///<它允许进程在容器或隔离环境中拥有不同于宿主系统的用户和组ID（UID和GID）。
-    ///<这意味着在容器内，进程可以运行为“root”，而在宿主系统上它们的UID和GID实际上是非特权用户的ID。
-
-    // if (cmd->Flags()->Lookup("userns-uid-map")->changed) {
-    //     vector<string> uopts = cmd->GetStringSlice("userns-uid-map");
-    //     vector<string> gopts = cmd->GetStringSlice("userns-gid-map");
-
-    //     if (gopts.empty()) {
-    //         gopts = uopts;
-    //     }
-
-    //     try {
-    //         tie(options.UIDMap, options.GIDMap) = ParseIDMappings(uopts, gopts);
-    //     } catch (const exception& e) {
-    //         cerr << e.what() << endl;
-    //         return nullptr;
-    //     }
-    // } else if (cmd->Flags()->Lookup("userns-gid-map")->changed) {
-    //     cerr << "option --userns-gid-map cannot be used without --userns-uid-map" << endl;
-    //     return nullptr;
-    // }
     ///<这段代码与上面处理用户命名空间原理相同，只不过是处理CMD下面的子命令如何使用
 
     umask(0);
