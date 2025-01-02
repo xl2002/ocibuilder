@@ -99,6 +99,7 @@ struct Userinfo{
     bool passwordSet=false;
     Userinfo() = default;
 };
+extern Userinfo userinfo;
 struct URL{
     std::string scheme;        // 协议方案
     std::string opaque;        // 编码的不透明数据
@@ -194,6 +195,12 @@ void login(const std::string &user, const std::string &passwd, const std::string
 void pullBlob(const std::string &host, const std::string &port, const ::string &projectName, const ::string &imageName, const std::string digest);
 
 void pullManifestAndBlob(const std::string &host, const std::string &port, const ::string &projectName, const ::string &imageName, const std::string version);
+
+void saveLoginInfo(const std::string &username, const std::string &password);
+
+void loadLoginInfo();
+
+void getCookieFromAuthFile();
 
 #endif // TYPES_NETWORK_H)
 

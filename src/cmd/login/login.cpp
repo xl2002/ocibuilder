@@ -39,5 +39,8 @@ void init_login(){
  * 
  */
 void loginCmd(Command& cmd, vector<string> args,std::shared_ptr<LoginOptions> iopts){
-
+    auto tmp=cmd.flags->actual_flags;
+    std::string username=tmp["username"]->value->String();
+    std::string password=tmp["password"]->value->String();
+    saveLoginInfo(username,password);
 }

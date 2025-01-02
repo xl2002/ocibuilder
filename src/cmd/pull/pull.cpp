@@ -53,7 +53,8 @@ void pullCmd(Command& cmd, vector<string> args,std::shared_ptr<pullOptions> iopt
 
     dockerClient client;
     auto url=client.resolveRequestURL(src);
-    login("admin","Harbor12345",url->host,url->port);
+    loadLoginInfo();
+    login(userinfo.username,userinfo.password,url->host,url->port);
 
     pullManifestAndBlob(url->host,url->port,url->projectName,url->imageName,url->version);
 

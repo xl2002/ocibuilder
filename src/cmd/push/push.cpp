@@ -71,10 +71,6 @@ void pushCmd(Command& cmd, vector<string> args,std::shared_ptr<pushOptions> iopt
     std::tie(std::ignore,withinTransport,std::ignore)=Cut(withinTransport,'/');
     auto imagestore=store->Image(withinTransport);
 
-
-
-
-
     //拿到push命令中的这一部分
 
     // std::string image="localhost:5000/busybox:latest";
@@ -83,7 +79,8 @@ void pushCmd(Command& cmd, vector<string> args,std::shared_ptr<pushOptions> iopt
     auto url=client.resolveRequestURL(src);
 
     //  执行登录请求
-    login("admin","Harbor12345",url->host,url->port);
+    loadLoginInfo();
+    login(userinfo.username,userinfo.password,url->host,url->port);
 
     //url->host  url->port  url->imageName
     if(!ifSupportV2(url->host,url->port)){

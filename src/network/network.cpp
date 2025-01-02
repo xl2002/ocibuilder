@@ -602,6 +602,7 @@ void login(const std::string& user, const std::string& passwd,const std::string&
     std::string target = "/c/login";  
     const int version = 11; // HTTP 1.1
     std::string body = "principal=" + user + "&password=" + passwd;
+    std::string authFile = "oci_images/auth.json";
 
 
     // 使用Boost.Asio和Beast发起HTTP POST请求
@@ -705,6 +706,18 @@ void login(const std::string& user, const std::string& passwd,const std::string&
                             }
                             sid=cookie.substr(sidpos,end_sid-sidpos);
                             loginAuth.cookie="_gorilla_csrf="+csrf_token+"; sid="+sid+";";
+
+                            // boost::json::object jsonData;
+                            // jsonData["cookie"] = "_gorilla_csrf="+csrf_token+"; sid="+sid+";";
+
+                            // std::ofstream ofs(authFile);
+                            // if (ofs) {
+                            //     ofs << json::serialize(jsonData); // 写入 JSON 文件
+                            //     ofs.close(); // 显式关闭文件
+                            //     std::cout << "Cookie saved to JSON file: " << authFile << "\n";
+                            // } else {
+                            //     std::cerr << "Failed to open file for saving cookie.\n";
+                            // }
                         }
                     }  
                 }
@@ -725,15 +738,21 @@ void login(const std::string& user, const std::string& passwd,const std::string&
 void pullBlob(const std::string& host, const std::string& port,const::string& projectName,const::string& imageName,const std::string digest){
     // std::string target = "/v2/library/busyboximage5/blobs/sha256:f28efabc598d38f0b7cea1641bd20b097b8c5aaf090035d7167370608d86fb67"; // API v2 路径
     std::string target= "/v2/"+projectName+"/"+imageName+"/blobs/"+digest;
-    std::string output_folder = imageName+"/blobs"; // 保存的文件夹
+    std::string output_folder = "oci_images/oci_registry/blobs/sha256"; // 保存的文件夹
     std::string shaId=digest.substr(7);
     std::string output_file = output_folder + "/" + shaId; // 完整的文件路径
+    std::string output_tmp = "oci_images/tmp/"+shaId; //临时存储 
 
     try {
         // 确保文件夹存在
         if (!fs::exists(output_folder)) {
             fs::create_directory(output_folder);
             std::cout << "Created directory: " << output_folder << std::endl;
+        }
+
+        //如果库中存在这一层数据则直接退出
+        if(fs::exists(output_file)){
+            return;
         }
 
         // IO 服务和解析器
@@ -780,16 +799,34 @@ void pullBlob(const std::string& host, const std::string& port,const::string& pr
         }
 
         // 输出响应体到文件
-        // std::ofstream ofs(output_file);
-        std::ofstream ofs(output_file, std::ios::binary); // 打开文件为二进制模式
+        std::ofstream ofs(output_tmp, std::ios::binary); // 打开文件为二进制模式
         if (!ofs) {
-            std::cerr << "Failed to open file for writing: " << output_file << std::endl;
+            std::cerr << "Failed to open file for writing: " << output_tmp << std::endl;
             return;
         }
 
         ofs << res.body(); // 将响应体写入文件
         ofs.close();
-        std::cout << "Blob saved to: " << output_file << std::endl;
+        std::cout << "Blob saved to: " << output_tmp << std::endl;
+        //校验
+        if(isCorrect(shaId,output_tmp)){
+            // 写blob
+            std::ofstream ofs1(output_file, std::ios::binary); // 打开文件为二进制模式
+            if (!ofs1) {
+                std::cerr << "Failed to open file for writing: " << output_file << std::endl;
+                return;
+            }
+
+            ofs1 << res.body(); // 将响应体写入文件
+            ofs1.close();
+            std::cout << "Blob saved to: " << output_file << std::endl;
+        }
+
+        if(std::remove(output_tmp.c_str())==0){
+            std::cout << "tmp manifest deleted successfully: " << output_tmp << std::endl;
+        }else{
+            std::cerr << "Failed to delete file: " << output_tmp << std::endl;
+        }
 
         for (auto const& field : res) {
             if (field.name_string() == "X-Harbor-Csrf-Token") {
@@ -809,13 +846,13 @@ void pullBlob(const std::string& host, const std::string& port,const::string& pr
 void pullManifestAndBlob(const std::string& host, const std::string& port,const::string& projectName,const::string& imageName,const std::string version){
     // std::string target = "/v2/library/busyboximage5/blobs/sha256:f28efabc598d38f0b7cea1641bd20b097b8c5aaf090035d7167370608d86fb67"; // API v2 路径
     std::string target= "/v2/"+projectName+"/"+imageName+"/manifests/"+version;
-    std::string output_folder = imageName+"/blobs"; // 保存的文件夹
-    std::string output_file = output_folder + "/manifest"; // 完整的文件路径
+    std::string output_folder = "oci_images/oci_registry/blobs/sha256/"; // 保存的文件夹
+    std::string output_file_tmp =  "oci_images/tmp/manifest"; // 完整的文件路径
 
     try {
         // 确保文件夹存在
         if (!fs::exists(output_folder)) {
-            fs::create_directory(output_folder);
+            fs::create_directories(output_folder);
             std::cout << "Created directory: " << output_folder << std::endl;
         }
 
@@ -868,15 +905,39 @@ void pullManifestAndBlob(const std::string& host, const std::string& port,const:
 
         // 输出响应体到文件
         // std::ofstream ofs(output_file);
-        std::ofstream ofs(output_file, std::ios::binary); // 打开文件为二进制模式
+        std::ofstream ofs(output_file_tmp, std::ios::binary); // 打开文件为二进制模式
         if (!ofs) {
-            std::cerr << "Failed to open file for writing: " << output_file << std::endl;
+            std::cerr << "Failed to open file for writing: " << output_file_tmp << std::endl;
             return;
         }
 
         ofs << res.body(); // 将响应体写入文件
         ofs.close();
-        std::cout << "Blob saved to: " << output_file << std::endl;
+        std::cout << "Manifest tmp saved to: " << output_file_tmp << std::endl;
+
+        //计算manifest的hash
+        std::string ManifestSha = Fromfile(output_file_tmp)->Encoded();
+        std::string output_file = output_folder + ManifestSha;
+
+        if(std::remove(output_file_tmp.c_str())==0){
+            std::cout << "tmp manifest deleted successfully: " << output_file_tmp << std::endl;
+        }else{
+            std::cerr << "Failed to delete file: " << output_file_tmp << std::endl;
+        }
+
+
+        //写manifest
+        std::ofstream ofs1(output_file, std::ios::binary);
+        if (!ofs1) {
+            std::cerr << "Failed to open file for writing: " << output_file << std::endl;
+            return;
+        }
+
+        ofs1 << res.body(); 
+        ofs1.close();
+        std::cout << "Manifest tmp saved to: " << output_file << std::endl;
+
+
 
         for (auto const& field : res) {
             if (field.name_string() == "X-Harbor-Csrf-Token") {
@@ -903,5 +964,81 @@ void pullManifestAndBlob(const std::string& host, const std::string& port,const:
         std::cerr << "System error: " << se.what() << std::endl;
     } catch (const std::exception& e) {
         std::cerr << "Exception: " << e.what() << std::endl;
+    }
+}
+
+void getCookieFromAuthFile(){
+    std::string cookieFile = "oci_images/auth.json";
+    std::ifstream ifs(cookieFile);
+    if (ifs) {
+        std::stringstream buffer;
+        buffer << ifs.rdbuf();
+        ifs.close(); // 显式关闭文件
+
+        try {
+            json::value jsonData = json::parse(buffer.str());
+            if (jsonData.is_object()) {
+                json::object obj = jsonData.as_object();
+                if (obj.contains("cookie")) {
+                    std::string cookie = obj["cookie"].as_string().c_str();
+                    std::cout << "Cookie loaded from JSON: " << cookie << "\n";
+                    loginAuth.cookie = cookie;
+                }
+            }
+            std::cerr << "No cookie found in JSON file.\n";
+        } catch (const std::exception& e) {
+            std::cerr << "Error parsing JSON: " << e.what() << "\n";
+        }
+    } else {
+        std::cerr << "Failed to open file for loading cookie.\n";
+    }
+}
+
+void saveLoginInfo(const std::string& username, const std::string& password){
+    std::string authPath = "oci_images/auth.json";
+    json::object credentials;
+    credentials["username"] = username;
+    credentials["password"] = password;
+
+    std::ofstream ofs(authPath);
+    if (ofs) {
+        ofs << json::serialize(credentials);
+        std::cout << "Credentials saved to auth.json\n";
+    } else {
+        std::cerr << "Failed to save credentials\n";
+    }
+}
+
+void loadLoginInfo() {
+    std::string authPath = "oci_images/auth.json";
+
+    std::ifstream ifs(authPath);
+    if (!ifs) {
+        std::cerr << "Failed to open auth.json for reading\n";
+        return;
+    }
+
+    try {
+        // 读取文件内容
+        std::ostringstream oss;
+        oss << ifs.rdbuf();
+        std::string content = oss.str();
+
+        // 解析 JSON 对象
+        json::value parsed = json::parse(content);
+        json::object credentials = parsed.as_object();
+        std::string username;
+        std::string password;
+        // 提取字段
+        if (credentials.contains("username") && credentials.contains("password")) {
+            username = json::value_to<std::string>(credentials["username"]);
+            password = json::value_to<std::string>(credentials["password"]);
+            userinfo.username=username;
+            userinfo.password=password;
+        } else {
+            std::cerr << "auth.json does not contain required fields\n";
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "Error reading auth.json: " << e.what() << "\n";
     }
 }
