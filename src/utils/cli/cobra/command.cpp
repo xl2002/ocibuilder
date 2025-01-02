@@ -568,7 +568,7 @@ void legacyArgs(Command*cmd,vector<string>args){
         return;
     }
     if(!cmd->HasParent() && args.size()>0){
-        throw myerror("unknown command"+args[0]+" for "+cmd->CommandPath());
+        throw myerror("unknown command "+args[0]+" for "+cmd->CommandPath());
     }
     return;
 }

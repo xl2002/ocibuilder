@@ -248,7 +248,35 @@ struct BuilderInfo {
     // CDIConfigDir 是CDI配置文件路径
     std::string CDIConfigDir;
     friend void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const BuilderInfo& image) {
-        
+        jv = boost::json::object{
+            {"Type", image.Type},
+            {"FromImage", image.FromImage},
+            {"FromImageID", image.FromImageID},
+            {"FromImageDigest", image.FromImageDigest},
+            // {"GroupAdd", image.GroupAdd},
+            {"Config", image.Config},
+            {"Manifest", image.Manifest},
+            {"Container", image.Container},
+            {"ContainerID", image.ContainerID},
+            {"MountPoint", image.MountPoint},
+            {"ProcessLabel", image.ProcessLabel},
+            {"MountLabel", image.MountLabel},
+            {"ImageAnnotations", boost::json::value_from(image.ImageAnnotations)},
+            {"ImageCreatedBy", image.ImageCreatedBy},
+            {"OCIv1", boost::json::value_from(*image.OCIv1)},
+            // {"DefaultMountsFilePath", image.DefaultMountsFilePath},
+            {"Isolation", image.Isolation},
+            // {"NamespaceOptions", image.NamespaceOptions},
+            // {"Capabilities", image.Capabilities},
+            // {"ConfigureNetwork", image.ConfigureNetwork},
+            // {"CNIPluginPath", image.CNIPluginPath},
+            // {"CNIConfigDir", image.CNIConfigDir},
+            // {"IDMappingOptions", image.IDMappingOptions},
+            {"History", boost::json::value_from(image.History)},
+            // {"Devices", image.Devices},
+            // {"DeviceSpecs", image.DeviceSpecs},
+            // {"CDIConfigDir", image.CDIConfigDir}
+        };
     }
 };
 struct BuilderOptions {

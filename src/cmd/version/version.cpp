@@ -10,6 +10,9 @@
  */
 #include "cmd/version/version.h"
 #include "utils/cli/cli/common.h"
+#include "image/types/define/types.h"
+#include <sstream>
+#include "utils/common/json.h"
 /**
  * @brief 初始化 version 命令的内容
  * 
@@ -34,9 +37,33 @@ void init_version(){
 }
 
 /**
- * @brief version 命令Run操作的
+ * @brief version输出版本信息
  * 
  */
 void versionCmd(std::shared_ptr<versionOptions> iopts){
-
+    //1. 构建versionInfo对象，
+    auto v=std::make_shared<versionInfo>();
+    v->Version=version;
+    ostringstream cppVersion;
+    cppVersion<<"g++ "<<__GNUC__<<"."<<__GNUC_MINOR__<<"."<<__GNUC_PATCHLEVEL__;
+    v->CppVersion=cppVersion.str();
+    v->ImageSpec="1.0.1";
+    v->Built="2025-01-01";
+    v->OsArch="windows7/amd64";
+    v->BuildPlatform="windows7/amd64";
+    //2. 如果json=true，则输出json格式
+    if(iopts->json){
+        // std::string vstr=marshal<versionInfo>(*v);
+        boost::json::value jv = boost::json::value_from(*v);
+        std::cout<<format_json(jv)<<std::endl;
+        // std::cout<<vstr<<std::endl;
+    }else{
+        std::cout<<std::left<<std::setw(20)<<"Version:"<<v->Version<<std::endl;
+        std::cout<<std::left<<std::setw(20)<<"C++ Version:"<<v->CppVersion<<std::endl;
+        std::cout<<std::left<<std::setw(20)<<"Image Spec:"<<v->ImageSpec<<std::endl;
+        std::cout<<std::left<<std::setw(20)<<"Built:"<<v->Built<<std::endl;
+        std::cout<<std::left<<std::setw(20)<<"Os/Arch:"<<v->OsArch<<std::endl;
+        std::cout<<std::left<<std::setw(20)<<"BuildPlatform:"<<v->BuildPlatform<<std::endl;
+    }
+    return;
 }

@@ -39,5 +39,5 @@ void inspectCmd(Command& cmd, vector<string> args){
 
     //3. 根据获得imagestore构造BuilderInfo，只需要填充OCI镜像部分
 
-    //4. 打印镜像信息
+    //4. 打印镜像信息，unmarshal得到BuilderInfo的json字符串
 }

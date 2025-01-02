@@ -3,6 +3,7 @@
 #include "utils/common/go/string.h"
 #include "utils/common/json.h"
 #include "utils/common/go/file.h"
+#include "image/types/reference/regexp.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -96,6 +97,7 @@ bool parseJson(const vector<uint8_t>& data, vector<shared_ptr<storage::Image>>& 
             }
             image->Names.push_back(name);
             image->Digests.emplace_back(it.digest);
+            image->NamesHistory=it.historyTags;
             image->image_index=std::make_shared<storage::manifest>(it);
             images.push_back(image);
         }
@@ -121,73 +123,15 @@ void ImageStore::removeName(std::shared_ptr<storage::Image> image, const std::st
     image->Names = stringSliceWithoutValue(image->Names, name);
 }
 
-//将image将 Image 对象转换为 boost::property_tree::ptree 对象
-// boost::property_tree::ptree imageToPtree(const std::shared_ptr<storage::Image>& image) {
-//     boost::property_tree::ptree pt;
-    
-//     pt.put("id", image->ID);
-//     pt.put("digest", image->digest->digest); // 假设 Digest 结构有一个 `digest` 字段
-//     pt.put("topLayer", image->TopLayer);
-//     pt.put("metadata", image->Metadata);
-//     pt.put("created", time_point_to_string(image->Created)); // 使用 long long 以处理大时间戳
 
-    // Convert vectors to ptree
-    // boost::property_tree::ptree digests_ptree;
-    // for (const auto& digest : image->Digests) {
-    //     boost::property_tree::ptree item;
-    //     item.put("", digest.digest); // 假设 Digest 结构有一个 `digest` 字段
-    //     digests_ptree.push_back(std::make_pair("", item));
-    // }
-    // pt.add_child("digests", digests_ptree);
-
-    // boost::property_tree::ptree names_ptree;
-    // for (const auto& name : image->Names) {
-    //     boost::property_tree::ptree item;
-    //     item.put("", name);
-    //     names_ptree.push_back(std::make_pair("", item));
-    // }
-    // pt.add_child("names", names_ptree);
-
-    // Similarly handle namesHistory, mappedTopLayers, bigDataNames
-    // For map<string, int64_t> and map<string, Digest>
-    // boost::property_tree::ptree bigDataSizes_ptree;
-    // for (const auto& pair : image->BigDataSizes) {
-    //     boost::property_tree::ptree item;
-    //     item.put("", pair.second); // size
-    //     bigDataSizes_ptree.add_child(pair.first, item);
-    // }
-    // pt.add_child("bigDataSizes", bigDataSizes_ptree);
-
-    // boost::property_tree::ptree bigDataDigests_ptree;
-    // for (const auto& pair : image->BigDataDigests) {
-    //     boost::property_tree::ptree item;
-    //     item.put("", pair.second.digest); // digest
-    //     bigDataDigests_ptree.add_child(pair.first, item);
-    // }
-    // pt.add_child("bigDataDigests", bigDataDigests_ptree);
-
-    // // Handle flags (assuming the flag values are serializable to JSON)
-    // boost::property_tree::ptree flags_ptree;
-    // for (const auto& pair : image->Flags) {
-    //     boost::property_tree::ptree item;
-    //     // Serialize item based on actual type
-    //     // Example below assumes void* is not directly serializable
-    //     flags_ptree.add_child(pair.first, item); 
-    // }
-//     pt.add_child("flags", flags_ptree);
-
-//     pt.put("readOnly", image->ReadOnly);
-
-//     return pt;
-// }
 //Save 函数的实现
 void ImageStore::Save() {
     try {
         // 检查是否允许修改
-        if (!lockfile->IsReadWrite()) {
-            throw myerror("Not allowed to modify the image store: Store_interface is read-only.");
-        }
-        lockfile->AssertLockedForWriting();
+        // if (!lockfile->IsReadWrite()) {
+        //     throw myerror("Not allowed to modify the image store: Store_interface is read-only.");
+        // }
+        // lockfile->AssertLockedForWriting();
 
         std::string rpath = imagespath();
         fs::path dirPath = fs::path(rpath).parent_path(); // 获取目录路径
@@ -196,28 +140,25 @@ void ImageStore::Save() {
         if (!fs::exists(dirPath)) {
             fs::create_directories(dirPath);
         }
-
-        // 创建 Boost Property Tree 对象
-        // boost::property_tree::ptree ptree_root;
-        // for (const auto& image_ptr : images) {
-        //     boost::property_tree::ptree image_ptree = imageToPtree(image_ptr);
-        //     ptree_root.add_child("images.image", image_ptree);
-        // }
-
-        // 写入 JSON 文件
-        // std::ofstream ofs(rpath, std::ios::out | std::ios::trunc | std::ios::binary);
-        // if (!ofs) {
-        //     throw myerror("Failed to open file for writing: " + rpath);
-        // }
-        
-        // boost::property_tree::write_json(ofs, ptree_root);
-        // ofs.close();
-        // if (!ofs.good()) {
-        //     throw myerror("Failed to write data to file.");
-        // }
-        
+        storage::index Index;
+        Index.schemaVersion = 2;
+        for (const auto& image_ptr : images) {
+            storage::manifest descroptor;
+            descroptor=*image_ptr->image_index;
+            Index.manifests.push_back(descroptor);
+        }
+        std::string index_str=marshal<storage::index>(Index);
+        std::ofstream ofs(rpath, std::ios::out | std::ios::trunc | std::ios::binary);
+        if (!ofs) {
+            throw myerror("Failed to open file for writing: " + rpath);
+        }
+        ofs<<index_str;
+        ofs.close();
+        if (!ofs.good()) {
+            throw myerror("Failed to write data to file.");
+        }
         // 记录写入时间
-        lastWrite = lockfile->RecordWrite(); // 需要根据实际情况实现
+        // lastWrite = lockfile->RecordWrite(); // 需要根据实际情况实现
 
     } catch (const myerror& ex) {
         std::cerr << "Error: " << ex.what() << std::endl;
@@ -242,7 +183,7 @@ bool ImageStore::load(bool lockedForWriting) {
         if(data.empty()) {
             return false;
         }
-        std::vector<std::shared_ptr<storage::Image>> images;
+        // std::vector<std::shared_ptr<storage::Image>> images;
         if (!data.empty()) {
             // 使用 parseJson 函数解析index数据
             if (!parseJson(data, images,this->dir)) {
@@ -1048,37 +989,6 @@ void load(Store* s) {
             additionalImageStores.insert(additionalImageStores.begin(), s->graph_root);
         }
 
-        // for (const string& store : additionalImageStores) {
-        //     string gipath = Join({store, driverPrefix + "images"});
-        //     shared_ptr<roImageStore> ris;
-
-        //     if (store == s->image_store || store == s->graph_root) {
-        //         imageStore = newImageStore(gipath);
-        //         if (!imageStore) {
-        //             throw myerror("Failed to create ImageStore at: " + gipath);
-        //         }
-        //         s->rw_image_stores.push_back(imageStore);
-        //         ris = imageStore;
-        //     } else {
-        //         ris = newROImageStore(gipath);
-        //         if (!ris) {
-        //             if (errno == EROFS) {
-        //                 // 如果是只读文件系统，跳过锁文件创建
-        //                 // logDebug("Ignoring creation of lockfiles on read-only file systems: " + gipath);
-        //                 continue;
-        //             }
-        //             throw myerror("Failed to create ROImageStore at: " + gipath);
-        //         }
-        //     }
-        //     s->ro_image_stores.push_back(ris);
-        // }
-
-        // 创建锁文件目录
-        // s->digest_lock_root = Join({s->run_root, driverPrefix + "locks"});
-        // if (!MkdirAll(s->digest_lock_root)) {
-        //     throw myerror("Failed to create directory: " + s->digest_lock_root);
-        // }
-
     } catch (const myerror& e) {
         throw; // 重新抛出错误以便进一步处理
     }
@@ -1133,8 +1043,9 @@ std::shared_ptr<storage::Image> ImageStore::Get(const std::string& id) {
 }
 
 std::shared_ptr<storage::Image> ImageStore::lookup(const std::string& id){
-    auto it=id.find(':');
-    if(it==std::string::npos){//id是digest
+    // auto it=id.find(':');
+    bool isDigest=std::regex_match(id,*ShortIdentifierRegexp);
+    if(isDigest){//id是digest
         auto image=this->byid.find(id);
         if(image!=this->byid.end()){
             return image->second;
@@ -1146,6 +1057,33 @@ std::shared_ptr<storage::Image> ImageStore::lookup(const std::string& id){
         }
     }
     return nullptr;
+}
+/**
+ * @brief 给镜像添加新的tag
+ * 
+ * @param name 
+ * @param newname 
+ */
+void ImageStore::newtag(std::string name,std::string newname){
+    //1. 通过name查找镜像
+    auto des=this->lookup(name);
+    //2. 添加新的tag记录到images
+    auto Newtag=std::make_shared<storage::Image>(*des);//复制一份
+    auto des2=this->lookup(newname);
+    if(des2!=nullptr){
+        auto it=std::find_if(this->images.begin(),this->images.end(),[&des2](std::shared_ptr<storage::Image> img){
+            return img==des2;
+        });
+        if(it!=this->images.end()){
+            this->images.erase(it);
+        }
+    }
+    auto imageindex=std::make_shared<storage::manifest>(*des->image_index);
+    imageindex->annotations["org.opencontainers.image.ref.name"]=newname;
+    Newtag->image_index=imageindex;
+    this->images.push_back(Newtag);
+    //3. 保存index.json文件
+    this->Save();
 }
 void ImageStore::startWriting() {
     // 空实现
@@ -1165,9 +1103,21 @@ void ImageStore::updateNames(const std::string& id, const std::vector<std::strin
                 updateNameOperation op) {
     // 空实现
 }
-
+/**
+ * @brief 删除某个镜像
+ * 
+ * @param id 
+ */
 void ImageStore::Delete(const std::string& id) {
-    // 空实现
+    //1. 通过id查找镜像
+
+    //2. 查找index.json文件，
+    //如果id是镜像ID，如果index.json中同manifest的只有一条记录，则删除对应的所有config和manifest文件和镜像层文件，否则只删除config和manifest文件
+    //如果id是镜像name，并且index.json中同manifest的只有一条记录，则删除对应的所有config和manifest文件和镜像层文件
+    //如果id是镜像name，并且index.json中同manifest的有多条记录，则只删除index.json中对应的记录
+
+    //3. 删除index.json的记录
+
 }
 
 void ImageStore::addMappedTopLayer(const std::string& id, const std::string& layer) {

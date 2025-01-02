@@ -35,5 +35,9 @@ void init_rmi(){
  * 
  */
 void rmiCmd(Command& cmd, vector<string> args){
+    //1. 加载镜像仓库
 
+    //2. 删除指定镜像
+
+    
 }

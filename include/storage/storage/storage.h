@@ -305,6 +305,8 @@ public:
 
     // 清除所有图像记录
     virtual void Wipe() = 0;
+    // 添加新的tag
+    virtual void newtag(std::string name,std::string newname) = 0;
 };
 struct ImageStore:public rwImageStore_interface{
 
@@ -319,7 +321,7 @@ struct ImageStore:public rwImageStore_interface{
     // 以下字段只能在持有 inProcessLock 的读写所有权时读取/写入。
     // 几乎所有用户都应使用 startReading() 或 startWriting()。
     lastwrite lastWrite;
-    vector<shared_ptr<storage::Image>> images;
+    vector<shared_ptr<storage::Image>> images;//存储index.json文件中的镜像信息
     shared_ptr<TruncIndex> idindex=std::make_shared<TruncIndex>();
     //目前没用到
     map<std::string, shared_ptr<storage::Image>> byid;
@@ -369,6 +371,7 @@ struct ImageStore:public rwImageStore_interface{
     void Save();
     std::shared_ptr<storage::Image> Get(const std::string& id) override;
     std::shared_ptr<storage::Image> lookup(const std::string& id);
+    void newtag(std::string name,std::string newname) override;
 };
 
 

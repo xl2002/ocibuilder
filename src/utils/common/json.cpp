@@ -1,15 +1,44 @@
 #include "utils/common/json.h"
-// 序列化模板函数 class->string
-// template <typename T>
-// std::string marshal(const T& obj) {
-//     // 将结构体转换为 JSON 字符串
-//     json::value jv = json::value_from(obj);
-//     return json::serialize(jv);
-// }
 
-// // 反序列化模板函数 string->class
-// template <typename T>
-// T unmarshal(const std::string& jsonStr) {
-//     json::value jv = json::parse(jsonStr);
-//     return json::value_to<T>(jv);
-// }
+// 自定义 JSON 格式化函数
+std::string format_json(const boost::json::value& jv, int indent) {
+    std::string indent_str(indent, ' '); // 用于控制缩进
+    std::ostringstream oss;
+
+    if (jv.is_object()) {
+        oss << "{\n";
+        const auto& obj = jv.as_object();
+        for (auto it = obj.begin(); it != obj.end(); ++it) {
+            oss << indent_str << "  \"" << it->key() << "\": ";
+            oss << format_json(it->value(), indent + 2); // 递归处理对象
+            if (std::next(it) != obj.end()) {
+                oss << ",";
+            }
+            oss << "\n";
+        }
+        oss << indent_str << "}";
+    } else if (jv.is_array()) {
+        oss << "[\n";
+        const auto& arr = jv.as_array();
+        for (size_t i = 0; i < arr.size(); ++i) {
+            oss << indent_str << "  " << format_json(arr[i], indent + 2);
+            if (i + 1 < arr.size()) {
+                oss << ",";
+            }
+            oss << "\n";
+        }
+        oss << indent_str << "]";
+    } else if (jv.is_string()) {
+        oss << jv.as_string();
+    } else if (jv.is_double()) {
+        oss << jv.as_double();
+    } else if (jv.is_int64()) {
+        oss << jv.as_int64();
+    } else if (jv.is_bool()) {
+        oss << (jv.as_bool() ? "true" : "false");
+    } else {
+        oss << "null";
+    }
+
+    return oss.str();
+}

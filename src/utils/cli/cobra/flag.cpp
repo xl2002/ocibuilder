@@ -567,10 +567,9 @@ void Flagset::parseArgs(vector<string> args){
                 this->args.emplace_back(str);
                 this->args.insert(this->args.end(),it,args.end());
                 return;
-            }else{
-                cerr<<"args are not standard"<<endl;
-                return;
             }
+            this->args.emplace_back(str);
+            continue;
         }
         vector<string> in_args(it,args.end());
         try
