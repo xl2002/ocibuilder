@@ -35,8 +35,14 @@ void init_tag(){
  */
 void tagCmd(Command& cmd, vector<string> args){
     //1. 加载镜像仓库
-
+    auto store=getStore(&cmd);
     //2. 添加新的名称，通过imagestore->newtag(name,newname)实现
 
-    
+    auto images=store->image_store;
+    try{
+        images->newtag(args[0],args[1]);
+    }catch(const myerror& e){
+        e.logerror();
+        exit(1);
+    }
 }
