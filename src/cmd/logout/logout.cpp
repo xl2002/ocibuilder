@@ -38,5 +38,6 @@ void init_logout(){
  * 
  */
 void logoutCmd(Command& cmd, vector<string> args,std::shared_ptr<logoutOptions> iopts){
-
+    //把auth文件清空
+    saveLoginInfo("","");
 }
