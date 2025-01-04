@@ -6,10 +6,11 @@
             "type": "cppdbg",
             "request": "launch",
             // "args": ["build","--tag","busybox-image:latest","."],
-            // "args": ["tag","busybox-image:latest","image:1.0"],
-            "args": ["tag","69bc7646d57b","image:2.0"],
             // "args":["push","192.168.1.107:7777/busybox-image:latest"],
-            // "args": ["build","--annotation","\"version=1.0\"","--annotation","\"author=NWPU\"","--arch","amd64","--os","linux","--file","Dockerfile","--tag","busybox-image:latest","."],
+            "args":["push","busybox1:latest", "oci:output/local_images:busybox1:latest"],
+            // "args":["pull","192.168.182.128:80/library/busyboximage5:latest","--os","linux"],
+            // "args":["login","--username","myusername","--password","mypassword"],
+            // "args": ["build","--annotation","\"version=1.0\"","--arch","amd64","--os","linux","--file","Dockerfile","--tag","busybox-image:latest","."],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -26,7 +27,7 @@
             },
             "windows": {
                 "MIMode": "gdb",
-                "miDebuggerPath": "D:\\softwares\\mingw64\\bin\\gdb.exe",
+                "miDebuggerPath": "D:\\mingw\\x86_64-8.1.0-release-posix-seh-rt_v6-rev0\\bin\\gdb.exe",
                 "program": "${workspaceFolder}/output/main.exe"
             },
             "setupCommands": [
@@ -65,7 +66,7 @@
             },
             "windows": {
                 "MIMode": "gdb",
-                "miDebuggerPath": "D:\\softwares\\mingw64\\bin\\gdb.exe",
+                "miDebuggerPath": "D:\\mingw\\x86_64-8.1.0-release-posix-seh-rt_v6-rev0\\bin\\gdb.exe",
                 "program": "${workspaceFolder}/output/main.exe"
             },
             "setupCommands": [
@@ -93,7 +94,7 @@
             "externalConsole": false,
             "windows": {
                 "MIMode": "gdb",
-                "miDebuggerPath": "D:\\softwares\\mingw64\\bin\\gdb.exe",
+                "miDebuggerPath": "D:\\mingw\\x86_64-8.1.0-release-posix-seh-rt_v6-rev0\\bin\\gdb.exe",
                 "program": "${workspaceFolder}/tests/main.exe"
             },
             "setupCommands": [
