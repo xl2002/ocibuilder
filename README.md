@@ -71,3 +71,4 @@ shasum -a 256 d9a1c0e63b46b78ce21a60cef1fa8240a4b6fbe58c2b6a70c52e70f248375f24.t
 ./output/main.exe build --annotation "version=3.0" --annotation "author=NWPU" --arch amd64 --os linux --file Dockerfile --tag busybox-image:latest .
 ./output/main.exe push 10.68.1.145:5000/busybox-image:latest
 ./output/main.exe version
+./output/main.exe tag image1:latest image2:latest

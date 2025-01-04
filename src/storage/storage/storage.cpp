@@ -1079,7 +1079,7 @@ void ImageStore::newtag(std::string name,std::string newname){
         }
     }
     auto imageindex=std::make_shared<storage::manifest>(*des->image_index);
-    imageindex->annotations["org.opencontainers.image.ref.name"]=newname;
+    imageindex->annotations["org.opencontainers.image.ref.name"]="localhost/"+newname;
     Newtag->image_index=imageindex;
     this->images.push_back(Newtag);
     //3. 保存index.json文件
