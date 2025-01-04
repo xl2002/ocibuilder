@@ -72,4 +72,12 @@ shasum -a 256 d9a1c0e63b46b78ce21a60cef1fa8240a4b6fbe58c2b6a70c52e70f248375f24.t
 ~~~
 
 ./output/main.exe build --tag busyboximage5:latest .
+./output/main.exe build --tag pulltest:2.0 .
+./output/main.exe push 192.168.182.128:80/library/pulltest:1.0
 ./output/main.exe push 192.168.182.128:80/library/busyboximage5:latest
+
+./output/main.exe pull --all-tags 192.168.182.128:80/library/pulltest:2.0
+./output/main.exe pull oci:C:/Users/mike/Desktop/pulltest:pulltest:2.0
+
+./output/main.exe login --username=admin --password=Harbor12345
+./output/main.exe logout

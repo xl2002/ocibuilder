@@ -81,6 +81,9 @@ void pushCmd(Command& cmd, vector<string> args,std::shared_ptr<pushOptions> iopt
     //  执行登录请求
     loadLoginInfo();
     login(userinfo.username,userinfo.password,url->host,url->port);
+    
+    //获得bearer token
+    std::string token=getToken(url->host,url->port,url->projectName,url->imageName);
 
     //url->host  url->port  url->imageName
     if(!ifSupportV2(url->host,url->port)){
