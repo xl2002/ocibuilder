@@ -34,7 +34,7 @@ struct configOptions
     vector<string> label;       ///<更改镜像的 label
     string  os          ;       ///<更改镜像的 os
 };
-void configCmd(Command& cmd, vector<string> args,std::shared_ptr<configOptions> iopts);   
+void configCmd(Command& cmd, vector<string> args,configOptions* iopts);   
 void init_configcmd(); 
 
 #endif

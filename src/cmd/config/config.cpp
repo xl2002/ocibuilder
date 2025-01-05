@@ -32,7 +32,7 @@
  * @return void
  */
 void init_configcmd(){
-    std::shared_ptr<configOptions> options=std::make_shared<configOptions>();
+    configOptions* options=new configOptions();
     string name{"config"};
     string Short{"Update image configuration settings"};
     string Long{"Modifies the configuration values which will be saved to the image."};
@@ -46,7 +46,7 @@ void init_configcmd(){
     //初始化每个flag的内容
     flags->BoolVar(options->addHistory,"add-history",false,"add an entry for this operation to the image's history.  Use BUILDAH_HISTORY environment variable to override. (default false)");
     flags->StringArrayVar(options->annotation,"annotation",vector<string>(),"add `annotation` e.g. annotation=value, for the target image (default [])");
-    flags->StringVar(options->arch,"arch","","set the architecture of the image (e.g., amd64, arm, ppc64le) (default unset)");
+    flags->StringVar(options->arch,"arch","amd64","set the architecture of the image (e.g., amd64, arm, ppc64le) (default unset)");
     flags->StringVar(options->author,"author","","set the author of the image (e.g., Jane Austen) (default unset)");
     flags->StringVar(options->cmd,"cmd","","set the default `command` to run for containers based on the image");
     flags->StringArrayVar(options->env,"env",vector<string>(), "set an environment variable for the target image (e.g., foo=bar) (default [])");
@@ -116,7 +116,7 @@ void updateEntrypoint(std::shared_ptr<Builder> builder, const std::string& entry
  * @param c 
  * @param iopts 
  */
-void updateConfig(std::shared_ptr<Builder> builder, Command& c, std::shared_ptr<configOptions> iopts) {
+void updateConfig(std::shared_ptr<Builder> builder, Command& c, configOptions* iopts) {
     try {
         // 根据 iopts 中的配置更新 builder 中的镜像配置
 
@@ -180,7 +180,7 @@ void updateConfig(std::shared_ptr<Builder> builder, Command& c, std::shared_ptr<
  * @brief config命令Run操作的
  * 
  */
-void configCmd(Command& cmd, std::vector<std::string> args, std::shared_ptr<configOptions> iopts) {
+void configCmd(Command& cmd, std::vector<std::string> args, configOptions* iopts) {
     try {
         // 1. 检查是否提供了有效的容器ID参数
         if (args.empty()) {
@@ -205,7 +205,6 @@ void configCmd(Command& cmd, std::vector<std::string> args, std::shared_ptr<conf
 
         // 4. 更新配置
         updateConfig(builder, cmd, iopts);
-          
 
         // 5. 保存镜像配置
         builder->Save(name);

@@ -76,6 +76,7 @@ void Builder::Save(std::string name){
 
     // 保存manifest文件
     auto imagestore = this->store->Image(name);
+    // this->store->image_store->Save();
     auto olddigest = imagestore->digest->String();  // 获取旧的digest
     auto manifest = imagestore->image_manifest;
     // auto oldconfigdigest = manifest->Config.Digests;
