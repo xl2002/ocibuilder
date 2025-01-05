@@ -1291,16 +1291,16 @@ std::vector<storage::Image> ImageStore::Images()  {
         }
     }
     // 遍历 byid 中的镜像（镜像 ID -> 镜像对象）
-    for (const auto& pair : byid) {
-        auto image = pair.second;
-        if (image!= nullptr) {
-            // 调用 Get() 获取镜像的详细信息并加入到返回的列表中
-            auto detailedImage = this->Get(image->ID);
-            if (detailedImage != nullptr) {
-                images.push_back(*detailedImage);  // 复制镜像
-            }
-        }
-    }
+    // for (const auto& pair : byid) {
+    //     auto image = pair.second;
+    //     if (image!= nullptr) {
+    //         // 调用 Get() 获取镜像的详细信息并加入到返回的列表中
+    //         auto detailedImage = this->Get(image->ID);
+    //         if (detailedImage != nullptr) {
+    //             images.push_back(*detailedImage);  // 复制镜像
+    //         }
+    //     }
+    // }
 
     // 返回所有镜像的详细信息
     return images;
