@@ -5,13 +5,8 @@
             "name": "Debug_nobuild",
             "type": "cppdbg",
             "request": "launch",
-            // "args": ["build","--tag","busybox-image:latest","."],
-            // "args": ["tag","busybox-image:latest","image:1.0"],
-            // "args": ["tag","69bc7646d57b","image:2.0"],
-            "args": ["rmi","image1:latest","image2:latest","image3:latest"],
-            // "args": ["rmi","3dfb6a36d964"],
-            // "args":["push","192.168.1.107:7777/busybox-image:latest"],
-            // "args": ["build","--annotation","\"version=1.0\"","--annotation","\"author=NWPU\"","--arch","amd64","--os","linux","--file","Dockerfile","--tag","busybox-image:latest","."],
+            "args": ["build","--tag","busybox-image:latest","."],
+            // "args": ["build","--annotation","\"version=1.0\"","--arch","amd64","--os","linux","--file","Dockerfile","--tag","busybox-image:latest","."],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -28,7 +23,7 @@
             },
             "windows": {
                 "MIMode": "gdb",
-                "miDebuggerPath": "D:\\softwares\\mingw64\\bin\\gdb.exe",
+                "miDebuggerPath": "E:\\mingw64\\mingw64\\mingw64\\bin\\gdb.exe",
                 "program": "${workspaceFolder}/output/main.exe"
             },
             "setupCommands": [
@@ -40,8 +35,7 @@
             ],
             "logging": {
                 "engineLogging": true,
-                "trace": true, // 启用跟踪
-                "exceptions": true
+                "trace": true // 启用跟踪
             },
             "preLaunchTask": ""
             // "preLaunchTask": "build"
@@ -67,7 +61,7 @@
             },
             "windows": {
                 "MIMode": "gdb",
-                "miDebuggerPath": "D:\\softwares\\mingw64\\bin\\gdb.exe",
+                "miDebuggerPath": "E:\\mingw64\\mingw64\\mingw64\\bin\\gdb.exe",
                 "program": "${workspaceFolder}/output/main.exe"
             },
             "setupCommands": [
@@ -83,34 +77,6 @@
             },
             // "preLaunchTask": ""
             "preLaunchTask": "build"
-        },
-        {
-            "name": "Debugtest",
-            "type": "cppdbg",
-            "request": "launch",
-            "args": [],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
-            "environment": [],
-            "externalConsole": false,
-            "windows": {
-                "MIMode": "gdb",
-                "miDebuggerPath": "D:\\softwares\\mingw64\\bin\\gdb.exe",
-                "program": "${workspaceFolder}/tests/main.exe"
-            },
-            "setupCommands": [
-                {
-                    "description": "Enable pretty-printing for gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                }
-            ],
-            "logging": {
-                "engineLogging": true,
-                "trace": true // 启用跟踪
-            },
-            // "preLaunchTask": ""
-            "preLaunchTask": "build_test"
         }
     ]
 }

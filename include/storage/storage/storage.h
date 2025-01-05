@@ -308,6 +308,8 @@ public:
     virtual void Wipe() = 0;
     // 添加新的tag
     virtual void newtag(std::string name,std::string newname) = 0;
+
+    virtual void Save()=0;
 };
 struct ImageStore:public rwImageStore_interface{
 
@@ -369,7 +371,7 @@ struct ImageStore:public rwImageStore_interface{
     std::string imagespath();
     void removeName(std::shared_ptr<storage::Image> image, const std::string& name);
     std::vector<std::string> stringSliceWithoutValue(const std::vector<std::string>& slice, const std::string& value);
-    void Save();
+    void Save() override;
     std::shared_ptr<storage::Image> Get(const std::string& id) override;
     std::shared_ptr<storage::Image> lookup(const std::string& id);
     void newtag(std::string name,std::string newname) override;

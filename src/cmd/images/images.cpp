@@ -73,12 +73,22 @@ void formatImages(const std::vector<storage::Image>& images) {
 
     // 遍历每个镜像
     for (const auto& image : images) {
-        std::string repository = image.Names.empty() ? "N/A" : image.Names[0]; // 假设第一个名称是仓库
-        std::string tag = "latest"; // 暂时将TAG设为"latest" (可以根据需要进行扩展)
+        // 提取 repository 和 tag
+        std::string repository = image.Names.empty() ? "N/A" : image.Names[0].substr(0, image.Names[0].find(':'));
+        std::string tag = image.Names.empty() || image.Names[0].find(':') == std::string::npos ? "latest" : image.Names[0].substr(image.Names[0].find(':') + 1);
+
         std::string imageID = image.ID;
         std::string created = formatTime(image.Created);
-        std::string size = formatSize(image.image_manifest->Config.Size);  // 假设每个镜像大小为4MB (可以从镜像元数据中获取实际大小)
-
+        std::string size = formatSize(
+            std::accumulate(
+                image.image_manifest->Layers.begin(),
+                image.image_manifest->Layers.end(),
+                static_cast<size_t>(0),  // 初始值为 0
+                [](size_t total, const Descriptor& layer) {
+                    return total + layer.Size;
+                }
+            )
+        );
         // 格式化并打印镜像信息
         std::cout << boost::format("%-30s %-10s %-15s %-20s %s\n") % repository % tag % imageID % created % size;
     }
