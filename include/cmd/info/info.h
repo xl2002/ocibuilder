@@ -35,5 +35,8 @@ struct InfoData{
     // }
 };
 void infoCmd(Command& cmd);
+std::map<std::string,std::string> hostInfo();
+std::map<std::string,std::string> storeInfo(std::shared_ptr<Store> store);
+std::vector<InfoData> Info(std::shared_ptr<Store> store);
 void init_info();   
 #endif
