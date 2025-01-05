@@ -34,13 +34,22 @@ void init_images(){
     // return imagesCommand;
 }
 std::string formatSize(int64_t sizeInBytes) {
-    // 根据大小格式化，返回 MB 或 GB
-    double size = sizeInBytes / 1024.0 / 1024.0;
-    if (size >= 1024) {
-        size /= 1024.0;
+    if (sizeInBytes < 1024) {
+        // 小于 1 KB
+        return boost::str(boost::format("%d B") % sizeInBytes);
+    } else if (sizeInBytes < 1024 * 1024) {
+        // 小于 1 MB
+        double size = sizeInBytes / 1024.0;
+        return boost::str(boost::format("%.1f KB") % size);
+    } else if (sizeInBytes < 1024 * 1024 * 1024) {
+        // 小于 1 GB
+        double size = sizeInBytes / (1024.0 * 1024.0);
+        return boost::str(boost::format("%.1f MB") % size);
+    } else {
+        // 大于等于 1 GB
+        double size = sizeInBytes / (1024.0 * 1024.0 * 1024.0);
         return boost::str(boost::format("%.1f GB") % size);
     }
-    return boost::str(boost::format("%.1f MB") % size);
 }
 
 std::string formatTime(const std::chrono::system_clock::time_point& created) {
