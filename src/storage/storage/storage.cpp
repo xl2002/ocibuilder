@@ -7,6 +7,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <cstdio>
 namespace fs = boost::filesystem;
 
 
@@ -1079,7 +1080,7 @@ void ImageStore::newtag(std::string name,std::string newname){
         }
     }
     auto imageindex=std::make_shared<storage::manifest>(*des->image_index);
-    imageindex->annotations["org.opencontainers.image.ref.name"]=newname;
+    imageindex->annotations["org.opencontainers.image.ref.name"]="localhost/"+newname;
     Newtag->image_index=imageindex;
     this->images.push_back(Newtag);
     //3. 保存index.json文件
@@ -1103,21 +1104,105 @@ void ImageStore::updateNames(const std::string& id, const std::vector<std::strin
                 updateNameOperation op) {
     // 空实现
 }
+
+bool isHexChar(char ch) {
+    return (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f');
+}
+bool isHexadecimal(const std::string& id) {
+    return std::all_of(id.begin(), id.end(), isHexChar);
+}
 /**
  * @brief 删除某个镜像
  * 
  * @param id 
  */
 void ImageStore::Delete(const std::string& id) {
+    string rpath = imagespath(); // 获取镜像存储路径
+    boost::filesystem::ifstream file(rpath, std::ios::binary);
+    std::vector<uint8_t> data((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    std::string index_str=vectorToString(data);
+    storage::index Index=unmarshal<storage::index>(index_str);
     //1. 通过id查找镜像
-
     //2. 查找index.json文件，
     //如果id是镜像ID，如果index.json中同manifest的只有一条记录，则删除对应的所有config和manifest文件和镜像层文件，否则只删除config和manifest文件
     //如果id是镜像name，并且index.json中同manifest的只有一条记录，则删除对应的所有config和manifest文件和镜像层文件
     //如果id是镜像name，并且index.json中同manifest的有多条记录，则只删除index.json中对应的记录
-
     //3. 删除index.json的记录
+    //如果id是镜像ID
+    auto image=this->lookup(id);
+    auto index=image->image_index;
+    auto historytags=index->historyTags;
+    std::string delete_digest=index->digest;
+    //根据delete_digest找到对应manifest文件
+    std::string manifestpath=dir+"/blobs/sha256/"+delete_digest;
+    std::ifstream manifestf(manifestpath,std::ios::binary);
+    std::ostringstream oss;
+    oss << manifestf.rdbuf();
+    auto manifest=unmarshal<Manifest>(oss.str());
+    std::string configpath=dir+"/blobs/sha256/"+manifest.Config.Digests.Encoded();
+    const char* manifest_delete = manifestpath.c_str();
+    const char* config_delete = configpath.c_str();
+    if (id.size()==12 && isHexadecimal(id)){
+        if(historytags.size()>0){
+            //historytags有多条记录，删除后将historytag第一条移上去
+            index->digest=historytags[1];
+            historytags.erase(historytags.begin());
 
+        }else{
+            //只有一条记录还要删除镜像层文件
+            auto layers=manifest.Layers;
+            for(auto layer:layers){
+                std::string layerpath=dir+"/blobs/sha256/"+layer.Digests.Encoded();
+                const char* layer_delete = layerpath.c_str();
+                remove(layer_delete);
+            }
+            //删除这个记录
+            auto it = Index.manifests.begin();
+            while (it != Index.manifests.end()) {
+                if (it->digest == delete_digest && it->annotations == index->annotations) {
+                it = Index.manifests.erase(it);
+                } else {
+                ++it;
+                }
+            }
+        }
+        remove(manifest_delete);
+        remove(config_delete);
+    }
+    //如果id是镜像name
+    else{
+        //先得去拿到manifest的digest
+        bool flag=0;//
+        //遍历整个index的manifest查找有无digest相同的
+        auto it = Index.manifests.begin();
+        while (it != Index.manifests.end()) {
+            if (it->digest == delete_digest && it->annotations != index->annotations) {
+            //只删掉该条manifest记录，不删除文件
+                it = Index.manifests.erase(it);
+                flag=1;
+            } 
+            ++it;
+        }
+        if(flag==0){
+            auto layers=manifest.Layers;
+            for(auto layer:layers){
+                std::string layerpath=dir+"/blobs/sha256/"+layer.Digests.Encoded();
+                const char* layer_delete = layerpath.c_str();
+                remove(layer_delete);
+            }
+            //删除这个记录
+            auto it = Index.manifests.begin();
+            while (it != Index.manifests.end()) {
+                if (it->digest == delete_digest && it->annotations == index->annotations) {
+                it = Index.manifests.erase(it);
+                } else {
+                ++it;
+                }
+            }
+        }
+        remove(manifest_delete);
+        remove(config_delete);
+    }        
 }
 
 void ImageStore::addMappedTopLayer(const std::string& id, const std::string& layer) {

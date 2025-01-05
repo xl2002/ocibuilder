@@ -13,9 +13,11 @@
 #include <boost/asio.hpp>
 #include <boost/beast.hpp>
 #include <boost/json.hpp>
+#include <boost/filesystem.hpp>
 namespace asio = boost::asio;
 namespace beast = boost::beast;
 namespace json = boost::json;
+namespace fs = boost::filesystem;
 using tcp = asio::ip::tcp;
 
 // #include <boost/asio/ip/network_v6.hpp>
@@ -87,6 +89,7 @@ struct authScope{
     std::string actions;
     std::string cookie;
     std::string harborToken;
+    std::string bearerToken;
     authScope() = default;
 };
 extern authScope loginAuth;
@@ -96,6 +99,7 @@ struct Userinfo{
     bool passwordSet=false;
     Userinfo() = default;
 };
+extern Userinfo userinfo;
 struct URL{
     std::string scheme;        // 协议方案
     std::string opaque;        // 编码的不透明数据
@@ -105,6 +109,8 @@ struct URL{
     std::string projectName;   //仓库中项目名
     std::string imageName;     //镜像名
     std::string version;      //镜像版本号
+    bool localPullFlag=false;     //是否从私有镜像库pull
+    std::string localPullPath; //私有镜像库的地址
     std::string path;          // 路径（相对路径可能省略前导斜杠）
     std::string rawPath;       // 编码的路径提示（参见 EscapedPath 方法）
     bool omitHost=false;             // 不输出空主机（authority）
@@ -187,6 +193,20 @@ void finalizeUpload(const std::string &host, const std::string &port, const std:
 bool isCorrect(std::string sha256, std::string filepath);
 
 void login(const std::string &user, const std::string &passwd, const std::string &host, const std::string &port);
+
+void pullBlob(const std::string &host, const std::string &port, const ::string &projectName, const ::string &imageName, const std::string digest);
+
+bool pullConfig(const std::string &host, const std::string &port, const ::string &projectName, const ::string &imageName, const std::string digest, const std::string &os, const std::string &arch);
+
+std::tuple<std::string,size_t> pullManifestAndBlob(const std::string &host, const std::string &port, const ::string &projectName, const ::string &imageName, const std::string version,const std::string& os,const std::string& arch);
+
+void saveLoginInfo(const std::string &username, const std::string &password);
+
+void loadLoginInfo();
+
+std::vector<std::string> getTagList(const std::string &host, const std::string &port, const ::string &projectName, const ::string &imagetName);
+
+void getCookieFromAuthFile();
 
 #endif // TYPES_NETWORK_H)
 

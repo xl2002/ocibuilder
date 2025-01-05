@@ -30,14 +30,29 @@ void init_rmi(){
     rootcmd.AddCommand({rmiCommand});
 }
 
+bool isHexChar(char ch) {
+    return (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F');
+}
+bool isHexadecimal(const std::string& arg) {
+    return std::all_of(arg.begin(), arg.end(), isHexChar);
+}
 /**
- * @brief rmi 命令Run操作的
- * 
- */
+ * @brief rmi 命令Run操作的
+ * 
+ */
 void rmiCmd(Command& cmd, vector<string> args){
     //1. 加载镜像仓库
+    std::shared_ptr<Store> store;
+    store =getStore(&cmd);
+    auto images=store->image_store;
 
-    //2. 删除指定镜像
+    //如果没有输入imageid或者name
+    if(args.size()==0){
+        cout<<"image name or ID must be specified"<<endl;
+    }
+     //2. 删除指定镜像
+    for (const auto& arg : args) {
+        images->Delete(arg);
+    }
 
-    
 }
