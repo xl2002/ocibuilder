@@ -45,6 +45,10 @@ void  Builder::ClearAnnotations(){
 void  Builder::SetArchitecture(std::string arch){
     this->OCIv1->platform.Architecture=arch;
 }
+void Builder:: SetMaintainer(std::string who){
+    this->OCIv1->author=who;
+    this->Docker->Author=who;
+}
 std::string  Builder::OS(){
     return this->OCIv1->platform.OS;
 }

@@ -1275,11 +1275,35 @@ bool ImageStore::Exists(const std::string& id)  {
  * @return std::vector<storage::Image> 
  */
 std::vector<storage::Image> ImageStore::Images()  {
+    std::vector<storage::Image> images;  // 用于存储所有镜像的详细信息
     //2. map<std::string, shared_ptr<storage::Image>> byname;中存储了所有镜像的名字和镜像的指针
-
     //3. 参考std::shared_ptr<storage::Image> ImageStore::Get(const std::string& id)方法获得镜像的详细信息得到vector<storage::Image> images
-    //4. 返回images
-    return {}; // 空实现
+    //直接调用了Get方法将所有的镜像详细信息获取到
+    // 遍历 byname 中的镜像（镜像名称 -> 镜像对象）
+    for (const auto& pair : byname) {
+        auto image = pair.second;
+        if (image!= nullptr) {
+            // 调用 Get() 获取镜像的详细信息并加入到返回的列表中
+            auto detailedImage = this->Get(image->ID);
+            if (detailedImage != nullptr) {
+                images.push_back(*detailedImage);  // 复制镜像
+            }
+        }
+    }
+    // 遍历 byid 中的镜像（镜像 ID -> 镜像对象）
+    for (const auto& pair : byid) {
+        auto image = pair.second;
+        if (image!= nullptr) {
+            // 调用 Get() 获取镜像的详细信息并加入到返回的列表中
+            auto detailedImage = this->Get(image->ID);
+            if (detailedImage != nullptr) {
+                images.push_back(*detailedImage);  // 复制镜像
+            }
+        }
+    }
+
+    // 返回所有镜像的详细信息
+    return images;
 }
 
 std::vector<std::shared_ptr<storage::Image>> ImageStore::ByDigest(const Digest& digest)  {

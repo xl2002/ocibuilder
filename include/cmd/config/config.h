@@ -14,6 +14,7 @@
 #include <vector>
 #include "utils/cli/cobra/command.h"
 #include "cmd/root/root.h"
+#include "utils/common/json.h"
 using std::string;
 using std::vector;
 /**

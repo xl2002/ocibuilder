@@ -24,6 +24,7 @@
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/thread/locks.hpp>
 #include <boost/optional.hpp>
+#include <iomanip>
 // #include <boost/property_tree/ptree.hpp>
 // #include <boost/property_tree/json_parser.hpp>
 using std::string;
