@@ -326,7 +326,7 @@ struct ImageStore:public rwImageStore_interface{
     //目前没用到
     map<std::string, shared_ptr<storage::Image>> byid;
     map<std::string, shared_ptr<storage::Image>> byname;
-    map<Digest, vector<shared_ptr<storage::Image>>> bydigest;
+    map<Digest, shared_ptr<storage::Image>> bydigest;
 
         // rwImageStore_interface 方法的空实现
     void startWriting() override;
@@ -372,6 +372,8 @@ struct ImageStore:public rwImageStore_interface{
     std::shared_ptr<storage::Image> Get(const std::string& id) override;
     std::shared_ptr<storage::Image> lookup(const std::string& id);
     void newtag(std::string name,std::string newname) override;
+    bool layerIsUnused(std::string layerid);
+    std::string configid(std::string manifestid);
 };
 
 

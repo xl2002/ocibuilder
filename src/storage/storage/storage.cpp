@@ -98,7 +98,7 @@ bool parseJson(const vector<uint8_t>& data, vector<shared_ptr<storage::Image>>& 
             }
             image->Names.push_back(name);
             image->Digests.emplace_back(it.digest);
-            image->NamesHistory=it.historyTags;
+            image->Digests.insert(image->Digests.end(),it.historyTags.begin(),it.historyTags.end());
             image->image_index=std::make_shared<storage::manifest>(it);
             images.push_back(image);
         }
@@ -193,9 +193,9 @@ bool ImageStore::load(bool lockedForWriting) {
         }
 
         vector<string> idlist;
-        map<string, shared_ptr<storage::Image>> ids;
-        map<string, shared_ptr<storage::Image>> names;
-        map<Digest, vector<shared_ptr<storage::Image>>> digests;
+        map<string, shared_ptr<storage::Image>> ids;//通过config的digest前12位作为id
+        map<string, shared_ptr<storage::Image>> names;//通过镜像名称作为key
+        map<Digest, shared_ptr<storage::Image>> digests;//通过digest作为key
         std::error_code errorToResolveBySaving;
 
         // 处理每个镜像
@@ -225,7 +225,7 @@ bool ImageStore::load(bool lockedForWriting) {
             }
 
             for (const auto& digest : image->Digests) {
-                digests[digest].push_back(image);
+                digests[digest]=image;
             }
 
             image->ReadOnly = !lockfile->IsReadWrite();
@@ -353,7 +353,7 @@ shared_ptr<rwImageStore_interface> newImageStore(const string& dir) {
         istore->images = vector<shared_ptr<storage::Image>>();
         istore->byid = map<string, shared_ptr<storage::Image>>();
         istore->byname = map<string, shared_ptr<storage::Image>>();
-        istore->bydigest = map<Digest, vector<shared_ptr<storage::Image>>>();
+        istore->bydigest = map<Digest, shared_ptr<storage::Image>>();
 
         // 开始写入操作
         // if (!istore->startWritingWithReload(false)) {
@@ -385,65 +385,7 @@ shared_ptr<rwImageStore_interface> newImageStore(const string& dir) {
 containerLocations containerLocationFromIndex(int index) {
     return static_cast<containerLocations>(1 << index);
 }
-// 将 container 转换为 ptree
-// boost::property_tree::ptree containerToPtree(const std::shared_ptr<Container>& container) {
-//     boost::property_tree::ptree pt;
 
-//     pt.put("id", container->ID);
-//     pt.put("imageID", container->ImageID);
-//     pt.put("layerID", container->LayerID);
-//     pt.put("metadata", container->Metadata);
-//     pt.put("created", static_cast<long long>(container->Created)); // 使用 long long 以处理大时间戳
-//     pt.put("volatileStore", container->volatileStore);
-
-    // Convert vector of names to ptree
-    // boost::property_tree::ptree names_ptree;
-    // for (const auto& name : container->Names) {
-    //     boost::property_tree::ptree item;
-    //     item.put("", name);
-    //     names_ptree.push_back(std::make_pair("", item));
-    // }
-    // pt.add_child("names", names_ptree);
-
-    // Convert vector of BigDataNames to ptree
-    // boost::property_tree::ptree bigDataNames_ptree;
-    // for (const auto& name : container->BigDataNames) {
-    //     boost::property_tree::ptree item;
-    //     item.put("", name);
-    //     bigDataNames_ptree.push_back(std::make_pair("", item));
-    // }
-    // pt.add_child("bigDataNames", bigDataNames_ptree);
-
-    // Convert map of BigDataSizes to ptree
-    // boost::property_tree::ptree bigDataSizes_ptree;
-    // for (const auto& pair : container->BigDataSizes) {
-    //     boost::property_tree::ptree item;
-    //     item.put("", pair.second); // size
-    //     bigDataSizes_ptree.add_child(pair.first, item);
-    // }
-    // pt.add_child("bigDataSizes", bigDataSizes_ptree);
-
-    // Convert map of BigDataDigests to ptree
-    // boost::property_tree::ptree bigDataDigests_ptree;
-    // for (const auto& pair : container->BigDataDigests) {
-    //     boost::property_tree::ptree item;
-    //     item.put("", pair.second.digest); // digest
-    //     bigDataDigests_ptree.add_child(pair.first, item);
-    // }
-    // pt.add_child("bigDataDigests", bigDataDigests_ptree);
-
-    // Handle flags (assuming the flag values are serializable to JSON)
-    // boost::property_tree::ptree flags_ptree;
-    // for (const auto& pair : container->Flags) {
-    //     boost::property_tree::ptree item;
-    //     // Serialize item based on actual type
-    //     // Example below assumes void* is not directly serializable
-    //     flags_ptree.add_child(pair.first, item); 
-    // }
-    // pt.add_child("flags", flags_ptree);
-
-//     return pt;
-// }
 //containerStore::Save函数的实现
 void containerStore::Save(containerLocations saveLocations) {
     try {
@@ -1111,6 +1053,36 @@ bool isHexChar(char ch) {
 bool isHexadecimal(const std::string& id) {
     return std::all_of(id.begin(), id.end(), isHexChar);
 }
+bool ImageStore::layerIsUnused(std::string layerid){
+    for(auto it=this->bydigest.begin();it!=this->bydigest.end();it++){
+        auto manifestid=it->first.Encoded();
+        auto manifestpath=this->dir+"/blobs/sha256/"+manifestid;
+        if(!boost::filesystem::exists(manifestpath)){
+            continue;
+        }
+        std::ifstream manifestf(manifestpath,std::ios::binary);
+        std::ostringstream oss;
+        oss << manifestf.rdbuf();
+        auto manifest=unmarshal<Manifest>(oss.str());
+        manifestf.close();
+        auto layers=manifest.Layers;
+        for(auto layer:layers){
+            if(layer.Digests.Encoded()==layerid){
+                return false;
+            }
+        }
+    }
+    return true;
+}
+std::string ImageStore::configid(std::string manifestid){
+    std::string manifestpath=dir+"/blobs/sha256/"+manifestid;
+    std::ifstream manifestf(manifestpath,std::ios::binary);
+    std::ostringstream oss;
+    oss << manifestf.rdbuf();
+    manifestf.close();
+    auto manifest=unmarshal<Manifest>(oss.str());
+    return manifest.Config.Digests.Encoded();
+}
 /**
  * @brief 删除某个镜像
  * 
@@ -1130,44 +1102,72 @@ void ImageStore::Delete(const std::string& id) {
     //3. 删除index.json的记录
     //如果id是镜像ID
     auto image=this->lookup(id);
-    auto index=image->image_index;
-    auto historytags=index->historyTags;
-    std::string delete_digest=index->digest;
+    if(image==nullptr){
+        std::cerr<<"no such image: "<<id<<std::endl;
+        return;
+    }
+    auto indexp=image->image_index;
+    // auto& historytags=index->historyTags;
+    std::string delete_digest=indexp->digest;
+    std::cout<<"delete image "<<id<<std::endl;
+    storage::manifest* index=nullptr;
+    for(auto it:Index.manifests){
+        if(it.digest==delete_digest && it.annotations==indexp->annotations){
+            index=&it;
+            break;
+        }
+    }
+    if (index==nullptr){
+        std::cerr<<"no manifest: "<<delete_digest<<std::endl;
+        return;
+    }
+    //删除bydigest中的记录
+    auto Bydigest=this->bydigest.find(delete_digest);
+    if(Bydigest!=this->bydigest.end()){
+        this->bydigest.erase(Bydigest);
+    }
     //根据delete_digest找到对应manifest文件
-    std::string manifestpath=dir+"/blobs/sha256/"+delete_digest;
+    std::string manifestpath=dir+"/blobs/sha256/"+delete_digest.substr(7);
     std::ifstream manifestf(manifestpath,std::ios::binary);
     std::ostringstream oss;
     oss << manifestf.rdbuf();
+    manifestf.close();
     auto manifest=unmarshal<Manifest>(oss.str());
     std::string configpath=dir+"/blobs/sha256/"+manifest.Config.Digests.Encoded();
-    const char* manifest_delete = manifestpath.c_str();
-    const char* config_delete = configpath.c_str();
+    // const char* manifest_delete = manifestpath.c_str();
+    // const char* config_delete = configpath.c_str();
     if (id.size()==12 && isHexadecimal(id)){
-        if(historytags.size()>0){
+        if(index->historyTags.size()>0){
             //historytags有多条记录，删除后将historytag第一条移上去
-            index->digest=historytags[1];
-            historytags.erase(historytags.begin());
+            index->digest=*index->historyTags.rbegin();//数组的最后一个元素
+            index->historyTags.erase(index->historyTags.end()-1);
 
         }else{
             //只有一条记录还要删除镜像层文件
             auto layers=manifest.Layers;
             for(auto layer:layers){
                 std::string layerpath=dir+"/blobs/sha256/"+layer.Digests.Encoded();
-                const char* layer_delete = layerpath.c_str();
-                remove(layer_delete);
+                // const char* layer_delete = layerpath.c_str();
+                if(layerIsUnused(layer.Digests.Encoded())){
+                    std::cout<<"delete layer "<<layer.Digests.Encoded()<<std::endl;
+                    boost::filesystem::remove(layerpath);
+                }
             }
             //删除这个记录
             auto it = Index.manifests.begin();
             while (it != Index.manifests.end()) {
-                if (it->digest == delete_digest && it->annotations == index->annotations) {
-                it = Index.manifests.erase(it);
+                if (it->digest == delete_digest && it->annotations == indexp->annotations) {
+                    it = Index.manifests.erase(it);
+                    break;
                 } else {
-                ++it;
+                    ++it;
                 }
             }
+
         }
-        remove(manifest_delete);
-        remove(config_delete);
+        std::cout<<"delete manifest "<<manifestpath<<"\n"<<"delete config "<<configpath<<std::endl;
+        boost::filesystem::remove(manifestpath);
+        boost::filesystem::remove(configpath);
     }
     //如果id是镜像name
     else{
@@ -1176,10 +1176,11 @@ void ImageStore::Delete(const std::string& id) {
         //遍历整个index的manifest查找有无digest相同的
         auto it = Index.manifests.begin();
         while (it != Index.manifests.end()) {
-            if (it->digest == delete_digest && it->annotations != index->annotations) {
+            if (it->digest == delete_digest && it->annotations != indexp->annotations) {
             //只删掉该条manifest记录，不删除文件
-                it = Index.manifests.erase(it);
+                // it = Index.manifests.erase(it);
                 flag=1;
+                break;
             } 
             ++it;
         }
@@ -1187,22 +1188,54 @@ void ImageStore::Delete(const std::string& id) {
             auto layers=manifest.Layers;
             for(auto layer:layers){
                 std::string layerpath=dir+"/blobs/sha256/"+layer.Digests.Encoded();
-                const char* layer_delete = layerpath.c_str();
-                remove(layer_delete);
-            }
-            //删除这个记录
-            auto it = Index.manifests.begin();
-            while (it != Index.manifests.end()) {
-                if (it->digest == delete_digest && it->annotations == index->annotations) {
-                it = Index.manifests.erase(it);
-                } else {
-                ++it;
+                // const char* layer_delete = layerpath.c_str();
+                if(layerIsUnused(layer.Digests.Encoded())){
+                    std::cout<<"delete layer "<<layer.Digests.Encoded()<<" in image "<<id<<std::endl;
+                    boost::filesystem::remove(layerpath);
                 }
             }
+            for(auto historytag:index->historyTags){
+                std::string manifestpath=dir+"/blobs/sha256/"+historytag.substr(7);
+                std::ifstream manifestf(manifestpath,std::ios::binary);
+                std::ostringstream oss;
+                oss << manifestf.rdbuf();
+                manifestf.close();
+                auto manifest=unmarshal<Manifest>(oss.str());
+                auto layers=manifest.Layers;
+                auto Bydigest=this->bydigest.find(historytag);
+                if(Bydigest!=this->bydigest.end()){
+                    this->bydigest.erase(Bydigest);
+                }
+                for(auto layer:layers){
+                    std::string layerpath=dir+"/blobs/sha256/"+layer.Digests.Encoded();
+                    // const char* layer_delete = layerpath.c_str();
+                    if(layerIsUnused(layer.Digests.Encoded())){
+                        boost::filesystem::remove(layerpath);
+                    }
+                }
+                std::cout<<"delete manifest "<<manifestpath<<"\n"<<"delete config "<<dir+"/blobs/sha256/"+manifest.Config.Digests.Encoded()<<std::endl;
+                boost::filesystem::remove(manifestpath);
+                boost::filesystem::remove(dir+"/blobs/sha256/"+manifest.Config.Digests.Encoded());
+            }
+            std::cout<<"delete manifest "<<manifestpath<<"\n"<<"delete config "<<configpath<<std::endl;
+            boost::filesystem::remove(manifestpath);
+            boost::filesystem::remove(configpath);
         }
-        remove(manifest_delete);
-        remove(config_delete);
-    }        
+        //删除这个记录
+        it = Index.manifests.begin();
+        while (it != Index.manifests.end()) {
+            if (it->digest == delete_digest && it->annotations == indexp->annotations) {
+                it = Index.manifests.erase(it);
+            } else {
+                ++it;
+            }
+        }
+    }
+    //保存更改的index.json
+    auto index_string=marshal<storage::index>(Index);
+    std::ofstream ofs(rpath, std::ios::out | std::ios::trunc | std::ios::binary);
+    ofs << index_string;
+    ofs.close();
 }
 
 void ImageStore::addMappedTopLayer(const std::string& id, const std::string& layer) {

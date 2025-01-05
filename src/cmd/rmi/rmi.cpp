@@ -30,12 +30,12 @@ void init_rmi(){
     rootcmd.AddCommand({rmiCommand});
 }
 
-bool isHexChar(char ch) {
-    return (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F');
-}
-bool isHexadecimal(const std::string& arg) {
-    return std::all_of(arg.begin(), arg.end(), isHexChar);
-}
+// bool isHexChar(char ch) {
+//     return (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F');
+// }
+// bool isHexadecimal(const std::string& arg) {
+//     return std::all_of(arg.begin(), arg.end(), isHexChar);
+// }
 /**
  * @brief rmi 命令Run操作的
  * 
