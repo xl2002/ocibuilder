@@ -65,7 +65,7 @@
 # 推送镜像到远端
 ./output/main.exe push 10.68.1.145:5000/library/busybox-image:latest
 # 推送镜像到本地目录
-./output/main.exe push image1:latest oci:D:\\test\\image1:image1:latest
+./output/main.exe push image1:latest oci:D:/test/image1:imagetest:latest
 ~~~
 
 10. rmi
