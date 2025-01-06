@@ -80,13 +80,16 @@ std::map<std::string,std::string> hostInfo(){
  */
 std::map<std::string,std::string> storeInfo(std::shared_ptr<Store> store){
     std::map<std::string, std::string> info;
-    if (store) {
+    if (store != nullptr) {
         // 获取运行根目录
         info["Run Root"] = store->RunRoot();
         // 获取图层存储路径
         info["Layer Storage Path"] = store->GetlayerStoragePath();
         // 获取镜像存储路径
         info["Image Storage Path"] = store->GetImageStoragePath();
+
+        auto images=store->image_store->Images();
+        info["Image number"] = std::to_string(images.size());
     } else {
         info["Error"] = "Store object is null";
     }

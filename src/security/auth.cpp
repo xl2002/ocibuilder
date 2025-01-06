@@ -4,7 +4,7 @@
  * @param pathOption 该参数是要检查的文件路径
  * @throws myerror 如果文件路径是无效的，或者无法访问该文件
  */
-void CheckAuthFile(std::shared_ptr<pushOptions> iopts){
+void CheckAuthFile(pushOptions* iopts){
     if(iopts->authfile.empty()){
         //如果没有认真令牌，发送网络请求获得令牌
         return;

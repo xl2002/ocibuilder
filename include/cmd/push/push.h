@@ -28,6 +28,6 @@ struct pushOptions
 };
 
 void init_push();
-void pushCmd(Command& cmd, vector<string> args,std::shared_ptr<pushOptions> iopts);
-void pushCmdLocal(Command& cmd, vector<string> args, std::shared_ptr<pushOptions> iopts);
+void pushCmd(Command& cmd, vector<string> args, pushOptions*iopts);
+void pushCmdLocal(Command& cmd, vector<string> args, pushOptions* iopts);
 #endif

@@ -16,7 +16,7 @@
  * 
  */
 void init_pull(){
-    std::shared_ptr<pullOptions> options=std::make_shared<pullOptions>();
+    pullOptions* options=new pullOptions();
     string name{"pull"};
     string Short{"Pull an image from the specified location"};
     string Long{"Pulls an image from a registry and stores it locally.\n\tAn image can be pulled using its tag or digest. If a tag is not\n\tspecified, the image with the 'latest' tag (if it exists) is pulled."};
@@ -41,7 +41,7 @@ void init_pull(){
  * @brief pull 命令Run操作的
  * 
  */
-void pullCmd(Command& cmd, vector<string> args,std::shared_ptr<pullOptions> iopts){
+void pullCmd(Command& cmd, vector<string> args,pullOptions* iopts){
     std::string src;
     if(args.size()==0){
         std::cout<<"Please input the image you want to push!!"<<"\n";
@@ -255,5 +255,5 @@ void pullCmd(Command& cmd, vector<string> args,std::shared_ptr<pullOptions> iopt
         images->Save();
         
     }
-
+    delete iopts;
 }

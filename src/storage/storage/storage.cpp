@@ -90,9 +90,13 @@ bool parseJson(const vector<uint8_t>& data, vector<shared_ptr<storage::Image>>& 
             image->ID=manifest.Config.Digests.Encoded().substr(0,12);//获得镜像的config的digest的前12位
             manifestf.close();
             // image->digest=std::make_shared<Digest>(it.digest);
-            std::string name=it.annotations["org.opencontainers.image.ref.name"];
+            std::string name=it.annotations["org.opencontainers.image.ref.name"];\
+            image->Names.push_back(name);
             std::string newname;
-            std::tie(std::ignore,newname,std::ignore)=Cut(name,'/');
+            size_t pos = name.rfind('/');
+            if (pos != std::string::npos) {
+                newname = name.substr(pos + 1);
+            }
             if(newname.size()>0){
                 name=newname;
             }
@@ -1022,7 +1026,13 @@ void ImageStore::newtag(std::string name,std::string newname){
         }
     }
     auto imageindex=std::make_shared<storage::manifest>(*des->image_index);
-    imageindex->annotations["org.opencontainers.image.ref.name"]="localhost/"+newname;
+    // imageindex->annotations["org.opencontainers.image.ref.name"]="localhost/"+newname;
+    if(newname.find('/')==std::string::npos){
+        imageindex->annotations["org.opencontainers.image.ref.name"]="localhost/"+newname;
+    }else{
+        imageindex->annotations["org.opencontainers.image.ref.name"]=newname;
+    }
+    // imageindex->annotations["org.opencontainers.image.ref.name"]=newname;
     Newtag->image_index=imageindex;
     this->images.push_back(Newtag);
     //3. 保存index.json文件
@@ -1088,155 +1098,307 @@ std::string ImageStore::configid(std::string manifestid){
  * 
  * @param id 
  */
-void ImageStore::Delete(const std::string& id) {
-    string rpath = imagespath(); // 获取镜像存储路径
-    boost::filesystem::ifstream file(rpath, std::ios::binary);
-    std::vector<uint8_t> data((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-    std::string index_str=vectorToString(data);
-    storage::index Index=unmarshal<storage::index>(index_str);
-    //1. 通过id查找镜像
-    //2. 查找index.json文件，
-    //如果id是镜像ID，如果index.json中同manifest的只有一条记录，则删除对应的所有config和manifest文件和镜像层文件，否则只删除config和manifest文件
-    //如果id是镜像name，并且index.json中同manifest的只有一条记录，则删除对应的所有config和manifest文件和镜像层文件
-    //如果id是镜像name，并且index.json中同manifest的有多条记录，则只删除index.json中对应的记录
-    //3. 删除index.json的记录
-    //如果id是镜像ID
-    auto image=this->lookup(id);
-    if(image==nullptr){
-        std::cerr<<"no such image: "<<id<<std::endl;
-        return;
-    }
-    auto indexp=image->image_index;
-    // auto& historytags=index->historyTags;
-    std::string delete_digest=indexp->digest;
+void ImageStore::Delete(const std::string& id){
     std::cout<<"delete image "<<id<<std::endl;
-    storage::manifest* index=nullptr;
-    for(auto it:Index.manifests){
-        if(it.digest==delete_digest && it.annotations==indexp->annotations){
-            index=&it;
-            break;
-        }
-    }
-    if (index==nullptr){
-        std::cerr<<"no manifest: "<<delete_digest<<std::endl;
-        return;
-    }
-    //删除bydigest中的记录
-    auto Bydigest=this->bydigest.find(delete_digest);
-    if(Bydigest!=this->bydigest.end()){
-        this->bydigest.erase(Bydigest);
-    }
-    //根据delete_digest找到对应manifest文件
-    std::string manifestpath=dir+"/blobs/sha256/"+delete_digest.substr(7);
-    std::ifstream manifestf(manifestpath,std::ios::binary);
-    std::ostringstream oss;
-    oss << manifestf.rdbuf();
-    manifestf.close();
-    auto manifest=unmarshal<Manifest>(oss.str());
-    std::string configpath=dir+"/blobs/sha256/"+manifest.Config.Digests.Encoded();
-    // const char* manifest_delete = manifestpath.c_str();
-    // const char* config_delete = configpath.c_str();
     if (id.size()==12 && isHexadecimal(id)){
-        if(index->historyTags.size()>0){
-            //historytags有多条记录，删除后将historytag第一条移上去
-            index->digest=*index->historyTags.rbegin();//数组的最后一个元素
-            index->historyTags.erase(index->historyTags.end()-1);
-
+        std::vector<std::shared_ptr<storage::Image>> matchingImages;
+        std::copy_if(this->images.begin(),this->images.end(),std::back_inserter(matchingImages),[&id](std::shared_ptr<storage::Image> img){
+            return img->ID==id;
+        });
+        if(matchingImages.size()==0){
+            std::cerr<<"no such image: "<<id<<std::endl;
+            return;
+        }
+        std::string manifesid=matchingImages[0]->image_index->digest;//sha256:xxxxx
+        std::string manifestpath=dir+"/blobs/sha256/"+manifesid.substr(7);
+        std::ifstream manifestf(manifestpath,std::ios::binary);
+        std::ostringstream oss;
+        oss << manifestf.rdbuf();
+        manifestf.close();
+        auto manifest=unmarshal<Manifest>(oss.str());
+        std::string configid=manifest.Config.Digests.String();
+        for(auto img:matchingImages){
+            if(img->image_index->historyTags.size()>0){
+                //historytags有多条记录，删除后将historytag第一条移上去
+                img->image_index->digest=*img->image_index->historyTags.rbegin();//数组的最后一个元素
+                img->image_index->historyTags.erase(img->image_index->historyTags.end()-1);
+            }else{
+                //只有一条记录还要删除镜像层文件
+                this->bydigest.erase(manifesid);
+                auto layers=manifest.Layers;
+                for(auto layer:layers){
+                    //删除镜像层
+                    std::string layerpath=dir+"/blobs/sha256/"+layer.Digests.Encoded();
+                    if(layerIsUnused(layer.Digests.Encoded())){
+                        std::cout<<"delete layer "<<layer.Digests.Encoded()<<std::endl;
+                        if(boost::filesystem::exists(layerpath)){
+                            boost::filesystem::remove(layerpath);
+                        }
+                    }
+                }
+                //更新index.json文件,删除index中的镜像记录
+                images.erase(std::remove_if(this->images.begin(),this->images.end(),[&img](std::shared_ptr<storage::Image> imag){
+                    return imag==img;
+                }),this->images.end());
+            }
+        }
+        //删除config文件
+        std::string configpath=dir+"/blobs/sha256/"+configid.substr(7);
+        std::cout<<"delete config "<<configid<<std::endl;
+        if(boost::filesystem::exists(configpath)){
+            boost::filesystem::remove(configpath);
         }else{
-            //只有一条记录还要删除镜像层文件
+            std::cerr<<"no such config: "<<configid<<std::endl;
+        }
+        //删除manifest文件
+        std::cout<<"delete manifest "<<manifesid<<std::endl;
+        if(boost::filesystem::exists(manifestpath)){
+            boost::filesystem::remove(manifestpath);
+        }else{
+            std::cerr<<"no such manifest: "<<manifesid<<std::endl;
+        }
+    }else{
+        //id是镜像name
+        auto image=this->lookup(id);
+        if(image==nullptr){
+            std::cerr<<"no such image: "<<id<<std::endl;
+            return;
+        }
+        std::string cid=image->ID;
+        std::vector<std::shared_ptr<storage::Image>> matchingImages;
+        std::copy_if(this->images.begin(),this->images.end(),std::back_inserter(matchingImages),[&cid](std::shared_ptr<storage::Image> img){
+            return img->ID==cid;
+        });
+        if(matchingImages.size()==1){
+            //只有一个镜像记录
+            std::string manifesid=image->image_index->digest;//sha256:xxxxx
+            std::string manifestpath=dir+"/blobs/sha256/"+manifesid.substr(7);
+            std::ifstream manifestf(manifestpath,std::ios::binary);
+            std::ostringstream oss;
+            oss << manifestf.rdbuf();
+            manifestf.close();
+            auto manifest=unmarshal<Manifest>(oss.str());
+            std::string configid=manifest.Config.Digests.String();
             auto layers=manifest.Layers;
             for(auto layer:layers){
+                //删除镜像层
                 std::string layerpath=dir+"/blobs/sha256/"+layer.Digests.Encoded();
-                // const char* layer_delete = layerpath.c_str();
                 if(layerIsUnused(layer.Digests.Encoded())){
                     std::cout<<"delete layer "<<layer.Digests.Encoded()<<std::endl;
-                    boost::filesystem::remove(layerpath);
+                    if(boost::filesystem::exists(layerpath)){
+                        boost::filesystem::remove(layerpath);
+                    }
                 }
             }
-            //删除这个记录
-            auto it = Index.manifests.begin();
-            while (it != Index.manifests.end()) {
-                if (it->digest == delete_digest && it->annotations == indexp->annotations) {
-                    it = Index.manifests.erase(it);
-                    break;
-                } else {
-                    ++it;
-                }
-            }
-
-        }
-        std::cout<<"delete manifest "<<manifestpath<<"\n"<<"delete config "<<configpath<<std::endl;
-        boost::filesystem::remove(manifestpath);
-        boost::filesystem::remove(configpath);
-    }
-    //如果id是镜像name
-    else{
-        //先得去拿到manifest的digest
-        bool flag=0;//
-        //遍历整个index的manifest查找有无digest相同的
-        auto it = Index.manifests.begin();
-        while (it != Index.manifests.end()) {
-            if (it->digest == delete_digest && it->annotations != indexp->annotations) {
-            //只删掉该条manifest记录，不删除文件
-                // it = Index.manifests.erase(it);
-                flag=1;
-                break;
-            } 
-            ++it;
-        }
-        if(flag==0){
-            auto layers=manifest.Layers;
-            for(auto layer:layers){
-                std::string layerpath=dir+"/blobs/sha256/"+layer.Digests.Encoded();
-                // const char* layer_delete = layerpath.c_str();
-                if(layerIsUnused(layer.Digests.Encoded())){
-                    std::cout<<"delete layer "<<layer.Digests.Encoded()<<" in image "<<id<<std::endl;
-                    boost::filesystem::remove(layerpath);
-                }
-            }
-            for(auto historytag:index->historyTags){
-                std::string manifestpath=dir+"/blobs/sha256/"+historytag.substr(7);
-                std::ifstream manifestf(manifestpath,std::ios::binary);
+            //删除所有历史镜像记录及文件
+            for(auto historytag:image->image_index->historyTags){
+                std::string historytagpath=dir+"/blobs/sha256/"+historytag.substr(7);
+                std::ifstream manifestf(historytagpath,std::ios::binary);
                 std::ostringstream oss;
                 oss << manifestf.rdbuf();
                 manifestf.close();
                 auto manifest=unmarshal<Manifest>(oss.str());
+                std::string configid=manifest.Config.Digests.String();
                 auto layers=manifest.Layers;
-                auto Bydigest=this->bydigest.find(historytag);
-                if(Bydigest!=this->bydigest.end()){
-                    this->bydigest.erase(Bydigest);
-                }
+                this->bydigest.erase(historytag);//删除bydigest中的记录
                 for(auto layer:layers){
+                    //删除镜像层
                     std::string layerpath=dir+"/blobs/sha256/"+layer.Digests.Encoded();
-                    // const char* layer_delete = layerpath.c_str();
                     if(layerIsUnused(layer.Digests.Encoded())){
-                        boost::filesystem::remove(layerpath);
+                        std::cout<<"delete layer "<<layer.Digests.Encoded()<<std::endl;
+                        if(boost::filesystem::exists(layerpath)){
+                            boost::filesystem::remove(layerpath);
+                        }
                     }
                 }
-                std::cout<<"delete manifest "<<manifestpath<<"\n"<<"delete config "<<dir+"/blobs/sha256/"+manifest.Config.Digests.Encoded()<<std::endl;
+                //删除config文件
+                std::string configpath=dir+"/blobs/sha256/"+configid.substr(7);
+                std::cout<<"delete config "<<configid<<std::endl;
+                if(boost::filesystem::exists(configpath)){
+                    boost::filesystem::remove(configpath);
+                }else{
+                    std::cerr<<"no such config: "<<configid<<std::endl;
+                }
+                //删除manifest文件
+                std::cout<<"delete manifest "<<historytag<<std::endl;
+                if(boost::filesystem::exists(historytagpath)){
+                    boost::filesystem::remove(historytagpath);
+                }else{
+                    std::cerr<<"no such manifest: "<<historytag<<std::endl;
+                }
+            }
+            //删除最新tag的config文件
+            std::string configpath=dir+"/blobs/sha256/"+configid.substr(7);
+            std::cout<<"delete config "<<configid<<std::endl;
+            if(boost::filesystem::exists(configpath)){
+                boost::filesystem::remove(configpath);
+            }else{
+                std::cerr<<"no such config: "<<configid<<std::endl;
+            }
+            //删除manifest文件
+            std::cout<<"delete manifest "<<manifesid<<std::endl;
+            if(boost::filesystem::exists(manifestpath)){
                 boost::filesystem::remove(manifestpath);
-                boost::filesystem::remove(dir+"/blobs/sha256/"+manifest.Config.Digests.Encoded());
-            }
-            std::cout<<"delete manifest "<<manifestpath<<"\n"<<"delete config "<<configpath<<std::endl;
-            boost::filesystem::remove(manifestpath);
-            boost::filesystem::remove(configpath);
-        }
-        //删除这个记录
-        it = Index.manifests.begin();
-        while (it != Index.manifests.end()) {
-            if (it->digest == delete_digest && it->annotations == indexp->annotations) {
-                it = Index.manifests.erase(it);
-            } else {
-                ++it;
+            }else{
+                std::cerr<<"no such manifest: "<<manifesid<<std::endl;
             }
         }
+        images.erase(std::remove_if(this->images.begin(),this->images.end(),[&image](std::shared_ptr<storage::Image> imag){
+            return imag==image;
+        }),this->images.end());
     }
-    //保存更改的index.json
-    auto index_string=marshal<storage::index>(Index);
-    std::ofstream ofs(rpath, std::ios::out | std::ios::trunc | std::ios::binary);
-    ofs << index_string;
-    ofs.close();
+    //更新index.json文件
+    this->Save();
 }
+// void ImageStore::Delete(const std::string& id) {
+//     string rpath = imagespath(); // 获取镜像存储路径
+//     boost::filesystem::ifstream file(rpath, std::ios::binary);
+//     std::vector<uint8_t> data((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+//     std::string index_str=vectorToString(data);
+//     storage::index Index=unmarshal<storage::index>(index_str);
+//     //1. 通过id查找镜像
+//     //2. 查找index.json文件，
+//     //如果id是镜像ID，如果index.json中同manifest的只有一条记录，则删除对应的所有config和manifest文件和镜像层文件，否则只删除config和manifest文件
+//     //如果id是镜像name，并且index.json中同manifest的只有一条记录，则删除对应的所有config和manifest文件和镜像层文件
+//     //如果id是镜像name，并且index.json中同manifest的有多条记录，则只删除index.json中对应的记录
+//     //3. 删除index.json的记录
+//     //如果id是镜像ID
+//     auto image=this->lookup(id);
+//     if(image==nullptr){
+//         std::cerr<<"no such image: "<<id<<std::endl;
+//         return;
+//     }
+//     auto indexp=image->image_index;
+//     // auto& historytags=index->historyTags;
+//     std::string delete_digest=indexp->digest;
+//     std::cout<<"delete image "<<id<<std::endl;
+//     storage::manifest* index=nullptr;
+//     for(auto it:Index.manifests){
+//         if(it.digest==delete_digest && it.annotations==indexp->annotations){
+//             index=&it;
+//             break;
+//         }
+//     }
+//     if (index==nullptr){
+//         std::cerr<<"no manifest: "<<delete_digest<<std::endl;
+//         return;
+//     }
+//     //删除bydigest中的记录
+//     auto Bydigest=this->bydigest.find(delete_digest);
+//     if(Bydigest!=this->bydigest.end()){
+//         this->bydigest.erase(Bydigest);
+//     }
+//     //根据delete_digest找到对应manifest文件
+//     std::string manifestpath=dir+"/blobs/sha256/"+delete_digest.substr(7);
+//     std::ifstream manifestf(manifestpath,std::ios::binary);
+//     std::ostringstream oss;
+//     oss << manifestf.rdbuf();
+//     manifestf.close();
+//     auto manifest=unmarshal<Manifest>(oss.str());
+//     std::string configpath=dir+"/blobs/sha256/"+manifest.Config.Digests.Encoded();
+//     // const char* manifest_delete = manifestpath.c_str();
+//     // const char* config_delete = configpath.c_str();
+//     if (id.size()==12 && isHexadecimal(id)){
+//         if(index->historyTags.size()>0){
+//             //historytags有多条记录，删除后将historytag第一条移上去
+//             index->digest=*index->historyTags.rbegin();//数组的最后一个元素
+//             index->historyTags.erase(index->historyTags.end()-1);
+
+//         }else{
+//             //只有一条记录还要删除镜像层文件
+//             auto layers=manifest.Layers;
+//             for(auto layer:layers){
+//                 std::string layerpath=dir+"/blobs/sha256/"+layer.Digests.Encoded();
+//                 // const char* layer_delete = layerpath.c_str();
+//                 if(layerIsUnused(layer.Digests.Encoded())){
+//                     std::cout<<"delete layer "<<layer.Digests.Encoded()<<std::endl;
+//                     boost::filesystem::remove(layerpath);
+//                 }
+//             }
+//             //删除这个记录
+//             auto it = Index.manifests.begin();
+//             while (it != Index.manifests.end()) {
+//                 if (it->digest == delete_digest && it->annotations == indexp->annotations) {
+//                     it = Index.manifests.erase(it);
+//                     break;
+//                 } else {
+//                     ++it;
+//                 }
+//             }
+
+//         }
+//         std::cout<<"delete manifest "<<manifestpath<<"\n"<<"delete config "<<configpath<<std::endl;
+//         boost::filesystem::remove(manifestpath);
+//         boost::filesystem::remove(configpath);
+//     }
+//     //如果id是镜像name
+//     else{
+//         //先得去拿到manifest的digest
+//         bool flag=0;//
+//         //遍历整个index的manifest查找有无digest相同的
+//         auto it = Index.manifests.begin();
+//         while (it != Index.manifests.end()) {
+//             if (it->digest == delete_digest && it->annotations != indexp->annotations) {
+//             //只删掉该条manifest记录，不删除文件
+//                 // it = Index.manifests.erase(it);
+//                 flag=1;
+//                 break;
+//             } 
+//             ++it;
+//         }
+//         if(flag==0){
+//             auto layers=manifest.Layers;
+//             for(auto layer:layers){
+//                 std::string layerpath=dir+"/blobs/sha256/"+layer.Digests.Encoded();
+//                 // const char* layer_delete = layerpath.c_str();
+//                 if(layerIsUnused(layer.Digests.Encoded())){
+//                     std::cout<<"delete layer "<<layer.Digests.Encoded()<<" in image "<<id<<std::endl;
+//                     boost::filesystem::remove(layerpath);
+//                 }
+//             }
+//             for(auto historytag:index->historyTags){
+//                 std::string manifestpath=dir+"/blobs/sha256/"+historytag.substr(7);
+//                 std::ifstream manifestf(manifestpath,std::ios::binary);
+//                 std::ostringstream oss;
+//                 oss << manifestf.rdbuf();
+//                 manifestf.close();
+//                 auto manifest=unmarshal<Manifest>(oss.str());
+//                 auto layers=manifest.Layers;
+//                 auto Bydigest=this->bydigest.find(historytag);
+//                 if(Bydigest!=this->bydigest.end()){
+//                     this->bydigest.erase(Bydigest);
+//                 }
+//                 for(auto layer:layers){
+//                     std::string layerpath=dir+"/blobs/sha256/"+layer.Digests.Encoded();
+//                     // const char* layer_delete = layerpath.c_str();
+//                     if(layerIsUnused(layer.Digests.Encoded())){
+//                         boost::filesystem::remove(layerpath);
+//                     }
+//                 }
+//                 std::cout<<"delete manifest "<<manifestpath<<"\n"<<"delete config "<<dir+"/blobs/sha256/"+manifest.Config.Digests.Encoded()<<std::endl;
+//                 boost::filesystem::remove(manifestpath);
+//                 boost::filesystem::remove(dir+"/blobs/sha256/"+manifest.Config.Digests.Encoded());
+//             }
+//             std::cout<<"delete manifest "<<manifestpath<<"\n"<<"delete config "<<configpath<<std::endl;
+//             boost::filesystem::remove(manifestpath);
+//             boost::filesystem::remove(configpath);
+//         }
+//         //删除这个记录
+//         it = Index.manifests.begin();
+//         while (it != Index.manifests.end()) {
+//             if (it->digest == delete_digest && it->annotations == indexp->annotations) {
+//                 it = Index.manifests.erase(it);
+//             } else {
+//                 ++it;
+//             }
+//         }
+//     }
+//     //保存更改的index.json
+//     auto index_string=marshal<storage::index>(Index);
+//     std::ofstream ofs(rpath, std::ios::out | std::ios::trunc | std::ios::binary);
+//     ofs << index_string;
+//     ofs.close();
+// }
 
 void ImageStore::addMappedTopLayer(const std::string& id, const std::string& layer) {
     // 空实现
@@ -1280,14 +1442,20 @@ std::vector<storage::Image> ImageStore::Images()  {
     //3. 参考std::shared_ptr<storage::Image> ImageStore::Get(const std::string& id)方法获得镜像的详细信息得到vector<storage::Image> images
     //直接调用了Get方法将所有的镜像详细信息获取到
     // 遍历 byname 中的镜像（镜像名称 -> 镜像对象）
-    for (const auto& pair : byname) {
-        auto image = pair.second;
-        if (image!= nullptr) {
-            // 调用 Get() 获取镜像的详细信息并加入到返回的列表中
-            auto detailedImage = this->Get(image->ID);
-            if (detailedImage != nullptr) {
-                images.push_back(*detailedImage);  // 复制镜像
-            }
+    // for (const auto& pair : byname) {
+    //     auto image = pair.second;
+    //     if (image!= nullptr) {
+    //         // 调用 Get() 获取镜像的详细信息并加入到返回的列表中
+    //         auto detailedImage = this->Get(image->Names[0]);
+    //         if (detailedImage != nullptr) {
+    //             images.push_back(*detailedImage);  // 复制镜像
+    //         }
+    //     }
+    // }
+    for(auto img:this->images){
+        auto detailedImage = this->Get(img->Names[0]);
+        if (detailedImage != nullptr) {
+            images.push_back(*detailedImage);  // 复制镜像
         }
     }
     // 遍历 byid 中的镜像（镜像 ID -> 镜像对象）

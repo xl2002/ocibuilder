@@ -68,7 +68,7 @@ public:
     std::shared_ptr<namedRepository_interface> namedRepository=nullptr;
     reference()=default;
     reference(std::shared_ptr<namedRepository_interface> repo, const std::string& tagValue, std::shared_ptr<Digest> dig)
-        : namedRepository(repo), tag(tagValue), digest(dig) {}
+        : tag(tagValue), digest(dig), namedRepository(repo){}
 
     virtual ~reference() = default;
 

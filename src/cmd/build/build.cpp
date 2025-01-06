@@ -285,7 +285,7 @@ void buildCmd(Command& cmd, vector<string> args,BuildOptions* iopts){
         }
 
         remove_temp_files();
-
+        delete iopts;
     } catch (const myerror& e) {
         throw;
     }

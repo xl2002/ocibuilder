@@ -24,7 +24,7 @@ string StringValue::String(){
  */
 void StringValue::Set(string value){
     // *(this->value)=value;
-    this->value=new string(value);
+    *(this->value)=value;
 }
 /**
  * @brief 返回StringValue的类型

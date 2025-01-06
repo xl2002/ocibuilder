@@ -78,6 +78,8 @@ void Builder::Save(std::string name){
     auto imagestore = this->store->Image(name);
     auto olddigest = imagestore->image_index->digest;  // 获取旧的digest
     auto manifest = imagestore->image_manifest;
+    manifest->Config.Digests = *configDigest;
+    manifest->Config.Size = configjson.size();
     // auto oldconfigdigest = manifest->Config.Digests;
     // auto newconfigdigest = *configDigest;
     // manifest->Config.Digests = newconfigdigest;

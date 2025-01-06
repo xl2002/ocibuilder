@@ -20,7 +20,7 @@
  */
 void init_push()
 {
-    auto opts = std::make_shared<pushOptions>();
+    auto opts = new pushOptions();
     string name{"push"};
     string Short{"Push an image to a specified destination"};
     string Long{"Pushes an image to a specified location."};
@@ -56,7 +56,7 @@ void init_push()
  * @brief push 命令Run操作的
  *
  */
-void pushCmd(Command &cmd, vector<string> args, std::shared_ptr<pushOptions> iopts)
+void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
 {
     // 执行流程
     std::string src, destSpec;
@@ -189,11 +189,11 @@ void pushCmd(Command &cmd, vector<string> args, std::shared_ptr<pushOptions> iop
         // 上传数据
         uploadManifest(url->host, url->port, manifestPath, 0, total_size, url->imageName, url->version, manifestType, url->projectName);
     }
-
+    delete iopts;
     std::cout << "Push success!!" << std::endl;
 }
 
-void pushCmdLocal(Command &cmd, vector<string> args, std::shared_ptr<pushOptions> iopts)
+void pushCmdLocal(Command &cmd, vector<string> args, pushOptions * iopts)
 {
     std::string destPath, withinTransport, destSpec;
     // 1. 获得令牌
@@ -327,6 +327,6 @@ void pushCmdLocal(Command &cmd, vector<string> args, std::shared_ptr<pushOptions
         }
         images->Save();
     }
-
-    std::cout << "Push success!!" << std::endl;
+    delete iopts;
+    std::cout << "Push local dir success!!" << std::endl;
 }

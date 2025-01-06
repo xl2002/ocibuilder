@@ -17,7 +17,7 @@
  * 
  */
 void init_images(){
-    std::shared_ptr<imagesOptions> options=std::make_shared<imagesOptions>();
+    imagesOptions* options=new imagesOptions();
     string name{"images"};
     string Short{"List images in local storage"};
     string Long{"Lists locally stored images."};
@@ -78,16 +78,18 @@ std::string formatTime(const std::chrono::system_clock::time_point& created) {
  */
 void formatImages(const std::vector<storage::Image>& images) {
     // 打印表头
-    std::cout << boost::format("%-30s %-10s %-15s %-20s %s\n") % "REPOSITORY" % "TAG" % "IMAGE ID" % "CREATED" % "SIZE";
+    std::cout << boost::format("%-40s %-10s %-15s %-20s %s\n") % "REPOSITORY" % "TAG" % "IMAGE ID" % "CREATED" % "SIZE";
 
     // 遍历每个镜像
     for (const auto& image : images) {
         // 提取 repository 和 tag
-        std::string repository = image.Names.empty() ? "N/A" : image.Names[0].substr(0, image.Names[0].find(':'));
-        std::string tag = image.Names.empty() || image.Names[0].find(':') == std::string::npos ? "latest" : image.Names[0].substr(image.Names[0].find(':') + 1);
+        // std::string repository = image.Names.empty() ? "none" : image.Names[1].substr(0, image.Names[1].find(':'));
+        size_t pos = image.Names[0].rfind(':');
+        std::string repository = image.Names[0].substr(0, pos);
+        std::string tag = image.Names.empty() || image.Names[0].find(':') == std::string::npos ? "latest" : image.Names[0].substr(pos + 1);
 
         std::string imageID = image.ID;
-        std::string created = formatTime(image.Created);
+        std::string created = formatTime(image.image_config->created);
         std::string size = formatSize(
             std::accumulate(
                 image.image_manifest->Layers.begin(),
@@ -99,22 +101,26 @@ void formatImages(const std::vector<storage::Image>& images) {
             )
         );
         // 格式化并打印镜像信息
-        std::cout << boost::format("%-30s %-10s %-15s %-20s %s\n") % repository % tag % imageID % created % size;
+        std::cout << boost::format("%-40s %-10s %-15s %-20s %s\n") % repository % tag % imageID % created % size;
     }
 }
 /**
  * @brief images 命令Run操作的
  * 
  */
-void imagesCmd(Command& cmd, vector<string> args,std::shared_ptr<imagesOptions> iopts){
+void imagesCmd(Command& cmd, vector<string> args,imagesOptions*iopts){
     //1. 加载本地镜像库
     auto store = getStore(&cmd);
     auto imagestore = store->image_store;
 
     //2. 获得所有镜像信息
     std::vector<storage::Image> images;
-    images = imagestore->Images();
-
+    if(args.empty()){
+        images = imagestore->Images();
+    }else{
+        images.push_back(*store->Image(args[0]));
+    }
     //3. 格式化打印所有镜像信息
     formatImages(images);
+    delete iopts;
 }

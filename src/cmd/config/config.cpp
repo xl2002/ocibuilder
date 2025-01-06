@@ -46,7 +46,7 @@ void init_configcmd(){
     //初始化每个flag的内容
     flags->BoolVar(options->addHistory,"add-history",false,"add an entry for this operation to the image's history.  Use BUILDAH_HISTORY environment variable to override. (default false)");
     flags->StringArrayVar(options->annotation,"annotation",vector<string>(),"add `annotation` e.g. annotation=value, for the target image (default [])");
-    flags->StringVar(options->arch,"arch","amd64","set the architecture of the image (e.g., amd64, arm, ppc64le) (default unset)");
+    flags->StringVar(options->arch,"arch","","set the architecture of the image (e.g., amd64, arm, ppc64le) (default unset)");
     flags->StringVar(options->author,"author","","set the author of the image (e.g., Jane Austen) (default unset)");
     flags->StringVar(options->cmd,"cmd","","set the default `command` to run for containers based on the image");
     flags->StringArrayVar(options->env,"env",vector<string>(), "set an environment variable for the target image (e.g., foo=bar) (default [])");
@@ -103,10 +103,11 @@ void updateEntrypoint(std::shared_ptr<Builder> builder, const std::string& entry
         }
     } catch (const std::exception& e) {
         // 如果解析失败，则将 entrypoint 作为普通字符串传递给 shell
-        std::vector<std::string> entrypointVec = {"/bin/sh", "-c", entrypoint};
+        // std::vector<std::string> entrypointVec = {"/bin/sh", "-c", entrypoint};
+        std::vector<std::string> entrypointVec = {entrypoint};
         builder->SetEntrypoint(entrypointVec);
 
-        std::cout << "Entrypoint set as shell command: " << entrypoint << std::endl;
+        // std::cout << "Entrypoint set as shell command: " << entrypoint << std::endl;
     }
 }
 /**
@@ -208,7 +209,7 @@ void configCmd(Command& cmd, std::vector<std::string> args, configOptions* iopts
 
         // 5. 保存镜像配置
         builder->Save(name);
-
+        delete iopts;
     } catch (const myerror& e) {
         // 输出错误信息并终止执行
         std::cerr << "Error: " << e.what() << std::endl;

@@ -15,7 +15,7 @@
  * 
  */
 void init_logout(){
-    std::shared_ptr<logoutOptions> options=std::make_shared<logoutOptions>();
+    logoutOptions* options=new logoutOptions();
     string name{"logout"};
     string Short{"Logout of a container registry"};
     string Long{"Remove the cached username and password for the registry."};
@@ -37,7 +37,8 @@ void init_logout(){
  * @brief logout 命令Run操作的
  * 
  */
-void logoutCmd(Command& cmd, vector<string> args,std::shared_ptr<logoutOptions> iopts){
+void logoutCmd(Command& cmd, vector<string> args, logoutOptions* iopts){
     //把auth文件清空
     saveLoginInfo("","");
+    delete iopts;
 }

@@ -15,7 +15,7 @@
  * 
  */
 void init_login(){
-    std::shared_ptr<LoginOptions> options=std::make_shared<LoginOptions>();
+    LoginOptions* options=new LoginOptions();
     string name{"login"};
     string Short{"Login to a container registry"};
     string Long{"Login to a container registry on a specified server."};
@@ -38,9 +38,10 @@ void init_login(){
  * @brief login 命令Run操作的
  * 
  */
-void loginCmd(Command& cmd, vector<string> args,std::shared_ptr<LoginOptions> iopts){
+void loginCmd(Command& cmd, vector<string> args,LoginOptions* iopts){
     auto tmp=cmd.flags->actual_flags;
     std::string username=tmp["username"]->value->String();
     std::string password=tmp["password"]->value->String();
     saveLoginInfo(username,password);
+    delete iopts;
 }

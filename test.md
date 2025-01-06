@@ -71,18 +71,19 @@
 10. rmi
 ~~~bash
 # 删除单个镜像，通过镜像名和镜像id
-./output/main.exe rmi image1:latest
-./output/main.exe rmi 362a1d5145be
+./output/main.exe rmi image2:latest
+./output/main.exe rmi 0aa3307dda81
 # 删除多个镜像，通过镜像名和镜像id
 ./output/main.exe rmi image1:latest image2:latest
-./output/main.exe rmi 362a1d5145be 362a1d5145be
-./output/main.exe rmi image1:latest 362a1d5145be
+./output/main.exe rmi 8e91f340189e b0f041b5806d
+./output/main.exe rmi image2:latest 3720320d88b7
+./output/main.exe rmi 10.68.1.145:5000/library/image2:1.0
 ~~~
 
 11. tag
 ~~~bash
 # 标签镜像
-./output/main.exe tag image1:latest image2:1.0
+./output/main.exe tag image1:latest 10.68.1.145:5000/library/image2:1.0
 ~~~
 
 12. version

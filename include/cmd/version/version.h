@@ -24,24 +24,24 @@ using std::vector;
 struct versionOptions
 {
     /* data */
-    bool    json=false;           ///<
+    bool    json=false;           ///< json 标志
 };
 struct versionInfo{
-    std::string Version;
-    std::string CppVersion;
-    std::string ImageSpec;
+    std::string Version; //版本
+    std::string CppVersion; //c++版本
+    std::string ImageSpec;  //镜像规范
     // std::string RuntimeSpec;
     // std::string CniSpec;
     // std::string LibcniVersion;
     // std::string ImageVersion;
     // std::string GitCommit;
-    std::string Built;
-    std::string OsArch;
-    std::string BuildPlatform;
+    std::string Built;  //编译时间
+    std::string OsArch; //操作系统/架构
+    std::string BuildPlatform; //工具构建的目标平台
     friend void tag_invoke(const boost::json::value_from_tag&, boost::json::value& jv, const versionInfo& vi){
         jv=boost::json::object{
             {"Version",vi.Version},
-            {"C++ Version",vi.CppVersion},
+            {"Cpp Version",vi.CppVersion},
             {"Image Spec",vi.ImageSpec},
             // {"Runtime Spec",vi.RuntimeSpec},
             // {"Cni Spec",vi.CniSpec},
@@ -55,5 +55,5 @@ struct versionInfo{
     }
 };
 void init_version();
-void versionCmd(std::shared_ptr<versionOptions> iopts);
+void versionCmd(versionOptions* iopts);
 #endif

@@ -205,7 +205,8 @@ struct BuilderInfo {
     // Config 是容器的配置信息
     std::string Config;
     // Manifest 是容器的Manifest信息
-    std::string Manifest;
+    // std::string Manifest;
+    std::shared_ptr<::Manifest> Manifest=std::make_shared<::Manifest>();
     // Container 是容器的名称
     std::string Container;
     // ContainerID 是容器的ID
@@ -256,12 +257,12 @@ struct BuilderInfo {
             {"FromImageDigest", image.FromImageDigest},
             // {"GroupAdd", image.GroupAdd},
             {"Config", image.Config},
-            {"Manifest", image.Manifest},
-            {"Container", image.Container},
-            {"ContainerID", image.ContainerID},
-            {"MountPoint", image.MountPoint},
-            {"ProcessLabel", image.ProcessLabel},
-            {"MountLabel", image.MountLabel},
+            {"Manifest", boost::json::value_from(*image.Manifest)},
+            // {"Container", image.Container},
+            // {"ContainerID", image.ContainerID},
+            // {"MountPoint", image.MountPoint},
+            // {"ProcessLabel", image.ProcessLabel},
+            // {"MountLabel", image.MountLabel},
             {"ImageAnnotations", boost::json::value_from(image.ImageAnnotations)},
             {"ImageCreatedBy", image.ImageCreatedBy},
             {"OCIv1", boost::json::value_from(*image.OCIv1)},

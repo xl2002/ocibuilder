@@ -29,6 +29,6 @@ struct logoutOptions
 };
 
 void init_logout();     
-void logoutCmd(Command& cmd, vector<string> args,std::shared_ptr<logoutOptions> iopts);      
+void logoutCmd(Command& cmd, vector<string> args, logoutOptions* iopts);      
 
 #endif
