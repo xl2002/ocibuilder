@@ -24,7 +24,7 @@ SRC		:= src
 # INCLUDE	:= include D:/Softwares/boost_1_75_0
 INCLUDE	:= include
 # define lib directory
-LIB		:= lib\boost lib\zlib lib\openssl
+LIB		:= lib/boost lib/zlib lib/openssl
 # LIB         := D:/Softwares/boost_1_75_0/lib64-msvc-14.1
 
 OCI		:= oci_images
@@ -77,7 +77,7 @@ INCLUDETEST	:= -I include
 OUTPUTTEST		:= tests
 OUTPUTMAINTEST	:= $(call FIXPATH,$(OUTPUTTEST)/$(MAIN))
 SRCTEST		:= ./tests/sha356.cpp
-LIBSTEST	:= -L lib\boost -L lib\openssl -L lib\libarchive
+LIBSTEST	:= -L lib/boost -L lib/openssl -L lib/libarchive
 all: $(OUTPUT) $(MAIN)
 # $(RM) $(call FIXPATH,$(OBJECTS))
 # $(RM) $(call FIXPATH,$(DEPS))
