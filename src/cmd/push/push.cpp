@@ -193,9 +193,27 @@ void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
     std::cout << "Push success!!" << std::endl;
 }
 
+std::string extractAndConvertPath(const std::string &param)
+{
+    // 找到第一个冒号的位置
+    size_t firstColon = param.find(':');
+    // 找到第二个冒号的位置
+    size_t lastColon = param.rfind(':');
+    size_t secondLastColon = param.rfind(':', lastColon - 1);
+    
+    // 提取路径
+    std::string path = param.substr(firstColon + 1, secondLastColon - firstColon - 1);
+    
+    // 转换为绝对路径
+    boost::filesystem::path boostPath(path);
+    boost::filesystem::path absolutePath = boost::filesystem::absolute(boostPath);
+    
+    return absolutePath.string();
+}
+
 void pushCmdLocal(Command &cmd, vector<string> args, pushOptions * iopts)
 {
-    std::string destPath, withinTransport, destSpec;
+    std::string destPath, withinTransport, destSpec, newImageName;
     // 1. 获得令牌
     CheckAuthFile(iopts);
     // 镜像名
@@ -208,9 +226,11 @@ void pushCmdLocal(Command &cmd, vector<string> args, pushOptions * iopts)
     std::string indexPath = store.get()->image_store_dir + "/index.json";
 
     // 得到或创建目标路径
-    auto firstColon = destPath.find(':');
-    auto secondColon = destPath.find(':', firstColon + 1);
-    destSpec = destPath.substr(firstColon + 1, secondColon - firstColon - 1);
+    destSpec = extractAndConvertPath(destPath);
+    size_t lastColon = destPath.rfind(':');
+    size_t secondLastColon = destPath.rfind(':', lastColon - 1);
+    newImageName = destPath.substr(secondLastColon +1);
+    // destSpec = "C:\\Users\\admin\\Documents\\output";
     // std::tie(std::ignore, destPath, std::ignore) = Cut(destPath, ':');
     destPath = destSpec + "/blobs/sha256";
     if (!fs::exists(destPath))
@@ -291,7 +311,7 @@ void pushCmdLocal(Command &cmd, vector<string> args, pushOptions * iopts)
     auto newImage_index = std::make_shared<storage::manifest>();
     newImage_index->mediaType = MediaTypeImageManifest;
     newImage_index->digest = index.manifests[manifest_index].digest;
-    newImage_index->annotations["org.opencontainers.image.ref.name"] = "localhost/" + withinTransport;
+    newImage_index->annotations["org.opencontainers.image.ref.name"] = "localhost/" + newImageName;
     newImage_index->size = index.manifests[manifest_index].size;
     new_image->image_index = newImage_index;
 
@@ -313,7 +333,7 @@ void pushCmdLocal(Command &cmd, vector<string> args, pushOptions * iopts)
         auto index = unmarshal<storage::index>(newIndexContent);
         for (int i = 0; i < index.manifests.size(); i++)
         {
-            if (index.manifests[i].annotations["org.opencontainers.image.ref.name"] == "localhost/" + withinTransport)
+            if (index.manifests[i].annotations["org.opencontainers.image.ref.name"] == "localhost/" + newImageName)
                 continue;
             
             auto tmpImage = std::make_shared<storage::Image>();

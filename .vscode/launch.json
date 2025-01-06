@@ -6,14 +6,13 @@
             "type": "cppdbg",
             "request": "launch",
             // "args": ["build","--tag","busybox-image:latest","."],
-            // "args": ["tag","busybox-image:latest","image:1.0"],
-            // "args": ["tag","69bc7646d57b","image:2.0"],
-            // "args": ["rmi","image1:latest","image2:latest","image3:latest"],
-            // "args": ["config","--arch","x86_64","--os","windows7","--author","NWPU","--entrypoint","/bin/bash","--env","DEBIAN_FRONTEND=noninteractive","--env","PATH_A=interactive" ,"--label" ,"version=1.0.0" ,"--label","maintainer=your_email@example.com","image1:latest"],
-            "args": ["rmi","image1:latest"],
             // "args":["push","192.168.1.107:7777/busybox-image:latest"],
-            // "args": ["build","--annotation","\"version=1.0\"","--annotation","\"author=NWPU\"","--arch","amd64","--os","linux","--file","Dockerfile","--tag","busybox-image:latest","."],
-            // "args": ["images","--all"],
+            // "args":["push","busybox:latest", "oci:output/local_images:newbox1:latest"],
+            "args":["push","busybox:latest", "oci:C:\\Users\\admin\\Documents\\output:busybox:latest"],
+            // "args":["push","busybox:latest", "oci:D:/temp:busybox:latest"],
+            // "args":["pull","192.168.182.128:80/library/busyboximage5:latest","--os","linux"],
+            // "args":["login","--username","myusername","--password","mypassword"],
+            // "args": ["build","--annotation","\"version=1.0\"","--arch","amd64","--os","linux","--file","Dockerfile","--tag","busybox-image:latest","."],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -30,7 +29,7 @@
             },
             "windows": {
                 "MIMode": "gdb",
-                "miDebuggerPath": "D:\\softwares\\mingw64\\bin\\gdb.exe",
+                "miDebuggerPath": "D:\\mingw\\x86_64-8.1.0-release-posix-seh-rt_v6-rev0\\bin\\gdb.exe",
                 "program": "${workspaceFolder}/output/main.exe"
             },
             "setupCommands": [
@@ -69,7 +68,7 @@
             },
             "windows": {
                 "MIMode": "gdb",
-                "miDebuggerPath": "D:\\softwares\\mingw64\\bin\\gdb.exe",
+                "miDebuggerPath": "D:\\mingw\\x86_64-8.1.0-release-posix-seh-rt_v6-rev0\\bin\\gdb.exe",
                 "program": "${workspaceFolder}/output/main.exe"
             },
             "setupCommands": [
@@ -97,7 +96,7 @@
             "externalConsole": false,
             "windows": {
                 "MIMode": "gdb",
-                "miDebuggerPath": "D:\\softwares\\mingw64\\bin\\gdb.exe",
+                "miDebuggerPath": "D:\\mingw\\x86_64-8.1.0-release-posix-seh-rt_v6-rev0\\bin\\gdb.exe",
                 "program": "${workspaceFolder}/tests/main.exe"
             },
             "setupCommands": [
