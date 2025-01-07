@@ -13,6 +13,7 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <cstdint>
 #include <algorithm>
 using std::string;
 using std::vector;

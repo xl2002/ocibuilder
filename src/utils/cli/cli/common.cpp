@@ -14,7 +14,8 @@
 #include <stdlib.h>
 #include <algorithm>
 #include "filesys/systems.h"
-#include <minwindef.h>
+// #include <minwindef.h>
+#include "filesys/systems.h"
 #include <boost/filesystem.hpp>
 #include <boost/compute/detail/getenv.hpp>
 #include <boost/format.hpp>

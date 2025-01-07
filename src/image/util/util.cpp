@@ -7,6 +7,7 @@
 #include "filesys/systems.h"
 // #include <fileapi.h>
 #include <pthread.h>
+#include <boost/filesystem.hpp>
 /**
  *        保存在authfile中
  * @param file  需要被复制的文件
@@ -80,12 +81,17 @@ std::string DiscoverContainerfile(std::string path){
  * @return 解析后的绝对路径
  */
 std::string resolveSymlinks(const std::string& path) {
-    std::vector<char> buffer(MAX_PATH);
-    DWORD result = GetFullPathNameA(path.c_str(), MAX_PATH, buffer.data(), nullptr);
-    if (result == 0) {
-        throw std::runtime_error("Error resolving symlinks: " + std::to_string(GetLastError()));
+    // 在 Windows 和 Linux 平台下，Boost Filesystem 提供统一的 API 处理符号链接
+    try {
+        boost::filesystem::path boostPath(path);
+        
+        // 解析符号链接，返回绝对路径
+        boost::filesystem::path absolutePath = boost::filesystem::canonical(boostPath);
+        
+        return absolutePath.string();
+    } catch (const boost::filesystem::filesystem_error& e) {
+        throw std::runtime_error("Error resolving symlinks: " + std::string(e.what()));
     }
-    return std::string(buffer.data());
 }
 
 std::shared_ptr<ImageReference_interface> VerifyTagName(std::string imagespec){

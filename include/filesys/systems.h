@@ -10,12 +10,14 @@
 #include <unistd.h>
 #include <sys/vfs.h> // 或者 <sys/statfs.h> 在Linux/Unix系统上
 #include <sys/time.h>
+#include <sys/sysinfo.h>
 #include <sys/utsname.h>
 #else
 #include <winsock2.h>
 #include <windows.h>
 #include <minwindef.h>
 #include <fileapi.h>
+#include <sysinfoapi.h>
 #include <boost/winapi/get_current_process_id.hpp>
 #endif
 std::string OSAndArch();
