@@ -20,6 +20,10 @@ std::vector<std::string> getDefaultMachineVolumes(){
 // 在无特权容器中，这将失败，进程将使用其当前的限制
 // constexpr rlim_t oldMaxSize = 1048576; // 2^20
 std::vector<std::string> getDefaultProcessLimits() {
+    struct rlimit{
+        rlim_t rlim_cur;
+        rlim_t rlim_max;
+    };
     struct rlimit rlim = {1048576, 1048576};  // 设置初始的硬编码值
     struct rlimit oldrlim = rlim;
     std::vector<std::string> defaultLimits;
