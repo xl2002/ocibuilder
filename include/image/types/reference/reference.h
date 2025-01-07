@@ -47,7 +47,7 @@ class NamedTagged_interface:virtual public Named_interface{
 class Digested_interface:public Reference_interface{
     public:
     virtual ~Digested_interface()=default;
-    virtual Digest Digest()=0;
+    virtual ::Digest Digest()=0;
 };
 class Tagged_interface:virtual public Reference_interface{
     public:

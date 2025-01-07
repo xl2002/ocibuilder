@@ -40,8 +40,10 @@ MD	:= mkdir
 else
 MAIN	:= main
 SOURCEDIRS	:= $(shell find $(SRC) -type d)
-INCLUDEDIRS	:= $(shell find $(INCLUDE) -type d)
-LIBDIRS		:= $(shell find $(LIB) -type d)
+INCLUDEDIRS	:= $(INCLUDE)
+LIBDIRS		:= $(LIB)
+# INCLUDEDIRS	:= $(shell find $(INCLUDE) -type d)
+# LIBDIRS		:= $(shell find $(LIB) -type d)
 FIXPATH = $1
 RM = rm -f
 MD	:= mkdir -p
@@ -106,6 +108,7 @@ test:
 .PHONY: clean
 
 clean:
+ifeq ($(OS), Windows_NT)
 	$(RM) $(OUTPUTMAIN)
 # $(RM) $(call FIXPATH,$(OBJECTS))
 # $(RM) $(call FIXPATH,$(DEPS))
@@ -120,7 +123,12 @@ clean:
 		) \
 	)
 	@echo Cleanup complete!
-
+else
+	$(RM) $(OUTPUTMAIN)
+	$(RM) $(call FIXPATH,$(OBJECTS))
+	$(RM) $(call FIXPATH,$(DEPS))
+	@echo Cleanup complete!
+endif
 run: all
 	./$(OUTPUTMAIN) 
 	@echo Executing 'run: all' complete!

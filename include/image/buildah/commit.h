@@ -16,7 +16,7 @@ struct CommitOptions {
     std::string PreferredManifestType;
 
     // Compression 指定对层 blob 应用的压缩类型
-    std::shared_ptr<Compression> Compression=std::make_shared<::Compression>();  // 这里使用 std::string 表示压缩类型
+    std::shared_ptr<::Compression> Compression=std::make_shared<::Compression>();  // 这里使用 std::string 表示压缩类型
 
     // SignaturePolicyPath 指定用于验证新图片的签名策略位置
     std::string SignaturePolicyPath;
@@ -31,7 +31,7 @@ struct CommitOptions {
     std::shared_ptr<std::chrono::system_clock::time_point> HistoryTimestamp=std::make_shared<std::chrono::system_clock::time_point>();
 
     // SystemContext 用于持有凭据和其他身份验证信息
-    std::shared_ptr<SystemContext> SystemContext=std::make_shared<::SystemContext>();  // 根据实际定义进行类型替换
+    std::shared_ptr<::SystemContext> SystemContext=std::make_shared<::SystemContext>();  // 根据实际定义进行类型替换
 
     // IIDFile 告诉构建器将图片 ID 写入指定的文件
     std::string IIDFile;
@@ -70,7 +70,7 @@ struct CommitOptions {
     std::vector<int> OciEncryptLayers;
 
     // ConfidentialWorkloadOptions 强制将图片的 rootfs 内容替换为 LUKS 兼容的加密磁盘映像
-    std::shared_ptr<ConfidentialWorkloadOptions> ConfidentialWorkloadOptions=std::make_shared<::ConfidentialWorkloadOptions>();
+    std::shared_ptr<::ConfidentialWorkloadOptions> ConfidentialWorkloadOptions=std::make_shared<::ConfidentialWorkloadOptions>();
 
     // UnsetEnvs 是不要添加到最终图片中的环境变量列表
     std::vector<std::string> UnsetEnvs;
@@ -85,7 +85,7 @@ struct CommitOptions {
     std::map<std::string, std::string> ExtraImageContent;
 
     // SBOMScanOptions 包含控制是否对即将提交的 rootfs 运行扫描器以及如何运行的选项
-    std::vector<SBOMScanOptions> SBOMScanOptions;
+    std::vector<::SBOMScanOptions> SBOMScanOptions;
 };
 
 #endif // BUILDE_COMMIT_H

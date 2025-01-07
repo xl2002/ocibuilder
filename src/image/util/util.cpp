@@ -3,8 +3,9 @@
 #include <sys/stat.h>
 #include <vector>
 #include "utils/common/go/file.h"
-#include <minwindef.h>
-#include <fileapi.h>
+// #include <minwindef.h>
+#include "filesys/systems.h"
+// #include <fileapi.h>
 #include <pthread.h>
 /**
  *        保存在authfile中

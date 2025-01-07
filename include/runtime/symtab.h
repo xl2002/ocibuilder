@@ -161,7 +161,7 @@ struct Frame {
 
     int startLine;       // 函数开始的行号
     uintptr_t Entry;     // 函数的入口点程序计数器
-    funcInfo funcInfo;   // 函数的内部视图，仅对 Go 函数有效
+    ::funcInfo funcInfo;   // 函数的内部视图，仅对 Go 函数有效
 
 
     Frame(uintptr_t pc = 0, std::shared_ptr<Func> func = nullptr, std::string function = "",

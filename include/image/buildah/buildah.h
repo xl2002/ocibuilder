@@ -80,7 +80,7 @@ struct Builder {
     std::string DefaultMountsFilePath;
 
     // Isolation 控制我们如何处理 "RUN" 语句和 Run() 方法。
-    std::shared_ptr<Isolation> Isolation=std::make_shared<::Isolation>();
+    std::shared_ptr<::Isolation> Isolation=std::make_shared<::Isolation>();
 
     // NamespaceOptions 控制如何设置我们 Run() 的进程的命名空间。
     std::vector<NamespaceOption> Namespaceoptions;
@@ -242,7 +242,7 @@ struct BuilderInfo {
     // IDMappingOptions 是用户命名空间的映射选项
     std::shared_ptr<::IDMappingOptions> IDMappingOptions=std::make_shared<::IDMappingOptions>();
     // History 是镜像的历史信息
-    std::vector<History> History;
+    std::vector<::History> History;
     // Devices 是容器的设备信息
     std::shared_ptr<ContainerDevices> Devices=std::make_shared<ContainerDevices>();
     // DeviceSpecs 是设备规格信息

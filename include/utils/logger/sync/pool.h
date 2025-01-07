@@ -18,7 +18,7 @@
 class Entry;
 class Pool {
 public:
-    noCopy noCopy;
+    ::noCopy noCopy;
 
     std::shared_ptr<int> local = std::make_shared<int>();   
     size_t localSize = 0;      

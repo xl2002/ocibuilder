@@ -14,6 +14,9 @@
 #else
 #include <winsock2.h>
 #include <windows.h>
+#include <minwindef.h>
+#include <fileapi.h>
+#include <boost/winapi/get_current_process_id.hpp>
 #endif
 std::string OSAndArch();
 
