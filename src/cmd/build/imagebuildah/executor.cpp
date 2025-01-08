@@ -565,9 +565,8 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,bool,std::string> Ex
 
     std::unique_lock<std::mutex> lock(this->stagesLock);
     std::shared_ptr<StageExecutor> stageExecutor = startStage(std::make_shared<Stage>(stage),stages,output);
-
+    int stepCounter = 0;
     if (!stageExecutor->log) {
-        int stepCounter = 0;
         stageExecutor->log = [this, &stepCounter, stageIndex, stages,stage,stageExecutor](std::string format,std::vector<std::string>args) {
             std::string prefix = this->logPrefix;
             // if (stages->Stages.size() > 1) {

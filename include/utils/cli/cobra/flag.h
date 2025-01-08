@@ -89,7 +89,7 @@ class Flagset{
     void AddFlag(Flag* newflag);
     // void Visitflag(Flag& flag,vector<string>& names);
     void VisitAll(const function<void(Flag*)>&fn);
-    Flag* Lookup(const string& name);
+    Flag* Lookup(const string name);
     bool Changed(string name );
     void MarkHidden(string name);
     string getFlagType(string name,string ftype);

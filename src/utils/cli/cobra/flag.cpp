@@ -115,9 +115,10 @@ void Flagset::StringArrayVar(vector<string>& option_name, string name ,vector<st
  * @param usage 标签用途介绍
  */
 void Flagset::String(string name, string value, string usage){
-    string option_name;
-    StringValue* pvalue=newStringValue(value,option_name);
-    Flag* flag=Addvar(pvalue,name,usage);
+    string* option_name=new string();
+    // StringValue* pvalue=newStringValue(value,option_name);
+    // Flag* flag=Addvar(pvalue,name,usage);
+    StringVar(*option_name,name,value,usage);
 }
 
 /**
@@ -316,12 +317,20 @@ void Flagset::VisitAll(const function<void(Flag*)>& fn){
  * @param name 标签名
  * @return Flag* 标签名对应的标签
  */
-Flag* Flagset::Lookup(const string& name){
-    auto it= formal_flags.find(name);
-    if(it!=formal_flags.end()){
-        return it->second;
-    }else{
-        return nullptr;
+// Flag* Flagset::Lookup(const string name){
+//     std::string n=name;
+//     auto it= formal_flags.find(n);
+//     if(it!=formal_flags.end()){
+//         return it->second;
+//     }else{
+//         return nullptr;
+//     }
+// }
+Flag* Flagset::Lookup(const string name) {
+    if (formal_flags.count(name) > 0) { // 如果容器中存在该键
+        return formal_flags[name]; // 这里会返回该键对应的值，不会插入新元素
+    } else {
+        return nullptr; // 如果没有找到，返回 nullptr
     }
 }
 /**
@@ -630,7 +639,8 @@ vector<string> Flagset::parseLongArg(string arg,vector<string> args){
     // }
     try
     {
-        if(!Set(flag->name,value)){
+        bool isSet=Set(flag->name,value);
+        if(!isSet){
             // throw myerror("fail to set the flag value");
             cerr<<"fail to set the flag value"<<endl;
         }
@@ -667,7 +677,8 @@ bool Flagset::Set(string name, string value){
         // if(actual_flags.size()==0){
         //     actual_flags=new map<string,Flag*>();
         // }
-        actual_flags[name]=flag;
+        // actual_flags[name]=flag;
+        actual_flags[flag->name]=flag;
         order_actual_flags.emplace_back(flag);
     }
     if(flag->deprecated!=""){

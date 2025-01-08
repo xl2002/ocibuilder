@@ -565,7 +565,7 @@ void StageExecutor::UnrecognizedInstruction(std::shared_ptr<Step> step){
 void StageExecutor::Preserve(std::string path){
     std::string mountpath;
     if(this->mountPoint==""){
-        this->builder->MountPoint=this->builder->store->GetlayerStoragePath()+"\\"+this->builder->container->LayerID;
+        this->builder->MountPoint=this->builder->store->GetlayerStoragePath()+Separator+this->builder->container->LayerID;
         this->mountPoint=this->builder->MountPoint;
     }
     if(this->mountPoint!=""){
@@ -630,10 +630,10 @@ void StageExecutor::performCopy(std::vector<std::string> excludes,std::vector<Co
         }
         // if(this->builder->MountPoint==""){
         if(copy.From=="from"){
-            this->builder->MountPoint=this->builder->store->GetlayerStoragePath()+"\\"+this->builder->FromImageID;
+            this->builder->MountPoint=this->builder->store->GetlayerStoragePath()+Separator+this->builder->FromImageID;
 
         }else{
-            this->builder->MountPoint=this->builder->store->GetlayerStoragePath()+"\\"+this->builder->container->LayerID;
+            this->builder->MountPoint=this->builder->store->GetlayerStoragePath()+Separator+this->builder->container->LayerID;
             this->mountPoint=this->builder->MountPoint;
         }
         // }
