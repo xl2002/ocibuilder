@@ -61,6 +61,7 @@
 # 登录到远端
 ./output/main.exe login --username myusername --password mypassword
 # linux系统测试样例
+./output/main login --username myusername --password mypassword
 ~~~
 
 7. logout
