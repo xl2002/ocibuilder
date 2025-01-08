@@ -30,13 +30,13 @@ ifdef _WIN32
 else
     # 如果是在 Linux 上，设置对应的链接库
 	
-	LFLAGS += -lboost_system-mt-x64
-    LFLAGS += -lboost_filesystem-mt-x64
-    LFLAGS += -lboost_thread-mt-x64
-    LFLAGS += -lboost_random-mt-x64
-    LFLAGS += -lboost_json-mt-x64
-    LFLAGS += -lboost_iostreams-mt-x64
-	LFLAGS += -lboost_stacktrace_basic-mt-x64
+	LFLAGS += -lboost_system
+    LFLAGS += -lboost_filesystem
+    LFLAGS += -lboost_thread
+    LFLAGS += -lboost_random
+    LFLAGS += -lboost_json
+    LFLAGS += -lboost_iostreams
+	LFLAGS += -lboost_stacktrace_basic
 	LFLAGS += -pthread
     LFLAGS += -lssl
     LFLAGS += -lcrypto

@@ -62,6 +62,15 @@ cd openssl-1.1.1w
 ./Configure mingw64 no-shared no-dso no-tests --cross-compile-prefix=x86_64-w64-mingw32-
 make
 ~~~
+编译boost库linux版本
+
+~~~bash
+sudo apt-get install zlib1g-dev
+7z x boost_1_75_0.7z
+cd boost_1_75_0
+./bootstrap.sh --prefix=/path/to/boost-install-dir
+./b2 --with=all link=static threading=multi runtime-link=static
+~~~
 
 linux解压镜像层测试
 

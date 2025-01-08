@@ -10,6 +10,9 @@
 ./output/main.exe build --tag image1:latest .
 ./output/main.exe build --tag image2:latest .
 ./output/main.exe build --tag image3:latest .
+
+# linux系统
+./output/main build --tag image1:latest .
 ~~~
 
 2. config
