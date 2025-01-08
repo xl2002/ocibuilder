@@ -19,7 +19,7 @@ struct _func {
     uint32_t npcdata;
     uint32_t cuOffset;   // 此函数CU的runtime.cutab偏移量
     int32_t startLine;   // 函数开始的行号（func关键字/TEXT指令）
-    funcID funcID;       // 为某些特殊的runtime函数设置
+    ::funcID funcID;       // 为某些特殊的runtime函数设置
     std::shared_ptr<funcFlag> flag=std::make_shared<funcFlag>();       // 函数标志
     uint8_t padding[1];  // 填充字节
     uint8_t nfuncdata;   // 必须是最后一个成员，并且必须在uint32_t对齐边界上结束
@@ -32,7 +32,7 @@ struct _func {
 
 struct itab {
     std::shared_ptr<interfacetype> inter=std::make_shared<interfacetype>(); // 指向 interfacetype 的指针
-    std::shared_ptr<_type> _type=std::make_shared<::_type>();         // 指向 _type 的指针
+    std::shared_ptr<::_type> _type=std::make_shared<::_type>();         // 指向 _type 的指针
     uint32_t hash;        // 拷贝自 _type.hash，用于类型切换
     uint8_t padding[4];   // 用于对齐的填充字节
     uintptr_t fun[1];     // 可变大小的数组，fun[0]==0 表示 _type 不实现 inter

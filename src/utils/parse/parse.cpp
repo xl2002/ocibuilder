@@ -21,12 +21,12 @@ PullPolicy PullPolicyFromOptions(Command* c){
     if(c->Flag_find("pull")->changed){
         pullFlagsCount++;
     }
-    if(c->Flag_find("pull_always")->changed){
-        pullFlagsCount++;
-    }
-    if(c->Flag_find("pull_nerver")->changed){
-        pullFlagsCount++;
-    }
+    // if(c->Flag_find("pull_always")->changed){
+    //     pullFlagsCount++;
+    // }
+    // if(c->Flag_find("pull_nerver")->changed){
+    //     pullFlagsCount++;
+    // }
     if(pullFlagsCount>0){
         throw myerror("can only set one of 'pull' or 'pull-always' or 'pull-never'");
     }

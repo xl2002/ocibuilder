@@ -22,7 +22,7 @@ namespace copy{
         int imagelistselection=0;
     };
     struct OptionCompressionVariant{
-        std::shared_ptr<Algorithm> Algorithm=std::make_shared<::Algorithm>();
+        std::shared_ptr<::Algorithm> Algorithm=std::make_shared<::Algorithm>();
         std::shared_ptr<int> Level=std::make_shared<int>();
     };
     // CopyImage的选项结构体

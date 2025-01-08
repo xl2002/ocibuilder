@@ -41,6 +41,8 @@ void init_info(){
  */
 std::map<std::string,std::string> hostInfo(){
     std::map<std::string, std::string> info;
+    // win系统
+#ifdef _WIN32
     // 获取主机名
     char hostname[256];
     DWORD size = sizeof(hostname);
@@ -70,6 +72,34 @@ std::map<std::string,std::string> hostInfo(){
     } else {
         std::cerr << "Failed to get memory information." << std::endl;
     }
+#else
+    // Linux 下获取主机名
+    char hostname[256];
+    if (gethostname(hostname, sizeof(hostname)) == 0) {
+        info["Hostname"] = hostname;
+    } else {
+        std::cerr << "Failed to get hostname." << std::endl;
+    }
+
+    // Linux 下获取操作系统版本
+    struct utsname unameData;
+    if (uname(&unameData) == 0) {
+        std::string osVersion = std::string(unameData.sysname) + " " +
+                                std::string(unameData.release);
+        info["OS Version"] = osVersion;
+    } else {
+        std::cerr << "Failed to get OS version." << std::endl;
+    }
+
+    // Linux 下获取内存信息
+    struct sysinfo memInfo;
+    if (sysinfo(&memInfo) == 0) {
+        info["Total RAM (MB)"] = std::to_string(memInfo.totalram / (1024 * 1024));
+        info["Free RAM (MB)"] = std::to_string(memInfo.freeram / (1024 * 1024));
+    } else {
+        std::cerr << "Failed to get memory information." << std::endl;
+    }
+#endif
     return info;
 }
 /**

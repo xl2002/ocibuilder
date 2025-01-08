@@ -55,21 +55,28 @@ std::string formatSize(int64_t sizeInBytes) {
 std::string formatTime(const std::chrono::system_clock::time_point& created) {
     using namespace std::chrono;
     auto now = system_clock::now();
-    auto duration = duration_cast<minutes>(now - created);
+    auto duration = duration_cast<seconds>(now - created);
+
+    // 如果小于60秒，显示秒数
+    if (duration < seconds(60)) {
+        return boost::str(boost::format("%d seconds ago") % duration.count());
+    }
 
     // 如果小于60分钟，显示分钟数
-    if (duration < minutes(60)) {
-        return boost::str(boost::format("%d minutes ago") % duration.count());
+    auto duration_minutes = duration_cast<minutes>(now - created);
+    if (duration_minutes < minutes(60)) {
+        return boost::str(boost::format("%d minutes ago") % duration_minutes.count());
     }
 
     // 如果小于24小时，显示小时数
-    duration = duration_cast<hours>(now - created);
-    if (duration < hours(24)) {
-        return boost::str(boost::format("%d hours ago") % duration.count());
+    auto duration_hours = duration_cast<hours>(now - created);
+    if (duration_hours < hours(24)) {
+        return boost::str(boost::format("%d hours ago") % duration_hours.count());
     }
 
-    // 如果超过24小时，直接返回 "1 day ago"
-    return "1 day ago";
+    // 如果超过24小时，显示天数
+    auto duration_days = duration_cast<seconds>(now - created).count() / (24 * 60 * 60);
+    return boost::str(boost::format("%d days ago") % duration_days);
 }
 /**
  * @brief 格式化打印所有镜像信息

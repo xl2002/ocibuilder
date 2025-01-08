@@ -38,7 +38,7 @@ bool SafeChown(const std::string& name, int uid, int gid) {
     // if (chown(name.c_str(), uid, gid) != 0) {
     //     throw myerror("修改所有者失败: " + name);
     // }
-    return false; // 返回 false，表示进行了修改
+    return true; // 返回 false，表示进行了修改
 }
 // 使用你提供的MkdirAll实现
 bool mkdirAs(const std::string& path, int mode, int ownerUID, int ownerGID, bool mkAll, bool chownExisting) {

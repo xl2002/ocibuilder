@@ -206,7 +206,7 @@ class define_BuildOptions{
 	// ContextDirectory 是 COPY 和 ADD 命令的默认源位置。
 	string ContextDirectory;
 	// PullPolicy 控制我们是否拉取镜像。  它应该是 PullIfMissing、PullAlways、PullIfNewer 或 PullNever 之一。
-	std::shared_ptr<PullPolicy> PullPolicy=std::make_shared<::PullPolicy>();
+	std::shared_ptr<::PullPolicy> PullPolicy=std::make_shared<::PullPolicy>();
     //注册表是一个附加在图像名称前面的值（如果它是）
 	//需要拉取，并且图像名称单独无法解析为
 	//对源图像的引用。  没有隐式添加分隔符。
@@ -219,7 +219,7 @@ class define_BuildOptions{
 	// Quiet告诉我们是否在执行步骤时宣布这些步骤。
 	bool Quiet=false;
 	// Isolation控制 Run() 如何运行事物。
-	shared_ptr<Isolation> Isolation=std::make_shared<::Isolation>();
+	shared_ptr<::Isolation> Isolation=std::make_shared<::Isolation>();
 	//Runtime 是 RUN 指令运行时的命令名称
 	//隔离是 IsolationDefault 或 IsolationOCI。  它应该
 	//接受与 runc 相同的参数和标志。
@@ -242,7 +242,7 @@ class define_BuildOptions{
 	//压缩指定应用的压缩类型
 	//图层斑点。  默认不使用压缩，但是
 	//建议使用 archive.Gzip。
-	std::shared_ptr<Compression> Compression=std::make_shared<::Compression>();
+	std::shared_ptr<::Compression> Compression=std::make_shared<::Compression>();
 	//可以插入到 Dockerfile 中的参数
 	map<string,string>Args;
 	//外部附加构建上下文的映射
@@ -423,7 +423,7 @@ class define_BuildOptions{
 	string OSVersion;
 	//SBOMScanOptions 封装了控制是否我们扫描的选项
 	//在我们要提交的 rootfs 上运行扫描器，以及如何运行。
-	vector<SBOMScanOptions> SBOMScanOptions;
+	vector<::SBOMScanOptions> SBOMScanOptions;
 	//CDIConfigDir 是 CDI 配置文件的位置，如果文件位于
 	//不应使用默认配置位置。
 	string CDIConfigDir;

@@ -854,7 +854,8 @@ void Command::VisitParents(const function<void(Command*)>& fn){
  * 如果在持久化标志集中找到匹配的标志，那么返回的标志指针的所有权属于持久化标志集。
  */
 Flag* Command::Flag_find(string name){
-    Flag* flag=Flags()->Lookup(name);
+    Flagset* flags=Flags();
+    Flag* flag=flags->Lookup(name);
     if(flag==nullptr){
         flag=persistentFlag_find(name);
     }

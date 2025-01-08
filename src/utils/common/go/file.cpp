@@ -19,12 +19,14 @@ std::string joinPath(const std::string& path1, const std::string& path2) {
     if (path2.empty()) {
         return path1;
     }
-    // 如果path1以反斜杠结尾，则直接拼接
-    if (path1.back() == '\\') {
+
+    // 如果 path1 以分隔符结尾，则直接拼接
+    if (path1.back() == Separator) {
         return path1 + path2;
     }
-    // 否则在path1和path2之间插入一个反斜杠
-    return path1 + "\\" + path2;
+
+    // 否则在 path1 和 path2 之间插入分隔符
+    return path1 + Separator + path2;
 }
 
 /**

@@ -133,7 +133,16 @@ std::shared_ptr<ImageSource_interface> containerImageRef::NewImageSource(std::sh
                 layerstore->deleteLayer(tardigest);//删除存在的记录，后面添加最新的记录
 
             }else{
-                boost::filesystem::rename(srcpath+"/"+layer, srcpath+"/"+tardigest);//重命名overlay中的文件
+                boost::filesystem::path src_path(srcpath);
+                boost::filesystem::path layer_path(layer);
+                boost::filesystem::path target_path(tardigest);
+                // 复制文件到目标路径
+                boost::filesystem::copy(src_path / layer_path, src_path / target_path);
+
+                // 删除原文件
+                boost::filesystem::remove_all(src_path / layer_path);
+                // boost::filesystem::rename(src_path / layer_path, src_path / target_path);
+                // boost::filesystem::rename(srcpath+"/"+layer, srcpath+"/"+tardigest);//重命名overlay中的文件
             }
             boost::filesystem::rename(tarfilepath, finalBlobName);
             std::cout << "File renamed successfully, "<<"new tar layerId: " << tardigest<< std::endl;

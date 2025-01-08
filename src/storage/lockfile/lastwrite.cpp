@@ -2,8 +2,12 @@
 // newLastWrite 函数实现
 lastwrite newLastWrite() {
     // 获取 PID
+    // auto pid = static_cast<uint32_t>(GetCurrentProcessId());
+    #ifdef _WIN32
     auto pid = static_cast<uint32_t>(GetCurrentProcessId());
-    
+    #else
+    auto pid = static_cast<uint32_t>(getpid());
+    #endif
     // 获取当前时间（纳秒）
     auto tm = std::chrono::duration_cast<std::chrono::nanoseconds>(
                     std::chrono::system_clock::now().time_since_epoch()).count();

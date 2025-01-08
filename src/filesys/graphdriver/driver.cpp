@@ -1,8 +1,8 @@
 #include "filesys/graphdriver/driver.h"
-
+#include "utils/common/go/file.h"
 using namespace std;
 namespace fs = boost::filesystem; // 用于路径操作
-const char Separator = '/';
+// const char Separator = '/';
 // 清理路径，确保路径规范化
 const std::string lowerFile = "lowers";
 string Clean(const string& path);
@@ -208,7 +208,9 @@ std::string getLower(const std::string& parent) {
         // 获取父目录路径
         std::string parent_s = parent;
         Driver driver;  // 假设已经有一个 Driver 类的实例
-        auto [parentDir, homedir, useImageStore] = driver.dir2(parent_s, false);  // 通过实例调用 dir2
+        std::string parentDir,homedir;
+        bool useImageStore;
+        std::tie (parentDir, homedir, useImageStore) = driver.dir2(parent_s, false);  // 通过实例调用 dir2
 
 
         // 确保父目录存在

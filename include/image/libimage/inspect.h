@@ -84,7 +84,7 @@ struct ImageData {
     std::string User;
 
     // 历史记录
-    std::vector<History> History; // 需要根据实际情况定义 History
+    std::vector<::History> History; // 需要根据实际情况定义 History
 
     // 名称历史
     std::vector<std::string> NamesHistory;

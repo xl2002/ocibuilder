@@ -292,7 +292,7 @@ struct EngineConfig {
     std::map<std::string, std::string> PlatformToOCIRuntime;
 
     // PodExitPolicy 确定最后一个 pod 容器退出时的行为。
-    std::shared_ptr<PodExitPolicy> PodExitPolicy=std::make_shared<::PodExitPolicy>();
+    std::shared_ptr<::PodExitPolicy> PodExitPolicy=std::make_shared<::PodExitPolicy>();
 
     // PullPolicy 决定在创建或运行容器之前是否拉取映像，默认是 "missing"。
     std::string PullPolicy;
@@ -543,10 +543,10 @@ struct DecryptConfig{
 };
 struct EncryptConfig{
     std::map<std::string,std::vector<std::vector<uint8_t>>> Parameters;
-    std::shared_ptr<DecryptConfig> DecryptConfig=std::make_shared<::DecryptConfig>();
+    std::shared_ptr<::DecryptConfig> DecryptConfig=std::make_shared<::DecryptConfig>();
 };
 struct CryptoConfig{
-    std::shared_ptr<EncryptConfig> EncryptConfig=std::make_shared<::EncryptConfig>();
-    std::shared_ptr<DecryptConfig> DecryptConfig=std::make_shared<::DecryptConfig>();
+    std::shared_ptr<::EncryptConfig> EncryptConfig=std::make_shared<::EncryptConfig>();
+    std::shared_ptr<::DecryptConfig> DecryptConfig=std::make_shared<::DecryptConfig>();
 };
 #endif

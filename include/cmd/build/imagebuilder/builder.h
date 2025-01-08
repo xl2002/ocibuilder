@@ -73,7 +73,7 @@ public:
     std::vector<std::string> Excludes;
 
     std::shared_ptr<VolumeSet> PendingVolumes=std::make_shared<VolumeSet>();
-    std::vector<Run> PendingRuns;
+    std::vector<::Run> PendingRuns;
     std::vector<Copy> PendingCopies;
 
     std::vector<std::string> Warnings;

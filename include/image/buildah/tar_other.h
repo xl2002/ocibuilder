@@ -1,5 +1,3 @@
-#pragma once
-
 #ifndef TAR_TAR_H
 #define TAR_TAR_H
 
@@ -10,8 +8,8 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
-#include "image\buildah\format.h"
-#include "image\buildah\user.h"
+#include "image/buildah/format.h"
+#include "image/buildah/user.h"
 
 namespace tarpp {
 

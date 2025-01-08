@@ -1,5 +1,3 @@
-#pragma once
-
 #ifndef TAR_FORMAT_H
 #define TAR_FORMAT_H
 

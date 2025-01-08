@@ -14,7 +14,7 @@ struct _type {
     std::uintptr_t size;         
     std::uintptr_t ptrdata;      
     std::uint32_t hash;          
-    tflag tflag;                 
+    ::tflag tflag;                 
     std::uint8_t align;          
     std::uint8_t fieldAlign;     
     std::uint8_t kind;           

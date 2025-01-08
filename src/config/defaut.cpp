@@ -8,7 +8,7 @@
 #include <thread>
 #include <boost/compute/detail/getenv.hpp>
 #include <boost/asio/ip/network_v4.hpp> // 使用 Boost 库中的 asio 进行网络处理
-
+#include "utils/common/go/file.h"
 
 std::shared_ptr<Config> defaultConfig() {
     std::shared_ptr<EngineConfig> defaultengineConfig;
@@ -289,7 +289,7 @@ std::vector<std::string> getDefaultComposeProviders(){
     return defaultUnixComposeProviders;
 }
 std::string getDefaultTmpDir(){
-    return defaultRunRoot+"\\tmp";
+    return defaultRunRoot+Separator+"tmp";
 }
 std::string defaultCgroupManager(){
     return CgroupfsCgroupsManager;

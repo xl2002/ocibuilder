@@ -48,7 +48,7 @@ class CompositeDigester{
     // std::ofstream closer; // 存储 Closable 对象
     std::shared_ptr<digester_interface> closer;
     void closeOpenDigester();
-    std::pair<std::string, std::shared_ptr<Digest>> Digest();
+    std::pair<std::string, std::shared_ptr<::Digest>> Digest();
     void Restart();
     void Start(std::string contentType);
     std::shared_ptr<digester_interface> Hash();

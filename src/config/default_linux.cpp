@@ -20,13 +20,14 @@ std::vector<std::string> getDefaultMachineVolumes(){
 // 在无特权容器中，这将失败，进程将使用其当前的限制
 // constexpr rlim_t oldMaxSize = 1048576; // 2^20
 std::vector<std::string> getDefaultProcessLimits() {
-    struct rlimit {
+    struct rlimit{
         rlim_t rlim_cur;
         rlim_t rlim_max;
     };
-    struct rlimit rlim = {oldMaxSize, oldMaxSize};
+    struct rlimit rlim = {1048576, 1048576};  // 设置初始的硬编码值
     struct rlimit oldrlim = rlim;
     std::vector<std::string> defaultLimits;
+
 #ifndef _WIN32
     // 尝试将文件限制和进程限制设置为操作系统中的pid_max
     std::ifstream file("/proc/sys/kernel/pid_max");
@@ -43,9 +44,8 @@ std::vector<std::string> getDefaultProcessLimits() {
     }
 #endif
 
-    
 #ifndef _WIN32
-
+    // 使用 const rlimit* 类型传递给 setrlimit
     if (setrlimit(RLIMIT_NPROC, &rlim) == 0) {
         defaultLimits.push_back("nproc=" + std::to_string(rlim.rlim_cur) + ":" + std::to_string(rlim.rlim_max));
     } else if (setrlimit(RLIMIT_NPROC, &oldrlim) == 0) {
@@ -54,10 +54,7 @@ std::vector<std::string> getDefaultProcessLimits() {
 #else
     // Windows系统暂不支持此功能
     defaultLimits.push_back("nproc=" + std::to_string(oldrlim.rlim_cur) + ":" + std::to_string(oldrlim.rlim_max));
-    // std::cerr << "This functionality getDefaultProcessLimits is not supported on Windows.\n";
-    // return defaultLimits;
 #endif
-
     return defaultLimits;
     // return std::vector<std::string>{"nproc=4194304:4194304"};
 }

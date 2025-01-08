@@ -207,7 +207,7 @@ typedef std::string SBOMMergeStrategy;
 struct SBOMScanOptions {
     std::vector<std::string> Type;    // 一个缩短的名称，表示已定义的这些选项的组
     std::string Image;                // 要使用的扫描器映像
-    PullPolicy PullPolicy;           // 获取扫描器映像的方式
+    ::PullPolicy PullPolicy;           // 获取扫描器映像的方式
     std::vector<std::string> Commands; // 要用于图像根文件系统或 ContextDir 位置的一个或多个命令
     std::vector<std::string> ContextDir; // 要查找的目录位置
     std::string SBOMOutput;           // 在外部存储的 SBOM 扫描器输出（即本地文件系统）
@@ -218,7 +218,7 @@ struct SBOMScanOptions {
 };
 struct LayerCompression;
 struct BlobInfo{
-	std::shared_ptr<Digest> Digest=std::make_shared<::Digest>();
+	std::shared_ptr<::Digest> Digest=std::make_shared<::Digest>();
 	int64_t Size=0;
 	std::vector<std::string> URLs;
 	std::map<std::string, std::string> Annotations;

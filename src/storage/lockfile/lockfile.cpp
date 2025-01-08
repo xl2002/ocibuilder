@@ -18,30 +18,14 @@ int openHandle(const std::string& path, int mode) {
 
     return fd; // Return the file descriptor if successful
 }
-struct flock {
-    short l_type;   // 锁的类型：F_RDLCK、F_WRLCK、F_UNLCK
-    short l_whence; // 锁的起始位置：SEEK_SET、SEEK_CUR、SEEK_END
-    off_t l_start;  // 锁定区域的起始位置
-    off_t l_len;    // 锁定区域的长度
-    pid_t l_pid;    // 锁定者的进程ID（可选）
-};
-/*lockHandle 实现以下函数更支持类unix系统的实现
-void LockFile::lockHandle(int fd) {
-    struct flock lock;
-    lock.l_type = F_WRLCK; // 设置为写锁
-    lock.l_whence = SEEK_SET;
-    lock.l_start = 0;
-    lock.l_len = 0; // 锁定整个文件
+// struct flock {
+//     short l_type;   // 锁的类型：F_RDLCK、F_WRLCK、F_UNLCK
+//     short l_whence; // 锁的起始位置：SEEK_SET、SEEK_CUR、SEEK_END
+//     off_t l_start;  // 锁定区域的起始位置
+//     off_t l_len;    // 锁定区域的长度
+//     pid_t l_pid;    // 锁定者的进程ID（可选）
+// };
 
-    while (fcntl(fd, F_SETLKW, &lock) == -1) {
-        if (errno == EINTR) {
-            // 被信号中断时，重新尝试
-            continue;
-        }
-        // 其他错误处理
-        throw myerror("Failed to lock file: " + std::string(strerror(errno)));
-    }
-}*/
 // lockHandle 实现windows
 // 锁定函数
 void lockHandle(const std::string& filePath, LockType lType) {
@@ -137,10 +121,10 @@ fileHandle openLock(const std::string& path, bool ro) {
 // Lock 方法实现boost
 void lockFile::lock(LockType lType) {
     if (lType == LockType::ReadLock) {
-        boost::unique_lock<boost::shared_mutex> lock(rwMutex, boost::defer_lock);
-        lock.lock();  // 读锁
+        // boost::unique_lock<boost::shared_mutex> lock(rwMutex, boost::defer_lock);
+        // lock.lock();  // 读锁
     } else {
-        boost::unique_lock<boost::shared_mutex> lock(rwMutex);  // 写锁
+        // boost::unique_lock<boost::shared_mutex> lock(rwMutex);  // 写锁
     }
 
     boost::unique_lock<boost::mutex> stateLock(stateMutex);
@@ -186,7 +170,9 @@ void lockFile::Unlock(){
     if(this->lockType==LockType::ReadLock){
         this->rwMutex.unlock();
     }
-    this->rwMutex.unlock();
+    // boost::unique_lock<boost::shared_mutex> lock(rwMutex, boost::defer_lock);
+    // lock.unlock();  // 读锁
+    // this->rwMutex.unlock();
     this->stateMutex.unlock();
 }
 
