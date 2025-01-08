@@ -103,7 +103,14 @@ void init_utils(){
         {"RUN", true}
     };
     // 默认平台标识符，假设为构建的默认平台
-    defaultPlatformToken = "windows"; // 用实际的默认平台替代
+#ifdef _WIN32
+    defaultPlatformToken = "windows";  // Windows 系统
+#elif defined(__linux__)
+    defaultPlatformToken = "linux";    // Linux 系统
+#else
+    defaultPlatformToken = "unknown";  // 其他平台
+#endif
+    // defaultPlatformToken = "windows"; // 用实际的默认平台替代
     DefaultEscapeToken = '\\';
     // 定义允许包含指令的指令集合
     heredocCompoundDirectives = {

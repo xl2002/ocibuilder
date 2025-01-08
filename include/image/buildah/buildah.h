@@ -253,8 +253,8 @@ struct BuilderInfo {
         jv = boost::json::object{
             {"Type", image.Type},
             {"FromImage", image.FromImage},
-            {"FromImageID", image.FromImageID},
-            {"FromImageDigest", image.FromImageDigest},
+            {"ConfigID", image.FromImageID},
+            {"ManifestID", image.FromImageDigest},
             // {"GroupAdd", image.GroupAdd},
             {"Config", image.Config},
             {"Manifest", boost::json::value_from(*image.Manifest)},

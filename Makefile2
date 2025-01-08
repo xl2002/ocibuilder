@@ -14,7 +14,7 @@ CXXFLAGS	:= -std=c++11 -Wall -Wextra -g -O0
 #   their path using -Lpath, something like:
 # LFLAGS = -lboost_filesystem-mgw12-mt-x64-1_75 -lboost_system-mgw12-mt-x64-1_75 -lws2_32 -lboost_thread-mgw12-mt-x64-1_75 -lboost_random-mgw12-mt-x64-1_75 -lboost_json-mgw12-mt-x64-1_75 -lboost_iostreams-mgw12-mt-x64-1_75 -lssl -lcrypto -lz 
 # 如果是在 Windows 上，设置对应的链接库
-ifdef _WIN32
+ifeq ($(OS),Windows_NT)
     LFLAGS += -lboost_filesystem-mgw12-mt-x64-1_75
     LFLAGS += -lboost_system-mgw12-mt-x64-1_75
     LFLAGS += -lws2_32
@@ -25,18 +25,27 @@ ifdef _WIN32
     LFLAGS += -lssl
     LFLAGS += -lcrypto
     LFLAGS += -lz
+	LIB		:= lib/windows/boost lib/windows/zlib lib/windows/openssl
+	INCLUDE	:= include
 else
     # 如果是在 Linux 上，设置对应的链接库
-    LFLAGS += -lboost_filesystem-mgw12-mt-x64-1_75
-    LFLAGS += -lboost_system-mgw12-mt-x64-1_75
-    LFLAGS += -lws2_32
-    LFLAGS += -lboost_thread-mgw12-mt-x64-1_75
-    LFLAGS += -lboost_random-mgw12-mt-x64-1_75
-    LFLAGS += -lboost_json-mgw12-mt-x64-1_75
-    LFLAGS += -lboost_iostreams-mgw12-mt-x64-1_75
+	
+	LFLAGS += -lboost_system
+    LFLAGS += -lboost_filesystem
+    LFLAGS += -lboost_thread
+    LFLAGS += -lboost_random
+    LFLAGS += -lboost_json
+    LFLAGS += -lboost_iostreams
+	LFLAGS += -lboost_stacktrace_basic
+	LFLAGS += -pthread
     LFLAGS += -lssl
     LFLAGS += -lcrypto
-    LFLAGS += -lz
+	LFLAGS += -ldl
+	LFLAGS += -lz
+    # LFLAGS += -lzlibstatic
+
+	LIB		:= lib/linux/boost lib/linux/zlib lib/linux/openssl
+	INCLUDE	:= include
 endif
 # LFLAGS = -lboost_filesystem-mgw8-mt-sd-x64-1_75 -lboost_system-mgw8-mt-sd-x64-1_75 -lboost_thread-mgw8-mt-sd-x64-1_75 -lboost_random-mgw8-mt-sd-x64-1_75 -lboost_json-mgw8-mt-sd-x64-1_75 -lboost_iostreams-mgw8-mt-sd-x64-1_75 -lws2_32 -lssl -lcrypto -lz 
 # define output directory
@@ -47,9 +56,9 @@ SRC		:= src
 
 # define include directory
 # INCLUDE	:= include D:/Softwares/boost_1_75_0
-INCLUDE	:= include
+
 # define lib directory
-LIB		:= lib/boost lib/zlib lib/openssl
+
 # LIB         := D:/Softwares/boost_1_75_0/lib64-msvc-14.1
 
 OCI		:= oci_images
@@ -99,12 +108,12 @@ DEPS		:= $(OBJECTS:.o=.d)
 OUTPUTMAIN	:= $(call FIXPATH,$(OUTPUT)/$(MAIN))
 
 # test程序的变量
-LFLAGSTEST	:= -lboost_filesystem-mgw12-mt-x64-1_75 -lboost_iostreams-mgw12-mt-x64-1_75 -lboost_system-mgw12-mt-x64-1_75 -lboost_thread-mgw12-mt-x64-1_75 -lws2_32 -lboost_json-mgw12-mt-x64-1_75 -lboost_random-mgw12-mt-x64-1_75 -lssl -lcrypto -larchive -lz -lbcrypt
+LFLAGSTEST	:= $(LFLAGS)
 INCLUDETEST	:= -I include
 OUTPUTTEST		:= tests
 OUTPUTMAINTEST	:= $(call FIXPATH,$(OUTPUTTEST)/$(MAIN))
 SRCTEST		:= ./tests/sha356.cpp
-LIBSTEST	:= -L lib/boost -L lib/openssl -L lib/libarchive
+LIBSTEST	:= $(LIB)
 all: $(OUTPUT) $(MAIN)
 # $(RM) $(call FIXPATH,$(OBJECTS))
 # $(RM) $(call FIXPATH,$(DEPS))

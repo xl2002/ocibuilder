@@ -121,10 +121,10 @@ fileHandle openLock(const std::string& path, bool ro) {
 // Lock 方法实现boost
 void lockFile::lock(LockType lType) {
     if (lType == LockType::ReadLock) {
-        boost::unique_lock<boost::shared_mutex> lock(rwMutex, boost::defer_lock);
-        lock.lock();  // 读锁
+        // boost::unique_lock<boost::shared_mutex> lock(rwMutex, boost::defer_lock);
+        // lock.lock();  // 读锁
     } else {
-        boost::unique_lock<boost::shared_mutex> lock(rwMutex);  // 写锁
+        // boost::unique_lock<boost::shared_mutex> lock(rwMutex);  // 写锁
     }
 
     boost::unique_lock<boost::mutex> stateLock(stateMutex);
@@ -170,7 +170,9 @@ void lockFile::Unlock(){
     if(this->lockType==LockType::ReadLock){
         this->rwMutex.unlock();
     }
-    this->rwMutex.unlock();
+    // boost::unique_lock<boost::shared_mutex> lock(rwMutex, boost::defer_lock);
+    // lock.unlock();  // 读锁
+    // this->rwMutex.unlock();
     this->stateMutex.unlock();
 }
 

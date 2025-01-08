@@ -90,7 +90,7 @@ bool parseJson(const vector<uint8_t>& data, vector<shared_ptr<storage::Image>>& 
             image->ID=manifest.Config.Digests.Encoded().substr(0,12);//获得镜像的config的digest的前12位
             manifestf.close();
             // image->digest=std::make_shared<Digest>(it.digest);
-            std::string name=it.annotations["org.opencontainers.image.ref.name"];\
+            std::string name=it.annotations["org.opencontainers.image.ref.name"];
             image->Names.push_back(name);
             std::string newname;
             size_t pos = name.rfind('/');
@@ -896,7 +896,7 @@ void load(Store* s) {
         string imgStoreRoot = s->image_store_dir;
         
         if (imgStoreRoot.empty()) {
-            imgStoreRoot = s->graph_root+"\\"+driverPrefix + "registry";
+            imgStoreRoot = s->graph_root+Separator+driverPrefix + "registry";
         }
 
         // 创建图像存储目录
@@ -1179,6 +1179,8 @@ void ImageStore::Delete(const std::string& id){
             manifestf.close();
             auto manifest=unmarshal<Manifest>(oss.str());
             std::string configid=manifest.Config.Digests.String();
+            //只有一条记录还要删除镜像层文件
+            this->bydigest.erase(manifesid);
             auto layers=manifest.Layers;
             for(auto layer:layers){
                 //删除镜像层

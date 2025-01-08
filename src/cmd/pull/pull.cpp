@@ -176,10 +176,10 @@ void pullCmd(Command& cmd, vector<string> args,pullOptions* iopts){
         std::string fileContent = buffer.str();
         auto index=unmarshal<storage::index>(fileContent);
         std::string imageNAV = "localhost/"+url->imageName+":"+url->version;
-        if(index.manifests[0].annotations["org.opencontainers.image.ref.name"]!=imageNAV){
-            std::cout << "Invalid imageName or Version" << std::endl;
-            return;
-        }
+        // if(index.manifests[0].annotations["org.opencontainers.image.ref.name"]!=imageNAV){
+        //     std::cout << "Invalid imageName or Version" << std::endl;
+        //     return;
+        // }
 
         std::string manifestPath = url->localPullPath+"/blobs/sha256/"+index.manifests[0].digest.substr(7);
         if(!fs::exists(manifestPath)){

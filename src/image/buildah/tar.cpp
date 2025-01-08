@@ -33,7 +33,7 @@ void createTar(const std::string& tarFilePath, const fs::path& directory) {
 
                     std::string fileContent((std::istreambuf_iterator<char>(file)),
                                             std::istreambuf_iterator<char>());
-                    
+                    file.close();
                     // 获取相对路径（相对于顶级目录）
                     std::string relativePath = entry.path().string();
                     relativePath = relativePath.substr(directory.string().length() + 1);

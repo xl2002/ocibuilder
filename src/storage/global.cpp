@@ -56,6 +56,8 @@ void init_storage(){
     defaultRunRoot = "./oci_images";
     // const string defaultRunRoot = "/run/containers/storage";
     defaultGraphRoot = "./oci_images";
+    defaultImagestore="/oci_registry";
+    defaultlayerpath="/"+overlayDriver;
     // const string defaultGraphRoot = "/var/lib/containers/storage";
     #else
     /// @brief defaultConfigFile 系统范围的 storage.conf 文件的路径
