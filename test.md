@@ -70,6 +70,8 @@
 ./output/main.exe logout
 ./output/main.exe logout --all
 # linux系统测试样例
+./output/main logout
+./output/main logout --all
 ~~~
 
 8. pull
@@ -82,6 +84,13 @@
 ./output/main.exe pull oci:/path/to/local/dir:image1:latest
 
 # linux系统测试样例
+# 从远端拉取镜像
+./output/main pull 10.68.1.145:5000/library/busybox-image:latest
+./output/main pull --os linux --arch amd64 10.68.1.145:5000/library/busybox-image:latest
+./output/main pull --os linux --arch amd64 --all-tags 10.68.1.145:5000/library/busybox-image
+# 从本地拉取镜像
+./output/main pull oci:/path/to/local/dir:image1:latest
+
 ~~~
 
 9. push
@@ -91,6 +100,10 @@
 # 推送镜像到本地目录
 ./output/main.exe push image1:latest oci:D:/test/image1:imagetest:latest
 # linux系统测试样例
+# 推送镜像到远端
+./output/main push 10.68.1.145:5000/library/busybox-image:latest
+# 推送镜像到本地目录
+./output/main push image1:latest oci:D:/test/image1:imagetest:latest
 ~~~
 
 10. rmi
