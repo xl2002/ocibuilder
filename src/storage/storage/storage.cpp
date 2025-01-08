@@ -90,7 +90,7 @@ bool parseJson(const vector<uint8_t>& data, vector<shared_ptr<storage::Image>>& 
             image->ID=manifest.Config.Digests.Encoded().substr(0,12);//获得镜像的config的digest的前12位
             manifestf.close();
             // image->digest=std::make_shared<Digest>(it.digest);
-            std::string name=it.annotations["org.opencontainers.image.ref.name"];\
+            std::string name=it.annotations["org.opencontainers.image.ref.name"];
             image->Names.push_back(name);
             std::string newname;
             size_t pos = name.rfind('/');
