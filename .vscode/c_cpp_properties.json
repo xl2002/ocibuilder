@@ -3,17 +3,25 @@
         {
             "name": "Win32",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}\\**"
+                // ,"D:/Softwares/boost_1_75_0"
+                // "${workspaceFolder}\\include\\**"
+                // "${workspaceFolder}\\include\\cli\\**",
+                // "${workspaceFolder}\\include\\cobra\\**",
+                // "${workspaceFolder}\\include\\config\\**",
+                // "${workspaceFolder}\\include\\define\\**",
+                // "${workspaceFolder}\\include\\pflag\\**",
+                // "${workspaceFolder}\\include\\storage\\**"
             ],
             "defines": [
                 "_DEBUG",
                 "UNICODE",
                 "_UNICODE"
             ],
-            "compilerPath": "D:\\softwares\\mingw64\\bin\\gcc.exe",
+            "compilerPath": "E:\\mingw64\\mingw64\\mingw64\\bin\\gcc.exe",
             "cStandard": "c11",
-            "cppStandard": "c++11",
-            "intelliSenseMode": "gcc-x64"
+            "cppStandard": "gnu++11",
+            "intelliSenseMode": "windows-gcc-x64"
         }
     ],
     "version": 4
