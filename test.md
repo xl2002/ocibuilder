@@ -26,6 +26,7 @@
 ./output/main.exe config --arch "x86_64" --os "windows7" --author "NWPU" --entrypoint '["/bin/bash", "-c"]' --env "DEBIAN_FRONTEND=noninteractive" --env "PATH_A=interactive" --label "version=1.0.0" --label "maintainer=your_email@example.com" image1:latest
 #linux系统测试样例
 ./output/main config --arch "x86_64" --os "windows7" --author "NWPU" --entrypoint "/bin/bash" --env "DEBIAN_FRONTEND=noninteractive" --env "PATH_A=interactive" --label "version=1.0.0" --label "maintainer=your_email@example.com" image1:latest
+./output/main config --arch "x86_64" --os "windows7" --author "NWPU" --entrypoint '["/bin/bash", "-c"]' --env "DEBIAN_FRONTEND=noninteractive" --env "PATH_A=interactive" --label "version=1.0.0" --label "maintainer=your_email@example.com" image1:latest
 ~~~
 3. images
 ~~~bash
