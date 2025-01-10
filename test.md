@@ -23,6 +23,7 @@
 ~~~bash
 # 更改镜像的配置，注意：env和label是对变量的修改，如果没有对应的key则添加，否则覆盖原有的值
 ./output/main.exe config --arch "x86_64" --os "windows7" --author "NWPU" --entrypoint "/bin/bash" --env "DEBIAN_FRONTEND=noninteractive" --env "PATH_A=interactive" --label "version=1.0.0" --label "maintainer=your_email@example.com" image1:latest
+./output/main.exe config --arch "x86_64" --os "windows7" --author "NWPU" --entrypoint '["/bin/bash", "-c"]' --env "DEBIAN_FRONTEND=noninteractive" --env "PATH_A=interactive" --label "version=1.0.0" --label "maintainer=your_email@example.com" image1:latest
 #linux系统测试样例
 ./output/main config --arch "x86_64" --os "windows7" --author "NWPU" --entrypoint "/bin/bash" --env "DEBIAN_FRONTEND=noninteractive" --env "PATH_A=interactive" --label "version=1.0.0" --label "maintainer=your_email@example.com" image1:latest
 ~~~
