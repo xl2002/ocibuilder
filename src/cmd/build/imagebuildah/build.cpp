@@ -72,12 +72,15 @@ string BuildDockerfiles(shared_ptr<Store> stores, shared_ptr<define_BuildOptions
             throw myerror("tag " + tag + " error: " + e.what());
         }
     }
-    for (const auto& dfile : paths)
+    for (auto& dfile : paths)
     {
         std::shared_ptr<std::fstream> data;
         if(hasPrefix(dfile,"http://")||hasPrefix(dfile,"https://")){
             
         }else{
+            if(!hasPrefix(dfile,options->ContextDirectory)){
+                dfile=joinPath(options->ContextDirectory,dfile);
+            }
             struct stat buf;
             if(stat(dfile.c_str(),&buf)<0){ //判断文件是否存在
                 throw myerror("no such file or directory: "+dfile);
