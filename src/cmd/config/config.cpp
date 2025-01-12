@@ -80,14 +80,22 @@ std::shared_ptr<Builder> openBuilder(std::shared_ptr<Store> store,std::string na
 }
 // 手动解析 [args1,arg2] 格式的字符串到字符串数组
 std::vector<std::string> parseManualArray(const std::string& input) {
-    if (input.front() != '[' || input.back() != ']') {
-        throw std::invalid_argument("Input is not a valid array format");
+    // 检查输入是否为空
+    if (input.empty()) {
+        return {};
     }
 
+    // 如果输入没有括号，则直接将输入作为一个单一字符串
+    if (input.front() != '[' || input.back() != ']') {
+        return {input};  // 输入不是数组格式，直接返回一个包含该字符串的数组
+    }
+
+    // 如果输入是数组格式
     std::vector<std::string> result;
     std::string current;
     bool inElement = false;
 
+    // 遍历数组中的字符，去掉开头和结尾的方括号
     for (size_t i = 1; i < input.size() - 1; ++i) { // 去掉两边的 [ 和 ]
         char c = input[i];
 
@@ -107,6 +115,7 @@ std::vector<std::string> parseManualArray(const std::string& input) {
         }
     }
 
+    // 如果最后还有未处理的元素
     if (!current.empty()) {
         result.push_back(current);
     }
