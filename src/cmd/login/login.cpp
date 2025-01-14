@@ -10,6 +10,7 @@
  */
 #include "cmd/login/login.h"
 #include "utils/cli/cli/common.h"
+#include "storage/types/options.h"
 /**
  * @brief 初始化 login 命令的内容
  * 

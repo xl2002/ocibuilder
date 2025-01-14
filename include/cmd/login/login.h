@@ -14,6 +14,7 @@
 #include <vector>
 #include "utils/cli/cobra/command.h"
 #include "cmd/root/root.h"
+#include <boost/json.hpp>
 using std::string;
 using std::vector;
 /**
@@ -26,6 +27,33 @@ struct LoginOptions
     string  username;
     string  password;
     bool    getLogin=false;
+};
+struct user{
+    std::string username;
+    std::string password;
+    friend void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const user& image) {
+        jv=boost::json::object{{"username",image.username},{"password",image.password}};
+    }
+    friend user tag_invoke(boost::json::value_to_tag<user>, const boost::json::value& jv) {
+        const auto& obj = jv.as_object();
+        user user;
+        user.username=obj.at("username").as_string().c_str();
+        user.password=obj.at("password").as_string().c_str();
+        return user;
+    }
+};
+struct Auth{
+    std::map<std::string, user> auth;
+    Auth()=default;
+    friend void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const Auth& image) {
+        jv=boost::json::object{{"auth",boost::json::value_from(image.auth)}};
+    }
+    friend Auth tag_invoke(boost::json::value_to_tag<Auth>, const boost::json::value& jv) {
+        const auto& obj = jv.as_object();
+        Auth auth;
+        auth.auth=boost::json::value_to<std::map<std::string, user>>(obj.at("auth"));
+        return auth;
+    }
 };
 
 void init_login();      
