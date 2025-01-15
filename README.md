@@ -86,6 +86,8 @@ harbor存储库的相关操作
 ```bash
 # 查看本机IP地址
 ifconfig ens33
+# 查看端口占用情况
+sudo lsof -i:[端口号]
 # 从桌面切换到harbor存储库地址
 cd ../harbor/harbor/
 # 修改配置文件中的地址和端口

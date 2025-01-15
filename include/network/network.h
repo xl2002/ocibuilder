@@ -200,9 +200,9 @@ bool pullConfig(const std::string &host, const std::string &port, const ::string
 
 std::tuple<std::string,size_t> pullManifestAndBlob(const std::string &host, const std::string &port, const ::string &projectName, const ::string &imageName, const std::string version,const std::string& os,const std::string& arch);
 
-void saveLoginInfo(const std::string &username, const std::string &password);
+void saveLoginInfo(const std::string &username, const std::string &password, const std::string &ipAddress);
 
-void loadLoginInfo();
+void loadLoginInfo(std::string ipAddress);
 
 std::vector<std::string> getTagList(const std::string &host, const std::string &port, const ::string &projectName, const ::string &imagetName);
 

@@ -99,7 +99,7 @@ void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
     auto url = client.resolveRequestURL(src);
 
     //  执行登录请求
-    loadLoginInfo();
+    loadLoginInfo(url->host + ":" + url->port);
     login(userinfo.username, userinfo.password, url->host, url->port);
 
     // url->host  url->port  url->imageName

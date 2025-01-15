@@ -70,7 +70,7 @@ void pullCmd(Command& cmd, vector<string> args,pullOptions* iopts){
 
     //从远端库中拉取
     if(!url->localPullFlag){
-        loadLoginInfo();
+        loadLoginInfo(url->host+":"+url->port);
         login(userinfo.username,userinfo.password,url->host,url->port);
         //获得bearer token
         std::string token=getToken(url->host,url->port,url->projectName,url->imageName);
