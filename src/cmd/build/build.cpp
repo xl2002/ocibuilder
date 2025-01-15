@@ -22,6 +22,7 @@ Flagset* Getbuildflags(BudResults* br){
     //动态分配分配一个Flagset指针，用于存储初始化中的flag，并作为返回值
     Flagset* flags=new Flagset();
     //调用flag初始化函数
+    flags->BoolVar(br->check, "check", false, "check Indicates whether to generate a verification file for the image file");
     flags->BoolVar(br->allplatform,"all-platforms",false,"attempt to build for all base image platforms");
     flags->String("arch","amd64","set the ARCH of the image to the provided value instead of the architecture of the host");
     flags->StringArrayVar(br->annotation,"annotation",vector<string>(),"set metadata for an image (default [])");

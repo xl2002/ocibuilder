@@ -161,6 +161,7 @@ void GenBuildOptions(Command* cmd, vector<string> inputArgs,BuildOptions* iopts,
         //     || cmd->Flag_find("sbom-purl-output")->changed || cmd->Flag_find("sbom-image-purl-output")->changed){
 
         // }
+        options->check=iopts->check;
         options->AddCapabilities=iopts->CapAdd;
         options->AdditionalBuildContexts=additionalBuildContext;
         options->AdditionalTags=tags;

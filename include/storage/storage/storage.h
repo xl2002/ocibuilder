@@ -581,7 +581,6 @@ class Store :public Store_interface{
     std::string digest_lock_root;
     bool disable_volatile=false;
     bool transient_store=false;
-
     lastwrite graph_lock_last_write;
     shared_ptr<Driver> graph_driver=std::make_shared<Driver>();
     std::shared_ptr<rwLayerStore_interface> layer_store_use_getters=nullptr;

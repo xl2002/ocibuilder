@@ -12,6 +12,7 @@
 ./output/main.exe build --tag image2:latest .
 ./output/main.exe build --tag image3:latest .
 
+./output/main.exe build --check --tag image1:latest .
 # linux系统
 ./output/main build --tag image1:latest .
 ./output/main build --tag image1:latest .

@@ -26,7 +26,7 @@ class ImageReference_interface{
     virtual std::vector<std::string> PolicyConfigurationNamespaces() = 0;
     virtual std::shared_ptr<Named_interface> DockerReference() = 0;
     virtual std::shared_ptr<Image_interface> NewImage(std::shared_ptr<SystemContext>sys) = 0;
-    virtual std::shared_ptr<ImageSource_interface> NewImageSource(std::shared_ptr<SystemContext>sys) = 0;
+    virtual std::shared_ptr<ImageSource_interface> NewImageSource(std::shared_ptr<SystemContext>sys,bool check) = 0;
     virtual std::shared_ptr<ImageDestination_interface> NewImageDestination(std::shared_ptr<SystemContext>sys) = 0;
 };
 struct storageReference: public ImageReference_interface{
@@ -40,7 +40,7 @@ struct storageReference: public ImageReference_interface{
     std::shared_ptr<Named_interface> DockerReference() override;
     std::shared_ptr<storage::Image> resolveImage(std::shared_ptr<SystemContext>sys);
     std::shared_ptr<Image_interface> NewImage(std::shared_ptr<SystemContext>sys) override;
-    std::shared_ptr<ImageSource_interface> NewImageSource(std::shared_ptr<SystemContext>sys)override;
+    std::shared_ptr<ImageSource_interface> NewImageSource(std::shared_ptr<SystemContext>sys,bool check)override;
     std::shared_ptr<ImageDestination_interface> NewImageDestination(std::shared_ptr<SystemContext>sys)override;
 };
 std::tuple<std::shared_ptr<ImageReference_interface>,std::shared_ptr<storage::Image>>ResolveReference(std::shared_ptr<ImageReference_interface>ref);

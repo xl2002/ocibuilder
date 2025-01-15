@@ -85,6 +85,7 @@ struct Executor {
     std::string defaultMountsFilePath;
     std::string iidfile;
     bool squash=false;
+    bool check =false;
     std::vector<std::string> labels;
     std::vector<std::string> layerLabels;
     std::vector<std::string> annotations;

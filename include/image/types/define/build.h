@@ -112,6 +112,7 @@ struct platforms{
 enum class OptionalBool : unsigned char;
 ///CommonBuildOptions 是可以通过 buildah from 和 build 的标志定义的资源
 struct CommonBuildOptions  {
+	
 	// AddHost 是要添加到构建容器的 /etc/hosts 的主机名列表。
 	vector<string> AddHost;
 	//OmitHistory 告诉构建器忽略构建层的历史记录
@@ -201,6 +202,8 @@ struct SBOMScanOptions;
 struct DecryptConfig;
 class define_BuildOptions{
 	public:
+	// 是否给每个镜像文件校验
+	bool check=false;
 	// ContainerSuffix 为容器添加后缀的名称
 	string ContainerSuffix;
 	// ContextDirectory 是 COPY 和 ADD 命令的默认源位置。

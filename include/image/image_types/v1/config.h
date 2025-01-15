@@ -215,4 +215,26 @@ struct Manifest{
         return m;
     };
 };
+
+struct Check {
+    std::string version;
+    //key为文件路径，value为校验的sha256值
+    std::map<std::string, std::string> Validation;
+    Check()=default;
+    friend void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const Check& image) {
+        jv=boost::json::object{
+            {"version",image.version},
+            {"validation",boost::json::value_from(image.Validation)}
+        };
+    }
+
+    friend Check tag_invoke(boost::json::value_to_tag<Check>, const boost::json::value& jv) {
+        const auto& obj = jv.as_object();
+        Check m;
+        m.version=obj.at("version").as_string().c_str();
+        m.Validation=boost::json::value_to<std::map<std::string, std::string>>(obj.at("validation"));
+        return m;
+    };
+};
+
 #endif // V1_CONFIG_H)

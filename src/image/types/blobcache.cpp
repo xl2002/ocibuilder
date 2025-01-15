@@ -22,7 +22,7 @@ std::shared_ptr<ImageTransport_interface> BlobCache::Transport(){
 std::shared_ptr<Image_interface> BlobCache::NewImage(std::shared_ptr<SystemContext>sys){
     return nullptr;
 }
-std::shared_ptr<ImageSource_interface> BlobCache::NewImageSource(std::shared_ptr<SystemContext>sys){
+std::shared_ptr<ImageSource_interface> BlobCache::NewImageSource(std::shared_ptr<SystemContext>sys,bool check){
     return nullptr;
 }
 std::shared_ptr<ImageDestination_interface> BlobCache::NewImageDestination(std::shared_ptr<SystemContext>sys){

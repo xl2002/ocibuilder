@@ -59,7 +59,7 @@ std::shared_ptr<Image_interface> storageReference::NewImage(std::shared_ptr<Syst
 std::shared_ptr<ImageSource_interface> newImageSource(std::shared_ptr<SystemContext>sys,std::shared_ptr<storageReference>ref){
     return nullptr;
 }
-std::shared_ptr<ImageSource_interface> storageReference::NewImageSource(std::shared_ptr<SystemContext>sys){
+std::shared_ptr<ImageSource_interface> storageReference::NewImageSource(std::shared_ptr<SystemContext>sys,bool check){
     return newImageSource(sys,std::make_shared<storageReference>(*this));
 }
 

@@ -15,29 +15,6 @@ struct ImageSource_interface;
 struct ImageDestination_interface;
 struct SystemContext;
 struct BlobInfo;
-// class ImageReference_interface{
-//     public:
-//     virtual ~ImageReference_interface()=default;
-//     virtual std::shared_ptr<ImageTransport_interface> Transport() = 0;
-//     virtual std::string StringWithinTransport() = 0;
-//     virtual std::string PolicyConfigurationIdentity() = 0;
-//     virtual std::vector<std::string> PolicyConfigurationNamespaces() = 0;
-//     virtual std::shared_ptr<Named_interface> DockerReference() = 0;
-//     virtual std::shared_ptr<Image_interface> NewImage(std::shared_ptr<SystemContext>sys) = 0;
-//     virtual std::shared_ptr<ImageSource_interface> NewImageSource(std::shared_ptr<SystemContext>sys) = 0;
-//     virtual std::shared_ptr<ImageDestination_interface> NewImageDestination(std::shared_ptr<SystemContext>sys) = 0;
-// };
-// ImageTransport基类
-// class ImageTransport_interface {
-// public:
-//     virtual ~ImageTransport_interface()=default;
-//     // 返回传输名称
-//     virtual std::string Name()  = 0;
-//     // 将字符串转换为ImageReference
-//     virtual std::shared_ptr<ImageReference_interface> ParseReference(const std::string &reference)  = 0;
-//     // 验证策略配置范围
-//     virtual void ValidatePolicyConfigurationScope(const std::string &scope)  = 0;
-// };
 
 enum class layerCompression:int{
     PreserveOriginal=0,

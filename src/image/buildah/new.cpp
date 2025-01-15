@@ -60,7 +60,7 @@ std::shared_ptr<Builder> newBuilder(std::shared_ptr<Store> store,std::shared_ptr
     std::shared_ptr<Image_interface> src=nullptr;
     if(ref!=nullptr){
         try{
-            auto srcSrc=ref->NewImageSource(systemContext);
+            auto srcSrc=ref->NewImageSource(systemContext,false);
             std::vector<uint8_t> manifestBytes;
             std::string manifestType;
             std::tie(manifestBytes,manifestType)=srcSrc->GetManifest(nullptr);
