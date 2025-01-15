@@ -1,5 +1,6 @@
 #include "network/network.h"
 #include "image/digest/digest.h"
+#include "cmd/login/login.h"
 
 /**
  * @brief 创建新的请求
@@ -1160,11 +1161,17 @@ void getCookieFromAuthFile(){
     }
 }
 
-void saveLoginInfo(const std::string& username, const std::string& password){
+void saveLoginInfo(const std::string& username, const std::string& password, const std::string& ipAddr){
     std::string authPath = "oci_images/auth.json";
+    if (!boost::filesystem::exists("oci_images")) {
+        boost::filesystem::create_directories("oci_images");
+    }
     json::object credentials;
     credentials["username"] = username;
     credentials["password"] = password;
+    credentials["ipAddr"] = ipAddr;
+    boost::json::value jv = credentials;
+    format_json(jv, 4);
 
     std::ofstream ofs(authPath);
     if (ofs) {
@@ -1175,7 +1182,7 @@ void saveLoginInfo(const std::string& username, const std::string& password){
     }
 }
 
-void loadLoginInfo() {
+void loadLoginInfo(std::string ipAddr) {
     std::string authPath = "oci_images/auth.json";
 
     std::ifstream ifs(authPath);
@@ -1195,15 +1202,22 @@ void loadLoginInfo() {
         json::object credentials = parsed.as_object();
         std::string username;
         std::string password;
-        // 提取字段
-        if (credentials.contains("username") && credentials.contains("password")) {
-            username = json::value_to<std::string>(credentials["username"]);
-            password = json::value_to<std::string>(credentials["password"]);
-            userinfo.username=username;
-            userinfo.password=password;
+        if (credentials.find(ipAddr) != credentials.end()) {
+            user usr = json::value_to<user>(credentials[ipAddr]);
+            userinfo.username=usr.username;
+            userinfo.password=usr.password;
         } else {
             std::cerr << "auth.json does not contain required fields\n";
         }
+        // // 提取字段
+        // if (credentials.contains("username") && credentials.contains("password")) {
+        //     username = json::value_to<std::string>(credentials["username"]);
+        //     password = json::value_to<std::string>(credentials["password"]);
+        //     userinfo.username=username;
+        //     userinfo.password=password;
+        // } else {
+        //     std::cerr << "auth.json does not contain required fields\n";
+        // }
     } catch (const std::exception& e) {
         std::cerr << "Error reading auth.json: " << e.what() << "\n";
     }
