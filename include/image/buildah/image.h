@@ -64,6 +64,10 @@ struct blobLayerInfo{
 };
 
 std::string computeLayerMIMEType(std::string what,std::shared_ptr<Compression> layerCompression);
+/**
+ * @brief containerImageSource 容器镜像源
+ * 
+ */
 struct containerImageSource: public ImageSource_interface{
     std::string path;                          // Go: string
     std::shared_ptr<containerImageRef> ref=std::make_shared<containerImageRef>();                    // Go: *containerImageRef

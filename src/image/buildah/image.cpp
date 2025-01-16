@@ -341,10 +341,15 @@ std::tuple<std::vector<uint8_t>,std::string> containerImageSource::GetManifest(s
 /**
  * @brief 返回镜像的层信息
  * 
- * @return std::shared_ptr<BlobInfo> 
+ * 该函数将返回镜像的所有层信息，该信息包括层的ID、Size、MediaType、CompressionAlgorithm等
+ * 该函数将OCI1的LayerInfos()解析为BlobInfo的vector
+ * 
+ * @return std::vector<BlobInfo> 
  */
 std::vector<BlobInfo>  containerImageSource::LayerInfos(){
+    // 1. 将manifestBlob解析为OCI1
     auto oci=this->OCI1FromManifest();
+    // 2.  OCI1的LayerInfos()解析为BlobInfo的vector
     auto layers=oci->LayerInfos();
     auto blobs = std::vector<BlobInfo>();
     for(auto layer:layers){
@@ -352,13 +357,22 @@ std::vector<BlobInfo>  containerImageSource::LayerInfos(){
     }
     return blobs;
 }
-std::shared_ptr<OCI1>containerImageSource::OCI1FromManifest(){
+/**
+ * @brief 返回oci镜像的manifest
+ * 
+ * @param manifestBlob 
+ * @return std::shared_ptr<OCI1> 
+ */
+std::shared_ptr<OCI1> containerImageSource::OCI1FromManifest(){
     std::string manifeststr=vectorToString(this->manifest);
     auto oci1=unmarshal<OCI1>(manifeststr);
     return std::make_shared<OCI1>(oci1);
 }
 /**
  * @brief 保存config文件
+ * 
+ * 该函数将config保存到镜像库中。该函数会将config序列化为json字符串，然后将其写入到
+ * 镜像库中。该函数返回true表示写入成功，false表示写入失败
  * 
  * @return true 
  * @return false 
@@ -381,10 +395,15 @@ bool containerImageSource::SaveConfig(){
         return false;
     }
 }
+
 /**
  * @brief 保存manifest文件
  * 
- * @param manifestbytes 
+ * 该函数将manifestbytes（json字符串）保存到镜像库中。该函数会将manifestbytes写入到
+ * 镜像库的manifest.json文件中，然后将其重命名。该函数将manifest的sha256值作为
+ * 新的文件名。该函数返回包含manifest的sha256值的指针，如果写入失败返回nullptr
+ * 
+ * @param manifestbytes json字符串
  * @return std::shared_ptr<Digest> 
  */
 std::shared_ptr<Digest> containerImageSource::UploadManifest(std::string& manifestbytes){
@@ -396,17 +415,11 @@ std::shared_ptr<Digest> containerImageSource::UploadManifest(std::string& manife
         std::string manifestpath=storagepath+"manifest.json";
         boost::filesystem::ofstream file2(manifestpath,std::ios::binary|std::ios::trunc);
         file2.write(reinterpret_cast<const char*>(manifestbytes.data()),manifestbytes.size());
-        // std::cout<<manifestbytes<<std::endl;
-        // file2<<manifestbytes;
         file2.close();
         auto manifestdigest=Fromfile(manifestpath);
         newname=storagepath+manifestdigest->Encoded();
         boost::filesystem::rename(manifestpath, newname);
 
-        // std::ifstream file3(newname, std::ios::binary);
-        // std::stringstream buffer;
-        // buffer << file3.rdbuf();
-        // std::cout << "Written JSON content:\n" << buffer.str() << std::endl;
         return manifestdigest;
     }catch(const std::exception& e){
         return nullptr;

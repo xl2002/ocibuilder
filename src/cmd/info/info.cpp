@@ -131,7 +131,6 @@ std::map<std::string,std::string> storeInfo(std::shared_ptr<Store> store){
  * @param store 
  * @return std::vector<InfoData> 
  */
-
 std::vector<InfoData> Information(std::shared_ptr<Store> store){
     std::vector<InfoData> infoDataList;
     // 1. 获取主机信息

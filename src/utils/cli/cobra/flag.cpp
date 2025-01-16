@@ -385,25 +385,23 @@ string Flagset::getFlagType(string name,const string ftype){
     return sval;
 
 }
+
 /**
- * @brief 获取布尔对象
+ * @brief 获取bool类型的标志值
  * 
  * @param name 标签名
- * @return true 如果标志的值为“true”，则返回true
- * @return false 如果标志的值不为“true”，则返回false
+ * @return bool 标志的值
+ * @throws myerror 标志未定义或类型不匹配时抛出异常
  */
-bool Flagset::GetBool(string name){
-    try
-    {
+bool Flagset::GetBool(string name) {
+    try {
         // 获取标志的值，并将其转换为小写
         string val = getFlagType(name, "bool");
         std::transform(val.begin(), val.end(), val.begin(), ::tolower);
-        
+
         // 如果标志的值为“true”，则返回true，否则返回false
         return (val == "true");
-    }
-    catch(const myerror& e)
-    {
+    } catch (const myerror& e) {
         throw;
     }
 }
@@ -411,8 +409,10 @@ bool Flagset::GetBool(string name){
  * @brief 获取字符串对象
  * 
  * @param name 标签名
- * @return 标志的值
+ * @return string 标志的值
  * @throws myerror 标志未定义或类型不匹配时抛出异常
+ * 
+ * @details 该函数通过调用getFlagType函数获取标志的值，并将其作为字符串返回。
  */
 string Flagset::GetString(string name) {
     try {
@@ -514,11 +514,12 @@ int64_t Flagset::GetInt64(string name){
     }
 }
 /**
- * @brief Args 返回非标志参数。
- * 
- * @return vector<string> 
+ * @brief Args 返回非标志参数
+ * <p>
+ * Args 函数返回在分析完命令行参数后，剩下的非标志参数
+ * </p>
+ * @return vector<string> 非标志参数
  */
-
 vector<string> Flagset::Args(){
     return args;
 }
@@ -543,46 +544,66 @@ vector<Flag*> sortFlags(map<string,Flag*> flags){
  * @brief Parse 从参数列表中解析标志定义
  * 
  * @param arguments 参数列表
+ * 
+ * @details 此函数用于解析传递的参数列表。首先，它将
+ * 解析状态设置为 true。然后，它检查参数列表是否为空。
+ * 如果为空，则直接返回。否则，将参数列表的大小保留
+ * 在成员变量 args 中，并调用 parseArgs 函数进行解析。
+ * 如果解析过程中出现错误，则捕获并重新抛出异常。
  */
-void Flagset::Parse(vector<string> arguments){
-    parsed=true;
-    if(arguments.size()==0){
+void Flagset::Parse(vector<string> arguments) {
+    // 设置解析状态为 true
+    parsed = true;
+
+    // 检查参数列表是否为空
+    if (arguments.size() == 0) {
         return;
     }
+
+    // 预留参数列表大小
     args.reserve(arguments.size());
-    try
-    {
+
+    try {
+        // 调用 parseArgs 函数进行参数解析
         parseArgs(arguments);
-    }
-    catch(const myerror& e)
-    {
+    } catch (const myerror& e) {
+        // 捕获并重新抛出异常
         throw;
     }
-    
-    
 }
 /**
  * @brief 分析子命令参数
  * 
  * @param args 参数列表
+ * 
+ * @details 该函数用于解析子命令参数。首先，如果参数列表为空
+ *          或者第一个参数不是长标志（以 "--" 开头），
+ *          则将参数列表的所有元素添加到成员变量 args 中
+ *          并返回。如果参数列表不为空且第一个参数是长
+ *          标志，则将其解析并将解析结果添加到参数列表
+ *          中，并继续解析下一个参数
  */
 void Flagset::parseArgs(vector<string> args){
     auto it =args.begin();
     while (it!=args.end()){
         string str=*it;
         it=args.erase(it);
+        /// 如果参数列表为空或者第一个参数不是长标志
         if(str.size()<2||str[0]!='-'||str.size()==1||str[1]!='-'){
             if(!interspersed){
+                /// 如果不允许散布参数
                 this->args.emplace_back(str);
                 this->args.insert(this->args.end(),it,args.end());
                 return;
             }
+            /// 否则，将参数添加到参数列表
             this->args.emplace_back(str);
             continue;
         }
         vector<string> in_args(it,args.end());
         try
         {
+            /// 解析长标志
             args=parseLongArg(str,in_args);
         }
         catch(const myerror& e)
@@ -595,69 +616,71 @@ void Flagset::parseArgs(vector<string> args){
 /**
  * @brief 解析长标签名的参数
  * 
- * @param arg 
- * @param args 
- * @return vector<string> 
+ * @param arg 长标签名
+ * @param args 输入参数列表
+ * @return vector<string> 解析后的参数列表
+ * 
+ * @details 该函数将长标签名 arg 解析，并将解析结果
+ *          添加到参数列表 ret_args 中，并返回 ret_args
  */
-vector<string> Flagset::parseLongArg(string arg,vector<string> args){
-    vector<string> ret_args=args;
-    string name(arg.begin()+2,arg.end());
-    if(name.size()==0|| name[0]=='-'||name[0]=='='){
-        throw myerror("bad flag syntax: "+arg);
-        // cerr<<"bad flag syntax: "<<name<<endl;
-        return ret_args;
+vector<string> Flagset::parseLongArg(string arg, vector<string> args) {
+    vector<string> ret_args = args;
+    // 提取标签名
+    string name(arg.begin() + 2, arg.end());
+    if (name.size() == 0 || name[0] == '-' || name[0] == '=') {
+        throw myerror("bad flag syntax: " + arg);
     }
-    vector<string> split=SplitN(name,"=",2);
-    name=split[0];
+
+    // 分割标签名和值
+    vector<string> split = SplitN(name, "=", 2);
+    name = split[0];
+
     Flag* flag;
-    if(formal_flags.find(name)==formal_flags.end()){
-        throw myerror("unknown flag: --"+name);
-        // cerr<<"unknown flag: --"<<name<<endl;
-    }else{
-        flag=formal_flags[name];
+    if (formal_flags.find(name) == formal_flags.end()) {
+        throw myerror("unknown flag: --" + name);
+    } else {
+        flag = formal_flags[name];
     }
+
     string value;
-    if(split.size()==2){
-        ///--flag=value
-        value=split[1];
-    }else if(flag->NoOptDefVal!=""){
-        ///'--flag' (arg was optional)
-        value=flag->NoOptDefVal;
-    }else if(ret_args.size()>0){
-        /// '--flag arg'
-        value=ret_args[0];
+    if (split.size() == 2) {
+        // 格式为 --flag=value
+        value = split[1];
+    } else if (flag->NoOptDefVal != "") {
+        // 格式为 --flag, 参数为可选
+        value = flag->NoOptDefVal;
+    } else if (ret_args.size() > 0) {
+        // 格式为 --flag arg
+        value = ret_args[0];
         ret_args.erase(ret_args.begin());
-    }else{
-        /// '--flag' (arg was required)
-        throw myerror("flag needs an argument: "+arg);
-        // cerr<<"flag needs an argument: "<<arg<<endl;
-        // return ret_args;
+    } else {
+        // 格式为 --flag, 参数为必需
+        throw myerror("flag needs an argument: " + arg);
     }
-    // if(!Set(flag->name,value)){
-    //     throw myerror("fail to set the flag value");
-    //     // cerr<<"fail to set the flag value"<<endl;
-    // }
-    try
-    {
-        bool isSet=Set(flag->name,value);
-        if(!isSet){
-            // throw myerror("fail to set the flag value");
-            cerr<<"fail to set the flag value"<<endl;
+
+    try {
+        // 尝试设置标志
+        bool isSet = Set(flag->name, value);
+        if (!isSet) {
+            cerr << "fail to set the flag value" << endl;
         }
-    }
-    catch(const myerror& e)
-    {
+    } catch (const myerror& e) {
         throw;
     }
-    
+
     return ret_args;
-}/**
- * @brief Set 设置指定标志的值。
+}
+/**
+ * @brief Set 设置指定标志的值
  * 
  * @param name 标签名
  * @param value 标签值
- * @return true 
- * @return false 
+ * 
+ * @details 该函数用于将指定的标志设置为指定的值。
+ *          如果标志不存在，或者标志的值类型不匹配
+ *          则抛出异常。
+ * @return true 如果标志设置成功
+ * @return false 如果标志设置失败
  */
 bool Flagset::Set(string name, string value){
     // string name =this->name;

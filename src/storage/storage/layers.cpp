@@ -247,7 +247,8 @@ std::vector<std::shared_ptr<Layer>> parseLayersFromJson(const std::string& jsonD
 }
 /**
  * @brief 加载layer
- * 
+ *  该函数将读取layer store中的所有json文件
+ *  并将其解析到Layer对象
  * @param lockedForWriting 
  * @return true 
  * @return false 
@@ -331,62 +332,103 @@ bool layerStore::load(bool lockedForWriting) {
         return false;
     }
 }
-bool layerStore::savelayer(){
+/**
+ * @brief 保存Layer对象
+ * 
+ * 该函数将layers中的Layer对象序列化到JSON字符串
+ * 并将其写入到对应的文件中
+ * 
+ * @return 保存成功返回true，否则返回false
+ */
+bool layerStore::savelayer() {
     std::vector<Layer> Layers;
-    for(const auto& layer:layers){
+    for (const auto& layer : layers) {
         Layers.push_back(*layer);
     }
+
+    // 将Layer对象序列化到JSON字符串
     std::string jsonData = marshal<std::vector<Layer>>(Layers);
-    for(const auto& [index, path]:jsonPath){
-        if(!boost::filesystem::exists(path)){
+
+    // 遍历jsonPath，写入JSON数据到对应的文件中
+    for (const auto& [index, path] : jsonPath) {
+        if (!boost::filesystem::exists(path)) {
             continue;
         }
-        std::ofstream file(path,std::ios::trunc);
-        if(!file.is_open()){
+        std::ofstream file(path, std::ios::trunc);
+        if (!file.is_open()) {
             return false;
         }
-        file<<jsonData;
+        file << jsonData;
         file.close();
     }
+
     return true;
 }
-void layerStore::deleteLayer(std::string layerID){
-    auto layer=this->lookup(layerID);
-    if(layer==nullptr){
-        return;
+/**
+ * @brief 删除Layer对象
+ * 
+ * 根据给定的Layer ID，删除存储中的对应Layer对象
+ * 
+ * @param layerID 要删除的Layer ID
+ */
+void layerStore::deleteLayer(std::string layerID) {
+    auto layer = this->lookup(layerID);
+    if (layer == nullptr) {
+        return; // 如果不存在该Layer对象，则返回
     }
-    //删除layers中的记录
-    for(auto i=0;i<layers.size();i++){
-        if(layers[i]->ID==layerID){
-            layers.erase(layers.begin()+i);
+
+    // 删除layers中的记录
+    for (auto i = 0; i < layers.size(); i++) {
+        if (layers[i]->ID == layerID) {
+            layers.erase(layers.begin() + i);
             break;
         }
     }
+
     auto id = layer->ID;
-    //删除byid中的记录
+
+    // 删除byid中的记录
     byid.erase(id);
-    //删除byname中的记录
-    for(auto i=0;i<layer->Names.size();i++){
+
+    // 删除byname中的记录
+    for (auto i = 0; i < layer->Names.size(); i++) {
         byname.erase(layer->Names[i]);
     }
-    //删除bycompressedsum中的记录
-    if(layer->CompressedDigest!=nullptr){
+
+    // 删除bycompressedsum中的记录
+    if (layer->CompressedDigest != nullptr) {
         bycompressedsum.erase(*layer->CompressedDigest);
     }
-    //删除byuncompressedsum中的记录
-    if(layer->UncompressedDigest!=nullptr){
+
+    // 删除byuncompressedsum中的记录
+    if (layer->UncompressedDigest != nullptr) {
         byuncompressedsum.erase(*layer->UncompressedDigest);
     }
-}   
+}
 
-std::shared_ptr<Layer> layerStore::lookup(const std::string& id){
-    auto it=byid.find(id);
-    if(it!=byid.end()){
+/**
+ * @brief 查找Layer对象
+ * 
+ * 根据给定的ID在存储中查找对应的Layer对象。
+ * 
+ * @param id 要查找的Layer ID
+ * @return std::shared_ptr<Layer> 如果找到则返回Layer对象，否则返回nullptr
+ */
+std::shared_ptr<Layer> layerStore::lookup(const std::string& id) {
+    // 在 byid 映射中查找 ID
+    auto it = byid.find(id);
+    if (it != byid.end()) {
+        // 如果找到，则返回对应的 Layer 对象
         return it->second;
     }
-    auto name=byname.find(id);
-    if(name!=byname.end()){
+    
+    // 如果未在 byid 中找到，则在 byname 映射中查找 ID
+    auto name = byname.find(id);
+    if (name != byname.end()) {
+        // 如果找到，则返回对应的 Layer 对象
         return name->second;
     }
+    
+    // 如果在 byid 和 byname 中都未找到，返回空指针
     return nullptr;
 }

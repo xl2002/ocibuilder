@@ -24,7 +24,7 @@ void init_version(){
     string name{"version"};
     string Short{"Display the Buildah version information"};
     string Long{"Displays Buildah version information."};
-    string example{"buildah version [--json]"};
+    string example{"buildah version [--json]"}; 
     Command* versionCommand=new Command{name,Short,Long,example};
     string Template=UsageTemplate();
     versionCommand->SetUsageTemplate(Template);

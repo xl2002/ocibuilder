@@ -34,6 +34,7 @@ chatgpt提示工程
 4.如果C++代码对于linux和window系统实现不同，则用编译宏给出跨平台写法
 5.C++代码不用给出main测试代码
 6.错误处理时，采用抛出的方法，不使用boost::system::error_code
+Add comments and descriptions in Chinese
 ```
 
 test.cpp 运行
