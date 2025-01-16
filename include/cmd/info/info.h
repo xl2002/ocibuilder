@@ -18,6 +18,10 @@
 #include <boost/json.hpp>
 using std::string;
 using std::vector;
+/**
+ * @brief 用于存储类型信息和相应的数据，支持JSON序列化。
+ * 
+ */
 struct InfoData{
     std::string Type;
     std::map<std::string,std::string> Data;

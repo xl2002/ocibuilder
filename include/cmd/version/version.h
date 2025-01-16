@@ -26,6 +26,10 @@ struct versionOptions
     /* data */
     bool    json=false;           ///< json 标志
 };
+/**
+ * @brief 存储版本信息及构建相关信息，包括C++版本、镜像规范等。
+ * 
+ */
 struct versionInfo{
     std::string Version; //版本
     std::string CppVersion; //c++版本

@@ -21,6 +21,11 @@
 // struct v1::Image;
 class Store;
 class Container;
+/**
+ * @brief 用于构建容器镜像，
+ * 管理构建过程中的各种配置、挂载、网络等相关信息，并提供方法以灵活设置和修改构建参数。
+ * 
+ */
 struct Builder {
     std::shared_ptr<Store> store=std::make_shared<Store>();
 

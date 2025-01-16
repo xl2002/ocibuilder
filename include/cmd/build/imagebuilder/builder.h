@@ -56,6 +56,10 @@ public:
 };
 
 class Executor_Interface;
+/**
+ * @brief Image_Builder 类用于管理和协调容器镜像的构建过程，处理配置、参数、步骤和任务执行。
+ * 
+ */
 class Image_Builder {
 public:
     std::shared_ptr<container_Config> RunConfig=std::make_shared<container_Config>();

@@ -45,6 +45,10 @@ class StageExecutor;
 struct stageDependencyInfo;
 class Stages;
 class Stage;
+/**
+ * @brief 用于管理构建过程中的执行和状态，包括处理构建阶段、缓存、容器、日志等相关信息。
+ * 
+ */
 struct Executor {
     std::vector<named> cacheFrom;
     std::vector<named> cacheTo;
