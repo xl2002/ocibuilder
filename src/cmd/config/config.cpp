@@ -78,6 +78,41 @@ std::shared_ptr<Builder> openBuilder(std::shared_ptr<Store> store,std::string na
 
     return builder;
 }
+// 手动解析 [args1,arg2] 格式的字符串到字符串数组
+std::vector<std::string> parseManualArray(const std::string& input) {
+    if (input.front() != '[' || input.back() != ']') {
+        throw std::invalid_argument("Input is not a valid array format");
+    }
+
+    std::vector<std::string> result;
+    std::string current;
+    bool inElement = false;
+
+    for (size_t i = 1; i < input.size() - 1; ++i) { // 去掉两边的 [ 和 ]
+        char c = input[i];
+
+        if (std::isspace(c)) {
+            continue; // 忽略空白字符
+        }
+
+        if (c == ',') {
+            if (inElement) {
+                result.push_back(current);
+                current.clear();
+                inElement = false;
+            }
+        } else {
+            current += c;
+            inElement = true;
+        }
+    }
+
+    if (!current.empty()) {
+        result.push_back(current);
+    }
+
+    return result;
+}
 // 更新 Entrypoint 的方法
 void updateEntrypoint(std::shared_ptr<Builder> builder, const std::string& entrypoint) {
     if (entrypoint.empty()) {
@@ -88,21 +123,13 @@ void updateEntrypoint(std::shared_ptr<Builder> builder, const std::string& entry
 
     // 尝试将 entrypoint 解析为 JSON 数组
     try {
-        // 尝试将 entrypoint 作为 JSON 数组解析
-        boost::json::value jv = boost::json::parse(entrypoint);
-        if (jv.is_array()) {
-            std::vector<std::string> entrypointVec;
-            for (const auto& elem : jv.as_array()) {
-                entrypointVec.push_back(elem.as_string().c_str());
-            }
-            builder->SetEntrypoint(entrypointVec);
-
-            std::cout << "Entrypoint set as JSON array." << std::endl;
-        } else {
-            throw myerror("Invalid JSON format");
-        }
+        // 手动解析 [args1,arg2] 格式的字符串
+        std::vector<std::string> entrypointVec = parseManualArray(entrypoint);
+        builder->SetEntrypoint(entrypointVec);
+        std::cout << "Entrypoint set as array." << std::endl;
     } catch (const std::exception& e) {
         // 如果解析失败，则将 entrypoint 作为普通字符串传递给 shell
+        std::cerr << "JSON parsing error: " << e.what() << std::endl;
         // std::vector<std::string> entrypointVec = {"/bin/sh", "-c", entrypoint};
         std::vector<std::string> entrypointVec = {entrypoint};
         builder->SetEntrypoint(entrypointVec);

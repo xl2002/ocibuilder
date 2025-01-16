@@ -4,6 +4,7 @@
 # 测试镜像生成
 ./output/main.exe build --tag image1:latest .
 ./output/main.exe build --annotation "version=3.0" --annotation "author=NWPU" --arch amd64 --os linux --file Dockerfile --tag busybox-image:latest .
+./output/main.exe build --annotation "version=3.0" --annotation "author=NWPU" --arch amd64 --os linux --file Dockerfile12 --tag busybox-image:latest ./dockerFiledir
 ./output/main.exe build --annotation "version=1.0" --annotation "author=NWPU" --arch x86_64 --os windows7 --file Dockerfile.prod --tag busybox-image:latest .
 # 测试多个镜像生成，包括同名，不同名
 ./output/main.exe build --tag image1:latest .
@@ -23,8 +24,10 @@
 ~~~bash
 # 更改镜像的配置，注意：env和label是对变量的修改，如果没有对应的key则添加，否则覆盖原有的值
 ./output/main.exe config --arch "x86_64" --os "windows7" --author "NWPU" --entrypoint "/bin/bash" --env "DEBIAN_FRONTEND=noninteractive" --env "PATH_A=interactive" --label "version=1.0.0" --label "maintainer=your_email@example.com" image1:latest
+./output/main.exe config --arch "x86_64" --os "windows7" --author "NWPU" --entrypoint '["/bin/bash", "-c"]' --env "DEBIAN_FRONTEND=noninteractive" --env "PATH_A=interactive" --label "version=1.0.0" --label "maintainer=your_email@example.com" image1:latest
 #linux系统测试样例
 ./output/main config --arch "x86_64" --os "windows7" --author "NWPU" --entrypoint "/bin/bash" --env "DEBIAN_FRONTEND=noninteractive" --env "PATH_A=interactive" --label "version=1.0.0" --label "maintainer=your_email@example.com" image1:latest
+./output/main config --arch "x86_64" --os "windows7" --author "NWPU" --entrypoint '["/bin/bash", "-c"]' --env "DEBIAN_FRONTEND=noninteractive" --env "PATH_A=interactive" --label "version=1.0.0" --label "maintainer=your_email@example.com" image1:latest
 ~~~
 3. images
 ~~~bash
