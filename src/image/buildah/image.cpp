@@ -183,7 +183,7 @@ std::shared_ptr<ImageSource_interface> containerImageRef::NewImageSource(std::sh
                 if (boost::filesystem::is_regular_file(*it)) {
                     file_paths=it->path().string();
                     auto filedigest=Fromfile(file_paths);
-                    std::string key=file_paths.substr(overlaypath.length());
+                    std::string key="."+file_paths.substr(overlaypath.length());
                     std::replace(key.begin(), key.end(), '\\', '/');
                     checks->Validation[key]=filedigest->Encoded();
                 }
