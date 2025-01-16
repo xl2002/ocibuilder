@@ -78,12 +78,16 @@ string BuildDockerfiles(shared_ptr<Store> stores, shared_ptr<define_BuildOptions
         if(hasPrefix(dfile,"http://")||hasPrefix(dfile,"https://")){
             
         }else{
-            if(!hasPrefix(dfile,options->ContextDirectory)){
-                dfile=joinPath(options->ContextDirectory,dfile);
-            }
             struct stat buf;
             if(stat(dfile.c_str(),&buf)<0){ //判断文件是否存在
-                throw myerror("no such file or directory: "+dfile);
+                // throw myerror("no such file or directory: "+dfile);
+                // 如果文件不存在，参试试添加上上下文目录，比如在当前目录下，有一个文件，要在上下文目录下找，如果找不到，就报错
+                if(!hasPrefix(dfile,options->ContextDirectory)){
+                    dfile=joinPath(options->ContextDirectory,dfile);
+                }
+                if(stat(dfile.c_str(),&buf)<0){
+                    throw myerror("no such file or directory: "+dfile);
+                }
             }
             if(buf.st_mode & S_IFDIR){
                 throw myerror("file is a directory: "+dfile);

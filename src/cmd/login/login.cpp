@@ -10,6 +10,7 @@
  */
 #include "cmd/login/login.h"
 #include "utils/cli/cli/common.h"
+#include "storage/types/options.h"
 /**
  * @brief 初始化 login 命令的内容
  * 
@@ -42,6 +43,49 @@ void loginCmd(Command& cmd, vector<string> args,LoginOptions* iopts){
     auto tmp=cmd.flags->actual_flags;
     std::string username=tmp["username"]->value->String();
     std::string password=tmp["password"]->value->String();
-    saveLoginInfo(username,password);
+    std::string ipAddress = args[args.size()-1];
+    user usr;
+    usr.username=username;
+    usr.password=password;
+
+    // 如果路径不存在，创建路径
+    if (!boost::filesystem::exists("oci_images")) {
+        boost::filesystem::create_directories("oci_images");
+    }
+
+    
+    boost::json::object jsonData = boost::json::object{};
+    std::string authPath = "oci_images/auth.json";
+    if (boost::filesystem::exists(authPath)) {
+        std::ifstream ifs(authPath);
+        if (ifs) {
+            boost::json::value jv;
+            std::stringstream buffer;
+            buffer << ifs.rdbuf();
+            ifs.close();
+            if (!buffer.str().empty()) {
+                jv = boost::json::parse(buffer.str());
+                if (jv.is_object()) {
+                    jsonData = jv.as_object();
+                }
+            }
+        } else {
+            std::cerr << "Failed to open file for loading cookie.\n";
+            return;
+        }
+    }
+    
+    jsonData[ipAddress] = boost::json::value_from(usr);
+    std::ofstream ofs(authPath);
+    // boost::json::value jv = jsonData;
+    std::string formated_info = format_json(boost::json::value(jsonData), 0);
+    if (ofs) {
+        ofs << formated_info;
+        ofs.close();
+    } else {
+        std::cerr << "Failed to save credentials\n";
+    }
+    std::cout << "Credentials saved to auth.json\n";
+    // saveLoginInfo(username,password, ipAddress);
     delete iopts;
 }

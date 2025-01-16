@@ -212,10 +212,10 @@ void makeDirectoryWritable(const fs::path& dirPath) {
 
 //     return total_size; // 返回总传输大小
 // }
-int64_t Copy_directory(fs::path& source, fs::path& destination) {
+int64_t Copy_directory(const fs::path& sourcedir, const fs::path& destination) {
     // 检查源目录是否存在
     int64_t total_size = 0; // 用于统计传输的数据大小
-    source=fs::absolute(source);
+    auto source=fs::absolute(sourcedir);
     if (!fs::exists(source) || !fs::is_directory(source)) {
         throw std::runtime_error("源目录不存在或不是一个目录: " + source.string());
     }
@@ -424,7 +424,7 @@ void Copy_file(const fs::path& src, const fs::path& dest) {
 
         // 使用 Boost.Filesystem 的文件复制功能
         fs::copy_file(src, dest, fs::copy_option::overwrite_if_exists);
-        std::cout << "File copied successfully from " << src.string() << " to " << dest.string() << std::endl;
+        // std::cout << "File copied successfully from " << src.string() << " to " << dest.string() << std::endl;
     } catch (const fs::filesystem_error& ex) {
         std::cerr << "Filesystem error: " << ex.what() << std::endl;
     } catch (const std::exception& ex) {

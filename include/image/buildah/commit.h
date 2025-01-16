@@ -51,6 +51,7 @@ struct CommitOptions {
     // OmitTimestamp 强制将创建时间戳设为 epoch 0，以实现可确定性、内容地址的构建
     bool OmitTimestamp=false;
 
+    bool check=false;
     // SignBy 是用于签署图片的 GPG 密钥指纹
     std::string SignBy;
 

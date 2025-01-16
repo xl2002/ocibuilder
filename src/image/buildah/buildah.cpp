@@ -246,6 +246,7 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,std::shared_ptr<Dige
     std::vector<byte> manifestBytes;
     try{
         auto coptions=getCopyOptions(this->store, options->ReportWriter, nullptr, systemContext, "", false, options->SignBy, options->OciEncryptLayers, options->OciEncryptConfig, nullptr);
+        coptions->check=options->check;
         manifestBytes=retryCopyImage(policyContext,maybeCachedDest,maybeCachedSrc,dest,coptions,options->MaxRetries,options->RetryDelay);
     }catch(const myerror& e){
         throw myerror("copying layers and metadata for container "+this->ContainerID+": "+std::string(e.what()));

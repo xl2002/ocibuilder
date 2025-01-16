@@ -61,6 +61,7 @@ namespace copy{
 
         std::vector<OptionCompressionVariant> ensureCompressionVariantsExist; // 确保压缩变体存在
         bool forceCompressionFormat=false;                          // 强制使用指定的压缩格式
+        bool check=false;                                           // 
     };
 }
 std::vector<uint8_t> Image(std::shared_ptr<PolicyContext>policyContext,std::shared_ptr<ImageReference_interface> destRef,std::shared_ptr<ImageReference_interface> srcRef,std::shared_ptr<ImageReference_interface> registry,std::shared_ptr<copy::Options> copyOptions);

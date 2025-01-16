@@ -12,6 +12,7 @@
 ./output/main.exe build --tag image2:latest .
 ./output/main.exe build --tag image3:latest .
 
+./output/main.exe build --check --tag image1:latest .
 # linux系统
 ./output/main build --tag image1:latest .
 ./output/main build --tag image1:latest .
@@ -62,18 +63,18 @@
 6. login
 ~~~bash
 # 登录到远端
-./output/main.exe login --username myusername --password mypassword
+./output/main.exe login --username myusername --password mypassword 10.68.1.145:5000
 # linux系统测试样例
-./output/main login --username myusername --password mypassword
+./output/main login --username myusername --password mypassword 10.68.1.145:5000
 ~~~
 
 7. logout
 ~~~bash
 # 退出登录
-./output/main.exe logout
+./output/main.exe logout 10.68.1.145:5000
 ./output/main.exe logout --all
 # linux系统测试样例
-./output/main logout
+./output/main logout 10.68.1.145:5000
 ./output/main logout --all
 ~~~
 

@@ -19,7 +19,7 @@ struct BlobCache:public BlobCache_interface
     // std::string Name() override;
     std::shared_ptr<ImageTransport_interface> Transport() override;
     std::shared_ptr<Image_interface> NewImage(std::shared_ptr<SystemContext>sys) override;
-    std::shared_ptr<ImageSource_interface> NewImageSource(std::shared_ptr<SystemContext>sys) override;
+    std::shared_ptr<ImageSource_interface> NewImageSource(std::shared_ptr<SystemContext>sys,bool check) override;
     std::shared_ptr<ImageDestination_interface> NewImageDestination(std::shared_ptr<SystemContext>sys) override;
     std::string Directory() override;
 };

@@ -27,7 +27,7 @@ using namespace std;
 /**
  * @ingroup flag
  * @brief 声明Flag类（工具命令的标志量）的成员变量和成员函数
- * <p>标志代表标志的状态。
+ * <p>标志代表标志的状态。用于表示命令行工具中的一个命令对应支持的具体的一个参数。
  */
 class Flag{
   public:

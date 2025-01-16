@@ -11,6 +11,7 @@
 #include "utils/common/group.h"
 #include "storage/storage/storage_transport.h"
 #include "utils/common/go/file.h"
+#include <boost/format.hpp>
 // #include "image/transports/alltransports.h"
 // #include "docker/container.h"
 // newExecutor creates a new instance of the imagebuilder.Executor interface.
@@ -54,7 +55,7 @@ newExecutor(
 
     }
     auto exec=std::make_shared<Executor>();
-
+    exec->check=options->check;
     exec->args=options->Args;
     exec->cacheFrom=options->CacheFrom;
     exec->cacheTo=options->CacheTo;
@@ -596,13 +597,39 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,bool,std::string> Ex
     std::string imageID;
     std::shared_ptr<Canonical_interface> ref;
     bool onlyBaseImage;
+    std::chrono::duration<double> duration;
+    std::chrono::high_resolution_clock::time_point start,end;
     try {
+        // 记录程序开始时间
+        start = std::chrono::high_resolution_clock::now();
         //执行镜像构建
         std::tie(imageID, ref, onlyBaseImage) = stageExecutor->Execute(base);
+        // 记录程序结束时间
+        end = std::chrono::high_resolution_clock::now();
+        duration = end - start;
     } catch (const myerror& e) {
         return std::make_tuple("", nullptr, onlyBaseImage, std::string(e.what()));
     }
-
+    //计算镜像构建效率
+    std::string manifestpath=this->store->GetImageStoragePath()+"/blobs/sha256/"+imageID;
+    std::ifstream file2(manifestpath, std::ios::binary);
+    std::stringstream buffer;
+    buffer << file2.rdbuf();
+    std::string manifeststr=buffer.str();
+    file2.close();
+    auto manifest=unmarshal<Manifest>(manifeststr);
+    auto imagesize=std::accumulate(
+        manifest.Layers.begin(), 
+        manifest.Layers.end(), 0, 
+        [](size_t total, const Descriptor& layer) {
+            return total + layer.Size; 
+        }
+    );
+    auto efficiency=imagesize/duration.count()/1024/1024;
+    std::cout<<"build time "<<duration.count()<<" s"<<std::endl;
+    std::cout<<"image size "<<imagesize<<" B"<<std::endl;
+    std::cout<<boost::str(boost::format("image %s efficiency %.4f MB/s") % imageID.substr(0,12) % efficiency)<<std::endl;
+    
     if (removeIntermediateCtrs && stage.Node->Children.size() > 0) {
         std::lock_guard<std::mutex> lock(this->stagesLock);
         cleanupStages[stage.Position] = stageExecutor;

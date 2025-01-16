@@ -22,7 +22,7 @@ std::vector<uint8_t> Image(std::shared_ptr<PolicyContext>policyContext,std::shar
     // 2. 构建copy层，并构建整个镜像的config和manifest，但是manifest的layer未压缩
     // publicRawSource, err := srcRef.NewImageSource(ctx, options.SourceCtx)
     // srcRef为containerImageRef类型，rawSource为containerImageSource类型
-    auto rawSource=srcRef->NewImageSource(copyOptions->sourceCtx);
+    auto rawSource=srcRef->NewImageSource(copyOptions->sourceCtx,copyOptions->check);
     // 3. 将缓存中的镜像传输到镜像库，并且就行gzip压缩
     // single, err := c.copySingleImage(ctx, c.unparsedToplevel, nil, copySingleImageOptions{requireCompressionFormatMatch: requireCompressionFormatMatch})
     auto c=std::make_shared<copier>();
@@ -154,10 +154,10 @@ std::shared_ptr<copySingleImageResult> copier::copySingleImage(std::shared_ptr<U
     result->manifestDigest=manifestdigest;
     result->compressionAlgorithms.push_back(compressionAlgo);
 
-    auto removenum=boost::filesystem::remove_all(pendingImage->path);//删除缓存的buildah文件夹
-    if(removenum!=0){
-        std::cout<<"success remove tar tmp directory: "<< pendingImage->path<<std::endl;
-    }
+    // auto removenum=boost::filesystem::remove_all(pendingImage->path);//删除缓存的buildah文件夹
+    // if(removenum!=0){
+    //     std::cout<<"success remove tar tmp directory: "<< pendingImage->path<<std::endl;
+    // }
     return result;
 }
 
@@ -254,7 +254,7 @@ std::tuple<std::shared_ptr<BlobInfo>,std::shared_ptr<Digest>> imageCopier::copyL
     }
     // auto digest=FromString(gzipblob);
     auto size=gzipblob.size();
-    std::cout<<"success copying layer: "<<BlobDigest->String()<<std::endl;
+    std::cout<<"success copying image layer: "<<BlobDigest->String()<<std::endl;
     // 4. 将压缩后的镜像层传输到镜像库
     auto blobinfo=std::make_shared<BlobInfo>();
     blobinfo->Digest=BlobDigest;

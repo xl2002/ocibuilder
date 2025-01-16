@@ -529,6 +529,7 @@ std::pair<std::string,std::shared_ptr<Canonical_interface>> StageExecutor::commi
     options->RetryDelay=this->executor->retryPullPushDelay;
     options->HistoryTimestamp=this->executor->timestamp;
     options->Manifest=this->executor->manifest;
+    options->check=this->executor->check;
     if(finalInstruction){
         options->ConfidentialWorkloadOptions=this->executor->confidentialWorkload;
         options->SBOMScanOptions=this->executor->sbomScanOptions;
@@ -551,7 +552,8 @@ std::pair<std::string,std::shared_ptr<Canonical_interface>> StageExecutor::commi
             }
         }
     }
-    return std::make_pair(imgID,ref);
+    // return std::make_pair(imgID,ref);
+    return std::make_pair(manifestDigest->Encoded(),ref);
 }
 
 void StageExecutor::generateBuildOutput(std::shared_ptr<BuildOutputOption>buildOutputOpts){

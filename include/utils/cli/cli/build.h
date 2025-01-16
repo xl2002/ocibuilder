@@ -73,6 +73,7 @@ using std::vector;
  * SSH：向容器添加SSH密钥
  */
 struct BudResults{
+    bool                check=false;          ///<是否生成每个文件的校验码存储文件
     bool                allplatform=false;     ///<镜像构建是否适用所有平台
     vector<string>      annotation;  ///<向镜像添加annotation
     vector<string>      tag;         ///<镜像的标签

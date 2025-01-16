@@ -53,7 +53,7 @@ struct containerImageRef: public ImageReference_interface{
     std::vector<std::string> PolicyConfigurationNamespaces() override;
     std::shared_ptr<Named_interface> DockerReference() override;
     std::shared_ptr<Image_interface> NewImage(std::shared_ptr<SystemContext>sys) override;
-    std::shared_ptr<ImageSource_interface> NewImageSource(std::shared_ptr<SystemContext>sys) override;
+    std::shared_ptr<ImageSource_interface> NewImageSource(std::shared_ptr<SystemContext>sys,bool check) override;
     std::tuple<std::shared_ptr<v1::Image>,std::shared_ptr<Manifest>> createConfigsAndManifests();
     std::shared_ptr<ImageDestination_interface> NewImageDestination(std::shared_ptr<SystemContext>sys) override;
 };

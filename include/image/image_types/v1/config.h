@@ -56,7 +56,7 @@ struct ImageConfig {
         jv=boost::json::object{
             // {"user",image.user},
             {"Env",boost::json::value_from(image.env)},
-            {"Cmd",boost::json::value_from(image.cmd)},
+            // {"Cmd",boost::json::value_from(image.cmd)},
             {"Volumes",boost::json::value_from(image.volumes)},
             {"WorkingDir",image.workingDir},
             {"Entrypoint",boost::json::value_from(image.entrypoint)},
@@ -71,7 +71,7 @@ struct ImageConfig {
         ImageConfig image;
         // image.user=obj.at("user").as_string();
         image.env=boost::json::value_to<std::vector<std::string>>(obj.at("Env"));
-        image.cmd=boost::json::value_to<std::vector<std::string>>(obj.at("Cmd"));
+        // image.cmd=boost::json::value_to<std::vector<std::string>>(obj.at("Cmd"));
         // image.volumes=boost::json::value_to<std::map<std::string, std::string>>(obj.at("Volumes"));
         image.volumes=boost::json::value_to<std::map<std::string, boost::json::object>>(obj.at("Volumes"));
         image.workingDir=obj.at("WorkingDir").as_string().c_str();
@@ -215,4 +215,26 @@ struct Manifest{
         return m;
     };
 };
+
+struct Check {
+    std::string version;
+    //key为文件路径，value为校验的sha256值
+    std::map<std::string, std::string> Validation;
+    Check()=default;
+    friend void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const Check& image) {
+        jv=boost::json::object{
+            {"version",image.version},
+            {"validation",boost::json::value_from(image.Validation)}
+        };
+    }
+
+    friend Check tag_invoke(boost::json::value_to_tag<Check>, const boost::json::value& jv) {
+        const auto& obj = jv.as_object();
+        Check m;
+        m.version=obj.at("version").as_string().c_str();
+        m.Validation=boost::json::value_to<std::map<std::string, std::string>>(obj.at("validation"));
+        return m;
+    };
+};
+
 #endif // V1_CONFIG_H)
