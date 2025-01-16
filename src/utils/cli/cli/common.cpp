@@ -296,7 +296,9 @@ void tmpl(std::ostream& out, const std::string& text,Command& data){
         out << fmt.str();
         std::string Flagstext;
         for(auto flag:flags){
-            out<<std::left<<std::setw(30)<<"--"+flag->name<<std::setw(80)<<flag->usage_help<<std::endl;
+            if(!flag->hidden){
+                out<<std::left<<std::setw(30)<<"--"+flag->name<<std::setw(80)<<flag->usage_help<<std::endl;
+            }
             // Flagstext+=+"\t\t\t"+flag->usage_help+'\n';
         }
     } catch (const std::exception& e) {

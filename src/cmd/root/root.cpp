@@ -57,6 +57,11 @@ Command init_rootcmd(){
     persistentflags->StringVar(globalFlagOptions.UserShortNameAliasConfPath, "short-name-alias-conf", "", "path to short name alias cache file (not usually used)");
     try{
         persistentflags->MarkHidden("debug");///<用help时，mark掉的flag不显示
+        persistentflags->MarkHidden("short-name-alias-conf");
+        persistentflags->MarkHidden("default-mounts-file");
+        persistentflags->MarkHidden("registries-conf");
+        persistentflags->MarkHidden("registries-conf-dir");
+        persistentflags->MarkHidden("root");
     }catch(const myerror& e){
         cerr<<"unable to mark cpu-profile flag as hidden: "<<e.what()<<endl;
         // exit(1);
