@@ -28,6 +28,10 @@ struct LoginOptions
     string  password;
     bool    getLogin=false;
 };
+/**
+ * @brief 用于存储用户的用户名和密码，并提供序列化和反序列化功能。
+ * 
+ */
 struct user{
     std::string username;
     std::string password;
@@ -42,6 +46,13 @@ struct user{
         return user;
     }
 };
+/**
+ * @brief 主要用于存储用户认证信息，
+ * 尤其在涉及多个用户认证时，
+ * 可以将每个用户的认证信息存储在 auth 属性中，
+ * auth 是一个 std::map，它以用户名为键，用户信息（user 对象）为值
+ * 
+ */
 struct Auth{
     std::map<std::string, user> auth;
     Auth()=default;
