@@ -213,7 +213,7 @@ void makeDirectoryWritable(const fs::path& dirPath) {
 //     std::cout<<"copy: "<<sourcedir.string()<<" -> "<<destination.string()<<" duration: "<<duration.count()<<" s"<<std::endl;
 //     return total_size;
 // }
-// 复制单个文件的函数
+// 跨平台复制文件
 void Copyfile(const fs::path& source, const fs::path& target, int64_t& total_size) {
     try {
         if (fs::is_regular_file(source)) {
@@ -227,12 +227,9 @@ void Copyfile(const fs::path& source, const fs::path& target, int64_t& total_siz
         std::cerr << "复制失败: " << source << " -> " << target << "\n原因: " << e.what() << std::endl;
     }
 }
-// 复制目录的函数，使用多线程加速复制
+
+// 复制目录，支持 Windows 和 Linux 系统
 int64_t Copy_directory(const fs::path& sourcedir, const fs::path& destination) {
-    // std::chrono::duration<double> duration;
-    // std::chrono::high_resolution_clock::time_point start,end;
-    // start = std::chrono::high_resolution_clock::now();
-    // 检查源目录是否存在
     int64_t total_size = 0; // 用于统计传输的数据大小
     fs::path source = fs::absolute(sourcedir);
 
@@ -272,15 +269,15 @@ int64_t Copy_directory(const fs::path& sourcedir, const fs::path& destination) {
     // 使用 Boost 的线程池来并行处理文件复制
     boost::asio::thread_pool pool;
 
-    // 并行创建目录
+    // 创建目标目录部分，不使用多线程，直接顺序创建
     for (const auto& dir : dirs_to_create) {
-        boost::asio::post(pool, [dir]() {
-            try {
+        try {
+            if (!fs::exists(dir)) {
                 fs::create_directory(dir);
-            } catch (const fs::filesystem_error& e) {
-                std::cerr << "创建目录失败: " << dir << "\n原因: " << e.what() << std::endl;
             }
-        });
+        } catch (const fs::filesystem_error& e) {
+            std::cerr << "创建目录失败: " << dir << "\n原因: " << e.what() << std::endl;
+        }
     }
 
     // 并行复制文件
@@ -296,9 +293,6 @@ int64_t Copy_directory(const fs::path& sourcedir, const fs::path& destination) {
     // 等待所有线程完成
     pool.join();
 
-    // end = std::chrono::high_resolution_clock::now();
-    // duration = end - start;
-    // std::cout<<"copy: "<<sourcedir.string()<<" -> "<<destination.string()<<" duration: "<<duration.count()<<" s"<<std::endl;
     return total_size;
 }
 bool IsPathSeparator(char c) {
