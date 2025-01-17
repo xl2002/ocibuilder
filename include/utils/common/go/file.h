@@ -26,6 +26,7 @@ std::string getDirectory(const std::string& path);
 void  WriteFile(const std::string& iidfile, const std::string& imageID);
 
 // int64_t Copy_directory(const fs::path& source, const fs::path& destination);
+// void Copyfile(const fs::path& source, const fs::path& target, int64_t& total_size);
 int64_t Copy_directory(const fs::path& sourcedir, const fs::path& destination);
 bool IsPathSeparator(char c);
 string join(const vector<string>& elem);

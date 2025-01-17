@@ -27,6 +27,11 @@ struct Algorithm  {
 	std::string BaseVariantName() const { return baseVariantName; }
 	std::vector<uint8_t> AlgorithmPrefix() const { return prefix; }
 };
+// 定义一个压缩块结构
+struct CompressionBlock {
+    std::vector<char> data;
+    size_t size;
+};
 void gzip_compress(std::istream& inputStream, std::ostream& outputStream);
 void gzip_decompress(std::istream& inputStream, std::ostream& outputStream);
 std::shared_ptr<Algorithm> NewAlgorithm(string name,std::string nontrivialBaseVariantName,std::vector<uint8_t> prefix,DecompressorFunc decompressor,CompressorFunc compressor);
