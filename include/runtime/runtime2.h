@@ -6,7 +6,8 @@
 using funcID = uint8_t;
 
 using funcFlag = uint8_t;
-struct _func {
+class _func {
+    public:
     uint32_t entryOff;   // 从moduledata.text/pcHesader.textStart开始的偏移量
     int32_t nameOff;     // 函数名称，在moduledata.funcnametab中的索引
 
@@ -30,7 +31,8 @@ struct _func {
     // uint32_t funcdata[]; // nfuncdata大小的funcdata数组
 };
 
-struct itab {
+class itab {
+    public:
     std::shared_ptr<interfacetype> inter=std::make_shared<interfacetype>(); // 指向 interfacetype 的指针
     std::shared_ptr<::_type> _type=std::make_shared<::_type>();         // 指向 _type 的指针
     uint32_t hash;        // 拷贝自 _type.hash，用于类型切换

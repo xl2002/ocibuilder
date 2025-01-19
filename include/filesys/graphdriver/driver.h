@@ -25,7 +25,7 @@ extern string ErrPrerequisites;
 extern string ErrIncompatibleFS;
 extern string ErrLayerUnknown;
 // extern char Separator;
-struct IDMappings;
+class IDMappings;
 // const myerror ErrNotSupported = myerror("driver not supported");
 // const myerror ErrPrerequisites = myerror("prerequisites for driver not satisfied (wrong filesystem?)");
 // const myerror ErrIncompatibleFS = myerror("backing file system is unsupported for this graph driver");
@@ -80,7 +80,8 @@ public:
     std::shared_ptr<FileMode> forceMask=std::make_shared<FileMode>();              // 强制掩码（文件权限模式）
     bool useComposefs=false;                                // 是否使用 composefs
 };
-struct CreateOpts{
+class CreateOpts{
+    public:
     std::string MountLabel;
     std::map<std::string, std::string> StorageOpt;
     std::shared_ptr<IDMappings> IdMappings=std::make_shared<IDMappings>();
@@ -118,7 +119,8 @@ public:
     void create(const std::string& id, const std::string& parent,std::shared_ptr<CreateOpts> opts,bool readOnly);
     void CreateReadWrite(const std::string& id, const std::string& parent,std::shared_ptr<CreateOpts> opts);
 };
-typedef struct driver_Options {
+class driver_Options {
+    public:
     string root;                  // 根目录
     string runRoot;               // 运行目录
     string imageStore;            // 镜像存储目录
@@ -128,7 +130,7 @@ typedef struct driver_Options {
     // vector<IDMap> gidMaps;         // GID 映射
     bool experimentalEnabled=false;     // 是否启用实验特性
     driver_Options() = default;
-}driver_Options;
+};
 // 使用unordered_map存储所有注册的驱动程序
 extern std::unordered_map<std::string, std::function<std::shared_ptr<Driver>(const std::string&, const driver_Options&)>> drivers;
 shared_ptr<Driver> GetDriver(const string& name, const driver_Options& config);

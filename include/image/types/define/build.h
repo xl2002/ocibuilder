@@ -66,7 +66,8 @@ class Compression{
 };
 
 
-struct AdditionalBuildContext {
+class AdditionalBuildContext {
+	public:
 	// 值是外部 tar 存档的 URL。
 	bool IsURL;
 	// 值是可能已提取或尚未提取的图像的名称。
@@ -79,19 +80,7 @@ struct AdditionalBuildContext {
 	//运行步骤。
 	string DownloadedCache ;
 };
-// struct ConfidentialWorkloadOptions {
-// 	bool Convert=false              ;
-// 	string AttestationURL     ;
-// 	int CPUs=0                     ;
-// 	int Memory=0                   ;
-// 	string TempDir                  ; // 用于磁盘映像的临时明文副本
-// 	string TeeType                  ;
-// 	bool IgnoreAttestationErrors=false    ;
-// 	string WorkloadID               ;
-// 	string DiskEncryptionPassphrase ;
-// 	string Slop                     ;
-// 	string FirmwareLibrary          ;
-// };
+
 enum networkConfigurationPolicy{
     NetworkDefault,
     NetworkDisabled,
@@ -104,15 +93,16 @@ class NetworkConfigurationPolicy{
     NetworkConfigurationPolicy(networkConfigurationPolicy v):value(v){};
     string String();
 };
-struct platforms{
+class platforms{
+	public:
     std::string OS;
     std::string Arch;
     std::string Variant; 
 };
 enum class OptionalBool : unsigned char;
 ///CommonBuildOptions 是可以通过 buildah from 和 build 的标志定义的资源
-struct CommonBuildOptions  {
-	
+class CommonBuildOptions  {
+	public:
 	// AddHost 是要添加到构建容器的 /etc/hosts 的主机名列表。
 	vector<string> AddHost;
 	//OmitHistory 告诉构建器忽略构建层的历史记录
@@ -195,11 +185,11 @@ struct CommonBuildOptions  {
 	vector<string> OCIHooksDir;
 };
 
-struct IDMappingOptions;
-struct SystemContext;
-struct ConfidentialWorkloadOptions;
-struct SBOMScanOptions;
-struct DecryptConfig;
+class IDMappingOptions;
+class SystemContext;
+class ConfidentialWorkloadOptions;
+class SBOMScanOptions;
+class DecryptConfig;
 class define_BuildOptions{
 	public:
 	// 是否给每个镜像文件校验

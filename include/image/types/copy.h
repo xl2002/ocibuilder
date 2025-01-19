@@ -18,15 +18,18 @@
 #include "image/types/signature/policy_eval.h"
 #include "image/libimage/single.h"
 namespace copy{
-    struct ImageListSelection{
+    class ImageListSelection{
+        public:
         int imagelistselection=0;
     };
-    struct OptionCompressionVariant{
+    class OptionCompressionVariant{
+        public:
         std::shared_ptr<::Algorithm> Algorithm=std::make_shared<::Algorithm>();
         std::shared_ptr<int> Level=std::make_shared<int>();
     };
     // CopyImage的选项结构体
-    struct Options {
+    class Options {
+        public:
         bool removeSignatures=false;                                // 是否移除已有的签名
         std::vector<std::shared_ptr<Signer>> signers;                         // 用于添加签名的签名器
         std::string signBy;                                   // 要使用的签名的密钥ID
@@ -65,7 +68,8 @@ namespace copy{
     };
 }
 std::vector<uint8_t> Image(std::shared_ptr<PolicyContext>policyContext,std::shared_ptr<ImageReference_interface> destRef,std::shared_ptr<ImageReference_interface> srcRef,std::shared_ptr<ImageReference_interface> registry,std::shared_ptr<copy::Options> copyOptions);
-struct UnparsedImage{
+class UnparsedImage{
+    public:
     std::shared_ptr<ImageSource_interface> src=nullptr;
     std::shared_ptr<Digest> digest=std::make_shared<Digest>();
     std::vector<uint8_t> cachedManifest;
@@ -73,7 +77,8 @@ struct UnparsedImage{
     // cachedSignatures       []signature.Signature
     UnparsedImage()=default;
 };
-struct copier{
+class copier{
+    public:
     std::shared_ptr<PolicyContext> policyContext=std::make_shared<PolicyContext>();
     std::shared_ptr<ImageDestination_interface> dest=nullptr;
     std::shared_ptr<ImageSource_interface> rawSource=nullptr;
@@ -85,13 +90,15 @@ struct copier{
     std::shared_ptr<copySingleImageResult> copySingleImage(std::shared_ptr<UnparsedImage> unparsedImage,std::shared_ptr<Digest> targetInstance,std::shared_ptr<copySingleImageOptions> opts);
     
 };
-struct manifestConversionPlan{
+class manifestConversionPlan{
+    public:
     std::string preferredMIMEType;
     bool preferredMIMETypeNeedsConversion=false;
     std::vector<std::string> otherMIMETypeCandidates;
     manifestConversionPlan()=default;
 };
-struct imageCopier{
+class imageCopier{
+    public:
     std::shared_ptr<copier> c=std::make_shared<copier>();
     std::shared_ptr<ManifestUpdateOptions> manifestUpdates=std::make_shared<ManifestUpdateOptions>();
     std::shared_ptr<ImageSource_interface> src=nullptr;
@@ -109,7 +116,8 @@ struct imageCopier{
     // std::shared_ptr<bpCompressionStepData> bpcPreserveOriginal(std::shared_ptr<bpDetectCompressionStepData>detect,bool layerCompressionChangeSupported);
 };
 
-struct copyLayerData{
+class copyLayerData{
+    public:
     std::shared_ptr<BlobInfo> destInfo=std::make_shared<BlobInfo>();
     std::shared_ptr<Digest> diffID=std::make_shared<Digest>();
     copyLayerData()=default;

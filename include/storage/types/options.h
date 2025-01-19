@@ -69,7 +69,8 @@ class StoreOptions{
     // 如果为瞬态，则在引导时不保留容器（在 runroot 中存储数据库）。
     bool transient_store;
 };
-struct ReloadConfig {
+class ReloadConfig {
+    public:
     std::shared_ptr<StoreOptions> storeOptions=std::make_shared<StoreOptions>();
     std::time_t mod;  // Use std::time_t to store modification time
     std::mutex mutex;

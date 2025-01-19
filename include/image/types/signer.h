@@ -9,7 +9,8 @@ class SignerImplementation_interface{
     
     virtual std::string ProgressMessage() = 0;
 };
-struct Signer{
+class Signer{
+    public:
     std::shared_ptr<SignerImplementation_interface> implementation=nullptr;
 };
 

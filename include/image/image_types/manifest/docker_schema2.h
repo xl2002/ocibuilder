@@ -8,11 +8,13 @@
 #include <set>
 #include <memory>
 #include <chrono>
-struct Schema2Port{
+class Schema2Port{
+    public:
     std::string schema2port;
 };
 
-struct Schema2PortSet{
+class Schema2PortSet{
+    public:
     std::set<Schema2Port> ports;
 };
 class Schema2HealthConfig{
@@ -37,7 +39,8 @@ class Schema2HealthConfig{
 
 };
 
-struct Schema2Config{
+class Schema2Config{
+    public:
     std::string Hostname;               // 主机名
     std::string Domainname;             // 域名
     std::string User;                   // 容器中运行命令的用户，支持 user:group

@@ -28,7 +28,8 @@ private:
 
 // NewFsChecker 函数实现
 std::shared_ptr<Checker_interface> NewFsChecker(FsMagic t);
-struct Minfo {
+class Minfo {
+    public:
     bool check;
     int count;
 };

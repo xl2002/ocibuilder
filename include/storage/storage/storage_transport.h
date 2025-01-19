@@ -9,7 +9,7 @@
 #include "storage/storage/storage_reference.h"
 #include "filesys/utils/idtools.h"
 #include "image/types/types.h"
-struct storageReference;
+class storageReference;
 class Store;
 class Store_interface;
 class ImageReference_interface;
@@ -28,9 +28,10 @@ class StoreTransport_interface:public ImageTransport_interface{
     virtual std::shared_ptr<storageReference>ParseStoreReference(std::shared_ptr<Store_interface> store,const std::string &reference)= 0;
     virtual std::shared_ptr<storageReference>NewStoreReference(std::shared_ptr<Store_interface> store,std::shared_ptr<Named_interface> named,const std::string &id)= 0;
 };
-struct IDMap;
+class IDMap;
 // class ImageReference_interface;
-struct storageTransport: public StoreTransport_interface{
+class storageTransport: public StoreTransport_interface{
+    public:
     std::shared_ptr<Store_interface> store=nullptr;
     std::vector<IDMap> defaultUIDMap;
     std::vector<IDMap> defaultGIDMap;

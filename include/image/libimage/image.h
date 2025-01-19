@@ -6,13 +6,15 @@
 #include "image/libimage/inspect.h"
 // #include "image/types/types.h"
 class Runtime;
-// struct ::Image;
+// class ::Image;
 namespace LibImage{
-    // struct RootFS;
+    // class RootFS;
     // Image 结构体定义
-    struct Image {
+    class Image {
+        public:
         // ListData 被 (*Runtime).ListImages() 设置。注意，数据可能过时。
-        struct ListData {
+        class ListData {
+            public:
             // Dangling 表示图像是否悬空。使用 `IsDangling()` 来计算最新状态。
             std::shared_ptr<bool> IsDangling; // 使用智能指针以避免内存泄漏
             // Parent 指向父图像。使用 `Parent()` 来计算最新状态。
@@ -29,7 +31,8 @@ namespace LibImage{
         std::shared_ptr<ImageReference_interface> storageReference=nullptr;
 
         // 以下结构中的所有字段都是缓存的。可以随时清除。
-        struct Cached {
+        class Cached {
+            public:
             // 图像源。出于性能原因缓存。
             std::shared_ptr<ImageSource_interface> imageSource=nullptr;
 

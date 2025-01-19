@@ -21,12 +21,14 @@ using std::vector;
  * @brief versionOptions 代表 version 标志的结果
  * 
  */
-struct versionOptions
+class versionOptions
 {
+    public:
     /* data */
     bool    json=false;           ///< json 标志
 };
-struct versionInfo{
+class versionInfo{
+    public:
     std::string Version; //版本
     std::string CppVersion; //c++版本
     std::string ImageSpec;  //镜像规范

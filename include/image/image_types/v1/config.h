@@ -15,7 +15,8 @@
 #include "image/image_types/v1/config.h"
 #include "boost/json.hpp"
 #include "utils/common/go/string.h"
-struct ImageConfig {
+class ImageConfig {
+    public:
     // User defines the username or UID which the process in the container should run as.
     std::string user;
 
@@ -84,7 +85,8 @@ struct ImageConfig {
     }
 
 };
-struct RootFS {
+class RootFS {
+    public:
     // Type is the type of the rootfs.
     std::string type;
 
@@ -104,7 +106,8 @@ struct RootFS {
         return image;
     }
 };
-struct History {
+class History {
+    public:
     // Created is the combined date and time at which the layer was created, formatted as defined by RFC 3339, section 5.6.
     std::chrono::system_clock::time_point created;  // Using std::time_t for time representation, pointer indicates it can be null
 
@@ -140,7 +143,8 @@ struct History {
     }
 };
 namespace v1 {
-    struct Image {
+    class Image {
+        public:
         std::chrono::system_clock::time_point created; // Using std::time_t as a placeholder for date and time
         std::string author;
         Platform platform;
@@ -186,7 +190,8 @@ namespace v1 {
     };
 }
 
-struct Manifest{
+class Manifest{
+    public:
     int SchemaVersion=0;
     std::string MediaType;
     std::string ArtifactType;
@@ -216,7 +221,8 @@ struct Manifest{
     };
 };
 
-struct Check {
+class Check {
+    public:
     std::string version;
     //key为文件路径，value为校验的sha256值
     std::map<std::string, std::string> Validation;

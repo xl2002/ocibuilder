@@ -1,7 +1,8 @@
 #if !defined(IMAGE_LIBIMAGE_PUSH_H)
 #define IMAGE_LIBIMAGE_PUSH_H
 #include "image/libimage/copier.h"
-struct PushOptions : public CopyOptions{
+class PushOptions : public CopyOptions{
+    public:
     PushOptions() = default;
 };
 

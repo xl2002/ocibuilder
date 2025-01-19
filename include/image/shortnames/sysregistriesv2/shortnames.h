@@ -9,16 +9,19 @@
 #include "image/types/types.h"
 #include "image/digest/digest.h"
 #include "image/types/define/types.h"
-struct shortNameAliasConf{
+class shortNameAliasConf{
+    public:
     std::map<std::string,std::string> Aliases;
 };
-struct alias{
+class alias{
+    public:
     std::shared_ptr<Named_interface> value=nullptr;
     std::string configOrigin;
     alias()=default;
     alias(std::shared_ptr<Named_interface> value,std::string configOrigin):value(value),configOrigin(configOrigin){};
 };
-struct shortNameAliasCache{
+class shortNameAliasCache{
+    public:
     std::map<std::string,std::shared_ptr<alias>> namedAliases;
 };
 

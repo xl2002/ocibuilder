@@ -32,7 +32,8 @@ class Command{
          * @brief commandCalledAs 是用于调用此命令的名称或别名值。
          * 
          */
-        using CommandcalledAs= struct {
+        using CommandcalledAs= class {
+                public:
                 string name;
                 bool called=false;
             };

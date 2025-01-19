@@ -21,7 +21,7 @@ extern std::string OCI;
 extern std::string DOCKER;
 extern std::string SEV;
 extern std::string SNP;
-struct IDMap;
+class IDMap;
 void TempDirForURL(std::string dir,std::string prefix, std::string url,std::string& name, std::string& subdir);
 enum ShortNameMode {
     ShortNameModeInvalid = 0,
@@ -35,7 +35,8 @@ enum class OptionalBool : unsigned char {
     OptionalBoolFalse
 };
 OptionalBool NewOptionalBool(bool b);
-struct DockerAuthConfig  {
+class DockerAuthConfig  {
+	public:
 	string Username ;
 	string Password ;
 	// IdentityToken can be used as an refresh_token in place of username and
@@ -44,8 +45,9 @@ struct DockerAuthConfig  {
 	// Ref: https://docs.docker.com/registry/spec/auth/oauth/
 	string IdentityToken ;
 };
-struct Algorithm;
-struct SystemContext  {
+class Algorithm;
+class SystemContext  {
+	public:
 	string RootForImplicitAbsolutePaths; 
 
 	// === Global configuration overrides ===
@@ -160,7 +162,8 @@ struct SystemContext  {
 	~SystemContext()= default;
 };
 
-struct AutoUserNsOptions{
+class AutoUserNsOptions{
+	public:
     uint32_t Size=0;
     uint32_t InitialSize=0;
     std::string PasswdFile;
@@ -169,7 +172,8 @@ struct AutoUserNsOptions{
     std::vector<IDMap> AdditionalGIDMappings;
 	AutoUserNsOptions()= default;
 };
-struct IDMappingOptions{
+class IDMappingOptions{
+	public:
 	bool HostUIDMapping=false;
 	bool HostGIDMapping=false;
 	std::vector<LinuxIDMapping> UIDMap;
@@ -178,18 +182,21 @@ struct IDMappingOptions{
 	std::shared_ptr<AutoUserNsOptions> AutoUserNsOpts=std::make_shared<AutoUserNsOptions>();
 	IDMappingOptions()= default;
 };
-struct Secret{
+class Secret{
+	public:
 	std::string ID;
 	std::string Source;
 	std::string SourceType;
 };
 
-struct BuildOutputOption{
+class BuildOutputOption{
+	public:
 	std::string Path;
 	bool IsDir=false;
 	bool IsStdout=false;
 };
-struct ConfidentialWorkloadOptions{
+class ConfidentialWorkloadOptions{
+	public:
 	bool Convert=false;
 	std::string AttestationURL;
 	int CPUs=0;
@@ -204,7 +211,8 @@ struct ConfidentialWorkloadOptions{
 	ConfidentialWorkloadOptions()= default;
 };
 typedef std::string SBOMMergeStrategy;
-struct SBOMScanOptions {
+class SBOMScanOptions {
+	public:
     std::vector<std::string> Type;    // 一个缩短的名称，表示已定义的这些选项的组
     std::string Image;                // 要使用的扫描器映像
     ::PullPolicy PullPolicy;           // 获取扫描器映像的方式
@@ -216,8 +224,9 @@ struct SBOMScanOptions {
     std::string ImagePURLOutput;      // 在图像中存储的 PURL 列表
     SBOMMergeStrategy MergeStrategy;  // 多次扫描的输出合并方式
 };
-struct LayerCompression;
-struct BlobInfo{
+class LayerCompression;
+class BlobInfo{
+	public:
 	std::shared_ptr<::Digest> Digest=std::make_shared<::Digest>();
 	int64_t Size=0;
 	std::vector<std::string> URLs;
@@ -233,11 +242,13 @@ enum class progressevent:uint8_t{
 	ProgressEventDone,
 	ProgressEventSkipped
 };
-struct ProgressEvent{
+class ProgressEvent{
+	public:
 	progressevent value;
 };
 
-struct ProgressProperties{
+class ProgressProperties{
+	public:
 	std::shared_ptr<ProgressProperties> Event=std::make_shared<ProgressProperties>();
 	std::shared_ptr<BlobInfo> Artifact=std::make_shared<BlobInfo>();
 	uint64_t Offset=0;

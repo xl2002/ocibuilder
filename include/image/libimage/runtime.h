@@ -13,11 +13,12 @@
 #include "storage/storage/storage_transport.h"
 #include "image/libimage/push.h"
 // Runtime 负责管理镜像并将其存储在容器存储中
-struct LookupImageOptions;
+class LookupImageOptions;
 namespace LibImage{//由于头文件相互包含，提前声明
-    struct Image;
+    class Image;
 }
-struct Runtime {
+class Runtime {
+    public:
     // 用于向用户发送事件的通道
     std::queue<std::shared_ptr<Event>> eventChannel; // 使用队列代替通道
     // 底层存储
@@ -32,11 +33,13 @@ struct Runtime {
     std::shared_ptr<LibImage::Image> storageToImage(std::shared_ptr<storage::Image> img,std::shared_ptr<ImageReference_interface> ref);
     std::vector<uint8_t> Push(std::string source,std::string destination,std::shared_ptr<PushOptions> options);
 };
-struct RuntimeOptions {
+class RuntimeOptions {
+    public:
     std::shared_ptr<::SystemContext> SystemContext=std::make_shared<::SystemContext>();
 };
 // LookupImageOptions 结构体定义
-struct LookupImageOptions {
+class LookupImageOptions {
+    public:
     // 查找匹配指定架构的镜像
     std::string Architecture;
 

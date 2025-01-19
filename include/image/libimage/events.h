@@ -29,11 +29,13 @@ enum class eventType {
     // EventTypeImageUnmount 表示镜像正在卸载
     EventTypeImageUnmount
 };
-struct EventType {
+class EventType {
+    public:
     eventType Type=eventType::EventTypeUnknown;
 };
 // Event 代表事件，例如镜像拉取或镜像标记
-struct Event {
+class Event {
+    public:
     // 对象的ID（例如，镜像ID）
     std::string ID;
     // 对象的名称（例如，镜像名称 "quay.io/containers/podman:latest"）

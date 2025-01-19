@@ -12,7 +12,7 @@
 #include <functional>
 #include "utils/common/error.h"
 
-struct shellWord_lex;
+class shellWord_lex;
 class Lex{
     public:
     // 公共成员变量，与 Go 结构体中的字段对应
@@ -29,7 +29,8 @@ class Lex{
 
 };
 
-struct shellWord_lex {
+class shellWord_lex {
+    public:
     std::stringstream ss;
     // 因为 C++ 没有直接对应的 scanner 类型，这里可能需要自定义一个 scanner 类或使用现有的解析器
     std::map<std::string, std::string> envs;   // 环境变量

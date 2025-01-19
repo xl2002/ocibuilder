@@ -95,7 +95,8 @@ class repository:public namedRepository_interface{
     string Path() override;
 };
 
-struct taggedReference:public Tagged_interface,public NamedTagged_interface,public namedRepository_interface{
+class taggedReference:public Tagged_interface,public NamedTagged_interface,public namedRepository_interface{
+    public:
     std::shared_ptr<namedRepository_interface> namedRepository=nullptr;
     std::string tag;
 
@@ -118,7 +119,8 @@ struct taggedReference:public Tagged_interface,public NamedTagged_interface,publ
         return namedRepository->Path();
     }
 };
-struct canonicalReference:public Canonical_interface{
+class canonicalReference:public Canonical_interface{
+    public:
     std::shared_ptr<namedRepository_interface> namedRepository=nullptr;
     std::shared_ptr<Digest> digest=std::make_shared<Digest>();
     canonicalReference()=default;

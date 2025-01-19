@@ -10,7 +10,8 @@ extern std::regex reWhitespace;
 extern std::regex reComment;
 extern std::regex reHeredoc;
 extern std::regex reLeadingTabs;
-struct Heredoc {
+class Heredoc {
+    public:
     std::string Name;
     std::string Content;
     uint32_t FileDescriptor=0;

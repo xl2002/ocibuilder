@@ -124,17 +124,11 @@ void Entry::log(const Level& level, const std::string& msg) {
     newEntry->fireHooks();
     auto buffer = bufPool->Get();
     // 使用智能指针管理缓冲区，并在作用域结束时自动将缓冲区放回缓冲池
-    struct BufferGuard {
+    class BufferGuard {
+        public:
         std::shared_ptr<Entry> entry=std::make_shared<Entry>();
         std::shared_ptr<Buffer> buffer=std::make_shared<Buffer>();
         std::shared_ptr<BufferPool_interface> pool=nullptr;
-
-        // ~BufferGuard() {
-        //     // 延迟执行逻辑
-        //     entry->BufferPtr = nullptr;
-        //     buffer->Reset();
-        //     pool->Put(std::move(buffer));
-        // }
         ~BufferGuard()=default;
         BufferGuard(std::shared_ptr<Entry> entry, std::shared_ptr<Buffer> buffer, std::shared_ptr<BufferPool_interface> pool) 
                     : entry{std::move(entry)}, buffer{std::move(buffer)}, pool{std::move(pool)} {}

@@ -20,8 +20,9 @@ using std::vector;
  * @brief pullOptions 代表 pull 标志的结果
  * 
  */
-struct pullOptions
+class pullOptions
 {
+    public:
     /* data */
     bool    allTags=false;          ///<
     string  os;                     ///<

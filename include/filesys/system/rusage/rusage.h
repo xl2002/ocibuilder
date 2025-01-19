@@ -13,7 +13,8 @@
 #include "utils/common/error.h" 
 // Rusage 结构体表示当前进程及其子进程的Unix风格资源使用计数器子集。
 // 在某些系统调用不可用的平台上（例如，不存在getrusage()的系统），计数器总是为0。
-struct Rusage {
+class Rusage {
+    public:
     std::chrono::system_clock::time_point Date;   // 记录当前时间
     std::chrono::duration<double> Elapsed;        // 记录经过的时间
     std::chrono::duration<double> Utime;          // 用户态CPU时间

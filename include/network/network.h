@@ -26,7 +26,8 @@ class ContainerNetwork{
     public:
     std::string name;
 };
-struct Network {
+class Network {
+    public:
     // 网络的名称。
     std::string Name;
 
@@ -70,20 +71,17 @@ struct Network {
     std::map<std::string, std::string> IPAMOptions;
 };
 
-struct IPNet{
+class IPNet{
+    public:
     asio::ip::address_v4 ipAddress;
     unsigned short prefixLength=0;
     IPNet() = default;
     IPNet(asio::ip::address_v4 ipAddress, unsigned short prefixLength)
         : ipAddress(ipAddress), prefixLength(prefixLength) {}
 };
-// struct DockerAuthConfig{
-//     std::string Username;
-//     std::string Password;
-//     std::string IdentityToken;
-//     // std::string serveraddress;
-// };
-struct authScope{
+
+class authScope{
+    public:
     std::string resourceType;  
     std::string remoteName;
     std::string actions;
@@ -93,14 +91,16 @@ struct authScope{
     authScope() = default;
 };
 extern authScope loginAuth;
-struct Userinfo{
+class Userinfo{
+    public:
     std::string username;
     std::string password;
     bool passwordSet=false;
     Userinfo() = default;
 };
 extern Userinfo userinfo;
-struct URL{
+class URL{
+    public:
     std::string scheme;        // 协议方案
     std::string opaque;        // 编码的不透明数据
     std::shared_ptr<Userinfo> user; // 用户名和密码信息
@@ -120,15 +120,17 @@ struct URL{
     std::string rawFragment;   // 编码的片段提示（参见 EscapedFragment 方法）
     URL() = default;
 };
-struct challenge{
+class challenge{
+    public:
     std::string Scheme;
     std::map<std::string, std::string> Parameters;
     challenge() = default;
 };
 
-struct DockerAuthConfig;
-struct SystemContext;
-struct dockerClient{
+class DockerAuthConfig;
+class SystemContext;
+class dockerClient{
+    public:
     // 成员变量
 
     // 以下成员由构造函数设置，之后不再更改。

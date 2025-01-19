@@ -9,7 +9,7 @@
 using std::string;
 using std::vector;
 class Algorithm_sha256;
-struct Verifier_interface;
+class Verifier_interface;
 class Digest{
     public:
     string digest;

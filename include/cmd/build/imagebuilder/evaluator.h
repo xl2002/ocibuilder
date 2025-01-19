@@ -17,7 +17,8 @@ std::shared_ptr<Node> ParseDockerfile(std::vector<byte> r);
 extern std::map<std::string,bool> replaceEnvAllowed;
 extern std::map<std::string,bool> allowWordExpansion;
 
-struct Step{
+class Step{
+    public:
     std::vector<std::string> Env;
     std::vector<std::string> Args;
     std::string Command;

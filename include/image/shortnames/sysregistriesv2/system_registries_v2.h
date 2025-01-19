@@ -19,7 +19,8 @@ extern std::string userRegistriesFile;
 extern std::string userRegistriesDir;
 // configWrapper 用于存储 ConfigPath 和 ConfigDirPath 的路径
 // 并作为内部缓存的键。
-struct configWrapper {
+class configWrapper {
+    public:
     // 指向 registries.conf 文件的路径
     std::string configPath;
 
@@ -35,7 +36,8 @@ struct configWrapper {
         : configPath(configPath), configDirPath(configDirPath), userConfigDirPath(userConfigDirPath) {}
 };
 // Endpoint 描述了注册表的远程位置。
-struct Endpoint {
+class Endpoint {
+    public:
     // 端点的远程位置。如果 Prefix 包含
     // 以 "*.example.com" 格式的通配符用于子域匹配，则可以为空。
     // 请参阅 FindRegistry / PullSourcesFromReference，而不是直接访问/解释 `Location`。
@@ -59,7 +61,8 @@ struct Endpoint {
     std::string PullFromMirror; // 从镜像拉取的设置
 };
 // Registry 表示一个注册表。
-struct Registry:public Endpoint {
+class Registry:public Endpoint {
+    public:
     // Prefix 用于匹配图像，并将一个命名空间转换为另一个。
     // 如果 `Prefix="example.com/bar"`，`location="example.com/foo/bar"`，并且
     // 我们从 "example.com/bar/myimage:latest" 拉取，则图像将
@@ -88,7 +91,8 @@ struct Registry:public Endpoint {
     // Registry() : Blocked(false), MirrorByDigestOnly(false) {}
 };
 // V2RegistriesConf 是 sysregistries v2 配置格式。
-struct V2RegistriesConf:public shortNameAliasConf {
+class V2RegistriesConf:public shortNameAliasConf {
+    public:
     std::vector<Registry> Registries; // 注册表数组
 
     // 用于解析不合格图像引用的主机[:端口]数组（不是前缀！）
@@ -108,7 +112,8 @@ struct V2RegistriesConf:public shortNameAliasConf {
     
 };
 
-struct parsedConfig{
+class parsedConfig{
+    public:
     std::shared_ptr<V2RegistriesConf> partialV2=std::make_shared<V2RegistriesConf>();
     std::string unqualifiedSearchRegistriesOrigin;
     std::shared_ptr<ShortNameMode> shortNameMode=std::make_shared<ShortNameMode>();

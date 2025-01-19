@@ -5,12 +5,14 @@
 #include <memory>
 #include <map>
 
-struct Key {
+class Key {
+    public:
     // Define members based on the actual key structure
     std::string key;
 };
 
-struct Source {
+class Source {
+    public:
     std::string socket;
     std::vector<Key> keys; // Assuming `interface{}` can be replaced with a specific key type
 };

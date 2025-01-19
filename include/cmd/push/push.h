@@ -20,8 +20,9 @@ using std::vector;
  * @brief pushOptions 代表 push 标志的结果
  * 
  */
-struct pushOptions
+class pushOptions
 {
+    public:
     /* data */
     string  format;         ///<
     std::string authfile;

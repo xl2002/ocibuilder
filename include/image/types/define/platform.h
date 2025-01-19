@@ -8,7 +8,8 @@ enum class platformPolicy:int{
     PlatformPolicyWarn
 };
 
-struct PlatformPolicy{
+class PlatformPolicy{
+    public:
     platformPolicy policy;
     PlatformPolicy()=default;
     PlatformPolicy(platformPolicy p):policy(p){};

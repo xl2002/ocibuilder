@@ -21,14 +21,16 @@ using std::vector;
  * @brief LoginOptions 代表 login 标志的结果
  * 
  */
-struct LoginOptions
+class LoginOptions
 {
+    public:
     /* data */
     string  username;
     string  password;
     bool    getLogin=false;
 };
-struct user{
+class user{
+    public:
     std::string username;
     std::string password;
     friend void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const user& image) {
@@ -42,7 +44,8 @@ struct user{
         return user;
     }
 };
-struct Auth{
+class Auth{
+    public:
     std::map<std::string, user> auth;
     Auth()=default;
     friend void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const Auth& image) {

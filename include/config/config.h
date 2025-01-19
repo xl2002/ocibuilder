@@ -29,7 +29,8 @@ extern  std::string UserOverrideContainersConfig;
 extern  std::string bindirPrefix;
 
 
-struct ContainersConfig {
+class ContainersConfig {
+    public:
     // Devices to add to all containers
     std::shared_ptr<Slice> Devices=std::make_shared<Slice>();
 
@@ -172,11 +173,12 @@ struct ContainersConfig {
     // UserNSSize how many UIDs to allocate for automatically created UserNS
     int UserNSSize = 0;
 };
-struct eventsLogMaxSize;
-struct SetOptions;
-struct Destination;
+class eventsLogMaxSize;
+class SetOptions;
+class Destination;
 // EngineConfig 包含用于设置引擎运行时的配置选项
-struct EngineConfig {
+class EngineConfig {
+    public:
     // CgroupCheck 表示在升级到 Fedora 31 后，配置已被重写，以更改 cgroupv2 的默认 OCI 运行时。
     bool CgroupCheck=false;
 
@@ -384,7 +386,8 @@ struct EngineConfig {
     //PodmanshTimeout 是等待 podmansh 登录的秒数。
     uint32_t PodmanshTimeout=0;
 };
-struct SetOptions{
+class SetOptions{
+    public:
     // StorageConfigRunRootSet indicates if the RunRoot has been explicitly set
 	// by the config or by the user. It's required to guarantee backwards
 	// compatibility with older versions of libpod for which we must query the
@@ -403,7 +406,8 @@ struct SetOptions{
 	// query the database configuration. Not included in the on-disk config.
 	bool StorageConfigGraphDriverNameSet=false;
 };
-struct Destination{
+class Destination{
+    public:
     //URI，必填。示例： ssh://root@example.com:22/run/podman/podman.sock
     std::string URI;
     //带有 ssh 密钥的身份文件，可选
@@ -412,20 +416,23 @@ struct Destination{
     //isMachine 描述远程目标是否是机器。
 	bool IsMachine=false;
 };
-struct eventsLogMaxSize{
+class eventsLogMaxSize{
+    public:
     uint64_t value=0;
     eventsLogMaxSize()=default;
     eventsLogMaxSize(uint64_t v):value(v){};
 };
-struct IPNet;
-struct SubnetPool{
+class IPNet;
+class SubnetPool{
+    public:
     std::shared_ptr<IPNet> Base=std::make_shared<IPNet>();
     int Size=0;
     SubnetPool(std::shared_ptr<IPNet> base, int size)
     : Base(base), Size(size) {}
 };
 // NetworkConfig 表示“network” TOML 配置表
-struct NetworkConfig {
+class NetworkConfig {
+    public:
     // NetworkBackend 决定应使用 Podman 的哪个网络后端
     std::string NetworkBackend;
 
@@ -460,7 +467,8 @@ struct NetworkConfig {
     std::shared_ptr<Slice> PastaOptions=std::make_shared<Slice>();
 };
 
-struct SecretConfig{
+class SecretConfig{
+    public:
     // Base is a bigger subnet which will be used to allocate a subnet with
 	// the given size.
     std::string Driver;
@@ -469,7 +477,8 @@ struct SecretConfig{
     std::map<std::string, std::string> Opts;
 };
 
-struct ConfigMapConfig{
+class ConfigMapConfig{
+    public:
 	// Driver specifies the configmap driver to use.
 	// Current valid value:
 	//  * file
@@ -479,7 +488,8 @@ struct ConfigMapConfig{
 	std::map<std::string, std::string> Opts;
 };
 // MachineConfig 代表 "machine" TOML 配置表
-struct MachineConfig {
+class MachineConfig {
+    public:
     // 机器创建时的 CPU 数量。
     uint64_t CPUs=0; // toml:"cpus,omitempty,omitzero"
     
@@ -505,7 +515,8 @@ struct MachineConfig {
     bool Rosetta=false; // toml:"rosetta,omitempty"
 };
 
-struct FarmConfig{
+class FarmConfig{
+    public:
 	// Default is the default farm to be used when farming out builds
 	std::string Default;
 	// List is a map of farms created where key=farm-name and value=list of connections
@@ -538,14 +549,17 @@ class Config{
     std::vector<std::string> GetDefaultEnvEx(bool envHost,bool httpProxy);
 };
 
-struct DecryptConfig{
+class DecryptConfig{
+    public:
     map<string,vector<vector<uint8_t>>>Parameters;
 };
-struct EncryptConfig{
+class EncryptConfig{
+    public:
     std::map<std::string,std::vector<std::vector<uint8_t>>> Parameters;
     std::shared_ptr<::DecryptConfig> DecryptConfig=std::make_shared<::DecryptConfig>();
 };
-struct CryptoConfig{
+class CryptoConfig{
+    public:
     std::shared_ptr<::EncryptConfig> EncryptConfig=std::make_shared<::EncryptConfig>();
     std::shared_ptr<::DecryptConfig> DecryptConfig=std::make_shared<::DecryptConfig>();
 };

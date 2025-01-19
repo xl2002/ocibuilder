@@ -5,7 +5,8 @@
 #include <vector>
 #include <sys/stat.h>
 #include <cstdint>
-struct Permissions {
+class Permissions {
+    public:
     std::string value;
 };
 class Type {

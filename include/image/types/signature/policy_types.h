@@ -9,14 +9,17 @@
 #include <iostream>
 #include "image/types/signature/policy_eval.h"
 class PolicyRequirement_interface;
-struct PolicyRequirements{
+class PolicyRequirements{
+    public:
     std::vector<PolicyRequirement_interface> policyrequirements;
 };
-struct PolicyTransportScopes{
+class PolicyTransportScopes{
+    public:
     std::map<std::string,PolicyRequirements> scopes;
 };
 
-struct Policy{
+class Policy{
+    public:
     std::shared_ptr<PolicyRequirements> Default=std::make_shared<PolicyRequirements>();
     std::map<std::string,PolicyTransportScopes> Transports;
 };

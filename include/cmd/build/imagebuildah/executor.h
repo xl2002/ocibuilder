@@ -42,10 +42,11 @@ class imageTypeAndHistoryAndDiffIDs {
     std::string err;
 };
 class StageExecutor;
-struct stageDependencyInfo;
+class stageDependencyInfo;
 class Stages;
 class Stage;
-struct Executor {
+class Executor {
+    public:
     std::vector<named> cacheFrom;
     std::vector<named> cacheTo;
     std::chrono::duration<int> cacheTTL;
@@ -167,7 +168,8 @@ struct Executor {
 
 };
 
-struct stageDependencyInfo{
+class stageDependencyInfo{
+    public:
     std::string Name;
     int Position=0;
     std::vector<std::string> Needs;

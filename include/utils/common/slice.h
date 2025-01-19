@@ -3,7 +3,8 @@
 #include <string>
 #include <vector>
 #include <memory>
-struct Slice{
+class Slice{
+    public:
     std::vector<std::string> Values;
     struct {
         std::shared_ptr<bool> Append=std::make_shared<bool>(false);

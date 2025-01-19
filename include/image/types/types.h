@@ -10,24 +10,26 @@
 #include "image/types/reference/reference.h"
 #include "storage/storage/storage_reference.h"
 // class ImageTransport_interface;
-struct Image_interface;
-struct ImageSource_interface;
-struct ImageDestination_interface;
-struct SystemContext;
-struct BlobInfo;
+class Image_interface;
+class ImageSource_interface;
+class ImageDestination_interface;
+class SystemContext;
+class BlobInfo;
 
 enum class layerCompression:int{
     PreserveOriginal=0,
     Decompress,
     Compress
 };
-struct LayerCompression{
+class LayerCompression{
+    public:
     layerCompression layer=layerCompression::PreserveOriginal;
     LayerCompression()=default;
     LayerCompression(layerCompression layer):layer(layer){};
 };
 class ImageReference_interface;
-struct ImageSource_interface{
+class ImageSource_interface{
+    public:
     virtual ~ImageSource_interface()=default;
     virtual std::shared_ptr<ImageReference_interface> Reference() = 0;
     virtual std::tuple<std::vector<uint8_t>,std::string> GetManifest(std::shared_ptr<Digest> instanceDigest)=0;
@@ -35,7 +37,8 @@ struct ImageSource_interface{
 };
 
 // ImageInspectLayer 结构体定义
-struct ImageInspectLayer {
+class ImageInspectLayer {
+    public:
     // MIME 类型，未知时为空字符串
     std::string MIMEType;
 
@@ -50,7 +53,8 @@ struct ImageInspectLayer {
 
 };
 // ImageInspectInfo 结构体定义
-struct ImageInspectInfo {
+class ImageInspectInfo {
+    public:
     // 标签字段是一个遗留字段，仅用于 Docker v2s1 清单。不会支持其他清单类型。
     std::string Tag;
     
@@ -86,26 +90,31 @@ struct ImageInspectInfo {
 
 };
 
-struct UnparsedImage_interface{
+class UnparsedImage_interface{
+    public:
     virtual ~UnparsedImage_interface()=default;
     virtual std::tuple<std::vector<uint8_t>,std::string> Manifest()=0;
 };
-struct Image_interface:public UnparsedImage_interface{
+class Image_interface:public UnparsedImage_interface{
+    public:
     virtual ~Image_interface()=default;
     virtual std::shared_ptr<ImageInspectInfo> Inspect() = 0;
     virtual std::vector<uint8_t> ConfigBlob() = 0;
 };
 
-struct ImageDestination_interface{
+class ImageDestination_interface{
+    public:
     virtual ~ImageDestination_interface()=default;
 };
-struct storageImageMetadata{
+class storageImageMetadata{
+    public:
     std::vector<int>SignatureSizes;
     std::map<Digest, std::vector<int>> SignaturesSizes;
     storageImageMetadata()=default;
 };
-struct storageReference;
-struct storageImageDestination:public ImageDestination_interface{
+class storageReference;
+class storageImageDestination:public ImageDestination_interface{
+    public:
     std::shared_ptr<storageReference> imageRef=std::make_shared<storageReference>();
     std::string directory;
     std::vector<uint8_t> manifest;
@@ -120,13 +129,15 @@ struct storageImageDestination:public ImageDestination_interface{
     storageImageDestination()=default;
 };
 
-struct ManifestUpdateInformation{
+class ManifestUpdateInformation{
+    public:
     std::shared_ptr<ImageDestination_interface> Destination=nullptr;
     std::vector<BlobInfo> LayerInfos;
     std::vector<Digest> LayerDiffIDs;
     ManifestUpdateInformation()=default;
 };
-struct ManifestUpdateOptions{
+class ManifestUpdateOptions{
+    public:
     std::vector<BlobInfo> LayerInfos;
     std::shared_ptr<Named_interface> EmbeddedDockerReference;
     std::string ManifestMIMEType;

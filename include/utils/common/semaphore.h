@@ -11,7 +11,8 @@
 #include <chrono>
 #include <utility>
 // 等待者结构体，用于存储等待队列中的请求信息
-struct waiter {
+class waiter {
+    public:
     int64_t n=0;                // 请求的资源数
     std::promise<std::string> ready; // 模拟Go中的chan，用于通知
     waiter()=default;

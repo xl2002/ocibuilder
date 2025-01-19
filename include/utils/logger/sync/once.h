@@ -2,8 +2,9 @@
 #define SYNC_ONCE_H
 #include <mutex>
 
-struct once
+class once
 {
+    public:
     uint32_t done;
     std::mutex m;
 };

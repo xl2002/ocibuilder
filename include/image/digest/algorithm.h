@@ -14,7 +14,8 @@
 #include "image/digest/digester.h"
 class Digest;
 class Digester_interface;
-struct Algorithm_sha256 {//xcy,256哈希值
+class Algorithm_sha256 {//xcy,256哈希值
+public:
     std::string value;
     Algorithm_sha256() = default;
     Algorithm_sha256(std::string v) : value(v) {};

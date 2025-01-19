@@ -5,13 +5,15 @@
 #include <vector>
 #include <memory>
 class Digest;
-struct Verifier_interface
+class Verifier_interface
 {
+    public:
     virtual ~Verifier_interface() {}
     virtual int write(std::vector<char> p) = 0;
     virtual bool Verified() = 0;
 };
-struct hashVerifier: public Verifier_interface{
+class hashVerifier: public Verifier_interface{
+    public:
     std::shared_ptr<Digest> digest=std::make_shared<Digest>();
     std::shared_ptr<Hash_256> hash=std::make_shared<Hash_256>();
     int write(std::vector<char> p) override;

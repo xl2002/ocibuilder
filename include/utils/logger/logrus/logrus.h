@@ -39,27 +39,6 @@ public:
         return static_cast<uint32_t>(lvl) < static_cast<uint32_t>(other.lvl);
     }
 };
-// struct Fields {
-//     std::map<std::string, std::vector<boost::any>> fields;
-// };
-// // 为 Level 类型提供哈希函数
-// namespace std {
-//     template <>
-//     struct hash<Level> {
-//         std::size_t operator()(const Level& level) const {
-//             return hash<uint32_t>()(static_cast<uint32_t>(level.lvl));
-//         }
-//     };
-// }
 
-// std::vector<Level> AllLevels{
-//     Level(level::PanicLevel),
-//     Level(level::FatalLevel),
-//     Level(level::ErrorLevel),
-//     Level(level::WarnLevel),
-//     Level(level::InfoLevel),
-//     Level(level::DebugLevel),
-//     Level(level::TraceLevel)
-// };
 Level ParseLevel(std::string lvl);
 #endif // LOGRUS_LOGRUS_H

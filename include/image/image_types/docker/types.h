@@ -34,7 +34,8 @@ class HealthConfig{
 
 };
 
-struct Port{
+class Port{
+    public:
     std::string p;
     Port()=default;
     Port(std::string port):p(port){}
@@ -52,7 +53,8 @@ struct Port{
         return p;
     }
 };
-struct PortSet{
+class PortSet{
+    public:
     std::set<Port> ports;
 };
 
@@ -100,7 +102,8 @@ public:
     container_Config() = default;
 };
 
-struct V1Image {
+class V1Image {
+    public:
     // ID 是镜像的唯一 64 字符标识符
     std::string ID;
     
@@ -140,17 +143,20 @@ struct V1Image {
     // Size 是包括镜像所有层的总大小
     int64_t Size=0;  // 使用 boost::optional 来表示可选字段
 };
-struct ID{
+class ID{
+    public:
     std::shared_ptr<::Digest> digest=std::make_shared<::Digest>();
     ~ID()=default;
     ID()=default;
 };
-struct V2S2RootFS{
+class V2S2RootFS{
+    public:
     std::string Type;
     std::vector<std::shared_ptr<Digest>> DiffIDs;
     V2S2RootFS()=default;
 };
-struct V2S2History{
+class V2S2History{
+    public:
     std::chrono::system_clock::time_point Created;
     std::string Author;
     std::string CreatedBy;
@@ -158,7 +164,8 @@ struct V2S2History{
     bool EmptyLayer=false;
     V2S2History()=default;
 };
-struct V2Image:public V1Image{
+class V2Image:public V1Image{
+    public:
     std::shared_ptr<::ID> Parent =std::make_shared<::ID>();
     std::shared_ptr<V2S2RootFS> RootFS=std::make_shared<V2S2RootFS>();
     std::shared_ptr<V2S2History>History=std::make_shared<V2S2History>();

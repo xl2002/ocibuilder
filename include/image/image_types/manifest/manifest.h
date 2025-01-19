@@ -8,9 +8,6 @@
 #include "image/digest/digest.h"
 #include "utils/common/buffer.h"
 namespace manifest{
-    struct Manifest_interface{
-        
-    };
 
     std::shared_ptr<::Digest> Digest(std::vector<byte> manifestBlob);
 }

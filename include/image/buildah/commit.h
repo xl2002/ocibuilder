@@ -11,7 +11,8 @@
 #include "image/types/define/types.h"
 #include "config/config.h"
 #include "image/image_types/manifest/docker_schema2.h"
-struct CommitOptions {
+class CommitOptions {
+    public:
     // PreferredManifestType 是图片清单的首选类型
     std::string PreferredManifestType;
 

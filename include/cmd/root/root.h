@@ -21,7 +21,8 @@
  * @brief 根命令的全局标志量
  * 
  */
-struct globalFlags{
+class globalFlags{
+    public:
     bool Debug=false;                   ///<是否调试
     string Root;                        ///<
     // string RunRoot;                  ///<

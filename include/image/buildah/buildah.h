@@ -18,10 +18,11 @@
 #include "image/buildah/image.h"
 #include "utils/logger/logrus/logger.h"
 #include "image/buildah/add.h"
-// struct v1::Image;
+// class v1::Image;
 class Store;
 class Container;
-struct Builder {
+class Builder {
+    public:
     std::shared_ptr<Store> store=std::make_shared<Store>();
 
     // Logger is the logrus logger to write log messages with
@@ -191,7 +192,8 @@ struct Builder {
     void Save(std::string name);
 };
 
-struct BuilderInfo {
+class BuilderInfo {
+    public:
     // Type 显示容器的类型
     std::string Type;
     // FromImage 是基础镜像的名称
@@ -281,7 +283,8 @@ struct BuilderInfo {
         };
     }
 };
-struct BuilderOptions {
+class BuilderOptions {
+    public:
     // Args 定义用户在构建时可以传递给构建器的变量
     std::map<std::string, std::string> Args;
     // FromImage 是用于容器的基础镜像，可以为空或 "scratch" 以表示不使用基础镜像
@@ -351,7 +354,8 @@ struct BuilderOptions {
     // CDIConfigDir 是 CDI 配置文件的路径
     std::string CDIConfigDir;
 };
-struct ImportOptions{
+class ImportOptions{
+    public:
     std::string Container;
     std::string SignaturePolicyPath;
 };

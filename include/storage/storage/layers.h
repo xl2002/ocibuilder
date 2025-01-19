@@ -22,12 +22,12 @@
 #include "utils/common/go/string.h"
 using std::string;
 using std::vector;
-struct LayerOptions;
+class LayerOptions;
 class TruncIndex;
-struct IDMap;
+class IDMap;
 class Driver;
 class Compression;
-struct Layer{
+class Layer{
     public:
     // ID 是创建时指定的，或由库生成的随机值
     std::string ID;
@@ -127,11 +127,13 @@ struct Layer{
     }
 };
 class lockFile;
-struct multipleLockFile{
+class multipleLockFile{
+    public:
     std::vector<std::shared_ptr<lockFile>>lockfiles;
 };
-struct rwLayerStore_interface;
-struct layerStore:public rwLayerStore_interface{
+class rwLayerStore_interface;
+class layerStore:public rwLayerStore_interface{
+    public:
     std::shared_ptr<multipleLockFile> lockfile=std::make_shared<multipleLockFile>();
     std::shared_ptr<lockFile> mountsLockfile=std::make_shared<lockFile>();
     std::string rundir;
@@ -166,7 +168,8 @@ struct layerStore:public rwLayerStore_interface{
     std::shared_ptr<Layer> lookup(const std::string& id);
 };
 
-struct DiffOptions{
+class DiffOptions{
+    public:
     std::shared_ptr<::Compression> Compression=std::make_shared<::Compression>();
     DiffOptions()=default;
 };

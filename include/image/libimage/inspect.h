@@ -11,18 +11,21 @@
 // #include "image/types/define/types.h"
 // #include "storage/storage/storage.h"
 // #include "image/libimage/image.h"
-struct DriverData{
+class DriverData{
+    public:
     std::string Name;
     std::map<std::string, std::string> Data;
 };
 namespace LibImage {
-    struct RootFS{
+    class RootFS{
+        public:
         std::string Type;
         std::vector<Digest> Layers;
     };
 }
 // ImageData 结构体定义
-struct ImageData {
+class ImageData {
+    public:
     // 镜像 ID
     std::string ID;
 
@@ -93,7 +96,8 @@ struct ImageData {
     std::shared_ptr<Schema2HealthConfig> HealthCheck=std::make_shared<Schema2HealthConfig>(); // 指向 HealthConfig 的指针，允许为空
 };
 
-struct InspectOptions{
+class InspectOptions{
+    public:
     bool WithSize=false;
     bool WithParent=false;
 };

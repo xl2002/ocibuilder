@@ -22,7 +22,8 @@ const string
 	// TimeNamespace for isolating the clocks
 	TimeNamespace  = "time";
 
-struct LinuxIDMapping{
+class LinuxIDMapping{
+	public:
     uint32_t ContainerID;
     uint32_t HostID;
     uint32_t Size;
@@ -35,7 +36,8 @@ struct LinuxIDMapping{
  * - Secs: 秒偏移
  * - Nanosecs: 纳秒偏移
  */
-struct LinuxTimeOffset{
+class LinuxTimeOffset{
+	public:
     int64_t Secs;
     uint32_t Nanosecs;
 };
@@ -50,7 +52,8 @@ struct LinuxTimeOffset{
  * - UIDMappings: 用户 ID 映射列表
  * - GIDMappings: 用户组 ID 映射列表
  */
-struct Mount {
+class Mount {
+	public:
     std::string Destination;
     std::string Type;
     std::string Source;

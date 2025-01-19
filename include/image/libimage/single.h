@@ -4,13 +4,15 @@
 // #include "image/types/copy.h"
 #include "image/types/internal/types.h"
 
-struct copySingleImageOptions{
+class copySingleImageOptions{
+    public:
     bool requireCompressionFormatMatch=false;
     std::shared_ptr<Algorithm> compressionFormat=std::make_shared<Algorithm>();
     std::shared_ptr<int> compressionLevel=std::make_shared<int>(0);
     copySingleImageOptions()=default;
 };
-struct copySingleImageResult{
+class copySingleImageResult{
+    public:
     std::vector<uint8_t> manifest;
     std::string manifestMIMEType;
     std::shared_ptr<Digest> manifestDigest=std::make_shared<Digest>();

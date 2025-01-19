@@ -33,7 +33,7 @@ using std::map;
 
 // extern std::unordered_map<std::string, std::function<std::shared_ptr<Driver>(const std::string&, const driver_Options&)>> drivers;
 
-struct LayerOptions;
+class LayerOptions;
 using namespace std;
 // using namespace boost::property_tree;
 // 定义 containerLocations 类型
@@ -41,14 +41,14 @@ typedef unsigned int containerLocations;
 // 定义位标志
 constexpr containerLocations stableContainerLocation = 1 << 0; // 1 << 0 => 1
 constexpr containerLocations volatileContainerLocation = 1 << 1; // 1 << 1 => 2
-struct LayerOptions;
-struct DiffOptions;
+class LayerOptions;
+class DiffOptions;
 class lockFile;
 class Driver;
 class Container;
 class ContainerOptions;
 namespace storage {
-    struct Image;
+    class Image;
 }
 class Store_interface{
     public:
@@ -81,12 +81,14 @@ class Store_interface{
         const std::string& layer, const std::string& metadata,const std::shared_ptr<ContainerOptions> options)=0;
     virtual bool savelayers()=0;
 };
-struct LayerBigDataOption{
+class LayerBigDataOption{
+    public:
     std::string key;
     std::ifstream Data;
 };
-struct IDMappingOptions;
-struct LayerOptions{
+class IDMappingOptions;
+class LayerOptions{
+    public:
     std::shared_ptr<IDMappingOptions> idMappingOptions=std::make_shared<IDMappingOptions>();
     // TemplateLayer 是用于初始化此层内容的模板层的 ID
     std::string templateLayer;
@@ -111,7 +113,8 @@ struct LayerOptions{
 };
 using updateNameOperation = int;
 // ImageBigDataOption 结构体定义
-struct ImageBigDataOption {
+class ImageBigDataOption {
+    public:
     // Key 是数据项的键
     std::string key;
 
@@ -123,7 +126,8 @@ struct ImageBigDataOption {
 };
 
 // ImageOptions 结构体定义
-struct ImageOptions {
+class ImageOptions {
+    public:
     // CreationDate 如果不为零，将覆盖默认的创建时间行为
     time_t creationDate;
 
@@ -310,8 +314,8 @@ public:
     virtual void newtag(std::string name,std::string newname) = 0;
     virtual void Save()=0;
 };
-struct ImageStore:public rwImageStore_interface{
-
+class ImageStore:public rwImageStore_interface{
+    public:
     // 以下字段在构建 ImageStore 时设置，之后不能再修改。
     // 它们可以在没有其他锁定的情况下安全地访问。
     shared_ptr<lockFile> lockfile=std::make_shared<lockFile>(); // LockFile 用于区分读写和只读 image store。
@@ -496,7 +500,7 @@ public:
     // 清理未引用的数据目录
     virtual void GarbageCollect() = 0;
 };
-struct containerStore : public rwContainerStore_interface {
+class containerStore : public rwContainerStore_interface {
 public:
     void startWriting() override ;
     void stopWriting() override ;
@@ -549,9 +553,9 @@ public:
 };
 
 // namespace storage {
-//     struct Image;
+//     class Image;
 // }
-struct rwLayerStore_interface;
+class rwLayerStore_interface;
 class Store :public Store_interface{
     public:
     std::string run_root;

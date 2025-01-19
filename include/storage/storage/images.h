@@ -15,17 +15,18 @@
 #include "utils/common/go/string.h"
 #include "image/image_types/v1/config.h"
 // #include "image/types/copy.h"
-struct Manifest;
+class Manifest;
 namespace v1{
-    struct Image;
+    class Image;
 }
 namespace storage{
-    struct manifest;
+    class manifest;
 }
 namespace storage{
     // 表示一个镜像和相关的元数据的结构体
-    struct index;
-    struct Image {
+    class index;
+    class Image {
+        public:
         // ID 是在创建时指定的，或者由库随机生成的值
         std::string ID;
 
@@ -122,7 +123,8 @@ namespace storage{
             return image;
         }
     };
-    struct manifest{
+    class manifest{
+        public:
         std::string mediaType;
         std::string digest;
         uint64_t size=0;
@@ -153,7 +155,8 @@ namespace storage{
             return m;
         }
     };
-    struct index{
+    class index{
+        public:
         int schemaVersion;
         std::vector<manifest> manifests;
         // std::map<std::string, std::string> annotations;

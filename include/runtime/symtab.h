@@ -8,12 +8,13 @@
 #include <memory>   
 #include "runtime/runtime2.h"
 #include "runtime/type.h"
-struct _func;
-struct itab;
+class _func;
+class itab;
 class Func {
 public:
     // 私有成员，unexported 字段
-    struct Opaque {
+    class Opaque {
+        public:
         // 这里可以定义一些私有的数据或结构体
     } opaque;
 
@@ -44,7 +45,8 @@ public:
 
 // pcHeader 结构体用于存储与 pclntab 查找相关的数据
 // 可能需要注意对齐和大小一致性
-struct pcHeader {
+class pcHeader {
+    public:
     uint32_t magic;           // 0xFFFFFFF1
     uint8_t pad1;             // 填充字节
     uint8_t pad2;             // 填充字节
@@ -67,12 +69,14 @@ struct pcHeader {
 };
 
 
-struct functab {
+class functab {
+    public:
     uint32_t entryoff;  // 相对于runtime.text的偏移量
     uint32_t funcoff;
 };
 
-struct textsect {
+class textsect {
+    public:
     uintptr_t vaddr;     // 预链接的虚拟地址
     uintptr_t end;       // vaddr + section length
     uintptr_t baseaddr;  // 重定位段地址
@@ -80,24 +84,28 @@ struct textsect {
 
 // 编译器为插件主包中的每个导出函数和全局变量生成一个ptabEntry。
 // 它用于初始化插件模块的符号映射。
-struct ptabEntry {
+class ptabEntry {
+    public:
     nameOff name;     // 函数名
     typeOff type;     // 函数类型
 };
 
-struct modulehash{
+class modulehash{
+    public:
     std::string modulename;
     std::string linktimehash;
     std::shared_ptr<std::string> runtimehash=std::make_shared<std::string>();
 };
 
-struct bitvector{
+class bitvector{
+    public:
     uint32_t n;
     std::shared_ptr<uint8_t> bytedata=std::make_shared<uint8_t>(0);
 };
 
 
-struct moduledata {
+class moduledata {
+    public:
     std::shared_ptr<pcHeader> pcHeaderPtr=std::make_shared<pcHeader>();                        // 指向 pcHeader 的指针
     std::vector<uint8_t> funcnametab;             
     std::vector<uint32_t> cutab;                  
@@ -143,15 +151,16 @@ struct moduledata {
 };
 
 // funcInfo 结构体
-struct funcInfo {
+class funcInfo {
+    public:
     std::shared_ptr<_func> funcPtr=std::make_shared<_func>();        // 指向 _func 的指针
     std::shared_ptr<moduledata> datap=std::make_shared<moduledata>();     // 指向 moduledata 的指针
 };
 
 
 // Frame 结构体
-struct Frame {
-    
+class Frame {
+    public:
     uintptr_t PC;        // 程序计数器（PC）用于表示当前帧的位置
     std::shared_ptr<Func> funcPtr=std::make_shared<Func>();          // 函数指针，用于表示当前帧所对应的函数   
     std::string Function;// 函数名，包路径限定的函数名

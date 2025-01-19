@@ -335,7 +335,8 @@ std::tuple<string,std::shared_ptr<Canonical_interface>> Executor::Build(std::sha
     }
     warnOnUnsetBuildArgs(stages->Stages, dependencyMap, args);
 
-    struct Result {
+    class Result {
+        public:
         int Index;
         std::string ImageID;
         bool OnlyBaseImage;

@@ -17,12 +17,13 @@
 using std::string;
 using std::vector;
 /**
- * @struct logoutOptions
+ * @class logoutOptions
  * @brief logoutOptions 代表 logout 标志的结果
  * 
  */
-struct logoutOptions
+class logoutOptions
 {
+    public:
     /* data */
     bool    all=false;        ///<
 

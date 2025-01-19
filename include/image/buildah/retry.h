@@ -8,7 +8,8 @@
 #include <utils/common/error.h>
 
 namespace Retry{
-    struct Options{
+    class Options{
+        public:
         int MaxRetry=0;  // 重试次数
         std::chrono::duration<int> Delay;  // 重试之间的延迟，使用chrono表示
         // std::function<bool(const std::exception&)> IsErrorRetryable;  // 错误是否可重试的函数

@@ -8,17 +8,19 @@
 #include <chrono>
 #include <iostream>
 #include "image/types/signature/policy_types.h"
-struct PolicyRequirement_interface{
-    
+class PolicyRequirement_interface{
+    public:
 };
-struct PolicyReferenceMatch_interface{
-
+class PolicyReferenceMatch_interface{
+public:
 };
-struct policyContextState{
+class policyContextState{
+    public:
     std::string policycontextstate;
 };
 class Policy;
-struct PolicyContext{
+class PolicyContext{
+    public:
     std::shared_ptr<::Policy> Policy=std::make_shared<::Policy>();
     std::shared_ptr<policyContextState> state=std::make_shared<policyContextState>();
 

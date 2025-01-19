@@ -8,7 +8,8 @@
 #include <chrono>
 #include "image/image_types/docker/types.h"
 namespace Docker{
-    struct RootFS{
+    class RootFS{
+        public:
         std::string Type;
         std::vector<std::string> Layers;
         RootFS()=default;

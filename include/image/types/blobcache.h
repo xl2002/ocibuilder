@@ -3,12 +3,14 @@
 #include "image/types/types.h"
 #include "image/types/reference/reference.h"
 
-struct BlobCache_interface:public ImageReference_interface{
+class BlobCache_interface:public ImageReference_interface{
+    public:
     virtual std::string Directory()=0;
 };
 
-struct BlobCache:public BlobCache_interface
+class BlobCache:public BlobCache_interface
 {
+    public:
     std::shared_ptr<ImageReference_interface> ref=nullptr;
     std::string directory;
     std::shared_ptr<LayerCompression> compress=std::make_shared<LayerCompression>();

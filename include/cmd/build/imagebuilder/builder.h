@@ -23,7 +23,8 @@
 // #include <boost/system/error_code.hpp>
 #include <sys/stat.h>
 #include "filesys/systems.h"
-struct File{
+class File{
+    public:
     std::string Name;
     std::string Data;
 };
@@ -130,7 +131,8 @@ class Executor_Interface {
     virtual void RUN(std::shared_ptr<Run> run) = 0;
     virtual void UnrecognizedInstruction(std::shared_ptr<Step> step) = 0;
 };
-struct logExecutor:public Executor_Interface{
+class logExecutor:public Executor_Interface{
+    public:
     void UnrecognizedInstruction(std::shared_ptr<Step> step) override;
     void Preserve(std::string path)override;
     void EnsureContainerPath(std::string path)override;
@@ -138,7 +140,8 @@ struct logExecutor:public Executor_Interface{
     void COPY(std::vector<std::string> excludes,std::vector<Copy> copies) override;
     void RUN(std::shared_ptr<Run> run) override;
 };
-struct noopExecutor:public Executor_Interface{
+class noopExecutor:public Executor_Interface{
+    public:
     void UnrecognizedInstruction(std::shared_ptr<Step> step) override;
     void Preserve(std::string path)override;
     void EnsureContainerPath(std::string path)override;

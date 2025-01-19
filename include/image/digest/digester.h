@@ -4,14 +4,16 @@
 #include "image/digest/digest.h"
 class Digest;
 class Algorithm_sha256;
-struct Digester_interface{
+class Digester_interface{
+    public:
     virtual ~Digester_interface()=default;
     virtual std::shared_ptr<Hash_256> GetHash() = 0;
     virtual std::shared_ptr<::Digest> Digest() = 0;
     virtual void SetAlgorithm(const std::shared_ptr<Algorithm_sha256>& algorithm) = 0;
     
 };
-struct digester:public Digester_interface{
+class digester:public Digester_interface{
+    public:
     std::shared_ptr<Algorithm_sha256> alg=std::make_shared<Algorithm_sha256>();
     std::shared_ptr<Hash_256> hash=nullptr;
     digester()=default;

@@ -5,8 +5,9 @@
 #include <map>
 #include <memory>
 
-struct PodExitPolicy
+class PodExitPolicy
 {
+    public:
     std::string policy;
 };
 

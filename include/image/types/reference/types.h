@@ -34,7 +34,8 @@ class HealthConfig{
 
 };
 
-struct Port{
+class Port{
+    public:
     std::string p;
     Port()=default;
     Port(std::string port):p(port){}
@@ -49,7 +50,8 @@ struct Port{
         return parts[1];
     }
 };
-struct PortSet{
+class PortSet{
+    public:
     std::set<Port> ports;
 };
 
@@ -96,7 +98,8 @@ public:
     std::string VolumesFrom;
 };
 
-struct V1Image {
+class V1Image {
+    public:
     // ID 是镜像的唯一 64 字符标识符
     std::string ID;
     

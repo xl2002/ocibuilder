@@ -14,10 +14,11 @@
 #include "image/image_types/manifest/docker_schema2.h"
 #include "image/image_types/v1/config.h"
 #include "image/image_types/v1/oci.h"
-// struct v1::Image;
-struct containerImageRef;
+// class v1::Image;
+class containerImageRef;
 // 容器镜像引用的结构体定义
-struct containerImageRef: public ImageReference_interface{
+class containerImageRef: public ImageReference_interface{
+    public:
     std::string fromImageName;                  // 源镜像的名称
     std::string fromImageID;                    // 源镜像的ID
     std::shared_ptr<Store_interface> store=nullptr;                        // 存储库
@@ -57,7 +58,8 @@ struct containerImageRef: public ImageReference_interface{
     std::tuple<std::shared_ptr<v1::Image>,std::shared_ptr<Manifest>> createConfigsAndManifests();
     std::shared_ptr<ImageDestination_interface> NewImageDestination(std::shared_ptr<SystemContext>sys) override;
 };
-struct blobLayerInfo{
+class blobLayerInfo{
+    public:
     std::string ID;
     int64_t Size=0;
     blobLayerInfo()=default;
@@ -68,7 +70,8 @@ std::string computeLayerMIMEType(std::string what,std::shared_ptr<Compression> l
  * @brief containerImageSource 容器镜像源
  * 
  */
-struct containerImageSource: public ImageSource_interface{
+class containerImageSource: public ImageSource_interface{
+    public:
     std::string path;                          // Go: string
     std::shared_ptr<containerImageRef> ref=std::make_shared<containerImageRef>();                    // Go: *containerImageRef
     std::shared_ptr<Store_interface> store=nullptr;                        // Go: storage.Store

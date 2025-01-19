@@ -4,9 +4,5 @@
 #include <iostream>
 #include <vector>
 
-// struct WriteCounter{
-//     // int64_t Coun
-// }
-
 
 #endif // UTILS_COMMON_WRITERS_H

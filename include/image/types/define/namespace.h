@@ -5,7 +5,8 @@
 #include<algorithm>
 using std::vector;
 using std::string;
-struct NamespaceOption{
+class NamespaceOption{
+    public:
     string Name;
     bool Host;
     string Path;

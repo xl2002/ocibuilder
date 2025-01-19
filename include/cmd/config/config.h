@@ -21,8 +21,9 @@ using std::vector;
  * @brief  configOptions 代表config标志的结果
  * 
  */
-struct configOptions
+class configOptions
 {
+    public:
     /* data */
     bool    addHistory=false;   ///<向镜像中添加历史记录信息
     vector<string>  annotation; ///<更改镜像的annotation

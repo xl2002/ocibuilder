@@ -9,13 +9,13 @@
 #include "image/types/types.h"
 class storageTransport;
 // class ImageReference_interface;
-struct Image_interface;
-struct ImageTransport_interface;
-struct SystemContext;
-struct ImageSource_interface;
-struct ImageDestination_interface;
+class Image_interface;
+class ImageTransport_interface;
+class SystemContext;
+class ImageSource_interface;
+class ImageDestination_interface;
 namespace storage{
-    struct Image;
+    class Image;
 }
 class ImageReference_interface{
     public:
@@ -29,7 +29,8 @@ class ImageReference_interface{
     virtual std::shared_ptr<ImageSource_interface> NewImageSource(std::shared_ptr<SystemContext>sys,bool check) = 0;
     virtual std::shared_ptr<ImageDestination_interface> NewImageDestination(std::shared_ptr<SystemContext>sys) = 0;
 };
-struct storageReference: public ImageReference_interface{
+class storageReference: public ImageReference_interface{
+    public:
     std::shared_ptr<storageTransport> transport=std::make_shared<storageTransport>();
     std::shared_ptr<Named_interface> named=nullptr;
     std::string id;

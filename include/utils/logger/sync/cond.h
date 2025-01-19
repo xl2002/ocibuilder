@@ -10,7 +10,8 @@
 // noCopy 可以添加到那些在第一次使用后不能被复制的结构体中。
 // 不能被拷贝或赋值
 // 请注意，由于 Lock 和 Unlock 方法，它不能被嵌入。
-struct noCopy {
+class noCopy {
+    public:
     noCopy() = default;
     noCopy(const noCopy&) = delete;
     noCopy& operator=(const noCopy&) = delete;

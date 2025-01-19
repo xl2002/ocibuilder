@@ -10,7 +10,8 @@ typedef int32_t textOff;
 using tflag = uint8_t;
 using byte = uint8_t;
 using Pointer = void*;
-struct _type {
+class _type {
+    public:
     std::uintptr_t size;         
     std::uintptr_t ptrdata;      
     std::uint32_t hash;          
@@ -29,14 +30,17 @@ struct _type {
     typeOff ptrToThis;           
 };
 
-struct imethod {
+class imethod {
+    public:
     nameOff name;
     typeOff type;
 };
-struct name {
+class name {
+    public:
     byte* bytes;  
 };
-struct interfacetype {
+class interfacetype {
+    public:
     _type typ;
     name pkgpath;
     std::vector<imethod> mhdr;

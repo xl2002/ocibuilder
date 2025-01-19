@@ -72,7 +72,8 @@ using std::vector;
  * Secrets：指定的密码文件
  * SSH：向容器添加SSH密钥
  */
-struct BudResults{
+class BudResults{
+    public:
     bool                check=false;          ///<是否生成每个文件的校验码存储文件
     bool                allplatform=false;     ///<镜像构建是否适用所有平台
     vector<string>      annotation;  ///<向镜像添加annotation
@@ -135,7 +136,8 @@ struct BudResults{
  * @brief LayerResults 表示层标志的结果
  * 
  */
-struct LayerResults{
+class LayerResults{
+    public:
     bool ForceRm=false; ///<
     bool Layers=false; ///<
 };
@@ -170,7 +172,8 @@ struct LayerResults{
  * - Ulimit：用户限制列表
  * - Volumes：要挂载的卷列表
  */
-struct FromAndBudResults{
+class FromAndBudResults{
+    public:
     vector<string>      AddHost; ///< 自定义主机到 IP 映射列表
     string              BlobCache; ///< 假设镜像的 blobs 在指定目录中可用于推送
     vector<string>      CapAdd; ///< 在运行时添加的特定功能列表
@@ -207,7 +210,8 @@ struct FromAndBudResults{
  * 用户命名空间 GID 映射、用户命名空间 UID 映射用户、
  * 用户命名空间 GID 映射用户组
  */
-struct UserNSResults{
+class UserNSResults{
+    public:
     string              UserNS; ///< 用户命名空间
     vector<string>      GroupAdd; ///< 需要添加的用户组
     vector<string>      UserNSUIDMap; ///< 用户命名空间 UID 映射
@@ -217,7 +221,7 @@ struct UserNSResults{
 };
 
 /**
- * @struct NameSpaceResults
+ * @class NameSpaceResults
  * @brief NameSpaceResults 表示名称空间结果
  * 
  * NameSpaceResults 定义了名称空间命令中合法的flag的结果，
@@ -231,7 +235,8 @@ struct UserNSResults{
  * - PID: 进程 命名空间
  * - UTS: 主机 命名空间
  */
-struct NameSpaceResults{
+class NameSpaceResults{
+    public:
     string          Cgroup; ///< cgroup 命名空间
 	string          IPC;   ///< IPC 命名空间
 	string          Network;  ///< 网络 命名空间
@@ -241,14 +246,14 @@ struct NameSpaceResults{
 	string          UTS;    ///< 主机 命名空间
 };
 /**
- * @struct BuildOptions
+ * @class BuildOptions
  * @brief BuildOptions 代表build标志的结果
  * BuildOptions 定义build命令中合法flag的声明，
  * 后续在功能扩展时，只需在BuildOptions中添加即可添加flag
  */
 
 /**
- * @struct BuildOptions
+ * @class BuildOptions
  * @brief BuildOptions 代表build标志的结果
  * BuildOptions 定义build命令中合法flag的声明，
  * 后续在功能扩展时，只需在BuildOptions中添加即可添加flag
@@ -260,8 +265,8 @@ struct NameSpaceResults{
  * - UserNSResults: UserNSResults 用户命名空间结果
  * - NameSpaceResults: NameSpaceResults 名称空间结果
  */
-struct BuildOptions:public BudResults,public LayerResults,public FromAndBudResults,public UserNSResults,public NameSpaceResults{
-
+class BuildOptions:public BudResults,public LayerResults,public FromAndBudResults,public UserNSResults,public NameSpaceResults{
+public:
     /// logwriter 日志输出流指针，默认为nullptr
     std::ofstream*       logwriter=nullptr;
     /// BuildOptions 构造函数，初始化BuildOptions对象

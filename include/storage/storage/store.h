@@ -7,9 +7,10 @@
 #include <tuple>
 #include "storage/storage/layers.h"
 #include "storage/storage/storage.h"
-struct Layer;
-struct LayerOptions;
-struct rwLayerStore_interface{
+class Layer;
+class LayerOptions;
+class rwLayerStore_interface{
+    public:
     virtual ~rwLayerStore_interface()=default;
     virtual std::tuple<std::shared_ptr<Layer>,int64_t> create(
         std::string& id,std::shared_ptr<Layer> parentLayer,std::vector<std::string>names,

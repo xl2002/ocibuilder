@@ -18,7 +18,8 @@
 #include <boost/json.hpp>
 using std::string;
 using std::vector;
-struct InfoData{
+class InfoData{
+    public:
     std::string Type;
     std::map<std::string,std::string> Data;
     friend void tag_invoke(const boost::json::value_from_tag&, boost::json::value& jv, const InfoData& data){

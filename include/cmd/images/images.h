@@ -17,12 +17,13 @@
 using std::string;
 using std::vector;
 /**
- * @struct imagesOptions
+ * @class imagesOptions
  * @brief imagesOptions 代表 images 标志的结果
  * 
  */
-struct imagesOptions
+class imagesOptions
 {
+    public:
     /* data */
     bool    all=false;        ///<是否输出镜像的所有信息
 };

@@ -6,7 +6,7 @@
 #include "utils/common/error.h"
 #include <boost/filesystem.hpp>
 #include "storage/types/options.h"
-struct IDMap
+class IDMap
 {
     public:
     ~IDMap()=default;
@@ -15,11 +15,13 @@ struct IDMap
     int Size=0;
 };
 // 定义 IDPair 类，用于表示 UID 和 GID 的配对
-struct IDPair {
+class IDPair {
+    public:
     int UID=0; // 用户 ID
     int GID=0; // 组 ID
 };
-struct IDMappings {
+class IDMappings {
+    public:
     std::vector<IDMap> uids;
     std::vector<IDMap> gids;
     // 构造函数

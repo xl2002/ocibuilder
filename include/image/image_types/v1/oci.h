@@ -4,12 +4,14 @@
 #include "image/image_types/v1/config.h"
 #include <boost/json.hpp>
 #include "image/types/define/types.h"
-struct LayerInfo{
+class LayerInfo{
+    public:
     std::shared_ptr<::BlobInfo> BlobInfo=std::make_shared<::BlobInfo>();
     bool EmptyLayer=false;
     LayerInfo()=default;
 };
-struct OCI1:public Manifest{
+class OCI1:public Manifest{
+    public:
     OCI1()=default;
     std::vector<LayerInfo> LayerInfos();
     /**
@@ -43,7 +45,8 @@ struct OCI1:public Manifest{
     }
 };
 
-struct manifestOCI1{
+class manifestOCI1{
+    public:
     std::shared_ptr<ImageReference_interface> src=nullptr;
     std::vector<uint8_t> configBlob;
     std::shared_ptr<OCI1> m=std::make_shared<OCI1>();

@@ -1,7 +1,8 @@
 #if !defined(IMAGE_LIBIMAGE_PULL_H)
 #define IMAGE_LIBIMAGE_PULL_H
 #include "image/libimage/copier.h"
-struct PullOptions : public CopyOptions{
+class PullOptions : public CopyOptions{
+    public:
     bool AllTags = false;
 };
 

@@ -13,7 +13,8 @@
 #include <sstream>
 
 // 定义shellWord结构体，包含word字符串，scanner，环境变量envs，和pos位置
-struct shellWord {
+class shellWord {
+    public:
     std::string word;                            // 字符串
     std::stringstream scanner;   // 模拟Go语言中的scanner.Scanner
     std::vector<std::string> envs;               // 环境变量列表
@@ -28,7 +29,8 @@ struct shellWord {
 
 };
 
-struct wordsStruct{
+class wordsStruct{
+    public:
     std::string word;
     std::vector<std::string> words;
     bool inWord=false;
