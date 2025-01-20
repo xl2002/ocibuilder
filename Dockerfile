@@ -20,11 +20,11 @@ COPY test.cpp /usr/src/app
 
 # 暴露端口
 # EXPOSE 8080
-
+WORKDIR ./app2
 # 设置入口点
 # ENTRYPOINT ["/usr/src/app/my_script.sh"]
 # ENTRYPOINT ["/usr/src/app/my_script.sh","arg1","arg2"]
 
 # 定义数据卷
-VOLUME "/usr/src/app/data:/data"
-# VOLUME ["/usr/src/app/data:/data","/usr/src/app/data2:/data2"]
+VOLUME "/usr/src/app/data3:/data"
+VOLUME ["/usr/src/app/data:/data","/usr/src/app/data2:/data2"]

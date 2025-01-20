@@ -319,7 +319,7 @@ void Volume(
             throw myerror("Volume specified can not be an empty string");
         }
         b->RunConfig->Volumes[src]=dest;
-        b->PendingVolumes->Add(v);
+        b->PendingVolumes->Add(src);
     }
 }
 void workdir(
@@ -334,8 +334,8 @@ void workdir(
         throw errExactlyOneArgument("WORKDIR");
     }
     boost::filesystem::path workdir(args[0]);
-    if(!workdir.is_absolute()){
-        workdir=boost::filesystem::path(b->RunConfig->WorkingDir)/workdir;
+    if(!workdir.is_absolute()&&workdir.string().substr(0, 1) != "/"){
+        workdir=b->RunConfig->WorkingDir + workdir.string().substr(1);
     }
     b->RunConfig->WorkingDir=workdir.string();
     return;

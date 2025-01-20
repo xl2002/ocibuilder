@@ -385,10 +385,10 @@ bool VolumeSet::Add( const std::string& path) {
     std::vector<std::string> adjusted;
 
     for (const auto& p : Volumes) {
-        if (p == trimmedPath || hasPrefix(trimmedPath ,p + "/") == 0) {
+        if (p == trimmedPath || hasPrefix(trimmedPath ,p + "/")) {
             return false;
         }
-        if (hasPrefix(p,trimmedPath + "/") == 0) {
+        if (hasPrefix(p,trimmedPath + "/")) {
             continue;
         }
         adjusted.push_back(p);
