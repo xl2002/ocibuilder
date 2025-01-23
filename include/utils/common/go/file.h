@@ -34,4 +34,5 @@ string Clean(const string& path);
 bool isDirectoryEmpty(const boost::filesystem::path& dirPath);
 std::string MkdirTemp(std::string dir, std::string pattern);
 void Copy_file(const fs::path& src, const fs::path& dest);
+bool isPathabsolute(const std::string& path);
 #endif // GO_FILE_H

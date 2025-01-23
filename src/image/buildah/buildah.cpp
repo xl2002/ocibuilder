@@ -109,7 +109,13 @@ void Builder::ClearVolumes(){
 }
 void Builder::AddVolume(std::string k,std::string v){
     // this->OCIv1->config.volumes[k]=v;
-    std::string volume=k+":"+v;
+    std::string volume;
+    if(v==""){
+        volume=k;
+    }else{
+        volume=k+":"+v;
+    }
+    // std::string volume=k+":"+v;
     
     this->OCIv1->config.volumes[volume]=boost::json::object();
 

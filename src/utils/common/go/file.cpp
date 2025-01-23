@@ -467,3 +467,7 @@ void Copy_file(const fs::path& src, const fs::path& dest) {
         std::cerr << "Error: " << ex.what() << std::endl;
     }
 }
+
+bool isPathabsolute(const std::string& path) {
+    return path[0] == '/' || path[1] == ':';
+}

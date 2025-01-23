@@ -1,4 +1,5 @@
 #include "cmd/build/imagebuilder/internals.h"
+#include "utils/common/go/file.h"
 std::vector<std::string> mergeEnv(std::vector<std::string> defaults, std::vector<std::string> overrides){
     std::vector<std::string> result;
     result.reserve(defaults.size() + overrides.size());
@@ -101,7 +102,7 @@ std::string makeAbsolute(const std::string& dest, const std::string& workingDir)
     }
 
     // 如果路径不是绝对路径
-    if (!boost::filesystem::path(resultDest).is_absolute()) {
+    if (!isPathabsolute(resultDest)) {
         bool hasSlash = (resultDest.find(PATH_SEPARATOR) != std::string::npos);
 
         // 使用 boost::filesystem::path 拼接路径，传入字符串形式的路径分隔符

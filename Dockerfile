@@ -26,5 +26,5 @@ WORKDIR ./app2
 # ENTRYPOINT ["/usr/src/app/my_script.sh","arg1","arg2"]
 
 # 定义数据卷
-VOLUME "/usr/src/app/data3:/data"
+VOLUME "/usr/src/app/data3"
 VOLUME ["/usr/src/app/data:/data","/usr/src/app/data2:/data2"]
