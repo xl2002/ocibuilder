@@ -76,7 +76,7 @@ void AddcCheck(std::vector<std::string> layers,std::string srcpath,std::string d
     //TODO
     std::string checkpath=destpath+"/check.json";//中间缓存文件
     auto checks=std::make_shared<Check>();//TODO
-    checks->version="8";
+    checks->version=8;
     for(auto layer:layers){
         std::string overlaypath=srcpath+"/"+layer+"/diff";
         if(!boost::filesystem::exists(overlaypath)){
@@ -91,7 +91,11 @@ void AddcCheck(std::vector<std::string> layers,std::string srcpath,std::string d
                 auto filedigest=Fromfile(file_paths);
                 std::string key=file_paths.substr(overlaypath.length());
                 std::replace(key.begin(), key.end(), '\\', '/');
-                checks->Validation[key]=filedigest->Encoded();
+                Pathlist pathlist;
+                pathlist.path=key;
+                pathlist.value=filedigest->Encoded();
+                // checks->Validation[key]=filedigest->Encoded();
+                checks->SHA256.push_back(pathlist);
             }
         }
     }

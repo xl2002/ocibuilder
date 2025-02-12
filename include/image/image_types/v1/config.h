@@ -220,25 +220,44 @@ class Manifest{
         return m;
     };
 };
+class Pathlist{
+    public:
+    std::string path;
+    std::string value;
+    Pathlist()=default;
 
+    friend void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const Pathlist& image) {
+        jv=boost::json::object{
+            {"path",image.path},
+            {"value",image.value}
+        };
+    }
+    friend Pathlist tag_invoke(boost::json::value_to_tag<Pathlist>, const boost::json::value& jv) {
+        const auto& obj = jv.as_object();
+        Pathlist m;
+        m.path=obj.at("path").as_string().c_str();
+        m.value=obj.at("value").as_string().c_str();
+        return m;
+    }
+};
 class Check {
     public:
-    std::string version;
+    int version;
     //key为文件路径，value为校验的sha256值
-    std::map<std::string, std::string> Validation;
+    std::vector<Pathlist> SHA256;
     Check()=default;
     friend void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const Check& image) {
         jv=boost::json::object{
             {"version",image.version},
-            {"validation",boost::json::value_from(image.Validation)}
+            {"SHA256",boost::json::value_from(image.SHA256)}
         };
     }
 
     friend Check tag_invoke(boost::json::value_to_tag<Check>, const boost::json::value& jv) {
         const auto& obj = jv.as_object();
         Check m;
-        m.version=obj.at("version").as_string().c_str();
-        m.Validation=boost::json::value_to<std::map<std::string, std::string>>(obj.at("validation"));
+        m.version=obj.at("version").as_int64();
+        m.SHA256=boost::json::value_to<std::vector<Pathlist>>(obj.at("SHA256"));
         return m;
     };
 };
