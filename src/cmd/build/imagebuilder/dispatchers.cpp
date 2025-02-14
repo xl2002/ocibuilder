@@ -337,6 +337,9 @@ void workdir(
     if(!workdir.is_absolute()&&workdir.string().substr(0, 1) != "/"){
         workdir=b->RunConfig->WorkingDir + workdir.string().substr(1);
     }
+    // if(!boost::filesystem::is_directory(workdir)){
+    //     boost::filesystem::create_directories(workdir);
+    // }
     b->RunConfig->WorkingDir=workdir.string();
     return;
 }

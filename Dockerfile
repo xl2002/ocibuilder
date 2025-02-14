@@ -6,11 +6,11 @@ FROM scratch
 LABEL maintainer "your_email@example.com"
 # LABEL version="1.0"
 # LABEL description="A simple BusyBox example Dockerfile"
-WORKDIR /usr/src/app
+WORKDIR /usr/src/app/description
 # 复制文件到容器中
 COPY ./app /usr/src/app
 COPY ./app2 /
-COPY test.cpp /usr/src/app
+COPY test1.cpp /usr/src/app
 # 设置工作目录
 # WORKDIR /usr/src/app
 

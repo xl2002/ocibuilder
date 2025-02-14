@@ -587,7 +587,12 @@ void StageExecutor::EnsureContainerPath(std::string path){
 }
 
 void StageExecutor::EnsureContainerPathAs(std::string path,std::string user,const mode_t* mode) {
-
+    std::string mountpath=this->builder->store->GetlayerStoragePath()+Separator+this->builder->container->LayerID;
+    auto workdirpath=boost::filesystem::path(mountpath+"/diff") / boost::filesystem::path(path);
+    if(!boost::filesystem::exists(workdirpath)){
+        boost::filesystem::create_directories(boost::filesystem::path(workdirpath));
+        workdirpath.make_preferred();
+    }
 }
 /**
  * @brief copy操作的实际功能函数
