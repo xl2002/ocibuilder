@@ -64,6 +64,7 @@
 ~~~bash
 # 登录到远端
 ./output/main.exe login --username myusername --password mypassword 10.68.1.145:5000
+./output/main.exe login --username admin --password Harbor12345 192.168.1.102:80
 # linux系统测试样例
 ./output/main login --username myusername --password mypassword 10.68.1.145:5000
 ~~~
@@ -100,7 +101,7 @@
 9. push
 ~~~bash
 # 推送镜像到远端
-./output/main.exe push 10.68.1.145:5000/library/busybox-image:latest
+./output/main.exe push 192.168.1.102:8080/library/image1:latest
 # 推送镜像到本地目录
 ./output/main.exe push image1:latest oci:D:/test/image1:imagetest:latest
 # linux系统测试样例
