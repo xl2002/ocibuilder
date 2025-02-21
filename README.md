@@ -137,7 +137,7 @@ buildah logout --all
 buildah login --username=admin --password=123456 --tls-verify=false 192.168.1.102:5000
 buildah push -f v2s2 192.168.1.102:5000/library/busybox:latest
 buildah login --username=admin --password=123456 xk.domain.com:5050
-
+buildah push -f v2s2 xk.domain.com:5050/library/busybox:latest
 podman run -d \
   --name registry \
   -p 443:443 \
