@@ -82,7 +82,7 @@
 8. pull
 ~~~bash
 # 从远端拉取镜像
-./output/main.exe pull 10.68.1.145:5000/library/busybox-image:latest
+./output/main.exe pull --format oci 10.68.1.145:5000/library/busybox-image:latest
 ./output/main.exe pull --os linux --arch amd64 10.68.1.145:5000/library/busybox-image:latest
 ./output/main.exe pull --os linux --arch amd64 --all-tags 10.68.1.145:5000/library/busybox-image
 # 从本地拉取镜像
