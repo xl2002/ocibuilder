@@ -23,6 +23,7 @@ class OCI1:public Manifest{
     friend void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const OCI1& image) {
         jv=boost::json::object{
             {"schemaVersion",image.SchemaVersion},
+            {"mediaType",image.MediaType},
             {"config",boost::json::value_from(image.Config)},
             {"layers",boost::json::value_from(image.Layers)},
             {"annotations", boost::json::value_from(image.Annotations)}
@@ -38,6 +39,7 @@ class OCI1:public Manifest{
         const auto& obj = jv.as_object();
         OCI1 m;
         m.SchemaVersion=obj.at("schemaVersion").as_int64();
+        m.MediaType=obj.at("mediaType").as_string().c_str();
         m.Config=boost::json::value_to<Descriptor>(obj.at("config"));
         m.Layers=boost::json::value_to<std::vector<Descriptor>>(obj.at("layers"));
         m.Annotations=boost::json::value_to<std::map<std::string, std::string>>(obj.at("annotations"));

@@ -50,7 +50,7 @@ g++ -std=c++11 -Wall -Wextra -g -I include sha256_test.cpp -o sha256_test  -L li
 
 
 
-g++ -std=c++11 -Wall -Wextra -g -I include -o ./tests/pull_test.exe ./tests/pull_test.cpp -L lib\boost -L lib\openssl  -lboost_filesystem-mgw12-mt-x64-1_75 -lboost_iostreams-mgw12-mt-x64-1_75 -lboost_system-mgw12-mt-x64-1_75 -lboost_thread-mgw12-mt-x64-1_75 -lws2_32 -lboost_json-mgw12-mt-x64-1_75 -lssl -lcrypto
+g++ -std=c++11 -Wall -Wextra -g -I include -o ./tests/net_test.exe ./tests/net_test.cpp -L lib/windows/boost -L lib/windows/openssl  -lboost_filesystem-mgw12-mt-x64-1_75 -lboost_iostreams-mgw12-mt-x64-1_75 -lboost_system-mgw12-mt-x64-1_75 -lboost_thread-mgw12-mt-x64-1_75 -lws2_32 -lboost_json-mgw12-mt-x64-1_75 -lssl -lcrypto
 ```
 
 编译opanssl库
@@ -112,6 +112,13 @@ sudo docker-compose up -d
 sudo docker-compose restart
 # 查看harbor状态
 sudo docker-compose ps
+#实时查看harbor库的网络请求或者registry日志
+sudo docker logs -f [ngnix_containID/registryContainerID]
+#进入 Nginx 容器查看访问日志
+sudo docker exec -it ngnix_containID /bin/bash
+cd /var/log/nginx
+tail -f access.log
+
 ```
 
 ./output/main.exe build --tag image1:latest .
@@ -124,3 +131,30 @@ sudo docker-compose ps
 
 struct\s+\w+\s*:\s*public\s+\w+(\s*,\s*public\s+\w+)*\s*\n?\s*\{
 (struct|class)\s+\w+\s*\{
+
+  podman run -d -p 443:443 \
+  --name registryserver \
+  --restart always \
+  -v /opt/registry/data:/var/lib/registry \
+  -v /etc/docker/certs:/etc/docker/certs \
+  -e REGISTRY_HTTP_ADDR=0.0.0.0:443 \
+  -e REGISTRY_HTTP_SECRET=123456 \
+  -e REGISTRY_HTTP_TLS_CERTIFICATE=/etc/docker/certs/registry.crt \
+  -e REGISTRY_HTTP_TLS_KEY=/etc/docker/certs/registry.key \
+  registry:latest
+
+buildah login --username=admin --password=Harbor12345 --tls-verify=false 192.168.1.102:80
+buildah push -f v2s2 192.168.1.102:80/library/busybox:1.0
+buildah logout --all
+
+buildah login --username=admin --password=123456 --tls-verify=false 192.168.1.102:5000
+buildah push -f v2s2 192.168.1.102:5000/library/busybox:latest
+buildah login --username=admin --password=123456 xk.domain.com:5050
+buildah push -f v2s2 xk.domain.com:5050/library/busybox:latest
+podman run -d \
+  --name registry \
+  -p 443:443 \
+  -v /certs:/certs \
+  -v /var/lib/registry:/var/lib/registry \
+  -v /etc/registry/config.yml:/etc/docker/registry/config.yml \
+  docker.io/library/registry:latest

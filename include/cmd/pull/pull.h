@@ -27,6 +27,7 @@ class pullOptions
     bool    allTags=false;          ///<
     string  os;                     ///<
     string  arch;                   ///<
+    string  format;                 ///<oci, v2s1, or v2s2
 };
 void pullCmd(Command& cmd, vector<string> args,pullOptions* iopts);
 void init_pull();

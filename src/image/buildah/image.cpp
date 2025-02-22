@@ -220,69 +220,7 @@ std::shared_ptr<ImageSource_interface> containerImageRef::NewImageSource(std::sh
         // Layers.push_back(l);
 
     }
-    //处理check
-    // if(check){
-    //     std::string checkpath=destpath+"/temp";
-    //     auto checks=std::make_shared<Check>();//TODO
-    //     checks->version="8";
-    //     for(auto blob:blobLayers){
-    //         auto overlaypath=srcpath+"/"+blob.second.ID+"/diff";
-    //         if(!boost::filesystem::exists(overlaypath)){
-    //             std::cerr<<"layer not found"<<std::endl;
-    //             return nullptr;
-    //         }
-    //         std::string file_paths;
-    //         boost::filesystem::path dir_path(overlaypath);
-    //         for (boost::filesystem::recursive_directory_iterator it(dir_path), end; it != end; ++it) {
-    //             if (boost::filesystem::is_regular_file(*it)) {
-    //                 file_paths=it->path().string();
-    //                 auto filedigest=Fromfile(file_paths);
-    //                 std::string key=file_paths.substr(overlaypath.length());
-    //                 std::replace(key.begin(), key.end(), '\\', '/');
-    //                 checks->Validation[key]=filedigest->Encoded();
-    //             }
-    //         }
-    //     }
-    //     std::string checkjson=marshal<Check>(*checks);
-    //     if(!boost::filesystem::exists(checkpath)){
-    //         boost::filesystem::create_directory(checkpath);
-    //     }
-    //     std::string checkjsonpath=checkpath+"/check.json";
-    //     std::ofstream file(checkjsonpath,std::ios::trunc);
-    //     if(!file.is_open()){
-    //         std::cerr<<"open check.json error"<<std::endl;
-    //         return nullptr;
-    //     }
-    //     file<<checkjson;
-    //     file.close();
-    //     std::shared_ptr<Digest> tarfile;
-    //     int tarsize;
-    //     std::string checktarpath=destpath+"/check.tar";
-    //     std::tie(tarfile,tarsize)=newTarDigester("file",checktarpath,checkpath);//TODO
-    //     auto tardigest=tarfile->Encoded();//tar包的sha256
-    //     auto finalCheckName=destpath+"/"+tardigest;//TODO
-    //     try {
-    //         boost::filesystem::path src_path(checktarpath);
-    //         // boost::filesystem::path layer_path(layer);
-    //         boost::filesystem::path target_path(finalCheckName);
-    //         // 复制文件到目标路径
-    //         Copy_file(src_path, target_path);
-    //         // 删除原文件
-    //         boost::filesystem::remove_all(src_path);
-    //         std::cout << "File renamed checkfile successfully: "<< tardigest<< std::endl;
-    //     } catch (const boost::filesystem::filesystem_error& e) {
-    //         std::cerr << "Error renaming checkfile: " << e.what() << std::endl;
-    //     }
-    //     Descriptor checkfile;
-    //     checkfile.MediaType=MediaTypeImageLayer;
-    //     checkfile.Digests=*tarfile;
-    //     checkfile.Size=tarsize;
-    //     omanifest->Layers.push_back(checkfile);
-    //     oimage->rootFS.diffIDs.push_back(tarfile->String());
 
-    //     blobLayers[tardigest].ID=tardigest;
-    //     blobLayers[tardigest].Size=tarsize;
-    // }
     // 6. 组织历史记录history，构造appendHistory函数
     std::time_t currentTime = std::chrono::system_clock::to_time_t(now);//调试可见
     auto comment=this->historyComment;

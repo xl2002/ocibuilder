@@ -67,6 +67,8 @@ std::string version;
 std::string DefaultRuntime;
 std::string OCIv1ImageManifest;
 std::string Dockerv2ImageManifest;
+std::string DockerV2Schema2ConfigMediaType;
+std::string DockerV2Schema2LayerMediaType;
 std::string OCI;
 std::string DOCKER;
 std::string SEV;
@@ -118,16 +120,20 @@ void init_image(){
 	// MediaTypeImageIndex specifies the media type for an image index.
 	MediaTypeImageIndex = "application/vnd.oci.image.index.v1+json";
 	// MediaTypeImageManifest specifies the media type for an image manifest.
-	MediaTypeImageManifest = "application/vnd.oci.image.manifest.v1+json";
+	// MediaTypeImageManifest = "application/vnd.oci.image.manifest.v1+json";
+    MediaTypeImageManifest = "application/vnd.docker.distribution.manifest.v2+json";
 	// MediaTypeImageConfig specifies the media type for the image configuration.
-	MediaTypeImageConfig = "application/vnd.oci.image.config.v1+json";
+	// MediaTypeImageConfig = "application/vnd.oci.image.config.v1+json";
+    MediaTypeImageConfig = "application/vnd.docker.container.image.v1+json";
 	// MediaTypeEmptyJSON specifies the media type for an unused blob containing the value "{}".
 	MediaTypeEmptyJSON = "application/vnd.oci.empty.v1+json";
         // MediaTypeImageLayer is the media type used for layers referenced by the manifest.
-	MediaTypeImageLayer = "application/vnd.oci.image.layer.v1.tar";
+	// MediaTypeImageLayer = "application/vnd.oci.image.layer.v1.tar";
+    MediaTypeImageLayer = "application/vnd.docker.image.rootfs.diff.tar";
 	// MediaTypeImageLayerGzip is the media type used for gzipped layers
 	// referenced by the manifest.
-	MediaTypeImageLayerGzip = "application/vnd.oci.image.layer.v1.tar+gzip";
+	// MediaTypeImageLayerGzip = "application/vnd.oci.image.layer.v1.tar+gzip";
+    MediaTypeImageLayerGzip = "application/vnd.docker.image.rootfs.diff.tar.gzip";
 	// MediaTypeImageLayerZstd is the media type used for zstd compressed
 	// layers referenced by the manifest.
 	MediaTypeImageLayerZstd = "application/vnd.oci.image.layer.v1.tar+zstd";
@@ -152,6 +158,8 @@ void init_image(){
     DefaultRuntime="runc";
     OCIv1ImageManifest="application/vnd.oci.image.manifest.v1+json";
     Dockerv2ImageManifest="application/vnd.docker.distribution.manifest.v2+json";
+    DockerV2Schema2ConfigMediaType = "application/vnd.docker.container.image.v1+json";
+    DockerV2Schema2LayerMediaType = "application/vnd.docker.image.rootfs.diff.tar.gzip";
     OCI="oci";
     DOCKER="docker";
 	SEV="sev";

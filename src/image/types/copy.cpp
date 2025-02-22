@@ -259,7 +259,7 @@ std::tuple<std::shared_ptr<BlobInfo>,std::shared_ptr<Digest>> imageCopier::copyL
     auto blobinfo=std::make_shared<BlobInfo>();
     blobinfo->Digest=BlobDigest;
     blobinfo->Size=size;
-    blobinfo->MediaType=srcInfo->MediaType+"+gzip";
+    blobinfo->MediaType=srcInfo->MediaType+".gzip";
     blobinfo->CompressionAlgorithm=alg;
 
     // 关闭文件流

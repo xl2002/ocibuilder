@@ -17,6 +17,8 @@ extern std::string version;
 extern std::string DefaultRuntime;
 extern std::string OCIv1ImageManifest;
 extern std::string Dockerv2ImageManifest;
+extern std::string DockerV2Schema2ConfigMediaType;
+extern std::string DockerV2Schema2LayerMediaType;
 extern std::string OCI;
 extern std::string DOCKER;
 extern std::string SEV;

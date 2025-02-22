@@ -109,7 +109,8 @@ shared_ptr<Store> getStore(Command* cmd){
  */
 string GetFormat(string format){
     if(format==OCI){
-        return OCIv1ImageManifest;
+        // return OCIv1ImageManifest;
+        return MediaTypeImageManifest;
     }else if(format==DOCKER){
         return Dockerv2ImageManifest;
     }
