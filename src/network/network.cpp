@@ -634,9 +634,7 @@ bool isCorrect(std::string sha256,std::string filepath){
 void login(const std::string& user, const std::string& passwd,const std::string& host,const std::string& port) {
 
     // 设置认证服务器的URL和请求头
-    // std::string host = "192.168.182.128";
-    // std::string port = "80";
-    std::string target = "/c/login";  
+    std::string target = "/c/login";
     const int version = 11; // HTTP 1.1
     std::string body = "principal=" + user + "&password=" + passwd;
     std::string authFile = "oci_images/auth.json";
@@ -770,6 +768,68 @@ void login(const std::string& user, const std::string& passwd,const std::string&
     // 关闭连接
     stream.close();
 }
+
+// namespace http = boost::beast::http;
+
+// std::string base64_encode(const std::string &in)
+// {
+//     std::string out;
+//     out.resize(beast::detail::base64::encoded_size(in.size()));
+//     beast::detail::base64::encode(&out[0], in.data(), in.size());
+//     return out;
+// }
+
+// void login(const std::string& user, const std::string& passwd,const std::string& host,const std::string& port) {
+//     try {
+//         // 创建 I/O 上下文
+//         asio::io_context ioc;
+
+//         // 解析主机名和端口
+//         // std::string host = "192.168.1.102";
+//         // std::string port = "5000";
+//         std::string target = "/v2/";  // 根据需要修改路径
+//         int version = 11;  // HTTP 版本，1.1
+        
+//         // 创建 TCP 解析器
+//         asio::ip::tcp::resolver resolver(ioc);
+//         auto const results = resolver.resolve(host, port);
+
+//         // 创建 socket
+//         beast::tcp_stream stream(ioc);
+//         stream.connect(results);
+
+//         // 构建 HTTP 请求
+//         http::request<http::empty_body> req{http::verb::get, target, version};
+        
+//         // 设置 Authorization 头部
+//         std::string credentials = user + ":" + passwd;  // 这里是用户名和密码
+//         std::string encoded_credentials = base64_encode(credentials);
+//         req.set(http::field::authorization, "Basic " + encoded_credentials);
+        
+//         // 设置其他头部信息
+//         req.set(http::field::host, host+":"+port);
+//         req.set(http::field::user_agent, "Boost.Beast/248");
+//         req.set("Docker-Distribution-Api-Version", "registry/2.0");
+//         req.set("Accept-Encoding", "gzip");
+//         req.set(http::field::connection, "close");
+//         // // 发送请求
+//         http::write(stream, req);
+
+//         // // 接收响应
+//         beast::flat_buffer buffer;
+//         http::response<http::dynamic_body> res;
+//         http::read(stream, buffer, res);
+
+//         // 输出响应内容
+//         std::cout << res << std::endl;
+
+//         // 关闭连接
+//         beast::error_code ec;
+//         stream.socket().shutdown(asio::ip::tcp::socket::shutdown_both, ec);
+//     } catch (const std::exception& e) {
+//         std::cerr << "Error: " << e.what() << std::endl;
+//     }
+// }
 
 
 void pullBlob(const std::string& host, const std::string& port,const::string& projectName,const::string& imageName,const std::string digest){

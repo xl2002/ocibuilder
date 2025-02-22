@@ -4,106 +4,19 @@
 #include <boost/json.hpp>
 #include <fstream>
 #include <string>
+
+#include <boost/regex.hpp>
+// 用来解压GZIP
+#include <zlib.h>
+
 // #include "network/network.h"
 namespace asio = boost::asio;
 namespace beast = boost::beast;
 namespace json = boost::json;
+namespace http = boost::beast::http;
 using tcp = asio::ip::tcp;
 
-// void login(const std::string& user, const std::string& passwd) {
-//     // 设置认证服务器的URL和请求头
-//     std::string host = "192.168.182.128"; // Harbor 服务器地址
-//     std::string port = "80"; // 端口号
-//     std::string target = "/c/login";  // 登录接口路径
-//     const int version = 11; // HTTP 1.1
 
-//     // 使用 Boost.Asio 和 Beast 发起 HTTP 请求
-//     asio::io_context ioc;
-//     beast::tcp_stream stream(ioc);
-//     tcp::resolver resolver(ioc);
-
-//     // 解析主机和端口
-//     auto const results = resolver.resolve(host, port);
-
-//     // 连接到服务器
-//     stream.connect(results);
-
-//     // 发送一个 GET 请求，获取 CSRF 令牌
-//     beast::http::request<beast::http::empty_body> req_get;
-//     req_get.method(beast::http::verb::get);  // 使用 GET 方法
-//     req_get.target("/api/v2.0/systeminfo");  
-//     req_get.set(beast::http::field::host, host);  // 设置 Host 头
-//     req_get.set(beast::http::field::connection, "close");  // 请求完成后关闭连接
-
-//     // 发送 GET 请求
-//     beast::http::write(stream, req_get);
-
-//     // 接收响应
-//     beast::flat_buffer buffer;
-//     beast::http::response<beast::http::string_body> res_get;
-//     beast::http::read(stream, buffer, res_get);
-
-//     for (auto const& field : res_get) {
-//         std::cout << field.name_string() << ": " << field.value() << "\n";
-//     }
-//     // 提取 CSRF 令牌（从 Set-Cookie 头中获取）
-//     std::string csrf_token;
-//     for (auto const& field : res_get) {
-//         if (field.name_string() == "Set-Cookie") {
-//             std::string cookie = field.value().to_string();
-//             // 这里是简单的解析方式，实际可能需要正则表达式或更复杂的解析
-//             std::size_t pos = cookie.find("_gorilla_csrf=");
-//             if (pos != std::string::npos) {
-//                 csrf_token = cookie.substr(pos + 15, cookie.find(";") - pos - 15);
-//                 break;
-//             }
-//         }
-//     }
-
-//     // 打印提取的 CSRF 令牌
-//     std::cout << "Extracted CSRF Token: " << csrf_token << std::endl;
-
-//     // 创建登录请求体，包含用户名和密码
-//     std::stringstream body;
-//     body << R"({"principal":")" << user << R"(","password":")" << passwd << R"("})";
-
-//     // 设置 HTTP 请求
-//     beast::http::request<beast::http::string_body> req_post;
-//     req_post.method(beast::http::verb::post);  // 使用 POST 方法
-//     req_post.target(target);  // 设置目标路径
-//     req_post.set(beast::http::field::host, host);  // 设置 Host 头
-//     req_post.set(beast::http::field::content_type, "application/json");  // 设置 Content-Type
-//     req_post.set(beast::http::field::content_length, std::to_string(body.str().size()));  // 设置请求体大小
-//     req_post.set(beast::http::field::connection, "close");  // 请求完成后关闭连接
-//     req_post.body() = body.str();  // 设置请求体
-//     req_post.prepare_payload();  // 准备请求体
-
-//     // 设置 CSRF 令牌（从 GET 请求中提取）
-//     req_post.set("X-Harbor-Csrf-Token", csrf_token);
-
-//     // 发送 POST 请求
-//     beast::http::write(stream, req_post);
-
-//     // 接收响应
-//     beast::http::response<beast::http::string_body> res_post;
-//     beast::http::read(stream, buffer, res_post);
-
-//     // 打印响应内容
-//     std::cout << "Response received.\n";
-//     std::cout << "HTTP Version: " << (res_post.version() / 10) << "." << (res_post.version() % 10) << "\n";
-//     std::cout << "Status: " << res_post.result_int() << " " << res_post.reason() << "\n";
-//     std::cout << "Headers:\n";
-//     for (auto const& field : res_post) {
-//         std::cout << field.name_string() << ": " << field.value() << "\n";
-//     }
-
-//     // 打印响应体（可能是 JSON 格式，包含 token 或错误信息）
-//     std::cout << "\nResponse Body:\n";
-//     std::cout << res_post.body() << "\n";
-
-//     // 关闭连接
-//     stream.close();
-// }
 
 std::string extractToken(const std::string& response_body){
     // 查找 "token" 字段的位置
@@ -117,7 +30,6 @@ std::string extractToken(const std::string& response_body){
         
         if (end != std::string::npos) {
             std::string token = response_body.substr(start, end - start);
-            std::cout<<token<<"\n";
             return token;
         } else {
             return "";
@@ -126,7 +38,6 @@ std::string extractToken(const std::string& response_body){
         return "";
     }
 }
-
 
 std::pair<std::string,std::string> getToken(const std::string& host, const std::string& port,const std::string& cookie){
     std::string target="/service/token?service=harbor-registry&scope=repository:library/busybox:pull";
@@ -169,163 +80,218 @@ std::pair<std::string,std::string> getToken(const std::string& host, const std::
     for (auto const& field : res) {
         if (field.name_string() == "X-Harbor-Csrf-Token") {
             std::string token = field.value().to_string();
-            std::cout<<"h_Token: "<<token<<"\n\n";
+            // std::cout<<"h_Token: "<<token<<"\n\n";
             harbor_csrf_token = token;
             break;
         }
     }
-    std::cout<<res.body()<<"\n";
+    // std::cout<<res.body()<<"\n";
     std::string token=extractToken(res.body());
     return {harbor_csrf_token,token};
 
 }
 
-// 获取认证令牌
-void login(const std::string& user, const std::string& passwd) {
+std::string base64_encode(const std::string &in)
+{
+    std::string out;
+    out.resize(beast::detail::base64::encoded_size(in.size()));
+    beast::detail::base64::encode(&out[0], in.data(), in.size());
+    return out;
+}
 
-    // 设置认证服务器的URL和请求头
-    std::string host = "192.168.182.128";
-    std::string port = "80";
-    std::string target = "/c/login";  
-    const int version = 11; // HTTP 1.1
-    std::string body = "principal=" + user + "&password=" + passwd;
+// acore的认证方式采用用户名+密码
+void setAuthorization(beast::http::request<beast::http::empty_body>& req, const std::string& user, const std::string& passwd) {
+    std::string credentials = user + ":" + passwd;
+    std::string encoded_credentials = base64_encode(credentials);
+    req.set(http::field::authorization, "Basic " + encoded_credentials);
+}
 
-
-    // 使用Boost.Asio和Beast发起HTTP POST请求
-    asio::io_context ioc;
-    beast::tcp_stream stream(ioc);
-    tcp::resolver resolver(ioc);
-    auto const results = resolver.resolve(host, port);
-
-    // 连接服务器
-    stream.connect(results);
-
-    // 设置HTTP请求
-    beast::http::request<beast::http::string_body> req;
-    req.method(beast::http::verb::post);
-    req.target(target);
-    req.set(beast::http::field::host, host);
-    req.set(beast::http::field::content_type, "application/x-www-form-urlencoded");
-    req.set(beast::http::field::content_length,std::to_string(body.size()));
-    req.set(beast::http::field::user_agent, "Boost.Beast/248");
-    // req.set(beast::http::field::connection, "close");
-    req.body() = body;
-    req.prepare_payload();
-    std::cout<<"content_Length: "<<std::to_string(body.size())<<"\n";
-    // 发送请求
-    beast::http::write(stream, req);
-
-    // 接收响应
-    beast::flat_buffer buffer;
-    beast::http::response<beast::http::string_body> res;
-    beast::http::read(stream, buffer, res);
-    std::cout << "Response received." << std::endl;
-
-    // // 打印响应内容
-    // std::cout << "HTTP Version: " << (res.version() / 10) << "." << (res.version() % 10) << "\n";
-    // std::cout << "Status: " << res.result_int() << " " << res.reason() << "\n";
-    // std::cout << "Headers:\n";
-    for (auto const& field : res) {
-        std::cout << field.name_string() << ": " << field.value() << "\n";
+// harbor的认证方式采用cookie+token
+void setAuthorization(beast::http::request<beast::http::empty_body>& req, const std::string& token) {
+    if (!token.empty()) {
+        req.set(http::field::authorization, "Bearer " + token);
     }
-    std::cout << res.result() << "\n";
-    std::cout << "\nResponse Body:\n";
-    std::cout << res.body() << "\n";
+}
 
-    if(res.result() == beast::http::status::forbidden){
-        // 提取 CSRF 令牌（从 Set-Cookie 头中获取）
-        std::string csrf_token;
-        std::string harbor_csrf_token;
-        for (auto const& field : res) {
-             if (field.name_string() == "Set-Cookie") {
-                std::string cookie = field.value().to_string();
-                // 查找 _gorilla_csrf= 的位置
-                std::size_t start_pos = cookie.find("_gorilla_csrf=");
-                if (start_pos != std::string::npos) {
-                    start_pos += 14; // 跳过 "_gorilla_csrf=" 的长度
-                    // 从 start_pos 开始查找下一个分号
-                    std::size_t end_pos = cookie.find(";", start_pos);
-                    if (end_pos == std::string::npos) {
-                        end_pos = cookie.length(); // 如果没有分号，则取到字符串结尾
-                    }
-                    csrf_token = cookie.substr(start_pos, end_pos - start_pos);
-                }
-            }
-            if (field.name_string() == "X-Harbor-Csrf-Token") {
-                std::string token = field.value().to_string();
-                harbor_csrf_token = token;
-            }
-        }
+std::string gzDecompressToString(const std::string& compressed) {
+    z_stream strm;
+    strm.zalloc = NULL;
+    strm.zfree = NULL;
+    strm.opaque = NULL;
 
-        if (!csrf_token.empty()) {
-            std::cout << "Extracted CSRF Token: " << csrf_token << std::endl;
-            std::cout << "Extracted harbor_csrf_token Token: " << harbor_csrf_token << std::endl;   
-            // 重新建立连接用于发送带有 CSRF token 的请求
-            beast::tcp_stream new_stream(ioc);
-            new_stream.connect(results);
+    int ret;
+    ret = inflateInit2(&strm, MAX_WBITS + 16); // MAX_WBITS+16 is for handling GZIP headers
+    if (ret != Z_OK) {
+        throw std::runtime_error("inflateInit2 failed");
+    }
 
-            std::string cookie = "_gorilla_csrf=" + csrf_token + ";";
+    strm.avail_in = compressed.size();
+    strm.next_in = (Bytef *)compressed.data();
 
-            beast::http::request<beast::http::string_body> req1;
-            req1.method(beast::http::verb::post);
-            req1.target(target);
-            req1.set(beast::http::field::host, host);
-            req1.set(beast::http::field::content_type, "application/x-www-form-urlencoded");
-            req1.set(beast::http::field::content_length, std::to_string(body.size()));
-            req1.set(beast::http::field::cookie, cookie);
-            req1.set(beast::http::field::user_agent, "Boost.Beast/248");
-            req1.set("x-harbor-csrf-token",harbor_csrf_token);
-            req1.body() = body;
-            req1.prepare_payload();
+    // Prepare an output string for decompressed data
+    std::string decompressed;
+    decompressed.resize(compressed.size() * 2); // Pre-allocate enough space, it will be resized later
 
-            // 发送带有 CSRF token 的请求
-            beast::http::write(new_stream, req1);
+    strm.avail_out = decompressed.size();
+    strm.next_out = (Bytef *)decompressed.data();
 
-            // 接收响应
-            beast::flat_buffer buffer1;
-            beast::http::response<beast::http::string_body> res1;
-            beast::http::read(new_stream, buffer1, res1);
-            std::cout << "Response received." << std::endl;
+    ret = inflate(&strm, Z_FINISH);
+    if (ret != Z_STREAM_END) {
+        inflateEnd(&strm);
+        throw std::runtime_error("Decompression failed");
+    }
 
-            for (auto const& field : res1) {
-                std::cout << field.name_string() << ": " << field.value() << "\n";
-            }
+    // Resize the output string to the actual decompressed size
+    decompressed.resize(strm.total_out);
 
-            std::string sid;
-            int sidNum=0;
-            for (auto const& field : res1) {
+    inflateEnd(&strm);
+    return decompressed;
+}
+
+// login最后需要获取一个token，如果有这个token，则将其嵌入到authroization中，否则authorization是用户名和密码
+std::string login_and_getToken(const std::string& user, const std::string& passwd){
+    try {
+        // 创建 I/O 上下文
+        asio::io_context ioc;
+
+        // 解析主机名和端口
+        std::string host = "192.168.1.102";
+        std::string port = "80";
+        std::string target = "/v2/";  // 根据需要修改路径
+        int version = 11;  // HTTP 版本，1.1
+        
+        // 创建 TCP 解析器
+        asio::ip::tcp::resolver resolver(ioc);
+        auto const results = resolver.resolve(host, port);
+
+        // 创建 socket
+        beast::tcp_stream stream(ioc);
+        stream.connect(results);
+
+        // 构建 HTTP 请求
+        http::request<http::empty_body> req{http::verb::get, target, version};
+        // 设置其他头部信息
+        req.set(http::field::host, host+":"+port);
+        req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+        req.set("Docker-Distribution-Api-Version", "registry/2.0");
+        req.set("Accept-Encoding", "gzip");
+        req.set(http::field::connection, "close");
+        // 第一次发送请求
+        http::write(stream, req);
+
+        // 第一次接收响应
+        beast::flat_buffer buffer;
+        http::response<http::dynamic_body> res;
+        http::read(stream, buffer, res);
+
+        if (res.result() == http::status::unauthorized) {
+            std::string csrf_token;
+            std::string harbor_csrf_token;
+            bool receive_cookie = false;
+            // 获取cookie的长度
+            for (auto const& field : res) {
                 if (field.name_string() == "Set-Cookie") {
-                    std::string cookie = field.value().to_string();
-                    std::size_t sidpos=cookie.find("sid=");
-                    if(sidpos!=std::string::npos){
-                        sidNum++;
-                        if(sidNum==2){
-                            sidpos+=4;
-                            std::size_t end_sid = cookie.find(";", sidpos);
-                            if (end_sid == std::string::npos) {
-                                end_sid = cookie.length(); // 如果没有分号，则取到字符串结尾
-                            }
-                            sid=cookie.substr(sidpos,end_sid-sidpos);
-                            std::cout<< "The sid:"<<sid<<"\n";
-                            // loginAuth.cookie=cookie+"sid="+sid+";";
-                        }
-                    }  
-                }
-                if (field.name_string() == "X-Harbor-Csrf-Token") {
-                    std::string token = field.value().to_string();
-                    harbor_csrf_token = token;
+                    receive_cookie = true;
                 }
             }
+            // 关闭连接
+            beast::error_code ec;
+            stream.socket().shutdown(asio::ip::tcp::socket::shutdown_both, ec);
+            // 如果接受到cookie，说明是harbor方式，需要继续发送请求
+            if (receive_cookie) {
+                // 第二次发送请求
+                beast::tcp_stream stream2(ioc);
+                stream2.connect(results);
 
-            std::cout << res1.result() << "\n";
-            std::cout << "\nResponse Body:\n";
-            std::cout << res1.body() << "\n";
+                std::string target2 = "/service/token?account=admin&service=harbor-registry";
+                http::request<http::empty_body> req2{http::verb::get, target2, version};
+                // 设置用户的登录信息
+                setAuthorization(req2, user, passwd);
+                req2.set(http::field::host, host+":"+port);
+                req2.set(http::field::user_agent, "Boost.Beast/248");
+                req2.set("Accept-Encoding", "gzip");
+                req2.set(http::field::connection, "close");
+                http::write(stream2, req2);
+
+                // 第二次接收响应
+                beast::flat_buffer buffer2;
+                http::response<http::string_body> res2;
+                http::read(stream2, buffer2, res2);
+
+                // 需要从接收到的响应中读取token
+                if (res2.result() == http::status::ok) {
+                    std::string btoken;
+                    bool is_gzip = false;
+                    for (auto const& field : res2) {
+                        // 如果接收到的json是gzip压缩的，需要解压
+                        if (field.name_string() == "Content-Encoding" && field.value() == "gzip") {
+                            btoken = extractToken(gzDecompressToString(res2.body()));
+                            is_gzip = true;
+                        }
+                    }
+                    if (!is_gzip) {
+                        btoken = extractToken(res2.body());
+                    }
+                    return btoken;
+                }
+                beast::get_lowest_layer(stream2).socket().shutdown(asio::ip::tcp::socket::shutdown_both);
+                stream2.socket().close();
+            }
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+    }
+    return "";
+}
+
+bool login(std::string user, std::string passwd, std::string token) {
+    try {
+        // 创建 I/O 上下文
+        asio::io_context ioc;
+
+        // 解析主机名和端口
+        std::string host = "192.168.1.102";
+        std::string port = "80";
+        std::string target = "/v2/";  // 根据需要修改路径
+        int version = 11;  // HTTP 版本，1.1
+        
+        // 创建 TCP 解析器
+        asio::ip::tcp::resolver resolver(ioc);
+        auto const results = resolver.resolve(host, port);
+
+        // 创建 socket
+        beast::tcp_stream stream(ioc);
+        stream.connect(results);
+
+        // 构建 HTTP 请求
+        http::request<http::empty_body> req{http::verb::get, target, version};
+        // 设置其他头部信息
+        req.set(http::field::host, host+":"+port);
+        req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+        req.set("Docker-Distribution-Api-Version", "registry/2.0");
+        req.set("Accept-Encoding", "gzip");
+        req.set(http::field::connection, "close");        
+        if (!token.empty()) {
+            setAuthorization(req, token);
+        } else {
+            setAuthorization(req, user, passwd);
+        }
+        http::write(stream, req);
+
+        beast::flat_buffer buffer;
+        http::response<http::dynamic_body> res;
+        http::read(stream, buffer, res);
+        if (res.result() == http::status::ok) {
+            std::cout << "Login success!!" << std::endl;
+            return true;
+        } else {
+            std::cerr << "Login failed!!" << std::endl;
         }
 
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
     }
-
-    // 关闭连接
-    stream.close();
+    return false;
 }
 
 // 上传文件内容
@@ -428,18 +394,15 @@ void ifSupportV2(const std::string& cookie){
     }
 }
 
-void ifBlobExists(const std::string& cookie){                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+// 测试acore库
+void ifBlobExists(const std::string& cookie){
     try {
-        std::string host = "192.168.182.128";  // 替换为实际的 Registry 地址
+        std::string host = "192.168.1.102";  // 替换为实际的 Registry 地址
+        int version = 11;
         // 配置参数
-        const std::string target = "/v2/library/busybox/blobs/sha256:f0a3fe58120bd28b27186346f7a7320fdf48665a91d6b76e9d20ffdcac39d15b";
-        const std::string port = "80"; // Docker Registry 默认端口
-
-        auto result=getToken(host,port,cookie);
-        std::string hToken=result.first;
-        std::string token=result.second;
-
-
+        // const std::string target = "/v2/library/image3/blobs/sha256:78ef48b3f2044092ab1e6c562cedfda177321db5351559993cd50d0667416b2d";
+        const std::string target = "/v2/library/imagetest1/blobs/sha256:83e39b496d70db94e0c30afb3beba1b25dc7e4f7b025fd79e79bd25490019eca";
+        const std::string port = "5000"; // Docker Registry 默认端口
 
         // IO 上下文
         asio::io_context ioc;
@@ -453,13 +416,16 @@ void ifBlobExists(const std::string& cookie){
         stream.connect(results);
 
         // 构造 HTTP HEAD 请求
-        beast::http::request<beast::http::empty_body> req(beast::http::verb::get, target, 11);
-        req.set(beast::http::field::host,host);
-        req.set(beast::http::field::cookie,cookie);
-        req.set("x-harbor-csrf-token",hToken);
-        req.set(beast::http::field::authorization,"Bearer "+token);
-        req.set(beast::http::field::user_agent, BOOST_BEAST_VERSION_STRING);
-
+        
+        // beast::http::request<beast::http::empty_body> req(beast::http::verb::get, target, 11);
+        http::request<http::empty_body> req{http::verb::head, target, version};
+        req.set(http::field::host, host+":"+port);
+        req.set(http::field::user_agent, "Boost.Beast/248");
+        req.set("Docker-Distribution-Api-Version", "registry/2.0");
+        req.set(http::field::connection, "close");
+        std::string credentials = "admin:123456";
+        std::string encoded_credentials = base64_encode(credentials);
+        req.set(http::field::authorization, "Basic " + encoded_credentials);
         // 发送请求
         beast::http::write(stream, req);
 
@@ -495,11 +461,11 @@ void ifBlobExists(const std::string& cookie){
     }
 }
 
-void initUpLoad(){
+void initUpLoad(std::string &uid, std::string &state_param){
     try {
-        std::string host = "localhost";  // 替换为实际的 Registry 地址
+        std::string host = "192.168.1.102";  // 替换为实际的 Registry 地址
         // 配置参数
-        const std::string target = "/v2/busybox/blobs/uploads/";
+        const std::string target = "/v2/library/image3/blobs/uploads/";
         const std::string port = "5000"; // Docker Registry 默认端口
 
         // IO 上下文
@@ -515,10 +481,12 @@ void initUpLoad(){
 
         // 构造 HTTP HEAD 请求
         beast::http::request<beast::http::empty_body> req(beast::http::verb::post, target, 11);
-        req.set(beast::http::field::host,host);
-        req.set(beast::http::field::content_length, "0");
-        
-        req.set(beast::http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+        req.set(http::field::host, host+":"+port);
+        req.set(http::field::user_agent, "Boost.Beast/248");
+        req.set("Docker-Distribution-Api-Version", "registry/2.0");
+        req.set(http::field::connection, "close");
+        req.set(http::field::accept_encoding, "gzip");
+        setAuthorization(req, "admin", "123456");
 
         // 发送请求
         beast::http::write(stream, req);
@@ -528,20 +496,24 @@ void initUpLoad(){
         beast::http::response<beast::http::string_body> res;
         beast::http::read(stream, buffer, res);
 
+        if (beast::http::status::ok == res.result()) {
+            std::cout << "ok" << std::endl;
+        }
+
         // 打印响应内容
-        std::cout << "HTTP Version: " << (res.version() / 10) << "." << (res.version() % 10) << "\n";
-        std::cout << "Status: " << res.result_int() << " " << res.reason() << "\n";
-        std::cout << "Headers:\n";
         for (auto const& field : res) {
-            std::cout << field.name_string() << ": " << field.value() << "\n";
+            if (field.name_string() == "Docker-Upload-Uuid") {
+                uid = field.value().to_string();
+                std::cout << "Docker-Upload-UUID: " << uid << "\n";
+            }
         }
 
         std::string location = res[beast::http::field::location].to_string();
-        std::string state_param;
+        // std::string state_param;
 
-        auto pos = location.find("_state=");
+        auto pos = location.find("?state_=");
         if (pos != std::string::npos) {
-            state_param = location.substr(pos + 7);
+            state_param = location.substr(pos + 8);
             std::cout << "State parameter: " << state_param << "\n";
         }
 
@@ -553,6 +525,124 @@ void initUpLoad(){
     }
 }
 
+std::string uploadBlobChunk(const std::string& host, const std::string& port, const std::string& uid, const std::string& state,
+    const std::string& file_path, std::size_t start, std::size_t end, std::size_t total_size,const std::string& imageName,const std::string& projectName,
+    std::string &new_uid, std::string& new_state) {
+    try {
+        std::ifstream file(file_path, std::ios::binary);
+        if (!file) {
+        throw std::runtime_error("Failed to open file: " + file_path);
+    }
+
+    std::size_t chunk_size = end - start;
+    std::vector<char> data(chunk_size);
+
+    file.seekg(start, std::ios::beg);
+    file.read(data.data(), chunk_size);
+    std::size_t bytes_read = file.gcount();
+
+    if (file.gcount() != static_cast<std::streamsize>(chunk_size)) {
+        throw std::runtime_error("Failed to read the requested chunk from file.");
+    }
+
+
+    asio::io_context ioc;
+    tcp::resolver resolver(ioc);
+    beast::tcp_stream stream(ioc);
+
+    auto const results = resolver.resolve(host, port);
+    stream.connect(results);
+
+    // std::string target = "/v2/" + projectName + "/"+imageName + "/blobs/upload/" + uid + "?state_=" + state;
+    std::string target = "/library/" + projectName + "/blobs/upload/" + uid + "?state_=" + state;
+    beast::http::request<beast::http::buffer_body> req(beast::http::verb::patch, target, 11);
+    req.set(beast::http::field::host, host + ":" + port);
+    // req.set(beast::http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+    req.set(http::field::user_agent, "Boost.Beast/248");
+    // transfer_encoding
+    std::string credentials = "admin:123456";
+    std::string encoded_credentials = base64_encode(credentials);
+    req.set(http::field::authorization, "Basic " + encoded_credentials);
+    req.set(beast::http::field::content_type, "application/octet-stream");
+    req.set("Docker-Distribution-Api-Version", "registry/2.0");
+    req.set(http::field::accept_encoding, "gzip");
+    req.set(http::field::connection, "close");
+
+    // req.set(beast::http::field::content_range, "bytes=" + std::to_string(start) + "-" + std::to_string(end - 1) + "/" + std::to_string(total_size));
+    // req.set(beast::http::field::content_length, std::to_string(bytes_read));
+    
+
+    req.body().data = data.data();
+    req.body().size = bytes_read; 
+    req.body().more=false;
+    req.prepare_payload();
+
+    beast::http::write(stream, req);
+
+    beast::flat_buffer buffer_r;
+    beast::http::response<beast::http::string_body> res;
+    beast::http::read(stream, buffer_r, res);
+    stream.socket().shutdown(tcp::socket::shutdown_both);
+
+    if (res.result() != beast::http::status::accepted) {
+        throw std::runtime_error("Failed to upload blob chunk");
+    }
+
+    std::string location = res[beast::http::field::location].to_string();
+    for (auto const& field : res) {
+        if (field.name_string() == "Docker-Upload-Uuid") {
+            new_uid = field.value().to_string();
+            std::cout << "New Docker-Upload-UUID: " << new_uid << "\n";
+        }
+    }
+    auto pos1 = location.find("state_=");
+    if (pos1 != std::string::npos) {
+        new_state = location.substr(pos1 + 7);
+        std::cout << "State parameter: " << new_state << "\n";
+    }
+    return new_state;
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << "\n";
+        return state;
+    }
+}
+
+void finalizeUpload(const std::string& host, const std::string& port, const std::string& uid, const std::string& shaId, const std::string& state,const std::string& imageName,const std::string& projectName) {
+    try {
+        asio::io_context ioc;
+        tcp::resolver resolver(ioc);
+        beast::tcp_stream stream(ioc);
+
+        auto const results = resolver.resolve(host, port);
+        stream.connect(results);
+
+        std::string target = "/" +projectName + "/"+ imageName + "/blobs/upload/" + uid + "?_state=" + state + "&digest=sha256:" + shaId;
+        beast::http::request<beast::http::empty_body> req(beast::http::verb::put, target, 11);
+        req.set(http::field::host, host+":"+port);
+        req.set(http::field::user_agent, "Boost.Beast/248");
+        req.set(beast::http::field::content_type, "application/octet-stream");
+        req.set("Docker-Distribution-Api-Version", "registry/2.0");
+        req.set(http::field::connection, "close");
+        req.set(http::field::accept_encoding, "gzip");
+        std::string credentials = "admin:123456";
+        std::string encoded_credentials = base64_encode(credentials);
+        req.set(http::field::authorization, "Basic " + encoded_credentials);
+
+        beast::http::write(stream, req);
+
+        beast::flat_buffer buffer;
+        beast::http::response<beast::http::string_body> res;
+        beast::http::read(stream, buffer, res);
+
+        stream.socket().shutdown(tcp::socket::shutdown_both);
+
+        if (res.result() != beast::http::status::created) {
+            throw std::runtime_error("Failed to finalize upload");
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << "\n";
+    }
+}
 
 void resolveRequestURL(std::string path){
     std::size_t colonPos = path.find(':');
@@ -595,52 +685,22 @@ void resolveRequestURL(std::string path){
 
 int main() {
     try {
-        // // 初始化IO上下文
-        // asio::io_context ioc;
-
-        // // 用户凭证
-        // std::string user = "alyxk";
-        // std::string passwd = "xk1223456";
-
-        // // 获取认证令牌
-        // std::string token = get_auth_token(ioc, user, passwd);
-        // if (token.empty()) {
-        //     std::cerr << "Failed to get authentication token" << std::endl;
-        //     return 1;
-        // }
-        // // 获取认证令牌
-        // std::string token = get_auth_token(ioc, user, passwd);
-        // if (token.empty()) {
-        //     std::cerr << "Failed to get authentication token" << std::endl;
-        //     return 1;
-        // }
-
-        // std::cout << "Auth token: " << token << std::endl;
-        // std::cout << "Auth token: " << token << std::endl;
-
-        // // 上传文件到仓库
-        // upload_file(ioc, token, "manifest.json");
-        // // 上传文件到仓库
-        // upload_file(ioc, token, "manifest.json");
-
-        // std::cout << "File uploaded successfully!" << std::endl;
-        // ifBlobExists();
-        // initUpLoad();
-
-        // auto url = std::make_shared<URL>();
-        // dockerClient client;
-        // url=client.resolveRequestURL("localhost:5111/bbbb:123");
-        // std::cout<<"host"<<url->host<<"\n";
-        // std::cout<<"port"<<url->port<<"\n";
-        // std::cout<<"ImageName"<<url->imageName<<"\n";
-
-        login("admin","Harbor12345");
-        // std::string cookie = "_gorilla_csrf=MTczNDg3Mjg0NXxJbUpKZGxFNUwzQm1RamRGZW5GRlNrSm5aV1ptT0dwREwzcHFhemRqV2tSeFVXYzROWGx5Vm05eE5UQTlJZ289fLAperNqJGnO0kWux4zpdo3rNHhL5sQYRXjw3csgriq7;sid=238f99d6c796386af39196d230d82790;";
-        // ifSupportV2(cookie);
-        // ifBlobExists(cookie);
-        // getToken("192.168.182.128","80",cookie);
-
-        // resolveRequestURL("localhost:5000/p/busybox:34.1");
+        std::string token = login_and_getToken("admin", "Harbor12345");
+        std::cout << token << std::endl;
+        std::cout << login("admin", "Harbor12345", token) << std::endl;
+        // ifBlobExists("123");
+        // std::string uid, state;
+        // initUpLoad(uid, state);
+        // std::string filePath = "tests/83e39b496d70db94e0c30afb3beba1b25dc7e4f7b025fd79e79bd25490019eca";
+        // std::ifstream file(filePath, std::ios::binary | std::ios::ate);
+        // if (!file)
+        //     throw std::runtime_error("Failed to open file: " + filePath);
+        // std::size_t total_size = file.tellg();
+        // file.close();
+        // std::string new_uid, new_state;
+        // uploadBlobChunk("192.168.1.102", "5000", uid, state, filePath, 0, total_size, total_size, "image3", "image3", new_uid, new_state);
+        // std::string shaID = "83e39b496d70db94e0c30afb3beba1b25dc7e4f7b025fd79e79bd25490019eca";
+        // finalizeUpload("192.168.1.102", "5000", new_uid, shaID, new_state, "image3", "library");
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
     }
