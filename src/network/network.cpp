@@ -2,7 +2,9 @@
 #include "image/digest/digest.h"
 #include "cmd/login/login.h"
 #include <zlib.h>
-
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
+#include <boost/filesystem.hpp>
 /**
  * @brief 创建新的请求
  * 
@@ -14,6 +16,7 @@
  */
 
 namespace http = boost::beast::http;
+using boost::property_tree::ptree;
 
 std::string base64_encode(const std::string &in)
 {
@@ -384,10 +387,9 @@ std::pair<std::string, std::string> initUpload(const std::string& host, const st
         beast::http::write(stream, req);
 
         beast::flat_buffer buffer;
-        beast::http::response_parser<beast::http::empty_body> parser;
-        parser.body_limit(0);
-        // beast::http::response<beast::http::empty_body> res;
-        // res.body_limit(std::numeric_limits<std::uint64_t>::max());
+        beast::http::response_parser<beast::http::dynamic_body> parser;
+        parser.body_limit(std::numeric_limits<std::uint64_t>::max());
+        parser.skip(true);
         beast::http::read(stream, buffer, parser);
         auto res = parser.get();
 
@@ -396,6 +398,11 @@ std::pair<std::string, std::string> initUpload(const std::string& host, const st
         }
 
         std::string location = res[beast::http::field::location].to_string();
+        std::string ipAddr = host + ":" + port;
+        auto pos_start = location.find(ipAddr);
+        if (pos_start != std::string::npos) {
+            loginAuth.location = location.substr(pos_start + ipAddr.length());
+        }
         std::string uid_param;
         std::string state_param;
 
@@ -406,6 +413,7 @@ std::pair<std::string, std::string> initUpload(const std::string& host, const st
             }
         }
         // 这里很让人无语，harbor是用_state=来标识state的，而acore是state_=
+        
         auto pos = location.find("?_state=");
         if (pos != std::string::npos) {
             state_param = location.substr(pos + 8);
@@ -473,16 +481,18 @@ std::pair<std::string, std::string> uploadBlobChunk(const std::string& host, con
 
         // buildah这里是upload，不是uploads
         std::string target;
-        if (loginAuth.bearerToken.empty()) {
-            target = "/" + projectName + "/"+imageName + "/blobs/upload/" + uid + "?state_=" + state;
-        } else {
-            target = "/v2/" + projectName + "/"+imageName + "/blobs/upload/" + uid + "?_state=" + state;
-        }
+        // if (loginAuth.bearerToken.empty()) {
+        //     target = "/" + projectName + "/"+imageName + "/blobs/upload/" + uid + "?state_=" + state;
+        // } else {
+        //     target = "/v2/" + projectName + "/"+imageName + "/blobs/uploads/" + uid + "?_state=" + state;
+        // }
+        target = loginAuth.location;
         beast::http::request<beast::http::buffer_body> req(beast::http::verb::patch, target, 11);
         req.set(beast::http::field::host, host + ":" + port);
         req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
         if (!loginAuth.bearerToken.empty()) {
             req.set(http::field::authorization, "Bearer " + loginAuth.bearerToken);
+            // req.set(http::field::cookie, loginAuth.cookie);
         } else {
             std::string credentials = userinfo.username + ":" + userinfo.password;
             std::string encoded_credentials = base64_encode(credentials);
@@ -512,6 +522,11 @@ std::pair<std::string, std::string> uploadBlobChunk(const std::string& host, con
         }
 
         std::string location = res[beast::http::field::location].to_string();
+        std::string ipAddr = host + ":" + port;
+        auto pos_start = location.find(ipAddr);
+        if (pos_start != std::string::npos) {
+            loginAuth.location = location.substr(pos_start + ipAddr.length());
+        }
         std::string new_uid, new_state;
         for (auto const& field : res) {
             if (field.name_string() == "Docker-Upload-Uuid") {
@@ -532,10 +547,6 @@ std::pair<std::string, std::string> uploadBlobChunk(const std::string& host, con
                 new_state = location.substr(pos + 7);
             }
         }
-        // auto pos1 = location.find("state_=");
-        // if (pos1 != std::string::npos) {
-        //     new_state = location.substr(pos1 + 7);
-        // }
         stream.socket().shutdown(tcp::socket::shutdown_both);
         return {new_uid, new_state};
     } catch (const std::exception& e) {
@@ -544,7 +555,50 @@ std::pair<std::string, std::string> uploadBlobChunk(const std::string& host, con
     }
 }
 
+void getManifest(ptree& node, const std::string& level)
+{
+    try {
+        for (auto& child : node) {
+            // 如果当前节点是 "mediaType" 键，修改它的值
+            if (child.first == "mediaType") {
+                if (level == "root") {
+                    child.second.put_value("application/vnd.oci.image.manifest.v1+json");  // 外层mediaType
+                } else if (level == "config") {
+                    child.second.put_value("application/vnd.oci.config.v1+json");  // config层的mediaType
+                } else if (level == "layers") {
+                    child.second.put_value("application/vnd.oci.image.layer.v1.tar+gzip");  // layers层的mediaType
+                }
+            }
+            // 递归处理子节点，根据不同的层级传递相应的值
+            if (child.first == "config") {
+                getManifest(child.second, "config");
+            } else if (child.first == "layers") {
+                getManifest(child.second, "layers");
+            } else if (child.first != "mediaType") {
+                getManifest(child.second, level);
+            }
+        } 
+    } catch(const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+    }
+}
 
+std::string write_v1_manifest(const std::string& filePath)
+{
+    ptree manifest;
+    boost::property_tree::read_json(filePath, manifest);
+    getManifest(manifest, "root");
+    std::string output_path = "oci_images/tmp/manifest.json";
+    std::ofstream output_file(output_path);
+    boost::property_tree::write_json(output_file, manifest, false);
+    output_file.close();
+    auto digest = Fromfile(output_path);
+    std::string shaId = digest->Encoded();
+    // 最后给文件重命名
+    std::string new_path = "oci_images/tmp/" + shaId;
+    boost::filesystem::rename(output_path, new_path);
+    return new_path;
+}
 
 /**
  * @brief 上传manifest
@@ -557,19 +611,30 @@ std::pair<std::string, std::string> uploadBlobChunk(const std::string& host, con
  * @param version 
  */
 void uploadManifest(const std::string& host, const std::string& port, const std::string& file_path, std::size_t start, std::size_t end, 
-                                            const std::string& imageName, const std::string version, const std::string& ManifestType,const std::string& projectName) {
+                                            const std::string& imageName, const std::string version, const std::string& ManifestType,const std::string& projectName, bool v1) {
     try {
-        std::ifstream file(file_path, std::ios::binary);
-        if (!file) {
-            throw std::runtime_error("Failed to open file: " + file_path);
-        }
-
+        // std::ifstream file(file_path, std::ios::binary);
+        // if (!file) {
+        //     throw std::runtime_error("Failed to open file: " + file_path);
+        // }
         std::size_t chunk_size = end - start;
         std::vector<char> data(chunk_size);
+        std::size_t bytes_read;
+        // 如果采用v1版本，则需要创建一个临时的manifest文件
+        if (v1 == true) {
+            std::string new_path = write_v1_manifest(file_path);
+            std::cout << "read file" << std::endl;
+            std::ifstream file(file_path, std::ios::binary);
+            file.seekg(start, std::ios::beg);
+            file.read(data.data(), chunk_size);
+            bytes_read = file.gcount();
+        } else {
+            std::ifstream file(file_path, std::ios::binary);
+            file.seekg(start, std::ios::beg);
+            file.read(data.data(), chunk_size);
+            bytes_read = file.gcount();
+        }
 
-        file.seekg(start, std::ios::beg);
-        file.read(data.data(), chunk_size);
-        std::size_t bytes_read = file.gcount();
 
         asio::io_context ioc;
         tcp::resolver resolver(ioc);
@@ -641,11 +706,12 @@ void finalizeUpload(const std::string& host, const std::string& port, const std:
 
         // 这里按照biuldah也是upload，不是uploads
         std::string target;
-        if (loginAuth.bearerToken.empty()) {
-            target = "/" +projectName + "/"+ imageName + "/blobs/upload/" + uid + "?state_=" + state + "&digest=sha256:" + shaId;        
-        } else {
-            target = "/v2/" +projectName + "/"+ imageName + "/blobs/upload/" + uid + "?_state=" + state + "&digest=sha256:" + shaId;
-        }
+        // if (loginAuth.bearerToken.empty()) {
+        //     target = "/" +projectName + "/"+ imageName + "/blobs/upload/" + uid + "?state_=" + state + "&digest=sha256:" + shaId;        
+        // } else {
+        //     target = "/v2/" +projectName + "/"+ imageName + "/blobs/uploads/" + uid + "?_state=" + state + "&digest=sha256:" + shaId;
+        // }
+        target = loginAuth.location + "&digest=sha256:" + shaId;
         // std::string target = "/v2/" +projectName + "/"+ imageName + "/blobs/uploads/" + uid + "?_state=" + state + "&digest=sha256:" + shaId;
         beast::http::request<beast::http::empty_body> req(beast::http::verb::put, target, 11);
         req.set(http::field::host, host+":"+port);
@@ -656,6 +722,7 @@ void finalizeUpload(const std::string& host, const std::string& port, const std:
         req.set(http::field::accept_encoding, "gzip");
         if (!loginAuth.bearerToken.empty()) {
             setAuthorization(req, loginAuth.bearerToken);
+            // req.set(http::field::cookie, loginAuth.cookie);
         } else {
             setAuthorization(req, userinfo.username, userinfo.password);
         }
@@ -758,6 +825,25 @@ std::string loginGetToken(std::string host, std::string port, std::string user, 
                 is_gzip = true;
             }
         }
+        std::string sid;
+        // 获取cookie的长度
+        for (auto const& field : res2) {
+            if (field.name_string() == "Set-Cookie") {
+
+                std::string cookie = field.value().to_string();
+                std::size_t sidpos=cookie.find("sid=");
+                if(sidpos!=std::string::npos){
+                    sidpos+=4;
+                    std::size_t end_sid = cookie.find(";", sidpos);
+                    if (end_sid == std::string::npos) {
+                        end_sid = cookie.length(); // 如果没有分号，则取到字符串结尾
+                    }
+                    sid=cookie.substr(sidpos,end_sid-sidpos);
+                    loginAuth.cookie.append("sid=" + sid + "; ");
+                    // loginAuth.cookie="_gorilla_csrf="+csrf_token+"; sid="+sid+";";
+                }
+            }
+        }
         if (!is_gzip) {
             btoken = extractToken(res2.body());
         }
@@ -804,13 +890,25 @@ std::string login_and_getToken(const std::string& user, const std::string& passw
         http::read(stream, buffer, res);
 
         if (res.result() == http::status::unauthorized) {
-            std::string csrf_token;
-            std::string harbor_csrf_token;
             bool receive_cookie = false;
+            std::string sid;
             // 获取cookie的长度
             for (auto const& field : res) {
                 if (field.name_string() == "Set-Cookie") {
                     receive_cookie = true;
+
+                    std::string cookie = field.value().to_string();
+                    std::size_t sidpos=cookie.find("sid=");
+                    if(sidpos!=std::string::npos){
+                        sidpos+=4;
+                        std::size_t end_sid = cookie.find(";", sidpos);
+                        if (end_sid == std::string::npos) {
+                            end_sid = cookie.length(); // 如果没有分号，则取到字符串结尾
+                        }
+                        sid=cookie.substr(sidpos,end_sid-sidpos);
+                        loginAuth.cookie.append("sid=" + sid + "; ");
+                        // loginAuth.cookie="_gorilla_csrf="+csrf_token+"; sid="+sid+";";
+                    }  
                 }
             }
             // 关闭连接

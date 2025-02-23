@@ -88,6 +88,7 @@ class authScope{
     std::string cookie;
     std::string harborToken;
     std::string bearerToken;
+    std::string location;
     authScope() = default;
 };
 extern authScope loginAuth;
@@ -191,7 +192,10 @@ std::pair<std::string, std::string> uploadBlobChunk(const std::string& host, con
 // std::string uploadBlobChunk(const std::string &host, const std::string &port, const std::string &uid, const std::string &state, const std::string &file_path, std::size_t start, std::size_t end, std::size_t total_size, const std::string &imageName, const std::string &projectName);
 
 
-void uploadManifest(const std::string &host, const std::string &port, const std::string &file_path, std::size_t start, std::size_t end, const std::string &imageName, const std::string version, const std::string &ManifestType, const std::string &projectName);
+// void uploadManifest(const std::string &host, const std::string &port, const std::string &file_path, std::size_t start, std::size_t end, const std::string &imageName, const std::string version, const std::string &ManifestType, const std::string &projectName);
+
+void uploadManifest(const std::string& host, const std::string& port, const std::string& file_path, std::size_t start, std::size_t end, 
+    const std::string& imageName, const std::string version, const std::string& ManifestType,const std::string& projectName, bool v1);
 
 void finalizeUpload(const std::string &host, const std::string &port, const std::string &uid, const std::string &shaId, const std::string &state, const std::string &imageName, const std::string &projectName);
 

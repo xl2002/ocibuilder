@@ -40,18 +40,16 @@ void init_push()
     flags->StringVar(opts->authfile, "authfile", std::string(), "path of the authentication file. Use REGISTRY_AUTH_FILE environment variable to override");
     pushCommand->Run = [=](Command &cmd, vector<string> args)
     {
-        if (args.size() == 1)
+        // 有可能有format参数
+        if (args.size() == 1 || args.size() == 3)
             pushCmd(cmd, args, opts);
-        else if (args.size() == 2)
+        else if (args.size() == 2 || args.size() == 4)
             pushCmdLocal(cmd, args, opts);
         else if (args.size() == 0)
             std::cerr << "Please input the image you want to push!!" << std::endl;
         else
             std::cerr << "the number of arguments is not right!!" << std::endl;
     };
-    // pushCommand->Run=[=](Command& cmd, vector<string> args){
-    //     pushCmd(cmd,args,opts);
-    // };
     rootcmd.AddCommand({pushCommand});
     // return imagesCommand;
 }
@@ -63,27 +61,30 @@ void init_push()
 void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
 {
     // 执行流程
-    std::string src, destSpec;
+    std::string src;
     // 1. 获得令牌
     CheckAuthFile(iopts);
-    if (args.size() == 0)
-    {
-        std::cout << "Please input the image you want to push!!" << "\n";
-        return;
-    }
-    else if (args.size() == 1)
-    {
-        src = args[0];
-        destSpec = src;
-    }
-    else if (args.size() == 2)
+    
+    // 判断使用哪种格式
+    bool v1_format = false;
+
+    // 判断是否存在--format参数
+    if (args.size() == 1)
     {
         src = args[0];
-        destSpec = args[1];
     }
-    else
+    else if (args.size() == 3)
     {
-        std::cerr << "the number of arguments is not right!!" << "\n";
+        // 以后如果使用其他格式，可以进行进一步扩展
+        v1_format = true;
+        if (args[0] == "--format") {
+            src = args[2];
+            iopts->format = args[1];
+        }
+        else {
+            src = args[0];
+            iopts->format = args[2];
+        }
     }
     auto compress = compression::Gzip;
     // 读取本地镜像的数据
@@ -104,17 +105,19 @@ void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
 
     //  执行登录请求
     loadLoginInfo(url->host + ":" + url->port);
-    std::string btoken = login_and_getToken(userinfo.username, userinfo.password, url->host, url->port, "", "");
-    // 将从harbor库获取的bearer token存储到dockerClient中
-    if (!btoken.empty())
-        loginAuth.bearerToken = btoken;
-    else
-        loginAuth.bearerToken.erase();
-    bool flag = login(url->host, url->port, userinfo.username, userinfo.password);
-    if (!flag) {
-        std::cerr << "fail to login!!" << "\n";
-        return;
-    }
+    // std::string btoken = login_and_getToken(userinfo.username, userinfo.password, url->host, url->port, "", "");
+    // // 将从harbor库获取的bearer token存储到dockerClient中
+    // if (!btoken.empty())
+    //     loginAuth.bearerToken = btoken;
+    // else
+    //     loginAuth.bearerToken.erase();
+    // bool flag = login(url->host, url->port, userinfo.username, userinfo.password);
+    // if (!flag) {
+    //     std::cerr << "fail to login!!" << "\n";
+    //     return;
+    // }
+    loginAuth.cookie.erase();
+    loginAuth.bearerToken.erase();
 
     // 在执行push之前需要再次完成登录请求
     std::string btoken_push = login_and_getToken(userinfo.username, userinfo.password, url->host, url->port, url->projectName, url->imageName);
@@ -205,7 +208,7 @@ void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
     std::size_t total_size = file.tellg();
     file.close();
     // 上传数据
-    uploadManifest(url->host, url->port, manifestPath, 0, total_size, url->imageName, url->version, manifestType, url->projectName);
+    uploadManifest(url->host, url->port, manifestPath, 0, total_size, url->imageName, url->version, manifestType, url->projectName, v1_format);
     // if (!ifBlobExists(url->host, url->port, url->imageName, shaId2, url->projectName))
     // {
     //     // std::pair<std::string, std::string> initResult = initUpload(url->host, url->port, url->imageName);

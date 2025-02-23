@@ -683,11 +683,42 @@ void resolveRequestURL(std::string path){
 
 }
 
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
+using boost::property_tree::ptree;
+
+void getManifest(ptree& node, const std::string& level)
+{
+    try {
+        for (auto& child : node) {
+            // 如果当前节点是 "mediaType" 键，修改它的值
+            if (child.first == "mediaType") {
+                if (level == "root") {
+                    child.second.put_value("application/vnd.oci.image.manifest.v1+json");  // 外层mediaType
+                } else if (level == "config") {
+                    child.second.put_value("application/vnd.oci.config.v1+json");  // config层的mediaType
+                } else if (level == "layers") {
+                    child.second.put_value("application/vnd.oci.image.layer.v1.tar+gzip");  // layers层的mediaType
+                }
+            }
+            // 递归处理子节点，根据不同的层级传递相应的值
+            if (child.first == "config") {
+                getManifest(child.second, "config");
+            } else if (child.first == "layers") {
+                getManifest(child.second, "layers");
+            } else if (child.first != "mediaType") {
+                getManifest(child.second, level);
+            }
+        } 
+    } catch(const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+    }
+}
+
 int main() {
     try {
-        std::string token = login_and_getToken("admin", "Harbor12345");
-        std::cout << token << std::endl;
-        std::cout << login("admin", "Harbor12345", token) << std::endl;
+        // std::string token = login_and_getToken("admin", "Harbor12345");
+        // std::cout << login("admin", "Harbor12345", token) << std::endl;
         // ifBlobExists("123");
         // std::string uid, state;
         // initUpLoad(uid, state);
@@ -701,6 +732,16 @@ int main() {
         // uploadBlobChunk("192.168.1.102", "5000", uid, state, filePath, 0, total_size, total_size, "image3", "image3", new_uid, new_state);
         // std::string shaID = "83e39b496d70db94e0c30afb3beba1b25dc7e4f7b025fd79e79bd25490019eca";
         // finalizeUpload("192.168.1.102", "5000", new_uid, shaID, new_state, "image3", "library");
+        ptree original_data;
+        boost::property_tree::read_json("tests/manifest.json", original_data);
+        getManifest(original_data, "root");
+        // std::stringstream ss;
+        // boost::property_tree::write_json(ss, original_data, false);
+        // std::string manifest_str = ss.str();
+        // std::cout << ss.str() << std::endl;
+
+        std::ofstream output_file("tests/modified.json");
+        boost::property_tree::write_json(output_file, original_data, false);
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
     }
