@@ -72,9 +72,16 @@ void pullCmd(Command& cmd, vector<string> args,pullOptions* iopts){
     //从远端库中拉取
     if(!url->localPullFlag){
         loadLoginInfo(url->host+":"+url->port);
-        login(userinfo.username,userinfo.password,url->host,url->port);
+        loginAuth.cookie.erase();
+        loginAuth.bearerToken.erase();
+        std::string btoken_push = login_and_getToken(userinfo.username, userinfo.password, url->host, url->port, url->projectName, url->imageName);
+        if (!btoken_push.empty())
+            loginAuth.bearerToken = btoken_push;
+        else
+            loginAuth.bearerToken.erase();
+        
         //获得bearer token
-        std::string token=getToken(url->host,url->port,url->projectName,url->imageName);
+        // std::string token=getToken(url->host,url->port,url->projectName,url->imageName);
         //处理 all-tags 参数
         if(allTagFlag=="true"){
             std::vector<std::string> tagList = getTagList(url->host,url->port,url->projectName,url->imageName);

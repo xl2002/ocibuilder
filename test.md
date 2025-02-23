@@ -92,6 +92,7 @@
 ```bash
 # 从远端拉取镜像
 ./output/main.exe pull 192.168.1.102:80/library/image1:latest
+./output/main.exe pull 192.168.1.102:80/library/image1:latest --format v1
 ./output/main.exe pull --os linux --arch amd64 10.68.1.145:5000/library/busybox-image:latest
 ./output/main.exe pull --os linux --arch amd64 --all-tags 10.68.1.145:5000/library/busybox-image
 # 从本地拉取镜像

@@ -1009,12 +1009,20 @@ void pullBlob(const std::string& host, const std::string& port,const::string& pr
 
         // 设置 HTTP 请求
         beast::http::request<beast::http::empty_body> req(beast::http::verb::get, target, 11); // 使用 GET 请求
-        req.set(beast::http::field::host, host);
-        req.set(beast::http::field::accept, "application/vnd.oci.image.manifest.v1+json,application/vnd.docker.distribution.manifest.v2+json");
-        req.set(beast::http::field::cookie,loginAuth.cookie);
-        req.set(beast::http::field::authorization,"Bearer "+loginAuth.bearerToken);
-        req.set("x-harbor-csrf-token",loginAuth.harborToken);
-        req.set(beast::http::field::user_agent, "Boost.Beast/248");
+        req.set(beast::http::field::host, host+":"+port);
+        req.set(beast::http::field::connection, "close");
+        req.set("Accept-Encoding", "gzip");
+        req.set("Docker-Distribution-API-Version", "registry/2.0");
+        if(loginAuth.bearerToken.empty()){
+            setAuthorization(req, userinfo.username, userinfo.password);
+        }
+        else{
+            req.set(beast::http::field::accept, "application/vnd.oci.image.manifest.v1+json,application/vnd.docker.distribution.manifest.v2+json");
+            // req.set(beast::http::field::cookie,loginAuth.cookie);
+            // req.set("x-harbor-csrf-token",loginAuth.harborToken);
+            setAuthorization(req, loginAuth.bearerToken);
+        }
+        req.set(beast::http::field::user_agent, BOOST_BEAST_VERSION_STRING);
 
         // 发送请求
         beast::http::write(stream, req);
@@ -1118,12 +1126,26 @@ bool pullConfig(const std::string& host, const std::string& port,const::string& 
 
         // 设置 HTTP 请求
         beast::http::request<beast::http::empty_body> req(beast::http::verb::get, target, 11); // 使用 GET 请求
-        req.set(beast::http::field::host, host);
-        req.set(beast::http::field::accept, "application/vnd.oci.image.manifest.v1+json,application/vnd.docker.distribution.manifest.v2+json");
-        req.set(beast::http::field::cookie,loginAuth.cookie);
-        req.set(beast::http::field::authorization,"Bearer "+loginAuth.bearerToken);
-        req.set("x-harbor-csrf-token",loginAuth.harborToken);
-        req.set(beast::http::field::user_agent, "Boost.Beast/248");
+        // req.set(beast::http::field::host, host);
+        // req.set(beast::http::field::accept, "application/vnd.oci.image.manifest.v1+json,application/vnd.docker.distribution.manifest.v2+json");
+        // req.set(beast::http::field::cookie,loginAuth.cookie);
+        // req.set(beast::http::field::authorization,"Bearer "+loginAuth.bearerToken);
+        // req.set("x-harbor-csrf-token",loginAuth.harborToken);
+        // req.set(beast::http::field::user_agent, "Boost.Beast/248");
+        req.set(beast::http::field::host, host+":"+port);
+        // req.set(beast::http::field::cookie,loginAuth.cookie);
+        if (loginAuth.bearerToken.empty()) {
+            setAuthorization(req, userinfo.username, userinfo.password);
+        }
+            // req.set(beast::http::field::authorization,"Bearer "+loginAuth.bearerToken);
+        else {
+            setAuthorization(req, loginAuth.bearerToken);
+        }
+        // req.set("x-harbor-csrf-token",loginAuth.harborToken);
+        req.set(beast::http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+        req.set("Docker-Distribution-API-Version", "registry/2.0");
+        req.set("Accept-Encoding", "gzip");
+        req.set(http::field::connection, "close");
 
         // 发送请求
         beast::http::write(stream, req);
@@ -1232,12 +1254,28 @@ std::tuple<std::string,size_t> pullManifestAndBlob(const std::string& host, cons
 
         // 设置 HTTP 请求
         beast::http::request<beast::http::empty_body> req(beast::http::verb::get, target, 11); // 使用 GET 请求
-        req.set(beast::http::field::host, host);
-        req.set(beast::http::field::accept, "application/vnd.oci.image.manifest.v1+json,application/vnd.docker.distribution.manifest.v2+json");
-        req.set(beast::http::field::cookie,loginAuth.cookie);
-        req.set(beast::http::field::authorization,"Bearer "+loginAuth.bearerToken);
-        req.set("x-harbor-csrf-token",loginAuth.harborToken);
-        req.set(beast::http::field::user_agent, "Boost.Beast/248");
+        req.set(beast::http::field::host, host+":"+port);
+        req.set(beast::http::field::accept, 
+            "application/vnd.docker.distribution.manifest.v2+json, "\
+            "application/vnd.oci.image.manifest.v1+json, "\
+            "application/vnd.docker.distribution.manifest.v1+prettyjws, "\
+            "application/vnd.docker.distribution.manifest.v1+json, "\
+            "application/vnd.docker.distribution.manifest.list.v2+json, "\
+            "application/vnd.oci.image.index.v1+json");
+        // req.set(beast::http::field::cookie,loginAuth.cookie);
+        if (loginAuth.bearerToken.empty()) {
+            setAuthorization(req, userinfo.username, userinfo.password);
+        }
+            // req.set(beast::http::field::authorization,"Bearer "+loginAuth.bearerToken);
+        else {
+            setAuthorization(req, loginAuth.bearerToken);
+        }
+        // req.set("x-harbor-csrf-token",loginAuth.harborToken);
+        req.set(beast::http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+        req.set("Docker-Distribution-API-Version", "registry/2.0");
+        req.set("Accept-Encoding", "gzip");
+        req.set(http::field::connection, "close");
+
 
         // 发送请求
         beast::http::write(stream, req);
@@ -1284,6 +1322,7 @@ std::tuple<std::string,size_t> pullManifestAndBlob(const std::string& host, cons
             std::cerr << "Failed to open file for writing: " << output_file_tmp << std::endl;
             return {};
         }
+        std::cout << "3333" << std::endl;
 
         ofs << res.body(); // 将响应体写入文件
         ofs.close();
@@ -1333,7 +1372,7 @@ std::tuple<std::string,size_t> pullManifestAndBlob(const std::string& host, cons
     } catch (const beast::system_error& se) {
         std::cerr << "System error: " << se.what() << std::endl;
     } catch (const std::exception& e) {
-        std::cerr << "Exception: " << e.what() << std::endl;
+        std::cerr << "Pull Manifest Exception: " << e.what() << std::endl;
     }
 }
 
