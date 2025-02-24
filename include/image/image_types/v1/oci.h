@@ -25,8 +25,8 @@ class OCI1:public Manifest{
             {"schemaVersion",image.SchemaVersion},
             {"mediaType",image.MediaType},
             {"config",boost::json::value_from(image.Config)},
-            {"layers",boost::json::value_from(image.Layers)},
-            {"annotations", boost::json::value_from(image.Annotations)}
+            {"layers",boost::json::value_from(image.Layers)}
+            // {"annotations", boost::json::value_from(image.Annotations)}
         };
     }
     /**
@@ -42,7 +42,7 @@ class OCI1:public Manifest{
         m.MediaType=obj.at("mediaType").as_string().c_str();
         m.Config=boost::json::value_to<Descriptor>(obj.at("config"));
         m.Layers=boost::json::value_to<std::vector<Descriptor>>(obj.at("layers"));
-        m.Annotations=boost::json::value_to<std::map<std::string, std::string>>(obj.at("annotations"));
+        // m.Annotations=boost::json::value_to<std::map<std::string, std::string>>(obj.at("annotations"));
         return m;
     }
 };
