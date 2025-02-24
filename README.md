@@ -82,6 +82,19 @@ gunzip d9a1c0e63b46b78ce21a60cef1fa8240a4b6fbe58c2b6a70c52e70f248375f24.tar.gz
 shasum -a 256 d9a1c0e63b46b78ce21a60cef1fa8240a4b6fbe58c2b6a70c52e70f248375f24.tar
 ```
 
+buildah命令
+
+```bash
+buildah bud -t image2:latest ./Dockerfile（在Dockerfile目录下）
+buildah images
+buildah login -u admin -p Harbor12345 --tls-verify=false 192.168.1.102:80
+buildah logout 192.168.1.102:80
+buildah tag imagetest1:latest 192.168.1.102:80/library/imagetest1:latest
+buildah push --tls-verify=false 192.168.1.102:80/library/imagetest1:latest
+buildah rmi 192.168.1.102:80/library/imagetest1:latest
+buildah pull --tls-verify=false 192.168.1.102:80/library/imagetest1:latest
+```
+
 harbor存储库的相关操作
 
 ```bash
@@ -137,7 +150,7 @@ buildah logout --all
 buildah login --username=admin --password=123456 --tls-verify=false 192.168.1.102:5000
 buildah push -f v2s2 192.168.1.102:5000/library/busybox:latest
 buildah login --username=admin --password=123456 xk.domain.com:5050
-
+buildah push -f v2s2 xk.domain.com:5050/library/busybox:latest
 podman run -d \
   --name registry \
   -p 443:443 \

@@ -112,7 +112,9 @@ LFLAGSTEST	:= $(LFLAGS)
 INCLUDETEST	:= -I include
 OUTPUTTEST		:= tests
 OUTPUTMAINTEST	:= $(call FIXPATH,$(OUTPUTTEST)/$(MAIN))
+# SRCTEST		:= ./tests/sha356.cpp
 SRCTEST		:= ./tests/net_test.cpp
+# LIBSTEST	:= $(LIB)
 LIBSTEST	:= $(LIBS)
 all: $(OUTPUT) $(MAIN)
 # $(RM) $(call FIXPATH,$(OBJECTS))
