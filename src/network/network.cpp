@@ -600,6 +600,29 @@ std::string write_v1_manifest(const std::string& filePath)
     return new_path;
 }
 
+std::string write_manifest_new(const std::string& file_path)
+{
+    std::ifstream ifs(file_path);
+    std::stringstream ss;
+    ss << ifs.rdbuf();
+    ifs.close();
+    auto manifest = unmarshal<::Manifest>(ss.str());
+    manifest.MediaType = "application/vnd.oci.image.manifest.v1+json";
+    manifest.Config.MediaType = "application/vnd.oci.image.config.v1+json";
+    for (auto& layer : manifest.Layers) {
+        layer.MediaType = "application/vnd.oci.image.layer.v1.tar+gzip";
+    }
+    std::string m_str = marshal<::Manifest>(manifest);
+    std::ofstream ofs("oci_images/tmp/manifest.json");
+    ofs << m_str;
+    ofs.close();
+    auto digest = Fromfile("oci_images/tmp/manifest.json");
+    std::string shaId = digest->Encoded();
+    std::string new_path = "oci_images/tmp/" + shaId;
+    boost::filesystem::rename("oci_images/tmp/manifest.json", new_path);
+    return new_path;
+}
+
 /**
  * @brief 上传manifest
  * @param host 
@@ -622,7 +645,8 @@ void uploadManifest(const std::string& host, const std::string& port, const std:
         std::size_t bytes_read;
         // 如果采用v1版本，则需要创建一个临时的manifest文件
         if (v1 == true) {
-            std::string new_path = write_v1_manifest(file_path);
+            std::string new_path = write_manifest_new(file_path);
+            // std::string new_path = write_v1_manifest(file_path);
             std::cout << "read file" << std::endl;
             std::ifstream file(file_path, std::ios::binary);
             file.seekg(start, std::ios::beg);
@@ -1224,7 +1248,7 @@ bool pullConfig(const std::string& host, const std::string& port,const::string& 
 }
 
 
-std::tuple<std::string,size_t> pullManifestAndBlob(const std::string& host, const std::string& port,const::string& projectName,const::string& imageName,const std::string version,const std::string& os,const std::string& arch){
+std::tuple<std::string,size_t> pullManifestAndBlob(const std::string& host, const std::string& port,const::string& projectName,const::string& imageName,const std::string version,const std::string& os,const std::string& arch, bool v1){
     // std::string target = "/v2/library/busyboximage5/blobs/sha256:f28efabc598d38f0b7cea1641bd20b097b8c5aaf090035d7167370608d86fb67"; // API v2 路径
     std::string target= "/v2/"+projectName+"/"+imageName+"/manifests/"+version;
     std::string output_folder = "oci_images/oci_registry/blobs/sha256/"; // 保存的文件夹
@@ -1322,40 +1346,55 @@ std::tuple<std::string,size_t> pullManifestAndBlob(const std::string& host, cons
             std::cerr << "Failed to open file for writing: " << output_file_tmp << std::endl;
             return {};
         }
-        std::cout << "3333" << std::endl;
+
 
         ofs << res.body(); // 将响应体写入文件
         ofs.close();
-        std::cout << "Manifest tmp saved to: " << output_file_tmp << std::endl;
-
-        //计算manifest的hash
-        std::string ManifestSha = Fromfile(output_file_tmp)->Encoded();
-        std::string output_file = output_folder + ManifestSha;
-
-        if(std::remove(output_file_tmp.c_str())==0){
-            std::cout << "tmp manifest deleted successfully: " << output_file_tmp << std::endl;
-        }else{
-            std::cerr << "Failed to delete file: " << output_file_tmp << std::endl;
-        }
-
+        // std::cout << "Manifest tmp saved to: " << output_file_tmp << std::endl;
 
         //写manifest
-        std::ofstream ofs1(output_file, std::ios::binary);
-        if (!ofs1) {
-            std::cerr << "Failed to open file for writing: " << output_file << std::endl;
-            return {};
-        }
+        std::string ManifestSha;
+        if (v1 == true) {
+            std::string new_path = write_manifest_new(output_file_tmp);
+            // std::string new_path = write_v1_manifest(output_file_tmp);
+            boost::filesystem::path source = new_path;
+            std::cout << new_path << std::endl;
+            ManifestSha = source.filename().string();
+            boost::filesystem::path target = output_folder + source.filename().string();
 
-        ofs1 << res.body(); 
-        ofs1.close();
-        std::cout << "Manifest tmp saved to: " << output_file << std::endl;
+            if (boost::filesystem::exists(source)) {
+                boost::filesystem::copy_file(source, target, fs::copy_option::overwrite_if_exists);
+            } else {
+                throw std::runtime_error("Failed to copy file: " + source.string());
+            }
+        } else {
+            //计算manifest的hash
+            ManifestSha = Fromfile(output_file_tmp)->Encoded();
+            std::string output_file = output_folder + ManifestSha;
+
+            if(std::remove(output_file_tmp.c_str())==0){
+                // std::cout << "tmp manifest deleted successfully: " << output_file_tmp << std::endl;
+            }else{
+                // std::cerr << "Failed to delete file: " << output_file_tmp << std::endl;
+                throw std::runtime_error("Failed to delete temp file: " + output_file_tmp);
+            }
+            std::ofstream ofs1(output_file, std::ios::binary);
+            if (!ofs1) {
+                throw std::runtime_error("Failed to open file for writing: " + output_file);
+                // std::cerr << "Failed to open file for writing: " << output_file << std::endl;
+                return {};
+            }
+    
+            ofs1 << res.body(); 
+            ofs1.close();
+        }
 
         size_t manifestLen;
 
         if (res.find(beast::http::field::content_length) != res.end()) {
             std::string content_length = res[beast::http::field::content_length].to_string();
             manifestLen = std::stoul(content_length);
-            std::cout << "Content-Length: " << content_length << std::endl;
+            // std::cout << "Content-Length: " << content_length << std::endl;
         } else {
             std::cout << "No Content-Length field found in response." << std::endl;
         }
