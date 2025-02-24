@@ -214,7 +214,9 @@ void pullBlob(const std::string &host, const std::string &port, const ::string &
 
 bool pullConfig(const std::string &host, const std::string &port, const ::string &projectName, const ::string &imageName, const std::string digest, const std::string &os, const std::string &arch);
 
-std::tuple<std::string,size_t> pullManifestAndBlob(const std::string &host, const std::string &port, const ::string &projectName, const ::string &imageName, const std::string version,const std::string& os,const std::string& arch);
+// std::tuple<std::string,size_t> pullManifestAndBlob(const std::string &host, const std::string &port, const ::string &projectName, const ::string &imageName, const std::string version,const std::string& os,const std::string& arch);
+
+std::tuple<std::string,size_t> pullManifestAndBlob(const std::string& host, const std::string& port,const::string& projectName,const::string& imageName,const std::string version,const std::string& os,const std::string& arch, bool v1);
 
 void saveLoginInfo(const std::string &username, const std::string &password, const std::string &ipAddress);
 

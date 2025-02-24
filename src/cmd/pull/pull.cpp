@@ -47,7 +47,7 @@ void pullCmd(Command& cmd, vector<string> args,pullOptions* iopts){
     if(args.size()==0){
         std::cout<<"Please input the image you want to push!!"<<"\n";
         return;
-    }else{
+    } else{
         src=args[0];
     }
     auto store=getStore(&cmd);
@@ -55,6 +55,8 @@ void pullCmd(Command& cmd, vector<string> args,pullOptions* iopts){
     std::string allTagFlag="false";
     std::string os="linux";
     std::string arch="amd64";
+
+    bool v1_format = false;
     if(tmp.find("os")!=tmp.end()){
         os=tmp["os"]->value->String();
     }
@@ -63,6 +65,11 @@ void pullCmd(Command& cmd, vector<string> args,pullOptions* iopts){
     }
     if(tmp.find("arch")!=tmp.end()){
         arch=tmp["arch"]->value->String();
+    }
+    if (tmp.find("format") != tmp.end()) {
+        v1_format = true;
+        std::cout << "true" << std::endl;
+        iopts->format = tmp["format"]->value->String();
     }
 
 
@@ -89,7 +96,7 @@ void pullCmd(Command& cmd, vector<string> args,pullOptions* iopts){
             for(size_t i=0;i<tagList.size();i++){
                 std::string digest="";
                 size_t mlen=0;
-                std::tie(digest,mlen)=pullManifestAndBlob(url->host,url->port,url->projectName,url->imageName,tagList[i],os,arch);
+                std::tie(digest,mlen)=pullManifestAndBlob(url->host,url->port,url->projectName,url->imageName,tagList[i],os,arch, v1_format);
                 if(digest == "" || mlen == 0){
                     std::cout<<"pull manifest error"<<std::endl;
                     return;
@@ -129,7 +136,7 @@ void pullCmd(Command& cmd, vector<string> args,pullOptions* iopts){
         } else{
             std::string digest="";
             size_t mlen=0;
-            std::tie(digest,mlen)=pullManifestAndBlob(url->host,url->port,url->projectName,url->imageName,url->version,os,arch);
+            std::tie(digest,mlen)=pullManifestAndBlob(url->host,url->port,url->projectName,url->imageName,url->version,os,arch,v1_format);
             if(digest == "" || mlen == 0){
                 std::cout<<"pull manifest error"<<std::endl;
                 return;
