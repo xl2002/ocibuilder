@@ -1074,9 +1074,9 @@ void pullBlob(const std::string& host, const std::string& port,const::string& pr
             return;
         }
 
-        for (auto const& field : res) {
-            std::cout << field.name_string() << ": " << field.value() << "\n";
-        }
+        // for (auto const& field : res) {
+        //     std::cout << field.name_string() << ": " << field.value() << "\n";
+        // }
 
         // 输出响应体到文件
         std::ofstream ofs(output_tmp, std::ios::binary); // 打开文件为二进制模式
@@ -1197,9 +1197,9 @@ bool pullConfig(const std::string& host, const std::string& port,const::string& 
             return false;
         }
 
-        for (auto const& field : res) {
-            std::cout << field.name_string() << ": " << field.value() << "\n";
-        }
+        // for (auto const& field : res) {
+        //     std::cout << field.name_string() << ": " << field.value() << "\n";
+        // }
 
         auto config = unmarshal<v1::Image>(res.body());
         //如果os和arch不符合则退出 
@@ -1327,9 +1327,9 @@ std::tuple<std::string,size_t> pullManifestAndBlob(const std::string& host, cons
             return {};
         }
 
-        for (auto const& field : res) {
-            std::cout << field.name_string() << ": " << field.value() << "\n";
-        }
+        // for (auto const& field : res) {
+        //     std::cout << field.name_string() << ": " << field.value() << "\n";
+        // }
 
 
         //分析manifest
@@ -1429,7 +1429,7 @@ void getCookieFromAuthFile(){
                 json::object obj = jsonData.as_object();
                 if (obj.contains("cookie")) {
                     std::string cookie = obj["cookie"].as_string().c_str();
-                    std::cout << "Cookie loaded from JSON: " << cookie << "\n";
+                    // std::cout << "Cookie loaded from JSON: " << cookie << "\n";
                     loginAuth.cookie = cookie;
                 }
             }
@@ -1538,9 +1538,9 @@ std::vector<std::string> getTagList(const std::string& host, const std::string& 
         beast::http::read(stream, buffer, res);
         stream.socket().shutdown(tcp::socket::shutdown_both);
         
-        for (auto const& field : res) {
-            std::cout << field.name_string() << ": " << field.value() << "\n";
-        }
+        // for (auto const& field : res) {
+        //     std::cout << field.name_string() << ": " << field.value() << "\n";
+        // }
 
         if (res.result() != beast::http::status::ok) {
             std::cerr << "GetTagsList request failed with status: " << res.result_int() << " " << res.reason() << std::endl;

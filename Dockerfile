@@ -9,7 +9,7 @@ LABEL maintainer "your_email@example.com"
 WORKDIR /usr/src/app/description
 # 复制文件到容器中
 COPY ./app /usr/src/app
-COPY ./app2 /
+# COPY ./app2 /
 COPY test.cpp /usr/src/app
 # 设置工作目录
 # WORKDIR /usr/src/app
