@@ -48,6 +48,19 @@ void loginCmd(Command& cmd, vector<string> args,LoginOptions* iopts){
     usr.username=username;
     usr.password=password;
 
+    // 实现登录命令
+    loadLoginInfo(ipAddress);
+    std::string host, port;
+    auto pos = ipAddress.find(":");
+    host = ipAddress.substr(0, pos);
+    port = ipAddress.substr(pos + 1);
+    login_and_getToken(username, password, host, port, "", "");
+    bool flag = login(host, port, username, password);
+    if (!flag) {
+        std::cerr << "fail to login!!" << "\n";
+        return;
+    }
+
     // 如果路径不存在，创建路径
     if (!boost::filesystem::exists("oci_images")) {
         boost::filesystem::create_directories("oci_images");
@@ -87,18 +100,7 @@ void loginCmd(Command& cmd, vector<string> args,LoginOptions* iopts){
     }
     std::cout << "Credentials saved to auth.json\n";
     // saveLoginInfo(username,password, ipAddress);
-    // 实现登录命令
-    loadLoginInfo(ipAddress);
-    std::string host, port;
-    auto pos = ipAddress.find(":");
-    host = ipAddress.substr(0, pos);
-    port = ipAddress.substr(pos + 1);
-    login_and_getToken(username, password, host, port, "", "");
-    bool flag = login(host, port, username, password);
-    if (!flag) {
-        std::cerr << "fail to login!!" << "\n";
-        return;
-    }
+
 
     delete iopts;
 }
