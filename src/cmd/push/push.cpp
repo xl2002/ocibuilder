@@ -131,7 +131,7 @@ void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
     loginAuth.bearerToken.erase();
 
     // 在执行push之前需要再次完成登录请求
-    std::string btoken_push = login_and_getToken(userinfo.username, userinfo.password, url->host, url->port, url->projectName, url->imageName);
+    std::string btoken_push = login_and_getToken(userinfo.username, userinfo.password, url->host, url->port, url->projectName, url->imageName,url->scheme);
         // 将从harbor库获取的bearer token存储到dockerClient中
     if (!btoken_push.empty())
         loginAuth.bearerToken = btoken_push;
@@ -160,9 +160,9 @@ void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
         }
         std::string fisrtTwoC = shaId.substr(0, 2);
         // 判断这层数据是否在服务器存在，不存在再传输
-        if (!ifBlobExists(url->host, url->port, url->imageName, shaId, url->projectName))
+        if (!ifBlobExists(url->host, url->port, url->imageName, shaId, url->projectName,url->scheme))
         {
-            std::pair<std::string, std::string> initResult = initUpload(url->host, url->port, url->imageName, url->projectName);
+            std::pair<std::string, std::string> initResult = initUpload(url->host, url->port, url->imageName, url->projectName,url->scheme);
             uid = initResult.first;
             state = initResult.second;
             // 拿到data数据大小
@@ -170,11 +170,11 @@ void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
             std::size_t total_size = file.tellg();
             file.close();
             // 上传数据
-            std::pair<std::string, std::string> uploadResult = uploadBlobChunk(url->host, url->port, uid, state, filePath, 0, total_size, total_size, url->imageName, url->projectName);
+            std::pair<std::string, std::string> uploadResult = uploadBlobChunk(url->host, url->port, uid, state, filePath, 0, total_size, total_size, url->imageName, url->projectName,url->scheme);
             uid = uploadResult.first;
             state = uploadResult.second;
             // 完成本次上传
-            finalizeUpload(url->host, url->port, uid, shaId, state, url->imageName, url->projectName);
+            finalizeUpload(url->host, url->port, uid, shaId, state, url->imageName, url->projectName,url->scheme);
         }
     }
 
@@ -187,9 +187,9 @@ void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
     }
     std::string fisrtTwoC = shaId1.substr(0, 2);
     // 判断这层数据是否在服务器存在，不存在再传输
-    if (!ifBlobExists(url->host, url->port, url->imageName, shaId1, url->projectName))
+    if (!ifBlobExists(url->host, url->port, url->imageName, shaId1, url->projectName,url->scheme))
     {
-        std::pair<std::string, std::string> initResult = initUpload(url->host, url->port, url->imageName, url->projectName);
+        std::pair<std::string, std::string> initResult = initUpload(url->host, url->port, url->imageName, url->projectName,url->scheme);
         uid = initResult.first;
         state = initResult.second;
 
@@ -198,11 +198,11 @@ void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
         std::size_t total_size = file.tellg();
         file.close();
         // 上传数据
-        std::pair<std::string, std::string> uploadResult = uploadBlobChunk(url->host, url->port, uid, state, configPath, 0, total_size, total_size, url->imageName, url->projectName);
+        std::pair<std::string, std::string> uploadResult = uploadBlobChunk(url->host, url->port, uid, state, configPath, 0, total_size, total_size, url->imageName, url->projectName,url->scheme);
         uid = uploadResult.first;
         state = uploadResult.second;
         // 完成本次上传
-        finalizeUpload(url->host, url->port, uid, shaId1, state, url->imageName, url->projectName);
+        finalizeUpload(url->host, url->port, uid, shaId1, state, url->imageName, url->projectName,url->scheme);
     }
 
     // 最后上传manifest数据
@@ -219,7 +219,7 @@ void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
     std::size_t total_size = file.tellg();
     file.close();
     // 上传数据
-    uploadManifest(url->host, url->port, manifestPath, 0, total_size, url->imageName, url->version, manifestType, url->projectName, v1_format);
+    uploadManifest(url->host, url->port, manifestPath, 0, total_size, url->imageName, url->version, manifestType, url->projectName, v1_format,url->scheme);
     // if (!ifBlobExists(url->host, url->port, url->imageName, shaId2, url->projectName))
     // {
     //     // std::pair<std::string, std::string> initResult = initUpload(url->host, url->port, url->imageName);

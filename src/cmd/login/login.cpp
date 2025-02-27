@@ -93,8 +93,8 @@ void loginCmd(Command& cmd, vector<string> args,LoginOptions* iopts){
     auto pos = ipAddress.find(":");
     host = ipAddress.substr(0, pos);
     port = ipAddress.substr(pos + 1);
-    login_and_getToken(username, password, host, port, "", "");
-    bool flag = login(host, port, username, password);
+    login_and_getToken(username, password, host, port, "", "","http");
+    bool flag = login(host, port, username, password,"http");
     if (!flag) {
         std::cerr << "fail to login!!" << "\n";
         return;
