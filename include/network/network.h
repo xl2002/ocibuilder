@@ -170,7 +170,8 @@ class dockerClient{
     // std::set<std::string> reportedWarnings;     // 已报告的警告集合
 
     dockerClient()=default;
-    std::shared_ptr<URL>resolveRequestURL(std::string path);
+    std::shared_ptr<URL>resolveRequestURL(std::string path);    //对push和pull命令根据路径解析请求的URL
+    std::shared_ptr<URL>resolveLoginURL(std::string path);      //对login命令根据路径解析请求的URL
     bool setupRequestAuth(beast::http::request<beast::http::string_body> req,std::shared_ptr<authScope> extraScope);
     std::tuple<beast::http::response<beast::http::string_body>,asio::streambuf> Do(asio::io_context& ioc,std::string hosttype,beast::http::request<beast::http::string_body> req);
 };

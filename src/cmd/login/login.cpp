@@ -93,6 +93,7 @@ void loginCmd(Command& cmd, vector<string> args,LoginOptions* iopts){
     auto pos = ipAddress.find(":");
     host = ipAddress.substr(0, pos);
     port = ipAddress.substr(pos + 1);
+    
     login_and_getToken(username, password, host, port, "", "");
     bool flag = login(host, port, username, password);
     if (!flag) {
