@@ -105,51 +105,80 @@ std::shared_ptr<URL> dockerClient::resolveRequestURL(std::string path){
 
     }else{
 
-        std::size_t colonPos = path.find(':');
-        std::size_t slashPos = path.find('/');
-        std::size_t lastSlash = path.find_last_of('/');
-
-        // if (colonPos == std::string::npos || slashPos == std::string::npos || colonPos > slashPos) {
-        //     throw std::invalid_argument("Invalid path format");
-        // }
-
+        std::size_t schemePos = path.find("://");  // 查找协议部分（如果有）
+        std::string pathWithoutScheme = path;  // pathWithoutScheme为跳过协议部分后的path
+        std::size_t colonPos, slashPos, lastSlash;
+        
         std::string host;
-        if(colonPos == std::string::npos){
-            host = path.substr(0,slashPos);
-        }else{
-            host = path.substr(0, colonPos);
+        std::string portStr = "";  // 默认没有端口号
+        std::string pathPart = "";  // 用来保存路径部分
+        std::string imageName;
+        std::string version = "latest";  // 默认版本为 latest
+        std::string projectName;
+        
+        // 如果有协议部分，跳过协议部分（即 "://"）
+        if (schemePos != std::string::npos) {
+            pathWithoutScheme = path.substr(schemePos + 3);  // 从协议后的部分开始处理，pathWithoutScheme为跳过协议部分后的path
         }
         
-        // 提取端口号（如果有）
-        std::string portStr = "";
-        if (colonPos != std::string::npos && slashPos - colonPos - 1 > 0) {
-            portStr = path.substr(colonPos + 1, slashPos - colonPos - 1);  // 提取端口号
+        // 现在处理没有协议部分的路径，查找冒号、斜杠等位置
+        colonPos = pathWithoutScheme.find(':');    // 查找冒号，可能用于分隔主机名和端口
+        slashPos = pathWithoutScheme.find('/');    // 查找第一个斜杠，可能用于分隔主机名和路径
+        lastSlash = pathWithoutScheme.find_last_of('/');  // 查找最后一个斜杠，可能用于分隔路径
+        
+        // 如果没有斜杠，说明路径就是主机名:端口号的形式
+        if (slashPos == std::string::npos) {
+            if (colonPos != std::string::npos) {
+                // 如果有冒号，提取主机名和端口号
+                host = pathWithoutScheme.substr(0, colonPos);  // 提取主机名
+                portStr = pathWithoutScheme.substr(colonPos + 1);  // 提取端口号
+            } else {
+                // 如果没有冒号，直接提取主机名
+                host = pathWithoutScheme;
+            }
+        } else {
+            // 路径中有斜杠，说明后面还有路径部分
+            if (colonPos != std::string::npos && colonPos < slashPos) {
+                // 如果冒号在斜杠之前，表示有端口号
+                host = pathWithoutScheme.substr(0, colonPos);  // 提取主机名
+                portStr = pathWithoutScheme.substr(colonPos + 1, slashPos - colonPos - 1);  // 提取端口号
+                pathPart = pathWithoutScheme.substr(slashPos);  // 提取路径部分
+            } else {
+                // 如果没有冒号，提取主机名
+                host = pathWithoutScheme.substr(0, slashPos);  // 提取主机名
+                pathPart = pathWithoutScheme.substr(slashPos);  // 提取路径部分
+            }
         }
-
-        std::size_t secondSlashAfterHost = path.find('/', slashPos + 1);
-
-        std::string projectName;
-        std::string imageName;
-        std::string version;
-        std::size_t colon = path.find(':', lastSlash);
-
-        projectName = path.substr(slashPos + 1, secondSlashAfterHost - slashPos - 1);
-
+        
+        // 提取项目名
+        std::size_t secondSlashAfterHost = pathWithoutScheme.find('/', slashPos + 1);  // 查找第二个斜杠，区分项目和路径部分
+        
+        if (secondSlashAfterHost != std::string::npos) {
+            projectName = pathWithoutScheme.substr(slashPos + 1, secondSlashAfterHost - slashPos - 1);  // 提取项目名
+        } else {
+            projectName = pathWithoutScheme.substr(slashPos + 1);  // 如果没有找到第二个斜杠，表示没有项目名，路径直接就是镜像名
+        }
+        
+        // 提取镜像名和版本
+        std::size_t colon = pathWithoutScheme.find(':', lastSlash);  // 查找最后一个斜杠后的冒号
+        
         if (colon == std::string::npos) {
             // 没有 ':'，说明没有 tag，直接返回 '/' 后的部分
-            imageName=path.substr(lastSlash + 1);
-            version="latest";
+            imageName = pathPart.substr(lastSlash + 1);
         } else {
             // 有 ':'，返回 ':' 之前的部分
-            imageName=path.substr(lastSlash + 1, colon - lastSlash - 1);
-            version=path.substr(colon+1);
+            imageName = pathPart.substr(lastSlash + 1, colon - lastSlash - 1);
+            version = pathPart.substr(colon + 1);
         }
-
-         // 检查是否有明确的协议
-        if (hasPrefix(host, "http://")) {
-            url->scheme = "http";  // 如果是以 http:// 开头，使用 http 协议
-        } else if (hasPrefix(host, "https://")) {
-            url->scheme = "https";  // 如果是以 https:// 开头，使用 https 协议
+        
+        // 检查是否有明确的协议
+        std::shared_ptr<URL> url = std::make_shared<URL>();
+        if (schemePos != std::string::npos) {
+            if (hasPrefix(path, "http://")) {
+                url->scheme = "http";  // 如果是以 http:// 开头，使用 http 协议
+            } else if (hasPrefix(path, "https://")) {
+                url->scheme = "https";  // 如果是以 https:// 开头，使用 https 协议
+            }
         } else {
             // 如果没有明确的协议，判断是IP地址还是URL
             if (isIPAddress(host)) {
@@ -159,7 +188,7 @@ std::shared_ptr<URL> dockerClient::resolveRequestURL(std::string path){
                 url->scheme = "https";  // 否则默认为 https 协议
             }
         }
-
+        
         // 如果没有给定端口号，根据协议设置默认端口
         if (portStr.empty()) {
             if (url->scheme == "http") {
@@ -168,7 +197,7 @@ std::shared_ptr<URL> dockerClient::resolveRequestURL(std::string path){
                 portStr = "443";  // https 协议默认端口为 443
             }
         }
-
+        
         // 对于URL格式的主机名，需要进行DNS解析
         if (!isIPAddress(host)) {
             host = resolve_dns(host);  // 使用DNS解析将主机解析为IP地址
@@ -177,13 +206,13 @@ std::shared_ptr<URL> dockerClient::resolveRequestURL(std::string path){
                 return url;
             }
         }
-
-        url->host=host;
-        url->port=portStr;
-        url->imageName=imageName;
-        url->version=version;
-        url->projectName=projectName;
-
+        
+        url->host = host;
+        url->port = portStr;
+        url->imageName = imageName;
+        url->version = version;
+        url->projectName = projectName;
+        
         return url;
     }
 
@@ -197,46 +226,57 @@ std::shared_ptr<URL> dockerClient::resolveRequestURL(std::string path){
  * @return std::shared_ptr<URL> 
  */
 std::shared_ptr<URL>resolveLoginURL(std::string path){
-    auto url = std::make_shared<URL>();
-
-    // 解析路径，格式为 host:port
-    std::size_t colonPos = path.find(':');
-    std::size_t slashPos = path.find('/');  // 即使没有/也可能使用此行去找出斜杠
+    std::size_t schemePos = path.find("://");  // 查找协议部分（如果有）
+    std::string pathWithoutScheme = path;  // pathWithoutScheme为跳过协议部分后的path
+    std::size_t colonPos, slashPos;
+    
     std::string host;
+    std::string portStr = "";  // 默认没有端口号
 
-    // 如果路径包含冒号，则表示可能包含端口
+    // 如果有协议部分，跳过协议部分（即 "://"）
+    if (schemePos != std::string::npos) {
+        pathWithoutScheme = path.substr(schemePos + 3);  // 从协议后的部分开始处理
+    }
+    
+    // 现在处理没有协议部分的路径，查找冒号、斜杠等位置
+    colonPos = pathWithoutScheme.find(':');    // 查找冒号，可能用于分隔主机名和端口
+    slashPos = pathWithoutScheme.find('/');    // 查找第一个斜杠，可能用于分隔主机名和路径
+
+    // 路径是主机名:端口号的形式
     if (colonPos != std::string::npos) {
-        host = path.substr(0, colonPos);  // 提取主机名
+        // 如果有冒号，提取主机名和端口号
+        host = pathWithoutScheme.substr(0, colonPos);  // 提取主机名
+        portStr = pathWithoutScheme.substr(colonPos + 1);  // 提取端口号
     } else {
-        host = path;  // 如果没有冒号，直接将路径当作主机名
+        // 如果没有冒号，直接提取主机名
+        host = pathWithoutScheme;
     }
 
-    // 提取端口号，如果存在冒号
-    std::string portStr = "";
-    if (colonPos != std::string::npos) {
-        portStr = path.substr(colonPos + 1);  // 提取端口号
+    // 如果没有给定端口号，根据协议设置默认端口
+    if (portStr.empty()) {
+        if (schemePos != std::string::npos && hasPrefix(path, "http://")) {
+            portStr = "5000";  // http 协议默认端口为 5000
+        } else if (schemePos != std::string::npos && hasPrefix(path, "https://")) {
+            portStr = "443";  // https 协议默认端口为 443
+        } else {
+            portStr = "80";  // 默认为 80 端口
+        }
     }
 
-    // 检查是否有明确的协议（http:// 或 https://）
-    if (hasPrefix(host, "http://")) {
-        url->scheme = "http";  // 如果是以 http:// 开头，使用 http 协议
-    } else if (hasPrefix(host, "https://")) {
-        url->scheme = "https";  // 如果是以 https:// 开头，使用 https 协议
+    // 检查是否有明确的协议
+    std::shared_ptr<URL> url = std::make_shared<URL>();
+    if (schemePos != std::string::npos) {
+        if (hasPrefix(path, "http://")) {
+            url->scheme = "http";  // 如果是以 http:// 开头，使用 http 协议
+        } else if (hasPrefix(path, "https://")) {
+            url->scheme = "https";  // 如果是以 https:// 开头，使用 https 协议
+        }
     } else {
         // 如果没有明确的协议，判断是IP地址还是URL
         if (isIPAddress(host)) {
             url->scheme = "http";  // 如果是IP地址，使用 http 协议
         } else {
             url->scheme = "https";  // 否则默认为 https 协议
-        }
-    }
-
-    // 如果没有给定端口号，根据协议设置默认端口
-    if (portStr.empty()) {
-        if (url->scheme == "http") {
-            portStr = "5000";  // http 协议默认端口为 5000
-        } else if (url->scheme == "https") {
-            portStr = "443";  // https 协议默认端口为 443
         }
     }
 
@@ -249,10 +289,12 @@ std::shared_ptr<URL>resolveLoginURL(std::string path){
         }
     }
 
+    // 设置返回的URL对象
     url->host = host;
     url->port = portStr;
 
     return url;
+
 }
 
 /**

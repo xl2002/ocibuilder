@@ -89,13 +89,14 @@ void loginCmd(Command& cmd, vector<string> args,LoginOptions* iopts){
     // saveLoginInfo(username,password, ipAddress);
     // 实现登录命令
     loadLoginInfo(ipAddress);
-    std::string host, port;
-    auto pos = ipAddress.find(":");
-    host = ipAddress.substr(0, pos);
-    port = ipAddress.substr(pos + 1);
-    
-    login_and_getToken(username, password, host, port, "", "");
-    bool flag = login(host, port, username, password);
+    // std::string host, port;
+    // auto pos = ipAddress.find(":");
+    // host = ipAddress.substr(0, pos);
+    // port = ipAddress.substr(pos + 1);
+    dockerClient client;
+    auto url = client.resolveLoginURL(ipAddress);
+    login_and_getToken(username, password, url->host, url->port, "", "");
+    bool flag = login(url->host, url->port, username, password);
     if (!flag) {
         std::cerr << "fail to login!!" << "\n";
         return;
