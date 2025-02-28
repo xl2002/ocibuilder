@@ -224,10 +224,6 @@ void loadLoginInfo(std::string ipAddress);
 
 std::vector<std::string> getTagList(const std::string &host, const std::string &port, const ::string &projectName, const ::string &imagetName,const std::string& scheme);
 
-template <typename Stream>
-std::vector<std::string> sendRequestAndProcessResponse(Stream& stream, const std::string& host, const std::string& target);
-template <typename Stream>
-std::tuple<std::string, size_t> sendRequestAndProcessResponse(Stream& stream, const std::string& host, const std::string& projectName, const std::string& imageName, const std::string& port, const std::string& target, const std::string& output_folder, const std::string& output_file_tmp, const std::string& os, const std::string& arch, bool v1);
 void getCookieFromAuthFile();
 
 #endif // TYPES_NETWORK_H)

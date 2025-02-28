@@ -1786,8 +1786,10 @@ std::tuple<std::string, size_t> pullManifestAndBlob(const std::string& host, con
             fs::create_directories("oci_images/tmp/");
         }
 
-        // IO 服务和解析器
+        // IO 上下文
         asio::io_context ioc;
+
+        // 解析器和流
         asio::ip::tcp::resolver resolver(ioc);
 
         // 根据协议选择不同的流类型
@@ -1802,14 +1804,125 @@ std::tuple<std::string, size_t> pullManifestAndBlob(const std::string& host, con
             auto const results = resolver.resolve(host, port);
             stream.connect(results);
 
-            // 发送请求并处理响应
-            auto [ManifestSha, manifestLen] = sendRequestAndProcessResponse(stream, host, port,projectName,imageName, target, output_folder, output_file_tmp, os, arch, v1);
-            return std::make_tuple(ManifestSha, manifestLen);
+            // 构造 HTTP GET 请求
+            http::request<http::empty_body> req(http::verb::get, target, 11);
+            req.set(http::field::host, host + ":" + port);
+            req.set(http::field::accept,
+                "application/vnd.docker.distribution.manifest.v2+json, "
+                "application/vnd.oci.image.manifest.v1+json, "
+                "application/vnd.docker.distribution.manifest.v1+prettyjws, "
+                "application/vnd.docker.distribution.manifest.v1+json, "
+                "application/vnd.docker.distribution.manifest.list.v2+json, "
+                "application/vnd.oci.image.index.v1+json");
+            if (loginAuth.bearerToken.empty()) {
+                setAuthorization(req, userinfo.username, userinfo.password);
+            } else {
+                setAuthorization(req, loginAuth.bearerToken);
+            }
+            req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+            req.set("Docker-Distribution-API-Version", "registry/2.0");
+            req.set("Accept-Encoding", "gzip");
+            req.set(http::field::connection, "close");
+
+            // 发送请求
+            http::write(stream, req);
+            std::cout << "HTTP request sent." << std::endl;
+
+            // 接收响应
+            beast::flat_buffer buffer;
+            http::response<http::string_body> res;
+            http::read(stream, buffer, res);
+
+            // 关闭连接
+            stream.socket().shutdown(asio::ip::tcp::socket::shutdown_both);
+
+            // 检查响应状态
+            if (res.result() != http::status::ok) {
+                std::cerr << "HTTP request failed with status: " << res.result_int() << " " << res.reason() << std::endl;
+                return {};
+            }
+
+            // 提取 X-Harbor-Csrf-Token
+            for (auto const& field : res) {
+                if (field.name_string() == "X-Harbor-Csrf-Token") {
+                    std::string token = field.value().to_string();
+                    loginAuth.harborToken = token;
+                    break;
+                }
+            }
+
+            // 分析 manifest
+            auto manifest = unmarshal<::Manifest>(res.body());
+
+            // 检查 os 和 arch 是否符合
+            if (!pullConfig(host, port, projectName, imageName, std::string(manifest.Config.Digests.digest), os, arch)) {
+                return {};
+            }
+
+            // 输出响应体到文件
+            std::ofstream ofs(output_file_tmp, std::ios::binary);
+            if (!ofs) {
+                std::cerr << "Failed to open file for writing: " << output_file_tmp << std::endl;
+                return {};
+            }
+            ofs << res.body();
+            ofs.close();
+
+            // 写 manifest
+            std::string ManifestSha;
+            if (v1 == true) {
+                std::string new_path = write_manifest_new(output_file_tmp);
+                fs::path source = new_path;
+                ManifestSha = source.filename().string();
+                fs::path target_path = output_folder + source.filename().string();
+
+                if (fs::exists(source)) {
+                    fs::copy_file(source, target_path, fs::copy_option::overwrite_if_exists);
+                } else {
+                    throw std::runtime_error("Failed to copy file: " + source.string());
+                }
+            } else {
+                // 计算 manifest 的 hash
+                ManifestSha = Fromfile(output_file_tmp)->Encoded();
+                std::string output_file = output_folder + ManifestSha;
+
+                if (std::remove(output_file_tmp.c_str()) == 0) {
+                    // std::cout << "tmp manifest deleted successfully: " << output_file_tmp << std::endl;
+                } else {
+                    throw std::runtime_error("Failed to delete temp file: " + output_file_tmp);
+                }
+                std::ofstream ofs1(output_file, std::ios::binary);
+                if (!ofs1) {
+                    throw std::runtime_error("Failed to open file for writing: " + output_file);
+                }
+                ofs1 << res.body();
+                ofs1.close();
+            }
+
+            // 获取 manifest 长度
+            size_t manifestLen = 0;
+            if (res.find(http::field::content_length) != res.end()) {
+                std::string content_length = res[http::field::content_length].to_string();
+                manifestLen = std::stoul(content_length);
+            } else {
+                std::cout << "No Content-Length field found in response." << std::endl;
+            }
+
+            // 依次 pull 数据层
+            std::vector<Descriptor> Layers = manifest.Layers;
+            for (std::size_t i = 0; i < Layers.size(); i++) {
+                Descriptor de = Layers[i];
+                pullBlob(host, port, projectName, imageName, std::string(de.Digests.digest));
+            }
+
+            return std::make_tuple("sha256:" + ManifestSha, manifestLen);
         } else if (scheme == "https") {
             // 创建 SSL 上下文
-            boost::asio::ssl::context ctx(boost::asio::ssl::context::tlsv12_client);
+            ssl::context ctx(ssl::context::tlsv12_client);
+
             // 创建 SSL 流
             ssl::stream<beast::tcp_stream> stream(ioc, ctx);
+
             // 设置 SNI 主机名
             if (!SSL_set_tlsext_host_name(stream.native_handle(), host.c_str())) {
                 throw boost::system::system_error(
@@ -1817,15 +1930,126 @@ std::tuple<std::string, size_t> pullManifestAndBlob(const std::string& host, con
                         static_cast<int>(::ERR_get_error()),
                         boost::asio::error::get_ssl_category()));
             }
+
             // 解析并连接
             auto const results = resolver.resolve(host, port);
             beast::get_lowest_layer(stream).connect(results);
+
             // SSL 握手
             stream.handshake(ssl::stream_base::client);
 
-            // 发送请求并处理响应
-            auto [ManifestSha, manifestLen] = sendRequestAndProcessResponse(stream, host, port,projectName,imageName, target, output_folder, output_file_tmp, os, arch, v1);
-            return std::make_tuple(ManifestSha, manifestLen);
+            // 构造 HTTP GET 请求
+            http::request<http::empty_body> req(http::verb::get, target, 11);
+            req.set(http::field::host, host + ":" + port);
+            req.set(http::field::accept,
+                "application/vnd.docker.distribution.manifest.v2+json, "
+                "application/vnd.oci.image.manifest.v1+json, "
+                "application/vnd.docker.distribution.manifest.v1+prettyjws, "
+                "application/vnd.docker.distribution.manifest.v1+json, "
+                "application/vnd.docker.distribution.manifest.list.v2+json, "
+                "application/vnd.oci.image.index.v1+json");
+            if (loginAuth.bearerToken.empty()) {
+                setAuthorization(req, userinfo.username, userinfo.password);
+            } else {
+                setAuthorization(req, loginAuth.bearerToken);
+            }
+            req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+            req.set("Docker-Distribution-API-Version", "registry/2.0");
+            req.set("Accept-Encoding", "gzip");
+            req.set(http::field::connection, "close");
+
+            // 发送请求
+            http::write(stream, req);
+            std::cout << "HTTP request sent." << std::endl;
+
+            // 接收响应
+            beast::flat_buffer buffer;
+            http::response<http::string_body> res;
+            http::read(stream, buffer, res);
+
+            // 关闭连接
+            beast::get_lowest_layer(stream).socket().shutdown(asio::ip::tcp::socket::shutdown_both);
+
+            // 检查响应状态
+            if (res.result() != http::status::ok) {
+                std::cerr << "HTTP request failed with status: " << res.result_int() << " " << res.reason() << std::endl;
+                return {};
+            }
+
+            // 提取 X-Harbor-Csrf-Token
+            for (auto const& field : res) {
+                if (field.name_string() == "X-Harbor-Csrf-Token") {
+                    std::string token = field.value().to_string();
+                    loginAuth.harborToken = token;
+                    break;
+                }
+            }
+
+            // 分析 manifest
+            auto manifest = unmarshal<::Manifest>(res.body());
+
+            // 检查 os 和 arch 是否符合
+            if (!pullConfig(host, port, projectName, imageName, std::string(manifest.Config.Digests.digest), os, arch)) {
+                return {};
+            }
+
+            // 输出响应体到文件
+            std::ofstream ofs(output_file_tmp, std::ios::binary);
+            if (!ofs) {
+                std::cerr << "Failed to open file for writing: " << output_file_tmp << std::endl;
+                return {};
+            }
+            ofs << res.body();
+            ofs.close();
+
+            // 写 manifest
+            std::string ManifestSha;
+            if (v1 == true) {
+                std::string new_path = write_manifest_new(output_file_tmp);
+                fs::path source = new_path;
+                ManifestSha = source.filename().string();
+                fs::path target_path = output_folder + source.filename().string();
+
+                if (fs::exists(source)) {
+                    fs::copy_file(source, target_path, fs::copy_option::overwrite_if_exists);
+                } else {
+                    throw std::runtime_error("Failed to copy file: " + source.string());
+                }
+            } else {
+                // 计算 manifest 的 hash
+                ManifestSha = Fromfile(output_file_tmp)->Encoded();
+                std::string output_file = output_folder + ManifestSha;
+
+                if (std::remove(output_file_tmp.c_str()) == 0) {
+                    // std::cout << "tmp manifest deleted successfully: " << output_file_tmp << std::endl;
+                } else {
+                    throw std::runtime_error("Failed to delete temp file: " + output_file_tmp);
+                }
+                std::ofstream ofs1(output_file, std::ios::binary);
+                if (!ofs1) {
+                    throw std::runtime_error("Failed to open file for writing: " + output_file);
+                }
+                ofs1 << res.body();
+                ofs1.close();
+            }
+
+            // 获取 manifest 长度
+            size_t manifestLen = 0;
+            if (res.find(http::field::content_length) != res.end()) {
+                std::string content_length = res[http::field::content_length].to_string();
+                manifestLen = std::stoul(content_length);
+            } else {
+                std::cout << "No Content-Length field found in response." << std::endl;
+            }
+
+            // 依次 pull 数据层
+            std::vector<Descriptor> Layers = manifest.Layers;
+            for (std::size_t i = 0; i < Layers.size(); i++) {
+                Descriptor de = Layers[i];
+                pullBlob(host, port, projectName, imageName, std::string(de.Digests.digest));
+            }
+
+            return std::make_tuple("sha256:" + ManifestSha, manifestLen);
         } else {
             throw std::invalid_argument("Unsupported scheme: " + scheme);
         }
@@ -1835,113 +2059,6 @@ std::tuple<std::string, size_t> pullManifestAndBlob(const std::string& host, con
         std::cerr << "Pull Manifest Exception: " << e.what() << std::endl;
     }
     return {};
-}
-
-//pullManifestAndBlob中的公共部分
-template <typename Stream>
-std::tuple<std::string, size_t> sendRequestAndProcessResponse(Stream& stream, const std::string& host, const std::string& port, const std::string& projectName, const std::string& imageName, const std::string& target, const std::string& output_folder, const std::string& output_file_tmp, const std::string& os, const std::string& arch, bool v1) {
-    // 设置 HTTP 请求
-    beast::http::request<beast::http::empty_body> req(beast::http::verb::get, target, 11); // 使用 GET 请求
-    req.set(beast::http::field::host, host + ":" + port);
-    req.set(beast::http::field::accept,
-        "application/vnd.docker.distribution.manifest.v2+json, "
-        "application/vnd.oci.image.manifest.v1+json, "
-        "application/vnd.docker.distribution.manifest.v1+prettyjws, "
-        "application/vnd.docker.distribution.manifest.v1+json, "
-        "application/vnd.docker.distribution.manifest.list.v2+json, "
-        "application/vnd.oci.image.index.v1+json");
-    if (loginAuth.bearerToken.empty()) {
-        setAuthorization(req, userinfo.username, userinfo.password);
-    } else {
-        setAuthorization(req, loginAuth.bearerToken);
-    }
-    req.set(beast::http::field::user_agent, BOOST_BEAST_VERSION_STRING);
-    req.set("Docker-Distribution-API-Version", "registry/2.0");
-    req.set("Accept-Encoding", "gzip");
-    req.set(http::field::connection, "close");
-
-    // 发送请求
-    beast::http::write(stream, req);
-    std::cout << "HTTP request sent." << std::endl;
-
-    // 接收响应
-    beast::flat_buffer buffer;
-    beast::http::response<beast::http::string_body> res;
-    beast::http::read(stream, buffer, res);
-
-    // 关闭连接
-    beast::get_lowest_layer(stream).socket().shutdown(asio::ip::tcp::socket::shutdown_both);
-
-    // 检查响应状态
-    if (res.result() != beast::http::status::ok) {
-        std::cerr << "HTTP request failed with status: " << res.result_int() << " " << res.reason() << std::endl;
-        return {};
-    }
-
-    // 分析 manifest
-    auto manifest = unmarshal<::Manifest>(res.body());
-
-    // 检查 os 和 arch 是否符合
-    if (!pullConfig(host, port, projectName, imageName, std::string(manifest.Config.Digests.digest), os, arch)) {
-        return {};
-    }
-
-    // 输出响应体到文件
-    std::ofstream ofs(output_file_tmp, std::ios::binary); // 打开文件为二进制模式
-    if (!ofs) {
-        std::cerr << "Failed to open file for writing: " << output_file_tmp << std::endl;
-        return {};
-    }
-    ofs << res.body(); // 将响应体写入文件
-    ofs.close();
-
-    // 写 manifest
-    std::string ManifestSha;
-    if (v1 == true) {
-        std::string new_path = write_manifest_new(output_file_tmp);
-        boost::filesystem::path source = new_path;
-        ManifestSha = source.filename().string();
-        boost::filesystem::path target = output_folder + source.filename().string();
-
-        if (boost::filesystem::exists(source)) {
-            boost::filesystem::copy_file(source, target, fs::copy_option::overwrite_if_exists);
-        } else {
-            throw std::runtime_error("Failed to copy file: " + source.string());
-        }
-    } else {
-        // 计算 manifest 的 hash
-        ManifestSha = Fromfile(output_file_tmp)->Encoded();
-        std::string output_file = output_folder + ManifestSha;
-
-        if (std::remove(output_file_tmp.c_str()) == 0) {
-            // std::cout << "tmp manifest deleted successfully: " << output_file_tmp << std::endl;
-        } else {
-            throw std::runtime_error("Failed to delete temp file: " + output_file_tmp);
-        }
-        std::ofstream ofs1(output_file, std::ios::binary);
-        if (!ofs1) {
-            throw std::runtime_error("Failed to open file for writing: " + output_file);
-        }
-        ofs1 << res.body();
-        ofs1.close();
-    }
-
-    size_t manifestLen = 0;
-    if (res.find(beast::http::field::content_length) != res.end()) {
-        std::string content_length = res[beast::http::field::content_length].to_string();
-        manifestLen = std::stoul(content_length);
-    } else {
-        std::cout << "No Content-Length field found in response." << std::endl;
-    }
-
-    // 依次 pull 数据层
-    std::vector<Descriptor> Layers = manifest.Layers;
-    for (std::size_t i = 0; i < Layers.size(); i++) {
-        Descriptor de = Layers[i];
-        pullBlob(host, port, projectName, imageName, std::string(de.Digests.digest));
-    }
-
-    return std::make_tuple("sha256:" + ManifestSha, manifestLen);
 }
 
 void getCookieFromAuthFile(){
@@ -2053,13 +2170,62 @@ std::vector<std::string> getTagList(const std::string& host, const std::string& 
             auto const results = resolver.resolve(host, port);
             stream.connect(results);
 
-            // 发送请求并处理响应
-            return sendRequestAndProcessResponse(stream, host, target);
+            // 构造 HTTP GET 请求
+            http::request<http::empty_body> req(http::verb::get, target, 11);
+            req.set(http::field::host, host);
+            req.set(http::field::cookie, loginAuth.cookie);
+            req.set(http::field::accept, "application/vnd.oci.image.manifest.v1+json,application/vnd.docker.distribution.manifest.v2+json");
+            req.set("x-harbor-csrf-token", loginAuth.harborToken);
+            req.set(http::field::authorization, "Bearer " + loginAuth.bearerToken);
+            req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+
+            // 发送请求
+            http::write(stream, req);
+
+            // 接收响应
+            beast::flat_buffer buffer;
+            http::response<http::string_body> res;
+            http::read(stream, buffer, res);
+
+            // 关闭连接
+            stream.socket().shutdown(asio::ip::tcp::socket::shutdown_both);
+
+            // 检查响应状态
+            if (res.result() != http::status::ok) {
+                std::cerr << "GetTagsList request failed with status: " << res.result_int() << " " << res.reason() << std::endl;
+                return {};
+            }
+
+            // 提取 X-Harbor-Csrf-Token
+            for (auto const& field : res) {
+                if (field.name_string() == "X-Harbor-Csrf-Token") {
+                    std::string token = field.value().to_string();
+                    loginAuth.harborToken = token;
+                    break;
+                }
+            }
+
+            // 解析响应体中的 JSON 数据
+            std::vector<std::string> tags;
+            json::value json_value = json::parse(res.body());
+            json::object json_obj = json_value.as_object();
+
+            // 检查 "tags" 是否存在并提取它们
+            if (json_obj.contains("tags")) {
+                auto tags_array = json_obj["tags"].as_array();
+                for (const auto& tag : tags_array) {
+                    tags.push_back(tag.as_string().c_str());
+                }
+            }
+
+            return tags;
         } else if (scheme == "https") {
             // 创建 SSL 上下文
-            boost::asio::ssl::context ctx(boost::asio::ssl::context::tlsv12_client);
+            ssl::context ctx(ssl::context::tlsv12_client);
+
             // 创建 SSL 流
             ssl::stream<beast::tcp_stream> stream(ioc, ctx);
+
             // 设置 SNI 主机名
             if (!SSL_set_tlsext_host_name(stream.native_handle(), host.c_str())) {
                 throw boost::system::system_error(
@@ -2067,14 +2233,63 @@ std::vector<std::string> getTagList(const std::string& host, const std::string& 
                         static_cast<int>(::ERR_get_error()),
                         boost::asio::error::get_ssl_category()));
             }
+
             // 解析并连接
             auto const results = resolver.resolve(host, port);
             beast::get_lowest_layer(stream).connect(results);
+
             // SSL 握手
             stream.handshake(ssl::stream_base::client);
 
-            // 发送请求并处理响应
-            return sendRequestAndProcessResponse(stream, host, target);
+            // 构造 HTTP GET 请求
+            http::request<http::empty_body> req(http::verb::get, target, 11);
+            req.set(http::field::host, host);
+            req.set(http::field::cookie, loginAuth.cookie);
+            req.set(http::field::accept, "application/vnd.oci.image.manifest.v1+json,application/vnd.docker.distribution.manifest.v2+json");
+            req.set("x-harbor-csrf-token", loginAuth.harborToken);
+            req.set(http::field::authorization, "Bearer " + loginAuth.bearerToken);
+            req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+
+            // 发送请求
+            http::write(stream, req);
+
+            // 接收响应
+            beast::flat_buffer buffer;
+            http::response<http::string_body> res;
+            http::read(stream, buffer, res);
+
+            // 关闭连接
+            beast::get_lowest_layer(stream).socket().shutdown(asio::ip::tcp::socket::shutdown_both);
+
+            // 检查响应状态
+            if (res.result() != http::status::ok) {
+                std::cerr << "GetTagsList request failed with status: " << res.result_int() << " " << res.reason() << std::endl;
+                return {};
+            }
+
+            // 提取 X-Harbor-Csrf-Token
+            for (auto const& field : res) {
+                if (field.name_string() == "X-Harbor-Csrf-Token") {
+                    std::string token = field.value().to_string();
+                    loginAuth.harborToken = token;
+                    break;
+                }
+            }
+
+            // 解析响应体中的 JSON 数据
+            std::vector<std::string> tags;
+            json::value json_value = json::parse(res.body());
+            json::object json_obj = json_value.as_object();
+
+            // 检查 "tags" 是否存在并提取它们
+            if (json_obj.contains("tags")) {
+                auto tags_array = json_obj["tags"].as_array();
+                for (const auto& tag : tags_array) {
+                    tags.push_back(tag.as_string().c_str());
+                }
+            }
+
+            return tags;
         } else {
             throw std::invalid_argument("Unsupported scheme: " + scheme);
         }
@@ -2082,58 +2297,4 @@ std::vector<std::string> getTagList(const std::string& host, const std::string& 
         std::cerr << "Error: " << e.what() << std::endl;
         return {};
     }
-}
-
-//原getTagList中的公共部分
-template <typename Stream>
-std::vector<std::string> sendRequestAndProcessResponse(Stream& stream, const std::string& host, const std::string& target) {
-    // 构造 HTTP GET 请求
-    beast::http::request<beast::http::empty_body> req(beast::http::verb::get, target, 11);
-    req.set(beast::http::field::host, host);
-    req.set(beast::http::field::cookie, loginAuth.cookie);
-    req.set(beast::http::field::accept, "application/vnd.oci.image.manifest.v1+json,application/vnd.docker.distribution.manifest.v2+json");
-    req.set("x-harbor-csrf-token", loginAuth.harborToken);
-    req.set(beast::http::field::authorization, "Bearer " + loginAuth.bearerToken);
-    req.set(beast::http::field::user_agent, BOOST_BEAST_VERSION_STRING);
-
-    // 发送请求
-    beast::http::write(stream, req);
-
-    // 接收响应
-    beast::flat_buffer buffer;
-    beast::http::response<beast::http::string_body> res;
-    beast::http::read(stream, buffer, res);
-
-    // 关闭连接
-    beast::get_lowest_layer(stream).socket().shutdown(asio::ip::tcp::socket::shutdown_both);
-
-    // 检查响应状态
-    if (res.result() != beast::http::status::ok) {
-        std::cerr << "GetTagsList request failed with status: " << res.result_int() << " " << res.reason() << std::endl;
-        return {};
-    }
-
-    // 提取 X-Harbor-Csrf-Token
-    for (auto const& field : res) {
-        if (field.name_string() == "X-Harbor-Csrf-Token") {
-            std::string token = field.value().to_string();
-            loginAuth.harborToken = token;
-            break;
-        }
-    }
-
-    // 解析响应体中的 JSON 数据
-    std::vector<std::string> tags;
-    json::value json_value = json::parse(res.body());
-    json::object json_obj = json_value.as_object();
-
-    // 检查 "tags" 是否存在并提取它们
-    if (json_obj.contains("tags")) {
-        auto tags_array = json_obj["tags"].as_array();
-        for (const auto& tag : tags_array) {
-            tags.push_back(tag.as_string().c_str());
-        }
-    }
-
-    return tags;
 }
