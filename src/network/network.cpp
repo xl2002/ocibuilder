@@ -255,17 +255,6 @@ std::shared_ptr<URL>dockerClient::resolveLoginURL(std::string path){
         host = pathWithoutScheme;
     }
 
-    // 如果没有给定端口号，根据协议设置默认端口
-    if (portStr.empty()) {
-        if (schemePos != std::string::npos && hasPrefix(path, "http://")) {
-            portStr = "5000";  // http 协议默认端口为 5000
-        } else if (schemePos != std::string::npos && hasPrefix(path, "https://")) {
-            portStr = "443";  // https 协议默认端口为 443
-        } else {
-            portStr = "80";  // 默认为 80 端口
-        }
-    }
-
     // 检查是否有明确的协议
     std::shared_ptr<URL> url = std::make_shared<URL>();
     if (schemePos != std::string::npos) {
@@ -280,6 +269,15 @@ std::shared_ptr<URL>dockerClient::resolveLoginURL(std::string path){
             url->scheme = "http";  // 如果是IP地址，使用 http 协议
         } else {
             url->scheme = "https";  // 否则默认为 https 协议
+        }
+    }
+
+    // 如果没有给定端口号，根据协议设置默认端口
+    if (portStr.empty()) {
+        if (schemePos != std::string::npos && hasPrefix(path, "http://")) {
+            portStr = "5000";  // http 协议默认端口为 5000
+        } else {
+            portStr = "443";  // https 协议默认端口为 443
         }
     }
 
