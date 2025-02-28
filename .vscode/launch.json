@@ -34,7 +34,7 @@
             },
             "windows": {
                 "MIMode": "gdb",
-                "miDebuggerPath": "E:\\Not commonly used\\MinGW\\MinGW\\bin\\gdb.exe",
+                "miDebuggerPath": "E:\\Not commonly used\\mingw64\\bin\\gdb.exe",
                 "program": "${workspaceFolder}/output/main.exe"
             },
             "setupCommands": [
@@ -73,7 +73,7 @@
             },
             "windows": {
                 "MIMode": "gdb",
-                "miDebuggerPath": "E:\\Not commonly used\\MinGW\\MinGW\\bin\\gdb.exe",
+                "miDebuggerPath": "E:\\Not commonly used\\mingw64\\bin\\gdb.exe",
                 "program": "${workspaceFolder}/output/main.exe"
             },
             "setupCommands": [
@@ -101,7 +101,7 @@
             "externalConsole": false,
             "windows": {
                 "MIMode": "gdb",
-                "miDebuggerPath": "E:\\Not commonly used\\MinGW\\MinGW\\bin\\gdb.exe",
+                "miDebuggerPath": "E:\\Not commonly used\\mingw64\\bin\\gdb.exe",
                 "program": "${workspaceFolder}/tests/main.exe"
             },
             "setupCommands": [
