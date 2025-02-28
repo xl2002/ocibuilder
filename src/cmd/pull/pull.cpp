@@ -81,7 +81,7 @@ void pullCmd(Command& cmd, vector<string> args,pullOptions* iopts){
         loadLoginInfo(url->host+":"+url->port);
         loginAuth.cookie.erase();
         loginAuth.bearerToken.erase();
-        std::string btoken_push = login_and_getToken(userinfo.username, userinfo.password, url->host, url->port, url->projectName, url->imageName);
+        std::string btoken_push = login_and_getToken(userinfo.username, userinfo.password, url->host, url->port, url->projectName, url->imageName,url->scheme);
         if (!btoken_push.empty())
             loginAuth.bearerToken = btoken_push;
         else
@@ -91,12 +91,12 @@ void pullCmd(Command& cmd, vector<string> args,pullOptions* iopts){
         // std::string token=getToken(url->host,url->port,url->projectName,url->imageName);
         //处理 all-tags 参数
         if(allTagFlag=="true"){
-            std::vector<std::string> tagList = getTagList(url->host,url->port,url->projectName,url->imageName);
+            std::vector<std::string> tagList = getTagList(url->host,url->port,url->projectName,url->imageName,url->scheme);
 
             for(size_t i=0;i<tagList.size();i++){
                 std::string digest="";
                 size_t mlen=0;
-                std::tie(digest,mlen)=pullManifestAndBlob(url->host,url->port,url->projectName,url->imageName,tagList[i],os,arch, v1_format);
+                std::tie(digest,mlen)=pullManifestAndBlob(url->host,url->port,url->projectName,url->imageName,tagList[i],os,arch, v1_format,url->scheme);
                 if(digest == "" || mlen == 0){
                     std::cout<<"pull manifest error"<<std::endl;
                     return;
@@ -136,7 +136,7 @@ void pullCmd(Command& cmd, vector<string> args,pullOptions* iopts){
         } else{
             std::string digest="";
             size_t mlen=0;
-            std::tie(digest,mlen)=pullManifestAndBlob(url->host,url->port,url->projectName,url->imageName,url->version,os,arch,v1_format);
+            std::tie(digest,mlen)=pullManifestAndBlob(url->host,url->port,url->projectName,url->imageName,url->version,os,arch,v1_format,url->scheme);
             if(digest == "" || mlen == 0){
                 std::cout<<"pull manifest error"<<std::endl;
                 return;

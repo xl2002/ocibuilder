@@ -17,7 +17,7 @@ CXXFLAGS	:= -std=c++11 -Wall -Wextra -g -O0
 ifeq ($(OS),Windows_NT)
     LFLAGS += -lboost_filesystem-mgw12-mt-x64-1_75
     LFLAGS += -lboost_system-mgw12-mt-x64-1_75
-    LFLAGS += -lws2_32
+    # LFLAGS += -lws2_32
     LFLAGS += -lboost_thread-mgw12-mt-x64-1_75
     LFLAGS += -lboost_random-mgw12-mt-x64-1_75
     LFLAGS += -lboost_json-mgw12-mt-x64-1_75
@@ -25,6 +25,8 @@ ifeq ($(OS),Windows_NT)
     LFLAGS += -lssl
     LFLAGS += -lcrypto
     LFLAGS += -lz
+	LFLAGS += -lcrypt32
+	LFLAGS += -lws2_32
 	LIB		:= lib/windows/boost lib/windows/zlib lib/windows/openssl
 	INCLUDE	:= include
 else
