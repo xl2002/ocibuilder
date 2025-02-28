@@ -183,12 +183,12 @@ std::string getToken(const std::string &host, const std::string &port, const ::s
 
 bool ifSupportV2(const std::string &host, const std::string &port);
 
-bool ifBlobExists(const std::string &host, const std::string &port, const std::string &imageName, const std::string &shaId, const std::string &projectName);
+bool ifBlobExists(const std::string &host, const std::string &port, const std::string &imageName, const std::string &shaId, const std::string &projectName,const std::string& scheme);
 
-std::pair<std::string, std::string> initUpload(const std::string &host, const std::string &port, const std::string &imageName, const std::string &projectName);
+std::pair<std::string, std::string> initUpload(const std::string &host, const std::string &port, const std::string &imageName, const std::string &projectName,const std::string& scheme);
 
 std::pair<std::string, std::string> uploadBlobChunk(const std::string& host, const std::string& port, const std::string& uid, const std::string& state,
-    const std::string& file_path, std::size_t start, std::size_t end, std::size_t total_size,const std::string& imageName,const std::string& projectName);
+    const std::string& file_path, std::size_t start, std::size_t end, std::size_t total_size,const std::string& imageName,const std::string& projectName,const std::string& scheme);
 
 // std::string uploadBlobChunk(const std::string &host, const std::string &port, const std::string &uid, const std::string &state, const std::string &file_path, std::size_t start, std::size_t end, std::size_t total_size, const std::string &imageName, const std::string &projectName);
 
@@ -196,18 +196,18 @@ std::pair<std::string, std::string> uploadBlobChunk(const std::string& host, con
 // void uploadManifest(const std::string &host, const std::string &port, const std::string &file_path, std::size_t start, std::size_t end, const std::string &imageName, const std::string version, const std::string &ManifestType, const std::string &projectName);
 
 void uploadManifest(const std::string& host, const std::string& port, const std::string& file_path, std::size_t start, std::size_t end, 
-    const std::string& imageName, const std::string version, const std::string& ManifestType,const std::string& projectName, bool v1);
+    const std::string& imageName, const std::string version, const std::string& ManifestType,const std::string& projectName, bool v1,const std::string& scheme);
 
-void finalizeUpload(const std::string &host, const std::string &port, const std::string &uid, const std::string &shaId, const std::string &state, const std::string &imageName, const std::string &projectName);
+void finalizeUpload(const std::string &host, const std::string &port, const std::string &uid, const std::string &shaId, const std::string &state, const std::string &imageName, const std::string &projectName,const std::string& scheme);
 
 bool isCorrect(std::string sha256, std::string filepath);
 
 // std::string login_and_getToken(const std::string& user, const std::string& passwd, std::string& host, std::string& port);
 
 std::string login_and_getToken(const std::string& user, const std::string& passwd, const std::string& host, const std::string& port, 
-    const std::string& projectName, const std::string& imageName);
+    const std::string& projectName, const std::string& imageName,const std::string& scheme);
 
-bool login(const std::string& host, const std::string& port, const std::string& user, const std::string& passwd);
+bool login(const std::string& host, const std::string& port, const std::string& user, const std::string& passwd,const std::string& scheme);
 
 // void login(const std::string &user, const std::string &passwd, const std::string &host, const std::string &port);
 
@@ -217,13 +217,13 @@ bool pullConfig(const std::string &host, const std::string &port, const ::string
 
 // std::tuple<std::string,size_t> pullManifestAndBlob(const std::string &host, const std::string &port, const ::string &projectName, const ::string &imageName, const std::string version,const std::string& os,const std::string& arch);
 
-std::tuple<std::string,size_t> pullManifestAndBlob(const std::string& host, const std::string& port,const::string& projectName,const::string& imageName,const std::string version,const std::string& os,const std::string& arch, bool v1);
+std::tuple<std::string,size_t> pullManifestAndBlob(const std::string& host, const std::string& port,const::string& projectName,const::string& imageName,const std::string version,const std::string& os,const std::string& arch, bool v1,const std::string& scheme);
 
 void saveLoginInfo(const std::string &username, const std::string &password, const std::string &ipAddress);
 
 void loadLoginInfo(std::string ipAddress);
 
-std::vector<std::string> getTagList(const std::string &host, const std::string &port, const ::string &projectName, const ::string &imagetName);
+std::vector<std::string> getTagList(const std::string &host, const std::string &port, const ::string &projectName, const ::string &imagetName,const std::string& scheme);
 
 void getCookieFromAuthFile();
 

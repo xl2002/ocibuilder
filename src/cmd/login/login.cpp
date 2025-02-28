@@ -95,8 +95,8 @@ void loginCmd(Command& cmd, vector<string> args,LoginOptions* iopts){
     // port = ipAddress.substr(pos + 1);
     dockerClient client;
     auto url = client.resolveLoginURL(ipAddress);
-    login_and_getToken(username, password, url->host, url->port, "", "");
-    bool flag = login(url->host, url->port, username, password);
+    login_and_getToken(username, password, url->host, url->port, "", "", url->scheme);
+    bool flag = login(url->host, url->port, username, password, url->scheme);
     if (!flag) {
         std::cerr << "fail to login!!" << "\n";
         return;
