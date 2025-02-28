@@ -534,10 +534,9 @@ bool ifBlobExists(const std::string& host, const std::string& port, const std::s
 
             // 设置 SNI 主机名
             if (!SSL_set_tlsext_host_name(stream.native_handle(), host.c_str())) {
-                throw boost::system::system_error(
-                    boost::system::error_code(
-                        static_cast<int>(::ERR_get_error()),
-                        boost::asio::error::get_ssl_category()));
+                char error_buffer[256];
+                ERR_error_string_n(ERR_get_error(), error_buffer, sizeof(error_buffer));
+                throw std::runtime_error("Failed to set SNI hostname: " + std::string(error_buffer));
             }
             // 解析并连接
             auto const results = resolver.resolve(host, port);
@@ -685,10 +684,9 @@ bool ifBlobExists(const std::string& host, const std::string& port, const std::s
             ssl::stream<beast::tcp_stream> stream(ioc, ctx);
             // 设置 SNI 主机名
             if (!SSL_set_tlsext_host_name(stream.native_handle(), host.c_str())) {
-                throw boost::system::system_error(
-                    boost::system::error_code(
-                        static_cast<int>(::ERR_get_error()),
-                        boost::asio::error::get_ssl_category()));
+                char error_buffer[256];
+                ERR_error_string_n(ERR_get_error(), error_buffer, sizeof(error_buffer));
+                throw std::runtime_error("Failed to set SNI hostname: " + std::string(error_buffer));
             }
             // 解析并连接
             auto const results = resolver.resolve(host, port);
@@ -900,10 +898,9 @@ bool ifBlobExists(const std::string& host, const std::string& port, const std::s
         ssl::stream<beast::tcp_stream> stream(ioc, ctx);
         // 设置 SNI 主机名
         if (!SSL_set_tlsext_host_name(stream.native_handle(), host.c_str())) {
-        throw boost::system::system_error(
-        boost::system::error_code(
-        static_cast<int>(::ERR_get_error()),
-        boost::asio::error::get_ssl_category()));
+            char error_buffer[256];
+            ERR_error_string_n(ERR_get_error(), error_buffer, sizeof(error_buffer));
+            throw std::runtime_error("Failed to set SNI hostname: " + std::string(error_buffer));
         }
         // 解析并连接
         auto const results = resolver.resolve(host, port);
@@ -1158,10 +1155,9 @@ void uploadManifest(const std::string& host, const std::string& port, const std:
         ssl::stream<beast::tcp_stream> stream(ioc, ctx);
         // 设置 SNI 主机名
         if (!SSL_set_tlsext_host_name(stream.native_handle(), host.c_str())) {
-            throw boost::system::system_error(
-                boost::system::error_code(
-                    static_cast<int>(::ERR_get_error()),
-                    boost::asio::error::get_ssl_category()));
+            char error_buffer[256];
+            ERR_error_string_n(ERR_get_error(), error_buffer, sizeof(error_buffer));
+            throw std::runtime_error("Failed to set SNI hostname: " + std::string(error_buffer));
         }
         // 解析并连接
         auto const results = resolver.resolve(host, port);
@@ -1286,10 +1282,9 @@ std::cerr << "Upload Manifest Error: " << e.what() << "\n";
             ssl::stream<beast::tcp_stream> stream(ioc, ctx);
             // 设置 SNI 主机名
             if (!SSL_set_tlsext_host_name(stream.native_handle(), host.c_str())) {
-                throw boost::system::system_error(
-                    boost::system::error_code(
-                        static_cast<int>(::ERR_get_error()),
-                        boost::asio::error::get_ssl_category()));
+                char error_buffer[256];
+                ERR_error_string_n(ERR_get_error(), error_buffer, sizeof(error_buffer));
+                throw std::runtime_error("Failed to set SNI hostname: " + std::string(error_buffer));
             }
             // 解析并连接
             auto const results = resolver.resolve(host, port);
@@ -1523,10 +1518,9 @@ std::string login_and_getToken(const std::string& user, const std::string& passw
                 ssl::stream<beast::tcp_stream> stream(ioc, ctx);
                 // 设置 SNI 主机名
                 if (!SSL_set_tlsext_host_name(stream.native_handle(), host.c_str())) {
-                    throw boost::system::system_error(
-                        boost::system::error_code(
-                            static_cast<int>(::ERR_get_error()),
-                            boost::asio::error::get_ssl_category()));
+                    char error_buffer[256];
+                    ERR_error_string_n(ERR_get_error(), error_buffer, sizeof(error_buffer));
+                    throw std::runtime_error("Failed to set SNI hostname: " + std::string(error_buffer));
                 }
                 // 连接
                 beast::get_lowest_layer(stream).connect(results);
@@ -1644,10 +1638,9 @@ bool login(const std::string& host, const std::string& port, const std::string& 
             ssl::stream<beast::tcp_stream> stream(ioc, ctx);
             // 设置 SNI 主机名
             if (!SSL_set_tlsext_host_name(stream.native_handle(), host.c_str())) {
-                throw boost::system::system_error(
-                    boost::system::error_code(
-                        static_cast<int>(::ERR_get_error()),
-                        boost::asio::error::get_ssl_category()));
+                char error_buffer[256];
+                ERR_error_string_n(ERR_get_error(), error_buffer, sizeof(error_buffer));
+                throw std::runtime_error("Failed to set SNI hostname: " + std::string(error_buffer));
             }
             // 连接
             beast::get_lowest_layer(stream).connect(results);
@@ -2095,10 +2088,9 @@ std::tuple<std::string, size_t> pullManifestAndBlob(const std::string& host, con
 
             // 设置 SNI 主机名
             if (!SSL_set_tlsext_host_name(stream.native_handle(), host.c_str())) {
-                throw boost::system::system_error(
-                    boost::system::error_code(
-                        static_cast<int>(::ERR_get_error()),
-                        boost::asio::error::get_ssl_category()));
+                char error_buffer[256];
+                ERR_error_string_n(ERR_get_error(), error_buffer, sizeof(error_buffer));
+                throw std::runtime_error("Failed to set SNI hostname: " + std::string(error_buffer));
             }
 
             // 解析并连接
@@ -2398,10 +2390,9 @@ std::vector<std::string> getTagList(const std::string& host, const std::string& 
 
             // 设置 SNI 主机名
             if (!SSL_set_tlsext_host_name(stream.native_handle(), host.c_str())) {
-                throw boost::system::system_error(
-                    boost::system::error_code(
-                        static_cast<int>(::ERR_get_error()),
-                        boost::asio::error::get_ssl_category()));
+                char error_buffer[256];
+                ERR_error_string_n(ERR_get_error(), error_buffer, sizeof(error_buffer));
+                throw std::runtime_error("Failed to set SNI hostname: " + std::string(error_buffer));
             }
 
             // 解析并连接
