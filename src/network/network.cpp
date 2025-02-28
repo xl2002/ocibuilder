@@ -228,7 +228,7 @@ std::shared_ptr<URL> dockerClient::resolveRequestURL(std::string path){
  * @param path 
  * @return std::shared_ptr<URL> 
  */
-std::shared_ptr<URL>resolveLoginURL(std::string path){
+std::shared_ptr<URL>dockerClient::resolveLoginURL(std::string path){
     std::size_t schemePos = path.find("://");  // 查找协议部分（如果有）
     std::string pathWithoutScheme = path;  // pathWithoutScheme为跳过协议部分后的path
     std::size_t colonPos, slashPos;
@@ -255,17 +255,6 @@ std::shared_ptr<URL>resolveLoginURL(std::string path){
         host = pathWithoutScheme;
     }
 
-    // 如果没有给定端口号，根据协议设置默认端口
-    if (portStr.empty()) {
-        if (schemePos != std::string::npos && hasPrefix(path, "http://")) {
-            portStr = "5000";  // http 协议默认端口为 5000
-        } else if (schemePos != std::string::npos && hasPrefix(path, "https://")) {
-            portStr = "443";  // https 协议默认端口为 443
-        } else {
-            portStr = "80";  // 默认为 80 端口
-        }
-    }
-
     // 检查是否有明确的协议
     std::shared_ptr<URL> url = std::make_shared<URL>();
     if (schemePos != std::string::npos) {
@@ -280,6 +269,15 @@ std::shared_ptr<URL>resolveLoginURL(std::string path){
             url->scheme = "http";  // 如果是IP地址，使用 http 协议
         } else {
             url->scheme = "https";  // 否则默认为 https 协议
+        }
+    }
+
+    // 如果没有给定端口号，根据协议设置默认端口
+    if (portStr.empty()) {
+        if (schemePos != std::string::npos && hasPrefix(path, "http://")) {
+            portStr = "5000";  // http 协议默认端口为 5000
+        } else {
+            portStr = "443";  // https 协议默认端口为 443
         }
     }
 
@@ -476,7 +474,7 @@ void setAuthorization(beast::http::request<beast::http::empty_body>& req, const 
  * @param scheme 协议类型，支持 "http" 或 "https"
  * @return 
  */
- bool ifBlobExists(const std::string& host, const std::string& port, const std::string& imageName, const std::string& shaId, const std::string& projectName, const std::string& scheme) {
+bool ifBlobExists(const std::string& host, const std::string& port, const std::string& imageName, const std::string& shaId, const std::string& projectName, const std::string& scheme) {
     try {
         // 配置参数
         const std::string target = "/v2/" + projectName + "/" + imageName + "/blobs/sha256:" + shaId;
@@ -1074,7 +1072,7 @@ std::string write_manifest_new(const std::string& file_path)
  * @param v1 
  * @param scheme 协议类型，支持 "http" 或 "https"
  */
- void uploadManifest(const std::string& host, const std::string& port, const std::string& file_path, std::size_t start, std::size_t end,
+void uploadManifest(const std::string& host, const std::string& port, const std::string& file_path, std::size_t start, std::size_t end,
     const std::string& imageName, const std::string& version, const std::string& ManifestType, const std::string& projectName, bool v1, const std::string& scheme) {
     try {
         std::size_t chunk_size = end - start;
