@@ -117,6 +117,7 @@
 ./output/main.exe push 192.168.1.102:5000/library/image1:latest
 # 推送镜像到本地目录
 ./output/main.exe push image1:latest oci:D:/test/image1:imagetest:latest
+./output/main.exe push image1:latest docker-archive:D:/test/image1.tar
 # linux系统测试样例
 # 推送镜像到远端
 ./output/main push 10.68.1.145:5000/library/busybox-image:latest

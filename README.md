@@ -151,6 +151,7 @@ buildah login --username=admin --password=123456 --tls-verify=false 192.168.1.10
 buildah push -f v2s2 192.168.1.102:5000/library/busybox:latest
 buildah login --username=admin --password=123456 xk.domain.com:5050
 buildah push -f v2s2 xk.domain.com:5050/library/busybox:latest
+sudo -E SSLKEYLOGFILE=/home/xk/tlskeys.log buildah login --username cn-north-4@7ENT7F3JMBNQ9YWMUFCA --password 427ab03287f75c6a54b1261bb395038e02d737fdea42008149166a9d83d91daf swr.cn-north-4.myhuaweicloud.com
 podman run -d \
   --name registry \
   -p 443:443 \
