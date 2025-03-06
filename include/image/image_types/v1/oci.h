@@ -55,7 +55,7 @@ class DockerManifest:public Manifest{
      * @param jv 
      * @param image 
      */
-    friend void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const OCI1& image) {
+    friend void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const DockerManifest& image) {
         jv=boost::json::object{
             {"schemaVersion",image.SchemaVersion},
             {"mediaType",image.MediaType},
@@ -70,9 +70,9 @@ class DockerManifest:public Manifest{
      * @param jv 
      * @param image 
      */
-    friend OCI1 tag_invoke(boost::json::value_to_tag<OCI1>, const boost::json::value& jv) {
+    friend DockerManifest tag_invoke(boost::json::value_to_tag<DockerManifest>, const boost::json::value& jv) {
         const auto& obj = jv.as_object();
-        OCI1 m;
+        DockerManifest m;
         m.SchemaVersion=obj.at("schemaVersion").as_int64();
         m.MediaType=obj.at("mediaType").as_string().c_str();
         m.Config=boost::json::value_to<Descriptor>(obj.at("config"));
