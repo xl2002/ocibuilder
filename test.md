@@ -98,6 +98,7 @@
 ./output/main.exe pull --os linux --arch amd64 --all-tags 10.68.1.145:5000/library/busybox-image
 # 从本地拉取镜像
 ./output/main.exe pull oci:/path/to/local/dir:image1:latest
+./output/main.exe pull oci:E:/Project/Image/test/image1:imagetest:latest
 
 # linux系统测试样例
 # 从远端拉取镜像
@@ -116,7 +117,7 @@
 ./output/main.exe push 192.168.1.102:80/library/image1:latest
 ./output/main.exe push 192.168.1.102:5000/library/image1:latest
 # 推送镜像到本地目录
-./output/main.exe push image1:latest oci:D:/test/image1:imagetest:latest
+./output/main.exe push image1:latest oci:E:/Project/Image/test/image1:imagetest:latest
 # linux系统测试样例
 # 推送镜像到远端
 ./output/main push 10.68.1.145:5000/library/busybox-image:latest
