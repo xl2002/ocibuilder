@@ -102,9 +102,20 @@ void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
     // 解析出来host、port、镜像名等
     dockerClient client;
     auto url = client.resolveRequestURL(src);
+    //如果http/https
+    // if (url->scheme == "http" || url->scheme == "https") {
+        // 如果是http
+        //字符串匹配判断ip/url
+        //如果是url，DNS解析
 
+    // }
+    //如果没有，字符串匹配判断ip/url
+    //如果是url，DNS解析,用https
+    //如果是ip，用http
+
+    
     //  执行登录请求
-    loadLoginInfo(url->host + ":" + url->port);
+    loadLoginInfo(url->host + ":" + url-> port);
     // std::string btoken = login_and_getToken(userinfo.username, userinfo.password, url->host, url->port, "", "");
     // // 将从harbor库获取的bearer token存储到dockerClient中
     // if (!btoken.empty())
