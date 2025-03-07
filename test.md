@@ -128,6 +128,9 @@
 
 ```bash
 # 保存镜像到本地
+./output/main.exe save image1:latest --output D:/test/image1.tar
+./output/main.exe save image1:latest --output ./test/image1.tar
+# linux系统版本
 ./output/main save image1:latest --output D:/test/image1.tar
 ./output/main save image1:latest --output ./test/image1.tar
 ```
