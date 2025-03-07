@@ -1,122 +1,133 @@
 {
-    "version": "0.2.0",
-    "configurations": [
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug_nobuild",
+      "type": "cppdbg",
+      "request": "launch",
+      "args": [
+        "push",
+        "image1:latest",
+        "oci:E:/Project/Image/test/image1:imagetest:latest"
+      ],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "linux": {
+        "MIMode": "gdb",
+        "miDebuggerPath": "gdb",
+        "program": "${workspaceFolder}/output/main"
+      },
+      "osx": {
+        "MIMode": "lldb",
+        "miDebuggerPath": "lldb-mi",
+        "program": "${workspaceFolder}/output/main"
+      },
+      "windows": {
+        "MIMode": "gdb",
+        "miDebuggerPath": "E:\\Not commonly used\\mingw64\\bin\\gdb.exe",
+        "program": "${workspaceFolder}/output/main.exe"
+      },
+      "setupCommands": [
         {
-            "name": "Debug_nobuild",
-            "type": "cppdbg",
-            "request": "launch",
-            // "args": ["build","--check","--tag","busybox-image:latest","."],
-            // "args": ["build","--tag","busybox-image:latest","."],
-            // "args": ["tag","busybox-image:latest","image:1.0"],
-            // "args": ["tag","69bc7646d57b","image:2.0"],
-            // "args": ["rmi","image1:latest","image2:latest","image3:latest"],
-            // "args": ["config","--arch","x86_64","--os","windows7","--author","NWPU","--entrypoint","[\"/bin/bash\",\"-c\"]","--env","DEBIAN_FRONTEND=noninteractive","--env","PATH_A=interactive" ,"--label" ,"version=1.0.0" ,"--label","maintainer=your_email@example.com","image1:latest"],
-            // "args": ["rmi","image1:latest"],
-            // "args":["push","--format","oci","192.168.1.102:80/library/image1:latest"],
-            // "args":["pull","--format","oci","--os","linux","--arch","amd64","--all-tags","10.68.1.145:5000/library/busybox-image:latest"],
-            "args":["push","image1:latest","oci:E:/Project/Image/test/image1:imagetest:latest"],
-            // "args": ["build","--annotation","\"version=1.0\"","--annotation","\"author=NWPU\"","--arch","amd64","--os","linux","--file","Dockerfile12","--tag","busybox-image:latest","./dockerFiledir"],
-            // "args": ["images","--all"],
-            // "args": ["login","--username","myusername","--password","mypassword","10.68.1.145:5000"],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
-            "environment": [],
-            "externalConsole": false,
-            "linux": {
-                "MIMode": "gdb",
-                "miDebuggerPath": "gdb",
-                "program": "${workspaceFolder}/output/main"
-            },
-            "osx": {
-                "MIMode": "lldb",
-                "miDebuggerPath": "lldb-mi",
-                "program": "${workspaceFolder}/output/main"
-            },
-            "windows": {
-                "MIMode": "gdb",
-                "miDebuggerPath": "E:\\Not commonly used\\mingw64\\bin\\gdb.exe",
-                "program": "${workspaceFolder}/output/main.exe"
-            },
-            "setupCommands": [
-                {
-                    "description": "Enable pretty-printing for gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                }
-            ],
-            "logging": {
-                "engineLogging": true,
-                "trace": true, // 启用跟踪
-                "exceptions": true
-            },
-            "preLaunchTask": ""
-            // "preLaunchTask": "build"
-        },
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ],
+      "logging": {
+        "engineLogging": true,
+        "trace": true,
+        "exceptions": true
+      },
+      "preLaunchTask": ""
+    },
+    {
+      "name": "Debugandbuild",
+      "type": "cppdbg",
+      "request": "launch",
+      "args": [
+        "build",
+        "--tag",
+        "busybox-image",
+        "."
+      ],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "linux": {
+        "MIMode": "gdb",
+        "miDebuggerPath": "gdb",
+        "program": "${workspaceFolder}/output/main"
+      },
+      "osx": {
+        "MIMode": "lldb",
+        "miDebuggerPath": "lldb-mi",
+        "program": "${workspaceFolder}/output/main"
+      },
+      "windows": {
+        "MIMode": "gdb",
+        "miDebuggerPath": "E:\\Not commonly used\\mingw64\\bin\\gdb.exe",
+        "program": "${workspaceFolder}/output/main.exe"
+      },
+      "setupCommands": [
         {
-            "name": "Debugandbuild",
-            "type": "cppdbg",
-            "request": "launch",
-            "args": ["build","--tag","busybox-image","."],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
-            "environment": [],
-            "externalConsole": false,
-            "linux": {
-                "MIMode": "gdb",
-                "miDebuggerPath": "gdb",
-                "program": "${workspaceFolder}/output/main"
-            },
-            "osx": {
-                "MIMode": "lldb",
-                "miDebuggerPath": "lldb-mi",
-                "program": "${workspaceFolder}/output/main"
-            },
-            "windows": {
-                "MIMode": "gdb",
-                "miDebuggerPath": "E:\\Not commonly used\\mingw64\\bin\\gdb.exe",
-                "program": "${workspaceFolder}/output/main.exe"
-            },
-            "setupCommands": [
-                {
-                    "description": "Enable pretty-printing for gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                }
-            ],
-            "logging": {
-                "engineLogging": true,
-                "trace": true // 启用跟踪
-            },
-            // "preLaunchTask": ""
-            "preLaunchTask": "build"
-        },
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ],
+      "logging": {
+        "engineLogging": true,
+        "trace": true
+      },
+      "preLaunchTask": "build"
+    },
+    {
+      "name": "Debugtest",
+      "type": "cppdbg",
+      "request": "launch",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "windows": {
+        "MIMode": "gdb",
+        "miDebuggerPath": "E:\\Not commonly used\\mingw64\\bin\\gdb.exe",
+        "program": "${workspaceFolder}/tests/main.exe"
+      },
+      "setupCommands": [
         {
-            "name": "Debugtest",
-            "type": "cppdbg",
-            "request": "launch",
-            "args": [],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
-            "environment": [],
-            "externalConsole": false,
-            "windows": {
-                "MIMode": "gdb",
-                "miDebuggerPath": "E:\\Not commonly used\\mingw64\\bin\\gdb.exe",
-                "program": "${workspaceFolder}/tests/main.exe"
-            },
-            "setupCommands": [
-                {
-                    "description": "Enable pretty-printing for gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                }
-            ],
-            "logging": {
-                "engineLogging": true,
-                "trace": true // 启用跟踪
-            },
-            // "preLaunchTask": ""
-            "preLaunchTask": "build_test"
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ],
+      "logging": {
+        "engineLogging": true,
+        "trace": true
+      },
+      "preLaunchTask": "build_test"
+    },
+    {
+      "name": "C/C++ Runner: Debug Session",
+      "type": "cppdbg",
+      "request": "launch",
+      "args": [],
+      "stopAtEntry": false,
+      "externalConsole": true,
+      "cwd": "e:/projects/ocibuilder",
+      "program": "e:/projects/ocibuilder/build/Debug/outDebug",
+      "MIMode": "gdb",
+      "miDebuggerPath": "gdb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
         }
       ]
     }
