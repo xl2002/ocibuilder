@@ -328,9 +328,9 @@ void saveCmd(Command &cmd, vector<string> args, saveOptions * iopts)
         {
             fs::remove(layerFile); // 避免目标路径是文件而不是目录
         }
-        convertOciConfigToDockerLayerConfig(configPath, layerDest+"/JSON", configDigest);
+        convertOciConfigToDockerLayerConfig(configPath, layerDest+"/json", configDigest);
         //TODO 做一个version文件
-        std::ofstream versionOut(layerDest+ "/" +"version");
+        std::ofstream versionOut(layerDest+ "/" +"VERSION");
         versionOut << "1.0";
         versionOut.close();
         fs::copy_file(layer, layerDest+ "/" +"layer.tar", fs::copy_options::overwrite_existing);
