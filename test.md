@@ -98,6 +98,7 @@
 ./output/main.exe pull --os linux --arch amd64 --all-tags 10.68.1.145:5000/library/busybox-image
 # 从本地拉取镜像
 ./output/main.exe pull oci:/path/to/local/dir:image1:latest
+./output/main.exe pull oci:E:/Project/Image/test/image1:imagetest:latest
 
 # linux系统测试样例
 # 从远端拉取镜像
@@ -116,15 +117,25 @@
 ./output/main.exe push 192.168.1.102:80/library/image1:latest
 ./output/main.exe push 192.168.1.102:5000/library/image1:latest
 # 推送镜像到本地目录
-./output/main.exe push image1:latest oci:D:/test/image1:imagetest:latest
+./output/main.exe push image1:latest oci:E:/Project/Image/test/image1:imagetest:latest
 # linux系统测试样例
 # 推送镜像到远端
 ./output/main push 10.68.1.145:5000/library/busybox-image:latest
 # 推送镜像到本地目录
 ./output/main push image1:latest oci:D:/test/image1:imagetest:latest
 ```
+10. save
 
-10. rmi
+```bash
+# 保存镜像到本地
+./output/main.exe save image1:latest --output D:/test/image1.tar
+./output/main.exe save image1:latest --output ./test/image1.tar
+# linux系统版本
+./output/main save image1:latest --output D:/test/image1.tar
+./output/main save image1:latest --output ./test/image1.tar
+```
+
+11. rmi
 
 ```bash
 # 删除单个镜像，通过镜像名和镜像id
@@ -146,7 +157,7 @@
 ./output/main rmi 10.68.1.145:5000/library/image2:1.0
 ```
 
-11. tag
+12. tag
 
 ```bash
 # 标签镜像
@@ -155,7 +166,7 @@
 ./output/main tag image1:latest 10.68.1.145:5000/library/image2:1.0
 ```
 
-12. version
+13. version
 
 ```bash
 # 查看版本信息

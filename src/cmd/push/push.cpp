@@ -16,6 +16,8 @@
 #include "utils/common/go/file.h"
 #include "image/digest/digest.h"
 #include "cmd/login/login.h"
+#include "image/image_types/v1/oci.h"
+#include "image/image_types/v1/config.h"
 
 
 /**
@@ -318,6 +320,22 @@ void pushCmdLocal(Command &cmd, vector<string> args, pushOptions * iopts)
     manifestBuffer << manifestfile.rdbuf();
     std::string manifestContent = manifestBuffer.str();
     auto manifest = unmarshal<::Manifest>(manifestContent);
+    DockerManifest docker_manifest;
+
+    manifest.MediaType ="application/vnd.oci.image.manifest.v1+json";
+    manifest.Config.MediaType = "application/vnd.oci.image.config.v1+json";
+    for (auto& layer : manifest.Layers) {
+        layer.MediaType = "application/vnd.oci.image.layer.v1.tar+gzip";
+    }
+    for (const auto& pair : index.manifests[manifest_index].annotations) {
+        manifest.Annotations[pair.first] = pair.second;
+    }
+
+    docker_manifest.SchemaVersion = manifest.SchemaVersion;
+    docker_manifest.MediaType = manifest.MediaType;
+    docker_manifest.Config = manifest.Config;
+    docker_manifest.Layers = manifest.Layers;
+    docker_manifest.Annotations = manifest.Annotations;
 
     // 3. 找到config文件
     std::string configPath = store.get()->image_store_dir + "/blobs/sha256/" + manifest.Config.Digests.digest.substr(7);
@@ -341,7 +359,10 @@ void pushCmdLocal(Command &cmd, vector<string> args, pushOptions * iopts)
     }
 
     // 5. push到新的目录下
-    fs::copy_file(manifestPath, destPath + "/" + index.manifests[manifest_index].digest.substr(7), fs::copy_options::overwrite_existing);
+    // fs::copy_file(manifestPath, destPath + "/" + index.manifests[manifest_index].digest.substr(7), fs::copy_options::overwrite_existing);
+    std::ofstream manifestOut(destPath + "/" + index.manifests[manifest_index].digest.substr(7));
+    manifestOut << marshal(docker_manifest);
+    manifestOut.close();
     fs::copy_file(configPath, destPath + "/" + manifest.Config.Digests.digest.substr(7), fs::copy_options::overwrite_existing);
     for (int i = 0; i < blobPath.size(); i++)
     {
@@ -353,7 +374,7 @@ void pushCmdLocal(Command &cmd, vector<string> args, pushOptions * iopts)
     
     auto new_image = std::make_shared<storage::Image>();
     auto newImage_index = std::make_shared<storage::manifest>();
-    newImage_index->mediaType = MediaTypeImageManifest;
+    newImage_index->mediaType = "application/vnd.oci.image.manifest.v1+json";
     newImage_index->digest = index.manifests[manifest_index].digest;
     newImage_index->annotations["org.opencontainers.image.ref.name"] = "localhost/" + newImageName;
     newImage_index->size = index.manifests[manifest_index].size;
