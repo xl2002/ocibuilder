@@ -16,7 +16,7 @@
 
 ./output/main.exe build --check --tag image1:latest .
 # linux系统
-./output/main build --tag image1:latest .
+./output/main build --tag image:latest .
 ./output/main build --tag image1:latest .
 ./output/main build --tag image2:latest .
 ./output/main build --tag image3:latest .
@@ -132,7 +132,7 @@
 ./output/main.exe save image1:latest --output ./test/image1.tar
 # linux系统版本
 ./output/main save image1:latest --output D:/test/image1.tar
-./output/main save image1:latest --output ./test/image1.tar
+./output/main save image:latest --output ./test/imagetest.tar
 ```
 
 11. rmi
