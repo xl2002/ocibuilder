@@ -202,6 +202,12 @@ void saveCmd(Command &cmd, vector<string> args, saveOptions * iopts)
     //size_t secondLastColon = destPath.rfind(':', lastColon - 1);
     size_t lastColon = destPath.rfind('/');
     newImageName = destPath.substr(lastColon +1);
+    
+    // 去掉 .tar 后缀
+    size_t tarSuffixPos = newImageName.find(".tar");
+    if (tarSuffixPos != std::string::npos) {
+        newImageName = newImageName.substr(0, tarSuffixPos);
+    }
     // destSpec = "C:\\Users\\admin\\Documents\\output";
     // std::tie(std::ignore, destPath, std::ignore) = Cut(destPath, ':');
     destPath = destSpec ;//+ "/blobs/sha256";
@@ -334,6 +340,7 @@ void saveCmd(Command &cmd, vector<string> args, saveOptions * iopts)
         versionOut << "1.0";
         versionOut.close();
         fs::copy_file(layer, layerDest+ "/" +"layer.tar", fs::copy_options::overwrite_existing);
+        //fs::copy_file(layer,destPath + "/" +layer.substr(layer.find_last_of('/') + 1), fs::copy_options::overwrite_existing);
     }
 
     // 6. 更新index.json
