@@ -201,6 +201,10 @@ void saveCmd(Command &cmd, vector<string> args, saveOptions * iopts)
     //size_t lastColon = destPath.rfind(':');
     //size_t secondLastColon = destPath.rfind(':', lastColon - 1);
     size_t lastColon = destPath.rfind('/');
+    if(lastColon == std::string::npos)//windows系统的情况
+    {
+        lastColon=destPath.rfind('\\');
+    }
     newImageName = destPath.substr(lastColon +1);
     
     // 去掉 .tar 后缀
