@@ -212,6 +212,7 @@ void saveCmd(Command &cmd, vector<string> args, saveOptions * iopts)
     if (tarSuffixPos != std::string::npos) {
         newImageName = newImageName.substr(0, tarSuffixPos);
     }
+    auto imagetag=withinTransport.substr(withinTransport.rfind(":")+1);
     // destSpec = "C:\\Users\\admin\\Documents\\output";
     // std::tie(std::ignore, destPath, std::ignore) = Cut(destPath, ':');
     destPath = destSpec ;//+ "/blobs/sha256";
@@ -267,34 +268,10 @@ void saveCmd(Command &cmd, vector<string> args, saveOptions * iopts)
     // 复制配置文件并重命名为 <sha256>.json
     std::string configDest = destSpec + "/"+ manifest.Config.Digests.digest.substr(7)+".json";   //+  "config.json";//+ manifest.Config.Digests.digest.substr(7)
     fs::copy_file(configPath, configDest, fs::copy_options::overwrite_existing);
-    //convertOciConfigToDockerConfig(configPath, configDest,manifest.Config.Digests.digest.substr(7));
-    //TODO config顺序有变
-    // 4. 找到blobs文件
-    // std::vector<std::string> blobPath;
-    // json::array layers;
-    // for (int i = 0; i < manifest.Layers.size(); i++)
-    // {
-    //     std::string tmp = store.get()->image_store_dir + "/blobs/sha256/" + manifest.Layers[i].Digests.digest.substr(7);
-    //     if (!fs::exists(tmp))
-    //     {
-    //         std::cout << "Blob does not exist: " << std::endl;
-    //         return;
-    //     }
-    //     blobPath.push_back(tmp);
-    //     layers.push_back(tmp.substr(tmp.find_last_of('/') + 1));
-    // }
+
     std::vector<std::string> layerPaths;
     std::vector<std::string> layers;//json::array
-    
-    // for (auto &layer : manifest.at("layers").as_array()) {
-    //     std::string layerPath = store.get()->image_store_dir + "/blobs/sha256/" + layer.at("digest").as_string().substr(7);
-    //     if (!fs::exists(layerPath)) {
-    //         std::cerr << "Layer not found: " << layerPath << std::endl;
-    //         return;
-    //     }
-    //     layerPaths.push_back(layerPath);
-    //     layers.push_back(layerPath.substr(layerPath.find_last_of('/') + 1));
-    // }
+
     for (auto &layer : manifest.Layers) {
         std::string layerPath = store.get()->image_store_dir + "/blobs/sha256/" + layer.Digests.digest.substr(7);
         if (!fs::exists(layerPath)) {
@@ -307,7 +284,7 @@ void saveCmd(Command &cmd, vector<string> args, saveOptions * iopts)
     json::array dockerManifest;
     json::object dockerEntry;
     dockerEntry["Config"] = manifest.Config.Digests.digest.substr(7)+".json";
-    dockerEntry["RepoTags"] = { newImageName + ":latest" };
+    dockerEntry["RepoTags"] = { newImageName + ":"+imagetag };
     dockerEntry["Layers"] = json::value_from(layers);
     dockerManifest.push_back(dockerEntry);
     
@@ -347,49 +324,6 @@ void saveCmd(Command &cmd, vector<string> args, saveOptions * iopts)
         //fs::copy_file(layer,destPath + "/" +layer.substr(layer.find_last_of('/') + 1), fs::copy_options::overwrite_existing);
     }
 
-    // 6. 更新index.json
-    // std::string new_index_path = destSpec + "/index.json";
-    
-    // auto new_image = std::make_shared<storage::Image>();
-    // auto newImage_index = std::make_shared<storage::manifest>();
-    // newImage_index->mediaType = MediaTypeImageManifest;
-    // newImage_index->digest = index.manifests[manifest_index].digest;
-    // newImage_index->annotations["org.opencontainers.image.ref.name"] = "localhost/" + newImageName;
-    // newImage_index->size = index.manifests[manifest_index].size;
-    // new_image->image_index = newImage_index;
-
-    // auto images = std::make_shared<ImageStore>();
-    // images->dir = destSpec;
-    // images->images.push_back(new_image);
-    // // 创建新的index.json
-    // if (!fs::exists(new_index_path))
-    // {
-    //     images->Save();
-    // }
-    // // 更新原有的index.json
-    // else
-    // {
-    //     boost::filesystem::ifstream newIndexfile(new_index_path, std::ios::binary);
-    //     std::ostringstream newIndexBuffer;
-    //     newIndexBuffer << newIndexfile.rdbuf();
-    //     std::string newIndexContent = newIndexBuffer.str();
-    //     auto index = unmarshal<storage::index>(newIndexContent);
-    //     for (int i = 0; i < index.manifests.size(); i++)
-    //     {
-    //         if (index.manifests[i].annotations["org.opencontainers.image.ref.name"] == "localhost/" + newImageName)
-    //             continue;
-            
-    //         auto tmpImage = std::make_shared<storage::Image>();
-    //         auto tmp = std::make_shared<storage::manifest>();
-    //         tmp->mediaType = index.manifests[i].mediaType;
-    //         tmp->digest = index.manifests[i].digest;
-    //         tmp->annotations["org.opencontainers.image.ref.name"] = index.manifests[i].annotations["org.opencontainers.image.ref.name"];
-    //         tmp->size = index.manifests[i].size;
-    //         tmpImage->image_index = tmp;
-    //         images->images.push_back(tmpImage);
-    //     }
-    //     images->Save();
-    // }
     createTar(iopts->output,destSpec);
     // 删除压缩缓存
     fs::remove_all(destSpec);

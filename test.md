@@ -4,7 +4,7 @@
 
 ```bash
 # 测试镜像生成
-./output/main.exe build --tag image1:latest .
+./output/main.exe build --tag image1:1.2 .
 ./output/main.exe build --annotation "version=3.0" --annotation "author=NWPU" --arch amd64 --os linux --file Dockerfile --tag busybox-image:latest .
 ./output/main.exe build --annotation "version=3.0" --annotation "author=NWPU" --arch amd64 --os linux --file Dockerfile12 --tag busybox-image:latest ./dockerFiledir
 ./output/main.exe build --annotation "version=1.0" --annotation "author=NWPU" --arch x86_64 --os windows7 --file Dockerfile.prod --tag busybox-image:latest .
@@ -130,7 +130,7 @@
 # 保存镜像到本地
 ./output/main.exe save image1:latest --output D:/test/image1.tar
 ./output/main.exe save image1:latest --output D:\\test\\image1.tar
-./output/main.exe save image1:latest --output ./test/image1.tar
+./output/main.exe save image1:1.2 --output ./test/image1.tar
 # linux系统版本
 ./output/main save image1:latest --output D:/test/image1.tar
 ./output/main save image:latest --output ./test/imagetest.tar
