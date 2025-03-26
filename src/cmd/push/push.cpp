@@ -136,7 +136,9 @@ void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
     if (!btoken_push.empty())
         loginAuth.bearerToken = btoken_push;
     else
+    {
         loginAuth.bearerToken.erase();
+    }
 
     // if (!ifSupportV2(url->host, url->port))
     // {
@@ -149,6 +151,8 @@ void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
     // 依次上传每层blob
     std::string uid;
     std::string state;
+    bool allBlobsUploaded = true;  // 标记所有blob是否上传成功
+
     for (int i = 0; i < blobsNum; i++)
     {
         // 拿到每层数据data的路径还有hash值
@@ -157,12 +161,19 @@ void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
         if (!isCorrect(shaId, filePath))
         {
             std::cerr << "the blob: " + shaId + " is not correct!!" << std::endl;
+            allBlobsUploaded = false;
+            break;
         }
         std::string fisrtTwoC = shaId.substr(0, 2);
         // 判断这层数据是否在服务器存在，不存在再传输
         if (!ifBlobExists(url->host, url->port, url->imageName, shaId, url->projectName))
         {
             std::pair<std::string, std::string> initResult = initUpload(url->host, url->port, url->imageName, url->projectName);
+            if (initResult.first.empty() || initResult.second.empty()) {
+                std::cerr << "Failed to initialize upload for blob: " << shaId << std::endl;
+                allBlobsUploaded = false;
+                break;
+            }
             uid = initResult.first;
             state = initResult.second;
             // 拿到data数据大小
@@ -171,11 +182,28 @@ void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
             file.close();
             // 上传数据
             std::pair<std::string, std::string> uploadResult = uploadBlobChunk(url->host, url->port, uid, state, filePath, 0, total_size, total_size, url->imageName, url->projectName);
+            if (uploadResult.first.empty() || uploadResult.second.empty()) {
+                std::cerr << "Failed to upload blob: " << shaId << std::endl;
+                allBlobsUploaded = false;
+                break;
+            }
             uid = uploadResult.first;
             state = uploadResult.second;
             // 完成本次上传
             finalizeUpload(url->host, url->port, uid, shaId, state, url->imageName, url->projectName);
+            // 上传完成后再次检查blob是否存在
+            if (!ifBlobExists(url->host, url->port, url->imageName, shaId, url->projectName)) {
+                std::cerr << "Blob upload verification failed: " << shaId << " not found in repository" << std::endl;
+                allBlobsUploaded = false;
+                break;
+            }
         }
+    }
+    // 如果blob上传失败，直接返回
+    if (!allBlobsUploaded) {
+        std::cerr << "Failed to push some blobs, aborting manifest upload" << std::endl;
+        delete iopts;
+        return;
     }
 
     // 再上传config数据
@@ -184,12 +212,18 @@ void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
     if (!isCorrect(shaId1, configPath))
     {
         std::cerr << "the config: " + shaId1 + " is not correct!!" << std::endl;
+        return;
     }
     std::string fisrtTwoC = shaId1.substr(0, 2);
     // 判断这层数据是否在服务器存在，不存在再传输
     if (!ifBlobExists(url->host, url->port, url->imageName, shaId1, url->projectName))
     {
         std::pair<std::string, std::string> initResult = initUpload(url->host, url->port, url->imageName, url->projectName);
+        if (initResult.first.empty() || initResult.second.empty()) {
+            std::cerr << "Failed to initialize upload for config" << std::endl;
+            delete iopts;
+            return;
+        }
         uid = initResult.first;
         state = initResult.second;
 
@@ -203,6 +237,12 @@ void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
         state = uploadResult.second;
         // 完成本次上传
         finalizeUpload(url->host, url->port, uid, shaId1, state, url->imageName, url->projectName);
+        // 上传完成后再次检查config是否存在
+        if (!ifBlobExists(url->host, url->port, url->imageName, shaId1, url->projectName)) {
+            std::cerr << "Config upload verification failed: " << shaId1 << " not found in repository" << std::endl;
+            delete iopts;
+            return;
+        }
     }
 
     // 最后上传manifest数据
@@ -210,7 +250,8 @@ void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
     std::string manifestPath = store->image_store_dir + "/blobs/sha256/" + shaId2;
     if (!isCorrect(shaId2, manifestPath))
     {
-        std::cerr << "the manifest: " + shaId1 + " is not correct!!" << std::endl;
+        std::cerr << "the manifest: " + shaId2 + " is not correct!!" << std::endl;
+        return;
     }
     std::string manifestType = imagestore->image_index->mediaType;
     std::string fisrtTwoC2 = shaId2.substr(0, 2);
@@ -220,6 +261,11 @@ void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
     file.close();
     // 上传数据
     uploadManifest(url->host, url->port, manifestPath, 0, total_size, url->imageName, url->version, manifestType, url->projectName, v1_format);
+    if(!ifManifestExists(url->host, url->port, url->imageName,url->version, url->projectName))
+    {
+        std::cerr << "Manifest upload verification failed: " << url->imageName<< ":"<<url->version << " not found in repository" << std::endl;
+        return;
+    }
     // if (!ifBlobExists(url->host, url->port, url->imageName, shaId2, url->projectName))
     // {
     //     // std::pair<std::string, std::string> initResult = initUpload(url->host, url->port, url->imageName);

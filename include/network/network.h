@@ -184,6 +184,7 @@ bool ifSupportV2(const std::string &host, const std::string &port);
 
 bool ifBlobExists(const std::string &host, const std::string &port, const std::string &imageName, const std::string &shaId, const std::string &projectName);
 
+bool ifManifestExists(const std::string& host,const std::string& port,const std::string& imageName, const std::string version, const std::string& projectName);
 std::pair<std::string, std::string> initUpload(const std::string &host, const std::string &port, const std::string &imageName, const std::string &projectName);
 
 std::pair<std::string, std::string> uploadBlobChunk(const std::string& host, const std::string& port, const std::string& uid, const std::string& state,

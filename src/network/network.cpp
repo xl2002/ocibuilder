@@ -351,6 +351,64 @@ bool ifBlobExists(const std::string& host,const std::string& port,const std::str
     return false;
 }
 
+/**
+ * @brief 该manifest是否在服务器中存在
+ * @param host 
+ * @param port 
+ * @param imageName 
+ * @param shaId 
+ * @return 
+ */
+bool ifManifestExists(const std::string& host,const std::string& port,const std::string& imageName, const std::string version,const std::string& projectName){
+    try {
+        // 配置参数
+        const std::string target="/v2/"+projectName+"/"+imageName+"/manifests/"+version;//+'/'+shaId;
+
+        // IO 上下文
+        asio::io_context ioc;
+
+        // 解析器和流
+        asio::ip::tcp::resolver resolver(ioc);
+        beast::tcp_stream stream(ioc);
+
+        // 解析并连接到主机
+        auto const results = resolver.resolve(host, port);
+        stream.connect(results);
+
+        // 构造 HTTP HEAD 请求
+        beast::http::request<beast::http::empty_body> req(beast::http::verb::head, target, 11);
+        req.set(http::field::host, host+":"+port);
+        req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+        req.set("Docker-Distribution-Api-Version", "registry/2.0");
+        req.set(http::field::connection, "close");
+        if (!loginAuth.bearerToken.empty()) {
+            setAuthorization(req, loginAuth.bearerToken);
+        } else {
+            setAuthorization(req, userinfo.username, userinfo.password);
+        }
+
+        // 发送请求
+        beast::http::write(stream, req);
+
+        // 接收响应
+        beast::flat_buffer buffer;
+        beast::http::response_parser<beast::http::dynamic_body> parser;
+        parser.body_limit(std::numeric_limits<std::uint64_t>::max());
+        parser.skip(true);
+        beast::http::read(stream, buffer, parser);
+        auto res = parser.get();
+
+
+        // 根据状态码判断 blob 是否存在
+        if (res.result() == beast::http::status::ok) {
+            return true;
+        }
+        stream.socket().shutdown(asio::ip::tcp::socket::shutdown_both);
+    } catch (const std::exception& e) {
+        std::cerr << "Manifest Exist Error: " << e.what() << "\n";
+    }
+    return false;
+}
 
 
 /**
