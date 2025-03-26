@@ -1,7 +1,7 @@
 #include "network/network.h"
 #include "image/digest/digest.h"
 #include "cmd/login/login.h"
-#include <zlib.h>
+#include <zlib/zlib.h>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/filesystem.hpp>

@@ -39,25 +39,38 @@ void createTar(const std::string& tarFilePath, const fs::path& directory) {
                                             std::istreambuf_iterator<char>());
                     file.close();
                     // 获取相对路径（相对于顶级目录）
-                    std::string relativePath = entry.path().string();
-                    relativePath = relativePath.substr(directory.string().length() + 1);
+                    // std::string relativePath = entry.path().string();
+                    // relativePath = relativePath.substr(directory.string().length() + 1);
 
-                    // 使用 Boost 转换路径分隔符为正斜杠 '/'
-                    std::replace(relativePath.begin(), relativePath.end(), '\\', '/');
+                    // // 使用 Boost 转换路径分隔符为正斜杠 '/'
+                    // std::replace(relativePath.begin(), relativePath.end(), '\\', '/');
+                    fs::path relativePath = fs::relative(entry.path(), directory);
+                    std::string relativePathStr = relativePath.generic_string(); // 自动转换分隔符为正斜杠
 
                     // 将文件添加到 tar 中（使用默认 TarFileOptions）
-                    tar.add(relativePath, fileContent);
+                    tar.add(relativePathStr, fileContent);
                 }
                 else if (fs::is_directory(entry.status())) {
-                    // 如果是目录，加入空文件夹（以保证目录结构存在）
-                    std::string dirName = entry.path().string();
-                    dirName = dirName.substr(directory.string().length() + 1);
+                    // //如果是目录，加入空文件夹（以保证目录结构存在）
+                    // std::string dirName = entry.path().string();
+                    // dirName = dirName.substr(directory.string().length() + 1);
 
-                    // 使用 Boost 转换路径分隔符为正斜杠 '/'
-                    std::replace(dirName.begin(), dirName.end(), '\\', '/');
+                    // // 使用 Boost 转换路径分隔符为正斜杠 '/'
+                    // std::replace(dirName.begin(), dirName.end(), '\\', '/');
+                    // 获取相对路径
+                    fs::path relativeDirPath = fs::relative(entry.path(), directory);
+                    std::string dirName = relativeDirPath.generic_string();
 
+                    // 确保目录以 '/' 结尾
+                    if (!dirName.empty() && dirName.back() != '/') {
+                        dirName += '/';
+                    }
+                    // 创建 TarFileOptions 对象，指定类型为目录
+                    tarpp::TarFileOptions dirOptions;
                     // 目录需要以 '/' 结尾，并且在 tar 中要以 "目录" 类型保存
-                    tar.add(dirName + "/", "");
+                    // tar.add(dirName + "/", "");
+                        // 将目录添加到 tar 中，使用指定的 TarFileOptions
+                    tar.add(dirName, "", dirOptions.with_type(tarpp::FileType::DIRECTORY));
                 }
             }
             catch (const myerror& e) {

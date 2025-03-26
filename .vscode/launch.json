@@ -6,15 +6,9 @@
       "type": "cppdbg",
       "request": "launch",
       "args": [
-        "pull",
-        "--format",
-        "oci",
-        "--os",
-        "linux",
-        "--arch",
-        "amd64",
-        "--all-tags",
-        "10.68.1.145:5000/library/busybox-image:latest"
+        "push",
+        "image1:latest",
+        "oci:E:/Project/Image/test/image1:imagetest:latest"
       ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
@@ -32,7 +26,7 @@
       },
       "windows": {
         "MIMode": "gdb",
-        "miDebuggerPath": "D:\\softwares\\mingw64\\bin\\gdb.exe",
+        "miDebuggerPath": "E:\\Not commonly used\\mingw64\\bin\\gdb.exe",
         "program": "${workspaceFolder}/output/main.exe"
       },
       "setupCommands": [
@@ -75,7 +69,7 @@
       },
       "windows": {
         "MIMode": "gdb",
-        "miDebuggerPath": "D:\\softwares\\mingw64\\bin\\gdb.exe",
+        "miDebuggerPath": "E:\\Not commonly used\\mingw64\\bin\\gdb.exe",
         "program": "${workspaceFolder}/output/main.exe"
       },
       "setupCommands": [
@@ -102,7 +96,7 @@
       "externalConsole": false,
       "windows": {
         "MIMode": "gdb",
-        "miDebuggerPath": "D:\\softwares\\mingw64\\bin\\gdb.exe",
+        "miDebuggerPath": "E:\\Not commonly used\\mingw64\\bin\\gdb.exe",
         "program": "${workspaceFolder}/tests/main.exe"
       },
       "setupCommands": [

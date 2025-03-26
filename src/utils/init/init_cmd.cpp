@@ -13,6 +13,7 @@
 #include "cmd/info/info.h"
 #include "cmd/login/login.h"
 #include "cmd/logout/logout.h"
+#include "cmd/save/save.h"
 std::once_flag flag_cmd;
 Command rootcmd; 
 void init_command(){
@@ -29,6 +30,7 @@ void init_command(){
     init_info();
     init_login();
     init_logout();
+    init_save();
 }
 void initialize_cmd(){
     std::call_once(flag_cmd, init_command);
