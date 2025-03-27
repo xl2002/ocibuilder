@@ -20,7 +20,7 @@ void init_pull(){
     string name{"pull"};
     string Short{"Pull an image from the specified location"};
     string Long{"Pulls an image from a registry and stores it locally.\n\tAn image can be pulled using its tag or digest. If a tag is not\n\tspecified, the image with the 'latest' tag (if it exists) is pulled."};
-    string example{"buildah pull imagename\n  buildah pull docker-daemon:imagename:imagetag\n  buildah pull myregistry/myrepository/imagename:imagetag"};
+    string example{"ocibuilder pull imagename\n  ocibuilder pull docker-daemon:imagename:imagetag\n  ocibuilder pull myregistry/myrepository/imagename:imagetag"};
     Command* pullCommand=new Command{name,Short,Long,example};
     string Template=UsageTemplate();
     pullCommand->SetUsageTemplate(Template);

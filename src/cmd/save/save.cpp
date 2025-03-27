@@ -29,7 +29,7 @@ void init_save()
     string name{"save"};
     string Short{"Save an image to a specified destination"};
     string Long{"Saves an image to a specified location."};
-    string example{"buildah save image1:latest --output D:/test/image1:imagetest:latest"};
+    string example{"ocibuilder save image1:latest --output D:/test/image1:imagetest:latest"};
     Command *saveCommand = new Command{name, Short, Long, example};
     string Template = UsageTemplate();
     saveCommand->SetUsageTemplate(Template);
