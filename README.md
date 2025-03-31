@@ -48,7 +48,7 @@ g++ -std=c++11 -Wall -Wextra -g -I include -o ./tests/sha256_test.exe ./tests/sh
 
 g++ -std=c++11 -Wall -Wextra -g -I include sha256_test.cpp -o sha256_test  -L lib -lssl -lcrypto
 
-
+g++ -std=c++11 -Wall -Wextra -g -I include -o .\tests\libarchive.exe .\tests\libarchive.cpp -L lib\windows\libarchive -larchive_static -lbcrypt
 
 g++ -std=c++11 -Wall -Wextra -g -I include -o ./tests/net_test.exe ./tests/net_test.cpp -L lib/windows/boost -L lib/windows/openssl  -lboost_filesystem-mgw12-mt-x64-1_75 -lboost_iostreams-mgw12-mt-x64-1_75 -lboost_system-mgw12-mt-x64-1_75 -lboost_thread-mgw12-mt-x64-1_75 -lws2_32 -lboost_json-mgw12-mt-x64-1_75 -lssl -lcrypto
 ```
