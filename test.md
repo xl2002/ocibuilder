@@ -72,6 +72,7 @@
 ```bash
 # 登录到远端
 ./output/main.exe login --username admin --password Harbor12345 192.168.1.102:80
+./output/main.exe login --username admin --password 123456 192.168.1.102:5000
 # linux系统测试样例
 ./output/main login --username myusername --password mypassword 10.68.1.145:5000
 ```
@@ -92,7 +93,7 @@
 ```bash
 # 从远端拉取镜像
 ./output/main.exe pull 192.168.1.102:80/library/image1:latest
-./output/main.exe pull 192.168.1.102:80/library/image1:latest --format v1
+./output/main.exe pull --format v1 192.168.1.102:5000/library/imagetest1:latest 
 ./output/main.exe pull --os linux --arch amd64 10.68.1.145:5000/library/busybox-image:latest
 ./output/main.exe pull --os linux --arch amd64 --all-tags 10.68.1.145:5000/library/busybox-image
 # 从本地拉取镜像
@@ -100,7 +101,7 @@
 
 # linux系统测试样例
 # 从远端拉取镜像
-./output/main pull 10.68.1.145:5000/library/busybox-image:latest  
+./output/main pull 192.168.1.102:80/library/image1:latest  
 ./output/main pull --os linux --arch amd64 10.68.1.145:5000/library/busybox-image:latest
 ./output/main pull --os linux --arch amd64 --all-tags 10.68.1.145:5000/library/busybox-image
 # 从本地拉取镜像
@@ -113,6 +114,7 @@
 ```bash
 # 推送镜像到远端
 ./output/main.exe push 192.168.1.102:80/library/image1:latest
+./output/main.exe push 192.168.1.102:5000/library/image1:latest
 # 推送镜像到本地目录
 ./output/main.exe push image1:latest oci:D:/test/image1:imagetest:latest
 # linux系统测试样例

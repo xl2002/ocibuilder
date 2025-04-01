@@ -1,7 +1,7 @@
 #include "network/network.h"
 #include "image/digest/digest.h"
 #include "cmd/login/login.h"
-#include <zlib.h>
+#include <zlib/zlib.h>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/filesystem.hpp>
@@ -351,6 +351,64 @@ bool ifBlobExists(const std::string& host,const std::string& port,const std::str
     return false;
 }
 
+/**
+ * @brief 该manifest是否在服务器中存在
+ * @param host 
+ * @param port 
+ * @param imageName 
+ * @param shaId 
+ * @return 
+ */
+bool ifManifestExists(const std::string& host,const std::string& port,const std::string& imageName, const std::string version,const std::string& projectName){
+    try {
+        // 配置参数
+        const std::string target="/v2/"+projectName+"/"+imageName+"/manifests/"+version;//+'/'+shaId;
+
+        // IO 上下文
+        asio::io_context ioc;
+
+        // 解析器和流
+        asio::ip::tcp::resolver resolver(ioc);
+        beast::tcp_stream stream(ioc);
+
+        // 解析并连接到主机
+        auto const results = resolver.resolve(host, port);
+        stream.connect(results);
+
+        // 构造 HTTP HEAD 请求
+        beast::http::request<beast::http::empty_body> req(beast::http::verb::head, target, 11);
+        req.set(http::field::host, host+":"+port);
+        req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+        req.set("Docker-Distribution-Api-Version", "registry/2.0");
+        req.set(http::field::connection, "close");
+        if (!loginAuth.bearerToken.empty()) {
+            setAuthorization(req, loginAuth.bearerToken);
+        } else {
+            setAuthorization(req, userinfo.username, userinfo.password);
+        }
+
+        // 发送请求
+        beast::http::write(stream, req);
+
+        // 接收响应
+        beast::flat_buffer buffer;
+        beast::http::response_parser<beast::http::dynamic_body> parser;
+        parser.body_limit(std::numeric_limits<std::uint64_t>::max());
+        parser.skip(true);
+        beast::http::read(stream, buffer, parser);
+        auto res = parser.get();
+
+
+        // 根据状态码判断 blob 是否存在
+        if (res.result() == beast::http::status::ok) {
+            return true;
+        }
+        stream.socket().shutdown(asio::ip::tcp::socket::shutdown_both);
+    } catch (const std::exception& e) {
+        std::cerr << "Manifest Exist Error: " << e.what() << "\n";
+    }
+    return false;
+}
 
 
 /**
@@ -1074,9 +1132,9 @@ void pullBlob(const std::string& host, const std::string& port,const::string& pr
             return;
         }
 
-        for (auto const& field : res) {
-            std::cout << field.name_string() << ": " << field.value() << "\n";
-        }
+        // for (auto const& field : res) {
+        //     std::cout << field.name_string() << ": " << field.value() << "\n";
+        // }
 
         // 输出响应体到文件
         std::ofstream ofs(output_tmp, std::ios::binary); // 打开文件为二进制模式
@@ -1197,9 +1255,9 @@ bool pullConfig(const std::string& host, const std::string& port,const::string& 
             return false;
         }
 
-        for (auto const& field : res) {
-            std::cout << field.name_string() << ": " << field.value() << "\n";
-        }
+        // for (auto const& field : res) {
+        //     std::cout << field.name_string() << ": " << field.value() << "\n";
+        // }
 
         auto config = unmarshal<v1::Image>(res.body());
         //如果os和arch不符合则退出 
@@ -1327,9 +1385,9 @@ std::tuple<std::string,size_t> pullManifestAndBlob(const std::string& host, cons
             return {};
         }
 
-        for (auto const& field : res) {
-            std::cout << field.name_string() << ": " << field.value() << "\n";
-        }
+        // for (auto const& field : res) {
+        //     std::cout << field.name_string() << ": " << field.value() << "\n";
+        // }
 
 
         //分析manifest
@@ -1429,7 +1487,7 @@ void getCookieFromAuthFile(){
                 json::object obj = jsonData.as_object();
                 if (obj.contains("cookie")) {
                     std::string cookie = obj["cookie"].as_string().c_str();
-                    std::cout << "Cookie loaded from JSON: " << cookie << "\n";
+                    // std::cout << "Cookie loaded from JSON: " << cookie << "\n";
                     loginAuth.cookie = cookie;
                 }
             }
@@ -1538,9 +1596,9 @@ std::vector<std::string> getTagList(const std::string& host, const std::string& 
         beast::http::read(stream, buffer, res);
         stream.socket().shutdown(tcp::socket::shutdown_both);
         
-        for (auto const& field : res) {
-            std::cout << field.name_string() << ": " << field.value() << "\n";
-        }
+        // for (auto const& field : res) {
+        //     std::cout << field.name_string() << ": " << field.value() << "\n";
+        // }
 
         if (res.result() != beast::http::status::ok) {
             std::cerr << "GetTagsList request failed with status: " << res.result_int() << " " << res.reason() << std::endl;

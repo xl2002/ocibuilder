@@ -20,7 +20,7 @@ void init_pull(){
     string name{"pull"};
     string Short{"Pull an image from the specified location"};
     string Long{"Pulls an image from a registry and stores it locally.\n\tAn image can be pulled using its tag or digest. If a tag is not\n\tspecified, the image with the 'latest' tag (if it exists) is pulled."};
-    string example{"buildah pull imagename\n  buildah pull docker-daemon:imagename:imagetag\n  buildah pull myregistry/myrepository/imagename:imagetag"};
+    string example{"ocibuilder pull imagename\n  ocibuilder pull docker-daemon:imagename:imagetag\n  ocibuilder pull myregistry/myrepository/imagename:imagetag"};
     Command* pullCommand=new Command{name,Short,Long,example};
     string Template=UsageTemplate();
     pullCommand->SetUsageTemplate(Template);
@@ -208,6 +208,12 @@ void pullCmd(Command& cmd, vector<string> args,pullOptions* iopts){
         std::string fileContent1 = buffer1.str();
         auto manifest=unmarshal<::Manifest>(fileContent1);
 
+        manifest.MediaType ="application/vnd.docker.distribution.manifest.v2+json";
+        manifest.Config.MediaType = "application/vnd.docker.container.image.v1+json";
+        for (auto& layer : manifest.Layers) {
+            layer.MediaType = "application/vnd.docker.image.rootfs.diff.tar.gzip";
+        }
+
         std::string configPath = url->localPullPath+"/blobs/sha256/"+manifest.Config.Digests.digest.substr(7);
         if(!fs::exists(configPath)){
             std::cout << "Config does not exist: " << std::endl;
@@ -225,8 +231,10 @@ void pullCmd(Command& cmd, vector<string> args,pullOptions* iopts){
         }
 
         //文件全部存在 依次copy
-        fs::copy_file(manifestPath,destPath+"/"+index.manifests[0].digest.substr(7),fs::copy_options::overwrite_existing);
-
+        // fs::copy_file(manifestPath,destPath+"/"+index.manifests[0].digest.substr(7),fs::copy_options::overwrite_existing);
+        std::ofstream manifestOut(destPath+"/"+index.manifests[0].digest.substr(7));
+        manifestOut << marshal(manifest);
+        manifestOut.close();
         fs::copy_file(configPath,destPath+"/"+manifest.Config.Digests.digest.substr(7),fs::copy_options::overwrite_existing);
 
         for(size_t i=0;i<manifest.Layers.size();i++){

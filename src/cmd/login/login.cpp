@@ -20,7 +20,7 @@ void init_login(){
     string name{"login"};
     string Short{"Login to a container registry"};
     string Long{"Login to a container registry on a specified server."};
-    string example{"buildah login quay.io"};
+    string example{"ocibuilder login quay.io"};
     Command* loginCommand=new Command(name,Short,Long,example);
     string Template=UsageTemplate();
     loginCommand->SetUsageTemplate(Template);

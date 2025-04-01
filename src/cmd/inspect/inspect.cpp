@@ -25,7 +25,7 @@ void init_inspect(){
     string name{"inspect"};
     string Short{"Inspect the configuration of a container or image"};
     string Long{"Inspects a build container's or built image's configuration."};
-    string example{"buildah inspect imageName/imageID"};
+    string example{"ocibuilder inspect imageName/imageID"};
     Command* inspectCommand=new Command(name,Short,Long,example);
     string Template=UsageTemplate();
     inspectCommand->SetUsageTemplate(Template);

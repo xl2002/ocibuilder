@@ -25,7 +25,7 @@ void init_info(){
     string name{"info"};
     string Short{"Display Buildah system information"};
     string Long{"Display information about the host and current storage statistics which are useful when reporting issues."};
-    string example{"buildah info"};
+    string example{"ocibuilder info"};
     Command* infoCommand=new Command(name,Short,Long,example);
     string Template=UsageTemplate();
     infoCommand->SetUsageTemplate(Template);

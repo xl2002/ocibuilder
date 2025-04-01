@@ -18,7 +18,7 @@ void init_rmi(){
     string name{"rmi"};
     string Short{"Remove one or more images from local storage"};
     string Long{"Removes one or more locally stored images."};
-    string example{"buildah rmi imageID"};
+    string example{"ocibuilder rmi imageID"};
     Command* rmiCommand=new Command(name,Short,Long,example);
     string Template=UsageTemplate();
     rmiCommand->SetUsageTemplate(Template);

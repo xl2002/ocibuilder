@@ -22,7 +22,7 @@ const string logLevel="log-level";
  */
 Command init_rootcmd(){
     Command Appcmd;
-    Appcmd.name="buildah";
+    Appcmd.name="ocibuilder";
     Appcmd.Long="A tool that facilitates building OCI images";
     Appcmd.version="image-spec 1.0.0";
     Appcmd.Run=[](Command& cmd, vector<string> args){cmd.Help();};

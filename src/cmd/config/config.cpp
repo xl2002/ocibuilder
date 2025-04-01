@@ -36,7 +36,7 @@ void init_configcmd(){
     string name{"config"};
     string Short{"Update image configuration settings"};
     string Long{"Modifies the configuration values which will be saved to the image."};
-    string example{"buildah config --author='Jane Austen' --workingdir='/etc/mycontainers' containerID\n  buildah config --entrypoint '[ \"/entrypoint.sh\", \"dev\" ]' containerID\n  buildah config --env foo=bar --env PATH=$PATH containerID"};
+    string example{"ocibuilder config --author='Jane Austen' --workingdir='/etc/mycontainers' containerID\n  ocibuilder config --entrypoint '[ \"/entrypoint.sh\", \"dev\" ]' containerID\n  ocibuilder config --env foo=bar --env PATH=$PATH containerID"};
     
     Command* configCommand=new Command(name,Short,Long,example);
     string Template=UsageTemplate();

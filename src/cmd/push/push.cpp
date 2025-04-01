@@ -16,6 +16,8 @@
 #include "utils/common/go/file.h"
 #include "image/digest/digest.h"
 #include "cmd/login/login.h"
+#include "image/image_types/v1/oci.h"
+#include "image/image_types/v1/config.h"
 
 
 /**
@@ -28,7 +30,7 @@ void init_push()
     string name{"push"};
     string Short{"Push an image to a specified destination"};
     string Long{"Pushes an image to a specified location."};
-    string example{"buildah pull imagename\n  buildah pull docker-daemon:imagename:imagetag\n  buildah pull myregistry/myrepository/imagename:imagetag"};
+    string example{"ocibuilder pull imagename\n  ocibuilder pull docker-daemon:imagename:imagetag\n  ocibuilder pull myregistry/myrepository/imagename:imagetag"};
     Command *pushCommand = new Command{name, Short, Long, example};
     string Template = UsageTemplate();
     pushCommand->SetUsageTemplate(Template);
@@ -102,9 +104,20 @@ void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
     // 解析出来host、port、镜像名等
     dockerClient client;
     auto url = client.resolveRequestURL(src);
+    //如果http/https
+    // if (url->scheme == "http" || url->scheme == "https") {
+        // 如果是http
+        //字符串匹配判断ip/url
+        //如果是url，DNS解析
 
+    // }
+    //如果没有，字符串匹配判断ip/url
+    //如果是url，DNS解析,用https
+    //如果是ip，用http
+
+    
     //  执行登录请求
-    loadLoginInfo(url->host + ":" + url->port);
+    loadLoginInfo(url->host + ":" + url-> port);
     // std::string btoken = login_and_getToken(userinfo.username, userinfo.password, url->host, url->port, "", "");
     // // 将从harbor库获取的bearer token存储到dockerClient中
     // if (!btoken.empty())
@@ -125,7 +138,9 @@ void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
     if (!btoken_push.empty())
         loginAuth.bearerToken = btoken_push;
     else
+    {
         loginAuth.bearerToken.erase();
+    }
 
     // if (!ifSupportV2(url->host, url->port))
     // {
@@ -138,6 +153,8 @@ void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
     // 依次上传每层blob
     std::string uid;
     std::string state;
+    bool allBlobsUploaded = true;  // 标记所有blob是否上传成功
+
     for (int i = 0; i < blobsNum; i++)
     {
         // 拿到每层数据data的路径还有hash值
@@ -146,12 +163,19 @@ void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
         if (!isCorrect(shaId, filePath))
         {
             std::cerr << "the blob: " + shaId + " is not correct!!" << std::endl;
+            allBlobsUploaded = false;
+            break;
         }
         std::string fisrtTwoC = shaId.substr(0, 2);
         // 判断这层数据是否在服务器存在，不存在再传输
         if (!ifBlobExists(url->host, url->port, url->imageName, shaId, url->projectName))
         {
             std::pair<std::string, std::string> initResult = initUpload(url->host, url->port, url->imageName, url->projectName);
+            if (initResult.first.empty() || initResult.second.empty()) {
+                std::cerr << "Failed to initialize upload for blob: " << shaId << std::endl;
+                allBlobsUploaded = false;
+                break;
+            }
             uid = initResult.first;
             state = initResult.second;
             // 拿到data数据大小
@@ -160,11 +184,28 @@ void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
             file.close();
             // 上传数据
             std::pair<std::string, std::string> uploadResult = uploadBlobChunk(url->host, url->port, uid, state, filePath, 0, total_size, total_size, url->imageName, url->projectName);
+            if (uploadResult.first.empty() || uploadResult.second.empty()) {
+                std::cerr << "Failed to upload blob: " << shaId << std::endl;
+                allBlobsUploaded = false;
+                break;
+            }
             uid = uploadResult.first;
             state = uploadResult.second;
             // 完成本次上传
             finalizeUpload(url->host, url->port, uid, shaId, state, url->imageName, url->projectName);
+            // 上传完成后再次检查blob是否存在
+            if (!ifBlobExists(url->host, url->port, url->imageName, shaId, url->projectName)) {
+                std::cerr << "Blob upload verification failed: " << shaId << " not found in repository" << std::endl;
+                allBlobsUploaded = false;
+                break;
+            }
         }
+    }
+    // 如果blob上传失败，直接返回
+    if (!allBlobsUploaded) {
+        std::cerr << "Failed to push some blobs, aborting manifest upload" << std::endl;
+        delete iopts;
+        return;
     }
 
     // 再上传config数据
@@ -173,12 +214,18 @@ void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
     if (!isCorrect(shaId1, configPath))
     {
         std::cerr << "the config: " + shaId1 + " is not correct!!" << std::endl;
+        return;
     }
     std::string fisrtTwoC = shaId1.substr(0, 2);
     // 判断这层数据是否在服务器存在，不存在再传输
     if (!ifBlobExists(url->host, url->port, url->imageName, shaId1, url->projectName))
     {
         std::pair<std::string, std::string> initResult = initUpload(url->host, url->port, url->imageName, url->projectName);
+        if (initResult.first.empty() || initResult.second.empty()) {
+            std::cerr << "Failed to initialize upload for config" << std::endl;
+            delete iopts;
+            return;
+        }
         uid = initResult.first;
         state = initResult.second;
 
@@ -192,6 +239,12 @@ void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
         state = uploadResult.second;
         // 完成本次上传
         finalizeUpload(url->host, url->port, uid, shaId1, state, url->imageName, url->projectName);
+        // 上传完成后再次检查config是否存在
+        if (!ifBlobExists(url->host, url->port, url->imageName, shaId1, url->projectName)) {
+            std::cerr << "Config upload verification failed: " << shaId1 << " not found in repository" << std::endl;
+            delete iopts;
+            return;
+        }
     }
 
     // 最后上传manifest数据
@@ -199,7 +252,8 @@ void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
     std::string manifestPath = store->image_store_dir + "/blobs/sha256/" + shaId2;
     if (!isCorrect(shaId2, manifestPath))
     {
-        std::cerr << "the manifest: " + shaId1 + " is not correct!!" << std::endl;
+        std::cerr << "the manifest: " + shaId2 + " is not correct!!" << std::endl;
+        return;
     }
     std::string manifestType = imagestore->image_index->mediaType;
     std::string fisrtTwoC2 = shaId2.substr(0, 2);
@@ -209,6 +263,11 @@ void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
     file.close();
     // 上传数据
     uploadManifest(url->host, url->port, manifestPath, 0, total_size, url->imageName, url->version, manifestType, url->projectName, v1_format);
+    if(!ifManifestExists(url->host, url->port, url->imageName,url->version, url->projectName))
+    {
+        std::cerr << "Manifest upload verification failed: " << url->imageName<< ":"<<url->version << " not found in repository" << std::endl;
+        return;
+    }
     // if (!ifBlobExists(url->host, url->port, url->imageName, shaId2, url->projectName))
     // {
     //     // std::pair<std::string, std::string> initResult = initUpload(url->host, url->port, url->imageName);
@@ -307,6 +366,22 @@ void pushCmdLocal(Command &cmd, vector<string> args, pushOptions * iopts)
     manifestBuffer << manifestfile.rdbuf();
     std::string manifestContent = manifestBuffer.str();
     auto manifest = unmarshal<::Manifest>(manifestContent);
+    DockerManifest docker_manifest;
+
+    manifest.MediaType ="application/vnd.oci.image.manifest.v1+json";
+    manifest.Config.MediaType = "application/vnd.oci.image.config.v1+json";
+    for (auto& layer : manifest.Layers) {
+        layer.MediaType = "application/vnd.oci.image.layer.v1.tar+gzip";
+    }
+    for (const auto& pair : index.manifests[manifest_index].annotations) {
+        manifest.Annotations[pair.first] = pair.second;
+    }
+
+    docker_manifest.SchemaVersion = manifest.SchemaVersion;
+    docker_manifest.MediaType = manifest.MediaType;
+    docker_manifest.Config = manifest.Config;
+    docker_manifest.Layers = manifest.Layers;
+    docker_manifest.Annotations = manifest.Annotations;
 
     // 3. 找到config文件
     std::string configPath = store.get()->image_store_dir + "/blobs/sha256/" + manifest.Config.Digests.digest.substr(7);
@@ -330,7 +405,10 @@ void pushCmdLocal(Command &cmd, vector<string> args, pushOptions * iopts)
     }
 
     // 5. push到新的目录下
-    fs::copy_file(manifestPath, destPath + "/" + index.manifests[manifest_index].digest.substr(7), fs::copy_options::overwrite_existing);
+    // fs::copy_file(manifestPath, destPath + "/" + index.manifests[manifest_index].digest.substr(7), fs::copy_options::overwrite_existing);
+    std::ofstream manifestOut(destPath + "/" + index.manifests[manifest_index].digest.substr(7));
+    manifestOut << marshal(docker_manifest);
+    manifestOut.close();
     fs::copy_file(configPath, destPath + "/" + manifest.Config.Digests.digest.substr(7), fs::copy_options::overwrite_existing);
     for (int i = 0; i < blobPath.size(); i++)
     {
@@ -342,7 +420,7 @@ void pushCmdLocal(Command &cmd, vector<string> args, pushOptions * iopts)
     
     auto new_image = std::make_shared<storage::Image>();
     auto newImage_index = std::make_shared<storage::manifest>();
-    newImage_index->mediaType = MediaTypeImageManifest;
+    newImage_index->mediaType = "application/vnd.oci.image.manifest.v1+json";
     newImage_index->digest = index.manifests[manifest_index].digest;
     newImage_index->annotations["org.opencontainers.image.ref.name"] = "localhost/" + newImageName;
     newImage_index->size = index.manifests[manifest_index].size;

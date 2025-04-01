@@ -22,9 +22,11 @@ ifeq ($(OS), Windows_NT)
     LFLAGS += -lboost_json-mgw12-mt-x64-1_75
     LFLAGS += -lboost_iostreams-mgw12-mt-x64-1_75
     LFLAGS += -lssl
+	LFLAGS += -larchive_static
     LFLAGS += -lcrypto
+	LFLAGS += -lbcrypt
     LFLAGS += -lz
-	LIB		:= lib/windows/boost lib/windows/zlib lib/windows/openssl
+	LIB		:= lib/windows/boost lib/windows/zlib lib/windows/openssl lib/windows/libarchive
 	INCLUDE	:= include
 else
     # 如果是在 Linux 上，设置对应的链接库
@@ -38,12 +40,13 @@ else
 	LFLAGS += -lboost_stacktrace_basic
 	LFLAGS += -pthread
     LFLAGS += -lssl
+	LFLAGS += -larchive
     LFLAGS += -lcrypto
 	LFLAGS += -ldl
 	LFLAGS += -lz
     # LFLAGS += -lzlibstatic
 
-	LIB		:= lib/linux/boost lib/linux/zlib lib/linux/openssl
+	LIB		:= lib/linux/boost lib/linux/zlib lib/linux/openssl lib/linux/libarchive
 	INCLUDE	:= include
 endif
 # LFLAGS = -lboost_filesystem-mgw8-mt-sd-x64-1_75 -lboost_system-mgw8-mt-sd-x64-1_75 -lboost_thread-mgw8-mt-sd-x64-1_75 -lboost_random-mgw8-mt-sd-x64-1_75 -lboost_json-mgw8-mt-sd-x64-1_75 -lboost_iostreams-mgw8-mt-sd-x64-1_75 -lws2_32 -lssl -lcrypto -lz 

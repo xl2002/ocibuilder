@@ -1,6 +1,8 @@
 #include "image/buildah/tar.h"
 #include <boost/thread.hpp>
 #include <boost/asio.hpp>
+#include <libarchive/archive.h>
+#include <libarchive/archive_entry.h>
 
 namespace fs = boost::filesystem;
 
@@ -11,73 +13,194 @@ namespace fs = boost::filesystem;
  * @param directory 
  * @return std::ofstream 
  */
-void createTar(const std::string& tarFilePath, const fs::path& directory) {
-    std::chrono::duration<double> duration;
-    std::chrono::high_resolution_clock::time_point start,end;
-    start=std::chrono::high_resolution_clock::now();
-    std::ofstream tarFile(tarFilePath, std::ios::binary);
+// void createTar(const std::string& tarFilePath, const fs::path& directory) {
+//     std::chrono::duration<double> duration;
+//     std::chrono::high_resolution_clock::time_point start,end;
+//     start=std::chrono::high_resolution_clock::now();
+//     std::ofstream tarFile(tarFilePath, std::ios::binary);
     
-    if (!tarFile.is_open()) {
-        throw myerror();  // 如果 tar 文件无法打开，抛出 myerror 错误
+//     if (!tarFile.is_open()) {
+//         throw myerror();  // 如果 tar 文件无法打开，抛出 myerror 错误
+//     }
+
+//     try {
+//         // 创建 Tar 对象
+//         tarpp::Tar tar(tarFile);
+//         const std::time_t FIXED_TIME = 1703337600;
+//         // 递归遍历目录，并添加文件到 tar 文件
+//         for (auto& entry : fs::recursive_directory_iterator(directory)) {
+//             try {
+//                 if (fs::is_regular_file(entry.status())) {
+//                     // 读取文件内容
+//                     std::ifstream file(entry.path().string(), std::ios::binary);
+//                     if (!file) {
+//                         throw myerror();
+//                     }
+
+//                     std::string fileContent((std::istreambuf_iterator<char>(file)),
+//                                             std::istreambuf_iterator<char>());
+//                     file.close();
+//                     // 获取相对路径（相对于顶级目录）
+//                     // std::string relativePath = entry.path().string();
+//                     // relativePath = relativePath.substr(directory.string().length() + 1);
+
+//                     // // 使用 Boost 转换路径分隔符为正斜杠 '/'
+//                     // std::replace(relativePath.begin(), relativePath.end(), '\\', '/');
+//                     fs::path relativePath = fs::relative(entry.path(), directory);
+//                     std::string relativePathStr = relativePath.generic_string(); // 自动转换分隔符为正斜杠
+
+//                     // 将文件添加到 tar 中（使用默认 TarFileOptions）
+//                     tar.add(relativePathStr, fileContent);
+//                 }
+//                 else if (fs::is_directory(entry.status())) {
+//                     // //如果是目录，加入空文件夹（以保证目录结构存在）
+//                     // std::string dirName = entry.path().string();
+//                     // dirName = dirName.substr(directory.string().length() + 1);
+
+//                     // // 使用 Boost 转换路径分隔符为正斜杠 '/'
+//                     // std::replace(dirName.begin(), dirName.end(), '\\', '/');
+//                     // 获取相对路径
+//                     fs::path relativeDirPath = fs::relative(entry.path(), directory);
+//                     std::string dirName = relativeDirPath.generic_string();
+
+//                     // 确保目录以 '/' 结尾
+//                     if (!dirName.empty() && dirName.back() != '/') {
+//                         dirName += '/';
+//                     }
+//                     // 创建 TarFileOptions 对象，指定类型为目录
+//                     tarpp::TarFileOptions dirOptions;
+//                     // 目录需要以 '/' 结尾，并且在 tar 中要以 "目录" 类型保存
+//                     // tar.add(dirName + "/", "");
+//                         // 将目录添加到 tar 中，使用指定的 TarFileOptions
+//                     tar.add(dirName, "", dirOptions.with_type(tarpp::FileType::DIRECTORY));
+//                 }
+//             }
+//             catch (const myerror& e) {
+//                 std::cerr << "Error processing file: " << entry.path().string() << " - " << e.what() << std::endl;
+//             }
+//         }
+//         tarFile.close();
+//         // 完成 tar 文件的写入
+//         tar.finalize();
+//         end=std::chrono::high_resolution_clock::now();
+//         duration=end-start;
+//         std::cout<<"createTar from "<<directory.string()<<" duration: "<<duration.count()<<" s"<<std::endl;
+//     }
+//     catch (const myerror& e) {
+//         std::cerr << "Error while creating tar: " << e.what() << std::endl;
+//         tarFile.close();
+//         throw;
+//     }
+
+//     // return tarFile;
+// }
+void add_file_to_archive(struct archive* a, const fs::path& file_path, const fs::path& base_path) {
+    struct archive_entry* entry;
+    struct stat st;
+
+    // 获取文件信息
+    if (stat(file_path.string().c_str(), &st)) {
+        std::cerr << "Error: Cannot stat file " << file_path << std::endl;
+        return;
     }
 
-    try {
-        // 创建 Tar 对象
-        tarpp::Tar tar(tarFile);
-        const std::time_t FIXED_TIME = 1703337600;
-        // 递归遍历目录，并添加文件到 tar 文件
-        for (auto& entry : fs::recursive_directory_iterator(directory)) {
-            try {
-                if (fs::is_regular_file(entry.status())) {
-                    // 读取文件内容
-                    std::ifstream file(entry.path().string(), std::ios::binary);
-                    if (!file) {
-                        throw myerror();
-                    }
+    // 创建相对路径
+    std::string relative_path = fs::relative(file_path, base_path).string();
 
-                    std::string fileContent((std::istreambuf_iterator<char>(file)),
-                                            std::istreambuf_iterator<char>());
-                    file.close();
-                    // 获取相对路径（相对于顶级目录）
-                    std::string relativePath = entry.path().string();
-                    relativePath = relativePath.substr(directory.string().length() + 1);
+    // 创建archive entry
+    entry = archive_entry_new();
+    archive_entry_set_pathname(entry, relative_path.c_str());
+    archive_entry_set_size(entry, st.st_size);
+    archive_entry_set_filetype(entry, AE_IFREG);
+    archive_entry_set_perm(entry, 0644);
 
-                    // 使用 Boost 转换路径分隔符为正斜杠 '/'
-                    std::replace(relativePath.begin(), relativePath.end(), '\\', '/');
+    // 设置时间戳
+    archive_entry_set_mtime(entry, st.st_mtime, 0);
 
-                    // 将文件添加到 tar 中（使用默认 TarFileOptions）
-                    tar.add(relativePath, fileContent);
-                }
-                else if (fs::is_directory(entry.status())) {
-                    // 如果是目录，加入空文件夹（以保证目录结构存在）
-                    std::string dirName = entry.path().string();
-                    dirName = dirName.substr(directory.string().length() + 1);
+    // 写入entry头信息
+    if (archive_write_header(a, entry) != ARCHIVE_OK) {
+        std::cerr << "Error writing header for " << relative_path << ": " 
+                  << archive_error_string(a) << std::endl;
+        archive_entry_free(entry);
+        return;
+    }
 
-                    // 使用 Boost 转换路径分隔符为正斜杠 '/'
-                    std::replace(dirName.begin(), dirName.end(), '\\', '/');
-
-                    // 目录需要以 '/' 结尾，并且在 tar 中要以 "目录" 类型保存
-                    tar.add(dirName + "/", "");
-                }
+    // 写入文件内容（仅对普通文件）
+    if (S_ISREG(st.st_mode)) {
+        char buff[8192];
+        FILE* file = fopen(file_path.string().c_str(), "rb");
+        if (file) {
+            size_t len = fread(buff, 1, sizeof(buff), file);
+            while (len > 0) {
+                archive_write_data(a, buff, len);
+                len = fread(buff, 1, sizeof(buff), file);
             }
-            catch (const myerror& e) {
-                std::cerr << "Error processing file: " << entry.path().string() << " - " << e.what() << std::endl;
+            fclose(file);
+        }
+    }
+
+    archive_entry_free(entry);
+}
+void createTar(const std::string& tarFilePath, const fs::path& directory)
+{
+    // 1. 验证目录是否存在
+    if (!fs::exists(directory)) {
+        std::cerr << "Error: Directory " << directory << " does not exist." << std::endl;
+        return;
+    }
+
+    // 2. 创建archive对象
+    struct archive* a = archive_write_new();
+    if (!a) {
+        std::cerr << "Error: Failed to create archive object." << std::endl;
+        return;
+    }
+
+    // 3. 设置tar格式
+    if (archive_write_set_format_ustar(a) != ARCHIVE_OK) {
+        std::cerr << "Error setting tar format: " << archive_error_string(a) << std::endl;
+        archive_write_free(a);
+        return;
+    }
+
+    // 4. 打开输出文件
+    if (archive_write_open_filename(a, tarFilePath.c_str()) != ARCHIVE_OK) {
+        std::cerr << "Error opening output file " << tarFilePath << ": " 
+                  << archive_error_string(a) << std::endl;
+        archive_write_free(a);
+        return;
+    }
+
+    std::cout << "Creating tar archive: " << tarFilePath << std::endl;
+    std::cout << "Adding files from directory: " << directory << std::endl;
+
+    // 5. 递归遍历目录并添加文件
+    try {
+        for (const auto& entry : fs::recursive_directory_iterator(directory)) {
+            if (fs::is_regular_file(entry.status())) {
+                add_file_to_archive(a, entry.path(), directory);
+            } else if (fs::is_directory(entry.status())) {
+                // 为目录创建条目（确保空目录也被包含）
+                struct archive_entry* dir_entry = archive_entry_new();
+                std::string relative_path = fs::relative(entry.path(), directory).string() + "/";
+                archive_entry_set_pathname(dir_entry, relative_path.c_str());
+                archive_entry_set_filetype(dir_entry, AE_IFDIR);
+                archive_entry_set_perm(dir_entry, 0755);
+                archive_write_header(a, dir_entry);
+                archive_entry_free(dir_entry);
             }
         }
-        tarFile.close();
-        // 完成 tar 文件的写入
-        tar.finalize();
-        end=std::chrono::high_resolution_clock::now();
-        duration=end-start;
-        std::cout<<"createTar from "<<directory.string()<<" duration: "<<duration.count()<<" s"<<std::endl;
-    }
-    catch (const myerror& e) {
-        std::cerr << "Error while creating tar: " << e.what() << std::endl;
-        tarFile.close();
-        throw;
+    } catch (const fs::filesystem_error& e) {
+        std::cerr << "Filesystem error: " << e.what() << std::endl;
     }
 
-    // return tarFile;
+    // 6. 关闭archive
+    if (archive_write_close(a) != ARCHIVE_OK) {
+        std::cerr << "Error closing archive: " << archive_error_string(a) << std::endl;
+    }
+    archive_write_free(a);
+
+    std::cout << "Successfully created tar archive: " << tarFilePath << std::endl;
 }
 //多线程版本
 // void createTar(const std::string& tarFilePath, const fs::path& directory) {

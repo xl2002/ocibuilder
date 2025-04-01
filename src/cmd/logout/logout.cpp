@@ -20,7 +20,7 @@ void init_logout(){
     string name{"logout"};
     string Short{"Logout of a container registry"};
     string Long{"Remove the cached username and password for the registry."};
-    string example{"buildah logout quay.io"};
+    string example{"ocibuilder logout quay.io"};
     Command* logoutCommand=new Command(name,Short,Long,example);
     string Template=UsageTemplate();
     logoutCommand->SetUsageTemplate(Template);
