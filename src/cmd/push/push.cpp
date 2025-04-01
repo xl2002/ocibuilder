@@ -70,24 +70,31 @@ void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
     // 判断使用哪种格式
     bool v1_format = false;
 
-    // 判断是否存在--format参数
-    if (args.size() == 1)
+    auto tmp = cmd.flags->actual_flags;
+    if (tmp.find("format") != tmp.end())
     {
-        src = args[0];
-    }
-    else if (args.size() == 3)
-    {
-        // 以后如果使用其他格式，可以进行进一步扩展
         v1_format = true;
-        if (args[0] == "--format") {
-            src = args[2];
-            iopts->format = args[1];
-        }
-        else {
-            src = args[0];
-            iopts->format = args[2];
-        }
+        iopts->format = tmp["format"]->value->String();
     }
+
+    // // 判断是否存在--format参数
+    // if (args.size() == 1)
+    // {
+    //     src = args[0];
+    // }
+    // else if (args.size() == 3)
+    // {
+    //     // 以后如果使用其他格式，可以进行进一步扩展
+    //     if (args[0] == "--format") {
+    //         src = args[2];
+    //         iopts->format = args[1];
+    //     }
+    //     else {
+    //         src = args[0];
+    //         iopts->format = args[2];
+    //     }
+    // }
+    src = args[0];
     auto compress = compression::Gzip;
     // 读取本地镜像的数据
     auto store = getStore(&cmd);
@@ -255,15 +262,19 @@ void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
         std::cerr << "the manifest: " + shaId2 + " is not correct!!" << std::endl;
         return;
     }
-    std::string manifestType = imagestore->image_index->mediaType;
+    std::string manifestType;
+    if (!v1_format)
+        manifestType = imagestore->image_index->mediaType;
+    else
+        manifestType = "application/vnd.oci.image.manifest.v1+json";
     std::string fisrtTwoC2 = shaId2.substr(0, 2);
     // buildah不用判断manifest是否存在，直接上传
     std::ifstream file(manifestPath, std::ios::binary | std::ios::ate);
     std::size_t total_size = file.tellg();
     file.close();
     // 上传数据
-    uploadManifest(url->host, url->port, manifestPath, 0, total_size, url->imageName, url->version, manifestType, url->projectName, v1_format);
-    if(!ifManifestExists(url->host, url->port, url->imageName,url->version, url->projectName))
+    uploadManifest(url->host, url->port, manifestPath, 0, total_size, url->imageName, url->version, manifestType, url->projectName, v1_format, store->image_store_dir);
+    if(!v1_format && !ifManifestExists(url->host, url->port, url->imageName,url->version, url->projectName))
     {
         std::cerr << "Manifest upload verification failed: " << url->imageName<< ":"<<url->version << " not found in repository" << std::endl;
         return;

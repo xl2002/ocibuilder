@@ -156,8 +156,8 @@ std::string login_and_getToken(const std::string& user, const std::string& passw
 
         // 解析主机名和端口
         std::string host = "192.168.1.102";
-        std::string port = "80";
-        std::string target = "/v2/";  // 根据需要修改路径
+        std::string port = "5000";
+        std::string target = "/v1/";  // 根据需要修改路径
         int version = 11;  // HTTP 版本，1.1
         
         // 创建 TCP 解析器
@@ -251,8 +251,8 @@ bool login(std::string user, std::string passwd, std::string token) {
 
         // 解析主机名和端口
         std::string host = "192.168.1.102";
-        std::string port = "80";
-        std::string target = "/v2/";  // 根据需要修改路径
+        std::string port = "5000";
+        std::string target = "/v1/";  // 根据需要修改路径
         int version = 11;  // HTTP 版本，1.1
         
         // 创建 TCP 解析器
@@ -717,8 +717,8 @@ void getManifest(ptree& node, const std::string& level)
 
 int main() {
     try {
-        // std::string token = login_and_getToken("admin", "Harbor12345");
-        // std::cout << login("admin", "Harbor12345", token) << std::endl;
+        std::string token = login_and_getToken("admin", "123456");
+        std::cout << login("admin", "123456", token) << std::endl;
         // ifBlobExists("123");
         // std::string uid, state;
         // initUpLoad(uid, state);
@@ -732,16 +732,16 @@ int main() {
         // uploadBlobChunk("192.168.1.102", "5000", uid, state, filePath, 0, total_size, total_size, "image3", "image3", new_uid, new_state);
         // std::string shaID = "83e39b496d70db94e0c30afb3beba1b25dc7e4f7b025fd79e79bd25490019eca";
         // finalizeUpload("192.168.1.102", "5000", new_uid, shaID, new_state, "image3", "library");
-        ptree original_data;
-        boost::property_tree::read_json("tests/manifest.json", original_data);
-        getManifest(original_data, "root");
+        // ptree original_data;
+        // boost::property_tree::read_json("tests/manifest.json", original_data);
+        // getManifest(original_data, "root");
         // std::stringstream ss;
         // boost::property_tree::write_json(ss, original_data, false);
         // std::string manifest_str = ss.str();
         // std::cout << ss.str() << std::endl;
 
-        std::ofstream output_file("tests/modified.json");
-        boost::property_tree::write_json(output_file, original_data, false);
+        // std::ofstream output_file("tests/modified.json");
+        // boost::property_tree::write_json(output_file, original_data, false);
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
     }

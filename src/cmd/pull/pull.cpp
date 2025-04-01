@@ -56,7 +56,8 @@ void pullCmd(Command& cmd, vector<string> args,pullOptions* iopts){
     std::string os="linux";
     std::string arch="amd64";
 
-    bool v1_format = false;
+    // 在拉取时直接从远端拉取原格式
+    // bool v1_format = false;
     if(tmp.find("os")!=tmp.end()){
         os=tmp["os"]->value->String();
     }
@@ -66,11 +67,11 @@ void pullCmd(Command& cmd, vector<string> args,pullOptions* iopts){
     if(tmp.find("arch")!=tmp.end()){
         arch=tmp["arch"]->value->String();
     }
-    if (tmp.find("format") != tmp.end()) {
-        v1_format = true;
-        std::cout << "true" << std::endl;
-        iopts->format = tmp["format"]->value->String();
-    }
+    // if (tmp.find("format") != tmp.end()) {
+    //     v1_format = true;
+    //     std::cout << "true" << std::endl;
+    //     iopts->format = tmp["format"]->value->String();
+    // }
 
 
     dockerClient client;
@@ -96,7 +97,7 @@ void pullCmd(Command& cmd, vector<string> args,pullOptions* iopts){
             for(size_t i=0;i<tagList.size();i++){
                 std::string digest="";
                 size_t mlen=0;
-                std::tie(digest,mlen)=pullManifestAndBlob(url->host,url->port,url->projectName,url->imageName,tagList[i],os,arch, v1_format);
+                std::tie(digest,mlen)=pullManifestAndBlob(url->host,url->port,url->projectName,url->imageName,tagList[i],os,arch);
                 if(digest == "" || mlen == 0){
                     std::cout<<"pull manifest error"<<std::endl;
                     return;
@@ -136,7 +137,7 @@ void pullCmd(Command& cmd, vector<string> args,pullOptions* iopts){
         } else{
             std::string digest="";
             size_t mlen=0;
-            std::tie(digest,mlen)=pullManifestAndBlob(url->host,url->port,url->projectName,url->imageName,url->version,os,arch,v1_format);
+            std::tie(digest,mlen)=pullManifestAndBlob(url->host,url->port,url->projectName,url->imageName,url->version,os,arch);
             if(digest == "" || mlen == 0){
                 std::cout<<"pull manifest error"<<std::endl;
                 return;

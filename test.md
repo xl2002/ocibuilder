@@ -115,6 +115,9 @@
 # 推送镜像到远端
 ./output/main.exe push 192.168.1.102:80/library/image1:latest
 ./output/main.exe push 192.168.1.102:5000/library/image1:latest
+# 指定格式
+./output/main.exe push --format v1 192.168.1.102:80/library/image0401:latest
+./output/main.exe push --format v1 192.168.1.102:5000/library/image0401:latest
 # 推送镜像到本地目录
 ./output/main.exe push image1:latest oci:D:/test/image1:imagetest:latest
 # linux系统测试样例

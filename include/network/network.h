@@ -196,7 +196,7 @@ std::pair<std::string, std::string> uploadBlobChunk(const std::string& host, con
 // void uploadManifest(const std::string &host, const std::string &port, const std::string &file_path, std::size_t start, std::size_t end, const std::string &imageName, const std::string version, const std::string &ManifestType, const std::string &projectName);
 
 void uploadManifest(const std::string& host, const std::string& port, const std::string& file_path, std::size_t start, std::size_t end, 
-    const std::string& imageName, const std::string version, const std::string& ManifestType,const std::string& projectName, bool v1);
+    const std::string& imageName, const std::string version, const std::string& ManifestType,const std::string& projectName, bool v1, const std::string& store_basic_path);
 
 void finalizeUpload(const std::string &host, const std::string &port, const std::string &uid, const std::string &shaId, const std::string &state, const std::string &imageName, const std::string &projectName);
 
@@ -217,7 +217,7 @@ bool pullConfig(const std::string &host, const std::string &port, const ::string
 
 // std::tuple<std::string,size_t> pullManifestAndBlob(const std::string &host, const std::string &port, const ::string &projectName, const ::string &imageName, const std::string version,const std::string& os,const std::string& arch);
 
-std::tuple<std::string,size_t> pullManifestAndBlob(const std::string& host, const std::string& port,const::string& projectName,const::string& imageName,const std::string version,const std::string& os,const std::string& arch, bool v1);
+std::tuple<std::string,size_t> pullManifestAndBlob(const std::string& host, const std::string& port,const::string& projectName,const::string& imageName,const std::string version,const std::string& os,const std::string& arch);
 
 void saveLoginInfo(const std::string &username, const std::string &password, const std::string &ipAddress);
 
