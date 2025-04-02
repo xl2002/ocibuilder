@@ -125,7 +125,15 @@ void imagesCmd(Command& cmd, vector<string> args,imagesOptions*iopts){
     if(args.empty()){
         images = imagestore->Images();
     }else{
-        images.push_back(*store->Image(args[0]));
+        //images.push_back(*store->Image(args[0]));
+            // 先检查是否返回nullptr
+    auto img = store->Image(args[0]);
+    if (img == nullptr) {
+        // 处理错误情况，例如抛出异常、返回错误码或记录日志
+        throw std::runtime_error("Image not found: " + args[0]);
+        // 或者: return ErrorCode::ImageNotFound;
+    }
+    images.push_back(*img);  // 确认非空后再解引用
     }
     //3. 格式化打印所有镜像信息
     formatImages(images);
