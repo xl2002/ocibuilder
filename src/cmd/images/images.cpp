@@ -21,7 +21,7 @@ void init_images(){
     string name{"images"};
     string Short{"List images in local storage"};
     string Long{"Lists locally stored images."};
-    string example{"buildah images --all\n  buildah images [imageName]\n  buildah images --format '{{.ID}} {{.Name}} {{.Size}} {{.CreatedAtRaw}}'"};
+    string example{"ocibuilder images --all\n  ocibuilder images [imageName]\n  ocibuilder images --format '{{.ID}} {{.Name}} {{.Size}} {{.CreatedAtRaw}}'"};
     Command* imagesCommand=new Command{name,Short,Long,example};
     string Template=UsageTemplate();
     imagesCommand->SetUsageTemplate(Template);

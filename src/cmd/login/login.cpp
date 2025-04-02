@@ -20,7 +20,7 @@ void init_login(){
     string name{"login"};
     string Short{"Login to a container registry"};
     string Long{"Login to a container registry on a specified server."};
-    string example{"buildah login quay.io"};
+    string example{"ocibuilder login quay.io"};
     Command* loginCommand=new Command(name,Short,Long,example);
     string Template=UsageTemplate();
     loginCommand->SetUsageTemplate(Template);
@@ -47,6 +47,19 @@ void loginCmd(Command& cmd, vector<string> args,LoginOptions* iopts){
     user usr;
     usr.username=username;
     usr.password=password;
+
+    // 实现登录命令
+    loadLoginInfo(ipAddress);
+    std::string host, port;
+    auto pos = ipAddress.find(":");
+    host = ipAddress.substr(0, pos);
+    port = ipAddress.substr(pos + 1);
+    login_and_getToken(username, password, host, port, "", "");
+    bool flag = login(host, port, username, password);
+    if (!flag) {
+        std::cerr << "fail to login!!" << "\n";
+        return;
+    }
 
     // 如果路径不存在，创建路径
     if (!boost::filesystem::exists("oci_images")) {
@@ -87,19 +100,7 @@ void loginCmd(Command& cmd, vector<string> args,LoginOptions* iopts){
     }
     std::cout << "Credentials saved to auth.json\n";
     // saveLoginInfo(username,password, ipAddress);
-    // 实现登录命令
-    loadLoginInfo(ipAddress);
-    std::string host, port;
-    auto pos = ipAddress.find(":");
-    host = ipAddress.substr(0, pos);
-    port = ipAddress.substr(pos + 1);
-    
-    login_and_getToken(username, password, host, port, "", "");
-    bool flag = login(host, port, username, password);
-    if (!flag) {
-        std::cerr << "fail to login!!" << "\n";
-        return;
-    }
+
 
     delete iopts;
 }

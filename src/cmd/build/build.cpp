@@ -201,8 +201,8 @@ Flagset* GetNameSpaceFlags(NameSpaceResults* nr){
 void init_buildcmd(){
     string build_name="build [context]";
     string build_Short="Build an image using instructions in a Containerfile";
-    string build_Long={"Builds an OCI image using instructions in one or more Containerfiles.\n\tIf no arguments are specified, Buildah will use the current working directory\n\tas the build context and look for a Containerfile. The build fails if no\n\tContainerfile nor Dockerfile is present."};
-    string build_example={"buildah build\n  buildah bud -f Containerfile.simple.\n  buildah bud --volume /home/test:/myvol:ro,Z -t imageName.\n  buildah bud -f Containerfile.simple -f Containerfile.notsosimple."};
+    string build_Long={"Builds an OCI image using instructions in one or more Containerfiles.\n\tIf no arguments are specified, ocibuilder will use the current working directory\n\tas the build context and look for a Containerfile. The build fails if no\n\tContainerfile nor Dockerfile is present."};
+    string build_example={"ocibuilder build\n  ocibuilder bud -f Containerfile.simple.\n  ocibuilder bud --volume /home/test:/myvol:ro,Z -t imageName.\n  ocibuilder bud -f Containerfile.simple -f Containerfile.notsosimple."};
     Command* build_Command=new Command(build_name,build_Short,build_Long,build_example);
     //定义使用模板
     string Template=UsageTemplate();

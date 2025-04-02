@@ -38,16 +38,16 @@ class Descriptor{
     friend void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const Descriptor& image) {
         jv=boost::json::object{
             {"mediaType",image.MediaType},
-            {"digest",image.Digests.digest},
-            {"size",image.Size}
+            {"size",image.Size},
+            {"digest",image.Digests.digest}
         };
     }
     friend Descriptor tag_invoke(boost::json::value_to_tag<Descriptor>, const boost::json::value& jv) {
         const auto& obj = jv.as_object();
         Descriptor image;
         image.MediaType=obj.at("mediaType").as_string().c_str();
-        image.Digests.digest=obj.at("digest").as_string().c_str();
         image.Size=obj.at("size").as_int64();
+        image.Digests.digest=obj.at("digest").as_string().c_str();
         return image;
     }
 };

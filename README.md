@@ -48,7 +48,7 @@ g++ -std=c++11 -Wall -Wextra -g -I include -o ./tests/sha256_test.exe ./tests/sh
 
 g++ -std=c++11 -Wall -Wextra -g -I include sha256_test.cpp -o sha256_test  -L lib -lssl -lcrypto
 
-
+g++ -std=c++11 -Wall -Wextra -g -I include -o .\tests\libarchive.exe .\tests\libarchive.cpp -L lib\windows\libarchive -larchive_static -lbcrypt
 
 g++ -std=c++11 -Wall -Wextra -g -I include -o ./tests/resolve_dns.exe ./tests/resolve_dns.cpp -L lib/windows/boost -L lib/windows/openssl  -lboost_filesystem-mgw12-mt-x64-1_75 -lboost_iostreams-mgw12-mt-x64-1_75 -lboost_system-mgw12-mt-x64-1_75 -lboost_thread-mgw12-mt-x64-1_75 -lws2_32 -lboost_json-mgw12-mt-x64-1_75 -lssl -lcrypto
 ```
@@ -88,6 +88,7 @@ buildah命令
 buildah bud -t image2:latest ./Dockerfile（在Dockerfile目录下）
 buildah images
 buildah login -u admin -p Harbor12345 --tls-verify=false 192.168.1.102:80
+buildah login -u admin -p 123456 --tls-verify=false 192.168.1.102:5000
 buildah logout 192.168.1.102:80
 buildah tag imagetest1:latest 192.168.1.102:80/library/imagetest1:latest
 buildah push --tls-verify=false 192.168.1.102:80/library/imagetest1:latest
@@ -132,15 +133,15 @@ tail -f access.log
 struct\s+\w+\s*:\s*public\s+\w+(\s*,\s*public\s+\w+)*\s*\n?\s*\{
 (struct|class)\s+\w+\s*\{
 
-  podman run -d -p 443:443 \
-  --name registryserver \
-  --restart always \
-  -v /opt/registry/data:/var/lib/registry \
-  -v /etc/docker/certs:/etc/docker/certs \
-  -e REGISTRY_HTTP_ADDR=0.0.0.0:443 \
-  -e REGISTRY_HTTP_SECRET=123456 \
-  -e REGISTRY_HTTP_TLS_CERTIFICATE=/etc/docker/certs/registry.crt \
-  -e REGISTRY_HTTP_TLS_KEY=/etc/docker/certs/registry.key \
+  podman run -d -p 443:443 
+  --name registryserver 
+  --restart always 
+  -v /opt/registry/data:/var/lib/registry 
+  -v /etc/docker/certs:/etc/docker/certs 
+  -e REGISTRY_HTTP_ADDR=0.0.0.0:443 
+  -e REGISTRY_HTTP_SECRET=123456 
+  -e REGISTRY_HTTP_TLS_CERTIFICATE=/etc/docker/certs/registry.crt 
+  -e REGISTRY_HTTP_TLS_KEY=/etc/docker/certs/registry.key 
   registry:latest
 
 buildah login --username=admin --password=Harbor12345 --tls-verify=false 192.168.1.102:80
@@ -151,10 +152,10 @@ buildah login --username=admin --password=123456 --tls-verify=false 192.168.1.10
 buildah push -f v2s2 192.168.1.102:5000/library/busybox:latest
 buildah login --username=admin --password=123456 xk.domain.com:5050
 buildah push -f v2s2 xk.domain.com:5050/library/busybox:latest
-podman run -d \
-  --name registry \
-  -p 443:443 \
-  -v /certs:/certs \
-  -v /var/lib/registry:/var/lib/registry \
-  -v /etc/registry/config.yml:/etc/docker/registry/config.yml \
+podman run -d 
+  --name registry 
+  -p 443:443 
+  -v /certs:/certs 
+  -v /var/lib/registry:/var/lib/registry 
+  -v /etc/registry/config.yml:/etc/docker/registry/config.yml 
   docker.io/library/registry:latest

@@ -18,7 +18,7 @@ void init_tag(){
     string name{"tag"};
     string Short{"Add an additional name to a local image"};
     string Long{"Adds one or more additional names to locally-stored image."};
-    string example{"buildah tag imageName firstNewName\n  buildah tag imageName firstNewName SecondNewName"};
+    string example{"ocibuilder tag imageName firstNewName\n  ocibuilder tag imageName firstNewName SecondNewName"};
     Command* tagCommand=new Command(name,Short,Long,example);
     string Template=UsageTemplate();
     tagCommand->SetUsageTemplate(Template);
