@@ -713,6 +713,12 @@ void uploadManifest(const std::string& host, const std::string& port, const std:
             std::string::size_type pos = store_basic_path.find_last_of("\\");
             if (pos != std::string::npos) {
                 new_path = store_basic_path.substr(0, pos + 1) + new_path;
+            }else
+            {
+                std::string::size_type pos = store_basic_path.find_last_of("/");
+                if (pos != std::string::npos) {
+                    new_path = store_basic_path.substr(0, pos + 1) + new_path;
+                }
             }
             std::ifstream file(new_path, std::ios::binary);
             file.seekg(start, std::ios::beg);
