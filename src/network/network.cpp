@@ -5,6 +5,7 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/asio.hpp>
 /**
  * @brief 创建新的请求
  * 
@@ -30,8 +31,36 @@ beast::http::request<beast::http::string_body> NewRequest(std::string method, st
     
     return beast::http::request<beast::http::string_body>();
 }
+
+// 用正则表达式检查是否是IP地址（IPv4）
+bool isIPAddress(const std::string& host) {
+    std::regex ipv4Pattern(R"(^(\d{1,3}\.){3}\d{1,3}$)");
+    return std::regex_match(host, ipv4Pattern);
+}
+
+// DNS解析函数：将URL解析为IP地址
+std::string resolve_dns(const std::string& host) {
+    try {
+        // 创建 Boost Asio io_service 对象
+        boost::asio::io_service io_service;
+
+        // 创建 DNS 解析器，解析给定的主机名
+        boost::asio::ip::tcp::resolver resolver(io_service);
+        boost::asio::ip::tcp::resolver::query query(host, "");
+        
+        // 获取所有匹配的 IP 地址
+        boost::asio::ip::tcp::resolver::iterator endpoints = resolver.resolve(query);
+        
+        // 返回解析到的第一个IP地址
+        return endpoints->endpoint().address().to_string();
+    } catch (const boost::system::system_error& e) {
+        std::cerr << "Error resolving DNS: " << e.what() << std::endl;
+        return "";  // 如果解析失败，返回空字符串
+    }
+}
+
 /**
- * @brief 根据路径解析请求的URL
+ * @brief 对push和pull命令根据路径解析请求的URL
  * 
  * @param path 
  * @return std::shared_ptr<URL> 
@@ -90,10 +119,10 @@ std::shared_ptr<URL> dockerClient::resolveRequestURL(std::string path){
             host = path.substr(0, colonPos);
         }
         
-        //默认端口号是80
-        std::string portStr="80";
-        if(slashPos - colonPos - 1 > 0){
-            portStr = path.substr(colonPos + 1, slashPos - colonPos - 1);
+        // 提取端口号（如果有）
+        std::string portStr = "";
+        if (colonPos != std::string::npos && slashPos - colonPos - 1 > 0) {
+            portStr = path.substr(colonPos + 1, slashPos - colonPos - 1);  // 提取端口号
         }
 
         std::size_t secondSlashAfterHost = path.find('/', slashPos + 1);
@@ -115,6 +144,39 @@ std::shared_ptr<URL> dockerClient::resolveRequestURL(std::string path){
             version=path.substr(colon+1);
         }
 
+         // 检查是否有明确的协议
+        if (hasPrefix(host, "http://")) {
+            url->scheme = "http";  // 如果是以 http:// 开头，使用 http 协议
+        } else if (hasPrefix(host, "https://")) {
+            url->scheme = "https";  // 如果是以 https:// 开头，使用 https 协议
+        } else {
+            // 如果没有明确的协议，判断是IP地址还是URL
+            if (isIPAddress(host)) {
+                url->scheme = "http";  // 如果是IP地址，使用 http 协议
+            } else {
+                // URL包含字母和点，进行DNS解析
+                url->scheme = "https";  // 否则默认为 https 协议
+            }
+        }
+
+        // 如果没有给定端口号，根据协议设置默认端口
+        if (portStr.empty()) {
+            if (url->scheme == "http") {
+                portStr = "5000";  // http 协议默认端口为 5000
+            } else if (url->scheme == "https") {
+                portStr = "443";  // https 协议默认端口为 443
+            }
+        }
+
+        // 对于URL格式的主机名，需要进行DNS解析
+        if (!isIPAddress(host)) {
+            host = resolve_dns(host);  // 使用DNS解析将主机解析为IP地址
+            if (host.empty()) {
+                std::cerr << "DNS resolution failed for host: " << host << std::endl;
+                return url;
+            }
+        }
+
         url->host=host;
         url->port=portStr;
         url->imageName=imageName;
@@ -126,6 +188,72 @@ std::shared_ptr<URL> dockerClient::resolveRequestURL(std::string path){
 
     
 }
+
+/**
+ * @brief 对login命令根据路径解析请求的URL
+ * 
+ * @param path 
+ * @return std::shared_ptr<URL> 
+ */
+std::shared_ptr<URL>resolveLoginURL(std::string path){
+    auto url = std::make_shared<URL>();
+
+    // 解析路径，格式为 host:port
+    std::size_t colonPos = path.find(':');
+    std::size_t slashPos = path.find('/');  // 即使没有/也可能使用此行去找出斜杠
+    std::string host;
+
+    // 如果路径包含冒号，则表示可能包含端口
+    if (colonPos != std::string::npos) {
+        host = path.substr(0, colonPos);  // 提取主机名
+    } else {
+        host = path;  // 如果没有冒号，直接将路径当作主机名
+    }
+
+    // 提取端口号，如果存在冒号
+    std::string portStr = "";
+    if (colonPos != std::string::npos) {
+        portStr = path.substr(colonPos + 1);  // 提取端口号
+    }
+
+    // 检查是否有明确的协议（http:// 或 https://）
+    if (hasPrefix(host, "http://")) {
+        url->scheme = "http";  // 如果是以 http:// 开头，使用 http 协议
+    } else if (hasPrefix(host, "https://")) {
+        url->scheme = "https";  // 如果是以 https:// 开头，使用 https 协议
+    } else {
+        // 如果没有明确的协议，判断是IP地址还是URL
+        if (isIPAddress(host)) {
+            url->scheme = "http";  // 如果是IP地址，使用 http 协议
+        } else {
+            url->scheme = "https";  // 否则默认为 https 协议
+        }
+    }
+
+    // 如果没有给定端口号，根据协议设置默认端口
+    if (portStr.empty()) {
+        if (url->scheme == "http") {
+            portStr = "5000";  // http 协议默认端口为 5000
+        } else if (url->scheme == "https") {
+            portStr = "443";  // https 协议默认端口为 443
+        }
+    }
+
+    // 对于URL格式的主机名，需要进行DNS解析
+    if (!isIPAddress(host)) {
+        host = resolve_dns(host);  // 使用DNS解析将主机解析为IP地址
+        if (host.empty()) {
+            std::cerr << "DNS resolution failed for host: " << host << std::endl;
+            return url;
+        }
+    }
+
+    url->host = host;
+    url->port = portStr;
+
+    return url;
+}
+
 /**
  * @brief 获得认证令牌，获得的令牌直接存储到dockerClient中
  * 
