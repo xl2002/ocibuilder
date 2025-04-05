@@ -27,7 +27,7 @@ ifeq ($(OS),Windows_NT)
     LFLAGS += -lcrypto
 	LFLAGS += -lbcrypt
     LFLAGS += -lz
-	LIB		:= lib/windows/boost lib/windows/zlib lib/windows/openssl lib/windows/libarchive
+	LIB		:= lib/windows/boost lib/windows/zlib2 lib/windows/openssl lib/windows/libarchive
 	INCLUDE	:= include
 else
     # 如果是在 Linux 上，设置对应的链接库
@@ -47,7 +47,7 @@ else
 	LFLAGS += -lz
     # LFLAGS += -lzlibstatic
 
-	LIB		:= lib/linux/boost lib/linux/zlib lib/linux/openssl lib/linux/libarchive
+	LIB		:= lib/linux/boost lib/linux/zlib2 lib/linux/openssl lib/linux/libarchive
 	INCLUDE	:= include
 endif
 # LFLAGS = -lboost_filesystem-mgw8-mt-sd-x64-1_75 -lboost_system-mgw8-mt-sd-x64-1_75 -lboost_thread-mgw8-mt-sd-x64-1_75 -lboost_random-mgw8-mt-sd-x64-1_75 -lboost_json-mgw8-mt-sd-x64-1_75 -lboost_iostreams-mgw8-mt-sd-x64-1_75 -lws2_32 -lssl -lcrypto -lz 
