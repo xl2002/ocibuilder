@@ -1,6 +1,7 @@
 #include "image/types/internal/types.h"
 #include <boost/iostreams/filtering_stream.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
+#include <boost/iostreams/copy.hpp>
 #include <sstream>
 #include <iostream>
 #include <string>
@@ -14,88 +15,73 @@ namespace io = boost::iostreams;
  * @param inputStream 输入流，提供原始数据
  * @param outputStream 输出流，接收压缩后的数据
  */
-void gzip_compress(std::istream& inputStream, std::ostream& outputStream) {
-    try {
-        // std::chrono::duration<double> duration;
-        // std::chrono::high_resolution_clock::time_point start,end;
-        // start=std::chrono::high_resolution_clock::now();
-        // 使用 gzip 压缩过滤器
-        io::filtering_stream<io::output> filterStream;
-        filterStream.push(io::gzip_compressor());
-        filterStream.push(outputStream);
-
-        // 将输入流数据写入过滤流，完成压缩
-        filterStream << inputStream.rdbuf();
-        filterStream.reset(); // 确保所有数据被刷新到输出流
-
-        // end=std::chrono::high_resolution_clock::now();
-        // duration=end-start;
-        // std::cout << "Compression time: " << duration.count() << " s" << std::endl;
-        // std::cout << "Compression successful." << std::endl;
-    } catch (const std::exception& e) {
-        std::cerr << "Error during compression: " << e.what() << std::endl;
-    }
-}
-// void compress_block(const CompressionBlock& block, std::ostream& outputStream) {
+// void gzip_compress(std::istream& inputStream, std::ostream& outputStream) {
 //     try {
+//         // std::chrono::duration<double> duration;
+//         // std::chrono::high_resolution_clock::time_point start,end;
+//         // start=std::chrono::high_resolution_clock::now();
+//         // 使用 gzip 压缩过滤器
 //         io::filtering_stream<io::output> filterStream;
 //         filterStream.push(io::gzip_compressor());
 //         filterStream.push(outputStream);
 
-//         // 将数据写入压缩流
-//         filterStream.write(block.data.data(), block.size);
-//         filterStream.flush(); // 确保数据被写入到输出流
+//         // 将输入流数据写入过滤流，完成压缩
+//         filterStream << inputStream.rdbuf();
+//         filterStream.reset(); // 确保所有数据被刷新到输出流
 
-        
-//     } catch (const std::exception& e) {
-//         std::cerr << "Error during block compression: " << e.what() << std::endl;
-//     }
-// }
-
-// void gzip_compress(std::istream& inputStream, std::ostream& outputStream) {
-//     try {
-//         std::chrono::duration<double> duration;
-//         std::chrono::high_resolution_clock::time_point start,end;
-//         start=std::chrono::high_resolution_clock::now();
-
-//         // 分块大小设置为 1MB
-//         const size_t block_size = 1024 * 1024;
-
-//         // 创建 Boost 的线程池
-//         boost::asio::thread_pool pool;
-
-//         // 计算总的输入数据块
-//         std::vector<CompressionBlock> blocks;
-
-//         // 读取输入流并分块
-//         char buffer[block_size];
-//         while (inputStream.read(buffer, block_size) || inputStream.gcount() > 0) {
-//             size_t bytes_read = inputStream.gcount();
-//             CompressionBlock block;
-//             block.data.resize(bytes_read);
-//             std::copy(buffer, buffer + bytes_read, block.data.begin());
-//             block.size = bytes_read;
-
-//             blocks.push_back(std::move(block));
-//         }
-
-//         // 为每个数据块创建线程进行压缩
-//         for (const auto& block : blocks) {
-//             boost::asio::post(pool, [&]() {
-//                 compress_block(block, outputStream);
-//             });
-//         }
-
-//         // 等待所有任务完成
-//         pool.join();
-
-//         end=std::chrono::high_resolution_clock::now();
-//         duration=end-start;
-//         std::cout << "Compression time: " << duration.count() << " s" << std::endl;
+//         // end=std::chrono::high_resolution_clock::now();
+//         // duration=end-start;
+//         // std::cout << "Compression time: " << duration.count() << " s" << std::endl;
+//         // std::cout << "Compression successful." << std::endl;
 //     } catch (const std::exception& e) {
 //         std::cerr << "Error during compression: " << e.what() << std::endl;
 //     }
 // }
+// void gzip_compress(std::istream& inputStream, std::ostream& outputStream) {
+//     try {
+//         // 设置 gzip 参数，保持稳定输出（符合 Docker 规范）
+//         io::gzip_params params;
+//         params.level = io::gzip::best_compression; // 可选：最高压缩率
+//         // params.level = io::gzip::default_compression; // 可选：默认压缩率
+//         params.mtime = 0;                          // 固定时间戳（1970-01-01）
+//         params.file_name = "";                     // 不包含文件名
+//         // params.os_code = 255;                      // 统一 OS（255 = unknown）
+
+//         io::filtering_stream<io::output> filterStream;
+//         filterStream.push(io::gzip_compressor(params));
+//         filterStream.push(outputStream);
+
+//         filterStream << inputStream.rdbuf();
+//         filterStream.reset(); // 刷新并关闭压缩器，写入结束
+
+//     } catch (const std::exception& e) {
+//         std::cerr << "Error during compression: " << e.what() << std::endl;
+//     }
+// }
+//与buildah和docker一致
+void gzip_compress(std::istream& inputStream, std::ostream& outputStream) {
+    try {
+        // 设置 gzip 参数，使输出具有指定的时间戳（2288912640）
+        io::gzip_params params;
+        // params.level = io::gzip::best_compression; // 可选：最高压缩率
+        params.level = io::gzip::default_compression;  // 设置默认压缩级别
+        // params.level = io::gzip::best_speed;     // 设置快速压缩级别
+        params.mtime = 2288912640;                     // 使用buildah默认的时间戳（2288912640）2042-07-14 01:04:00 (UTC)
+        params.file_name = "";                         // 清除原始文件名字段，避免差异
+
+        // 使用自定义的gzip压缩器
+        io::filtering_stream<io::output> filterStream;
+        filterStream.push(io::gzip_compressor(params));
+        filterStream.push(outputStream);
+
+        // 将输入流数据写入过滤流，完成压缩
+        filterStream << inputStream.rdbuf();
+        filterStream.reset(); // 刷新并关闭压缩器，确保写完所有数据
+
+    } catch (const std::exception& e) {
+        std::cerr << "Error during compression: " << e.what() << std::endl;
+    }
+}
 /**
  * @brief 将输入流中的 gzip 数据解压缩并输出到输出流
  * @param inputStream 输入流，提供 gzip 格式数据

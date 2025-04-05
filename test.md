@@ -4,7 +4,7 @@
 
 ```bash
 # 测试镜像生成
-./output/main.exe build --tag image1:latest .
+./output/main.exe build --tag image:latest .
 ./output/main.exe build --annotation "version=3.0" --annotation "author=NWPU" --arch amd64 --os linux --file Dockerfile --tag busybox-image:latest .
 ./output/main.exe build --annotation "version=3.0" --annotation "author=NWPU" --arch amd64 --os linux --file Dockerfile12 --tag busybox-image:latest ./dockerFiledir
 ./output/main.exe build --annotation "version=1.0" --annotation "author=NWPU" --arch x86_64 --os windows7 --file Dockerfile.prod --tag busybox-image:latest .
