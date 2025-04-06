@@ -120,7 +120,7 @@ def compare_gzip_headers(file1, file2):
 
 # 测试读取 OCI/Docker 镜像层 tar.gz
 dirpath="./oci_images/oci_registry/blobs/sha256/"
-tar_gz_file1 = "52714d37428a60069772b38d67b528a0caecd3fe48d6974ca6b2477be17eb9c4"  # 你的镜像层路径
+tar_gz_file1 = "46e63dc23e391afc2f22255d63e73620b0c533616e43ffb7726626194068f981"  # 你的镜像层路径
 tar_gz_file2 = "48481cb17f9a96b4a2a6d64d765fe2962e2acbd6461d48c7a98f426882f253c2"
 # read_tar_metadata(os.path.join(dirpath, tar_gz_file1))
 # compare_headers(os.path.join(dirpath, tar_gz_file1),os.path.join(dirpath, tar_gz_file2))
