@@ -64,7 +64,7 @@ void gzip_compress(std::istream& inputStream, std::ostream& outputStream) {
     try {
         // 设置 gzip 参数，使输出具有指定的时间戳（2288912640）
         io::gzip_params params;
-        // params.level = io::gzip::best_speed; // 可选：最高压缩率
+        // params.level = io::gzip::best_compression; // 可选：最高压缩率
         params.level = io::gzip::default_compression;  // 设置默认压缩级别
         // params.level = io::gzip::best_speed;     // 设置快速压缩级别
         params.mtime = 2288912640;                     // 使用buildah默认的时间戳（2288912640）2042-07-14 01:04:00 (UTC)
@@ -83,6 +83,7 @@ void gzip_compress(std::istream& inputStream, std::ostream& outputStream) {
         std::cerr << "Error during compression: " << e.what() << std::endl;
     }
 }
+//直接利用zlib库压缩
 // void gzip_compress(std::istream& inputStream, std::ostream& outputStream) {
 //     // const int level = Z_BEST_SPEED;          // 对应 level 9
 //     const int level = Z_DEFAULT_COMPRESSION;          // 对应 level 9

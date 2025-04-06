@@ -202,7 +202,7 @@ void createTar(const std::string& tarFilePath, const fs::path& directory) {
         return;
     }
 
-    // 设定为 PAX 格式（兼容 OCI/Docker）
+    // 设定为 ustar 格式（兼容 OCI/Docker）
     // archive_write_set_format_pax_restricted(a);
     archive_write_set_format_ustar(a);
     archive_write_set_bytes_per_block(a, 512); // Docker 规范: 512 字节块
