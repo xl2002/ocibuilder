@@ -188,6 +188,7 @@ std::shared_ptr<ImageSource_interface> containerImageRef::NewImageSource(std::sh
                 try{
                     boost::filesystem::rename(src_path / layer_path, src_path / target_path);
                 }catch(const boost::filesystem::filesystem_error& e){
+                    std::cerr << "cannot renaming file: " << e.what() << std::endl;
                     Copy_directory(src_path / layer_path, src_path / target_path);
                     // 删除原文件
                     boost::filesystem::remove_all(src_path / layer_path);

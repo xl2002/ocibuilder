@@ -626,10 +626,10 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,bool,std::string> Ex
             return total + layer.Size; 
         }
     );
-    auto efficiency=imagesize/duration.count()/1024/1024;
-    std::cout<<"build time "<<duration.count()<<" s"<<std::endl;
-    std::cout<<"image size "<<imagesize<<" B"<<std::endl;
-    std::cout<<boost::str(boost::format("image %s efficiency %.4f MB/s") % imageID.substr(0,12) % efficiency)<<std::endl;
+    // auto efficiency=imagesize/duration.count()/1024/1024;
+    // std::cout<<"build time "<<duration.count()<<" s"<<std::endl;
+    // std::cout<<"image size "<<imagesize<<" B"<<std::endl;
+    // std::cout<<boost::str(boost::format("image %s efficiency %.4f MB/s") % imageID.substr(0,12) % efficiency)<<std::endl;
     
     if (removeIntermediateCtrs && stage.Node->Children.size() > 0) {
         std::lock_guard<std::mutex> lock(this->stagesLock);
