@@ -21,8 +21,8 @@ end=$(date +%s)
 # Calculate elapsed time in seconds
 elapsed=$((end - start))
 
-# Image size in bytes (428 + 562 + 49990647)
-ImageSize=$((428 + 562 + 49990647))
+# Image size in bytes (428 + 562 + 29354770)
+ImageSize=$((428 + 562 + 29354770))
 
 # Convert image size to MB
 finalSizeMB=$(echo "scale=3; $ImageSize / 1048576" | bc)
