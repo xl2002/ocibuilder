@@ -1,3 +1,10 @@
+/**
+ * @file file.cpp
+ * @brief 文件操作工具函数实现
+ * @author 作者名
+ * @date 2025-04-09
+ */
+
 #include "utils/common/go/file.h"
 #include "utils/common/error.h"
 #include <boost/filesystem.hpp>
@@ -96,7 +103,13 @@ std::string getDirectory(const std::string& path) {
     }
     return path.substr(0, pos);
 }
-void  WriteFile(const std::string& iidfile, const std::string& imageID) {
+/**
+ * @brief 将内容写入指定文件
+ * @param iidfile 要写入的文件路径
+ * @param imageID 要写入的内容
+ * @throws std::runtime_error 如果文件打开失败
+ */
+void WriteFile(const std::string& iidfile, const std::string& imageID) {
     try {
         // 创建文件并写入内容
         std::ofstream file(iidfile, std::ios::out | std::ios::trunc);
@@ -116,6 +129,12 @@ void  WriteFile(const std::string& iidfile, const std::string& imageID) {
         // return std::make_tuple(imageID, ref, std::current_exception());
     }
 }
+/**
+ * @brief 检查目录是否可写
+ * @param dirPath 要检查的目录路径
+ * @return true 目录存在且可写
+ * @return false 目录不存在或不可写
+ */
 bool isDirectoryWritable(const fs::path& dirPath) {
     try {
         if (!fs::exists(dirPath)) {
@@ -141,6 +160,10 @@ bool isDirectoryWritable(const fs::path& dirPath) {
         return false;
     }
 }
+/**
+ * @brief 修改目录权限使其可写
+ * @param dirPath 要修改的目录路径
+ */
 void makeDirectoryWritable(const fs::path& dirPath) {
     try {
         if (!fs::exists(dirPath)) {
@@ -295,11 +318,22 @@ int64_t Copy_directory(const fs::path& sourcedir, const fs::path& destination) {
 
     return total_size;
 }
+/**
+ * @brief 检查字符是否为路径分隔符
+ * @param c 要检查的字符
+ * @return true 字符是路径分隔符
+ * @return false 字符不是路径分隔符
+ */
 bool IsPathSeparator(char c) {
     return c == Separator;
 }
 
 // 清理路径，确保路径规范化
+/**
+ * @brief 清理并规范化路径字符串
+ * @param path 要清理的原始路径
+ * @return 规范化后的路径字符串
+ */
 string Clean(const string& path) {
     string originalPath = path;
     string cleanPath = path;
@@ -373,6 +407,11 @@ string Clean(const string& path) {
 }
 
 // join 函数实现
+/**
+ * @brief 连接多个路径元素
+ * @param elem 要连接的路径元素向量
+ * @return 连接并规范化后的路径字符串
+ */
 string join(const vector<string>& elem) {
     // 遍历元素，找到第一个非空的元素作为起始点
     auto it = find_if(elem.begin(), elem.end(), [](const string& e) { return !e.empty(); });
@@ -391,6 +430,13 @@ string join(const vector<string>& elem) {
     
     return "";
 }
+/**
+ * @brief 检查目录是否为空
+ * @param dirPath 要检查的目录路径
+ * @return true 目录为空
+ * @return false 目录不为空或检查失败
+ * @throws std::runtime_error 如果路径不存在或不是目录
+ */
 bool isDirectoryEmpty(const boost::filesystem::path& dirPath) {
     try {
         if (boost::filesystem::exists(dirPath) && boost::filesystem::is_directory(dirPath)) {
@@ -403,6 +449,13 @@ bool isDirectoryEmpty(const boost::filesystem::path& dirPath) {
         return false; // 如果出错，返回 false
     }
 }
+/**
+ * @brief 创建临时目录
+ * @param dir 临时目录的父目录
+ * @param pattern 临时目录名前缀
+ * @return 创建的临时目录完整路径
+ * @throws boost::filesystem::filesystem_error 如果目录创建失败
+ */
 std::string MkdirTemp(std::string dir, std::string pattern) {
     // 确保 dir 路径以 '/' 或 '\' 结尾
     if (!dir.empty() && dir.back() != '/' && dir.back() != '\\') {
@@ -446,6 +499,12 @@ std::string MkdirTemp(std::string dir, std::string pattern) {
 }
 namespace fs = boost::filesystem;
 
+/**
+ * @brief 复制单个文件
+ * @param src 源文件路径
+ * @param dest 目标文件路径
+ * @throws std::runtime_error 如果源文件不存在或不是普通文件
+ */
 void Copy_file(const fs::path& src, const fs::path& dest) {
     try {
         // 检查源文件是否存在
@@ -468,6 +527,12 @@ void Copy_file(const fs::path& src, const fs::path& dest) {
     }
 }
 
+/**
+ * @brief 检查路径是否为绝对路径
+ * @param path 要检查的路径字符串
+ * @return true 路径是绝对路径
+ * @return false 路径是相对路径
+ */
 bool isPathabsolute(const std::string& path) {
     return path[0] == '/' || path[1] == ':';
 }

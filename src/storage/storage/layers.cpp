@@ -2,6 +2,11 @@
 #include "utils/common/json.h"
 #include <boost/filesystem.hpp>
 using namespace boost::json;
+/**
+ * @brief 对字符串向量进行去重处理
+ * @param names 包含可能重复字符串的输入向量
+ * @return std::vector<std::string> 去重后的字符串向量
+ */
 std::vector<std::string> dedupeStrings(const std::vector<std::string>& names) {
     std::unordered_set<std::string> seen;  // 用于记录已出现的元素
     std::vector<std::string> deduped;  // 用于保存去重后的结果
@@ -16,6 +21,11 @@ std::vector<std::string> dedupeStrings(const std::vector<std::string>& names) {
     return deduped;  // 返回去重后的列表
 }
 // 转换函数
+/**
+ * @brief 将LinuxIDMapping向量转换为IDMap向量
+ * @param linuxIDMappings 包含Linux ID映射的输入向量
+ * @return std::vector<IDMap> 转换后的IDMap向量
+ */
 std::vector<IDMap> ConvertToIDMap(const std::vector<LinuxIDMapping>& linuxIDMappings) {
     std::vector<IDMap> idMaps;
     idMaps.reserve(linuxIDMappings.size());  // 为减少扩容，提前分配空间
@@ -31,6 +41,11 @@ std::vector<IDMap> ConvertToIDMap(const std::vector<LinuxIDMapping>& linuxIDMapp
 
     return idMaps;
 }
+/**
+ * @brief 深度拷贝IDMap向量
+ * @param idmap 要拷贝的IDMap向量
+ * @return std::vector<IDMap> 拷贝后的新IDMap向量
+ */
 std::vector<IDMap> copyIDMap(const std::vector<IDMap>& idmap) {
     std::vector<IDMap> m;
     if (!idmap.empty()) {
@@ -39,6 +54,11 @@ std::vector<IDMap> copyIDMap(const std::vector<IDMap>& idmap) {
     }
     return m;
 }
+/**
+ * @brief 拷贝字符串到可选字符串的映射
+ * @param m 要拷贝的输入映射
+ * @return std::map<std::string, boost::optional<std::string>> 拷贝后的新映射
+ */
 std::map<std::string, boost::optional<std::string>> copyStringInterfaceMap(const std::map<std::string, boost::optional<std::string>>& m) {
     std::map<std::string, boost::optional<std::string>> ret;
     for (const auto& pair : m) {
@@ -203,6 +223,13 @@ std::tuple<std::shared_ptr<Layer>,int64_t> layerStore::create(
         throw myerror("Error: " + std::string(e.what()));
     }
 }
+/**
+ * @brief 从Layer对象中移除指定名称
+ * @param layer 要操作的Layer共享指针
+ * @param name 要移除的名称
+ * @param tempNames 临时名称映射表
+ * @throws myerror 当layer为nullptr时抛出
+ */
 void removeName(const std::shared_ptr<Layer>& layer, const std::string& name, 
                 std::map<std::string, std::shared_ptr<Layer>>& tempNames) {
     if (!layer) {
@@ -229,6 +256,12 @@ void removeName(const std::shared_ptr<Layer>& layer, const std::string& name,
     }
 }
 // 从 JSON 字符串解析成 std::vector<std::shared_ptr<Layer>>
+/**
+ * @brief 从JSON字符串解析Layer对象向量
+ * @param jsonData 包含Layer数据的JSON字符串
+ * @return std::vector<std::shared_ptr<Layer>> 解析后的Layer对象向量
+ * @throws std::exception 当JSON解析失败时抛出
+ */
 std::vector<std::shared_ptr<Layer>> parseLayersFromJson(const std::string& jsonData) {
     std::vector<std::shared_ptr<Layer>> Layers;
 

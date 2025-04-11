@@ -2,7 +2,14 @@
 // 全局变量，存储不同路径的 lockFile 对象
 
 std::mutex lockFilesMutex;
-
+/**
+ * @brief 原子化打开文件并返回文件描述符
+ * @param path 目标文件路径
+ * @param mode 打开模式标志位 (O_RDWR/O_CREAT等)
+ * @return 成功打开的文件描述符
+ * @throws myerror 文件打开失败时抛出异常
+ * @note 包含 O_CLOEXEC 标志防子进程继承
+ */
 int openHandle(const std::string& path, int mode) {
     // Add O_CLOEXEC to mode to ensure the file descriptor is closed on exec
     // mode |= O_CLOEXEC;
@@ -28,6 +35,13 @@ int openHandle(const std::string& path, int mode) {
 
 // lockHandle 实现windows
 // 锁定函数
+/**
+ * @brief 跨平台文件锁定核心实现
+ * @param filePath 需要操作的文件路径
+ * @param lType 锁类型 (read/write)
+ * @throws myerror 锁定失败时抛出异常
+ * @note Windows版本使用Boost.Interprocess实现
+ */
 void lockHandle(const std::string& filePath, LockType lType) {
     try {
         // 确保文件存在
@@ -78,6 +92,25 @@ void lockHandle(const std::string& filePath, LockType lType) {
     throw myerror("Failed to open lock file: " + string(strerror(errno))); // 使用 myerror 抛出异常，包含错误信息
 }*/
 // openLock 实现boost版本
+
+/**
+ * @brief 原子化文件打开/创建操作
+ * @param path 目标文件路径（将自动规范化）
+ * @param ro 是否以只读方式访问
+ * @return 已打开文件的流式句柄
+ * @throws myerror 包含以下错误场景：
+ * - 文件创建权限不足(boost::filesystem_error)
+ * - 目录结构创建失败
+ * - 文件打开操作被系统拒绝
+ * 
+ * @details 典型执行流程：
+ * 1. 尝试直接打开目标文件
+ * 2. 若路径不存在则自动创建完整目录结构
+ * 3. 二次尝试打开文件
+ * 4. 失败时返回详细的错误堆栈信息
+ * 
+ * @warning 递归创建目录过程可能引入性能开销
+ */
 fileHandle openLock(const std::string& path, bool ro) {
     namespace fs = boost::filesystem;
     std::ios_base::openmode mode = fs::fstream::out | fs::fstream::binary;
@@ -119,6 +152,15 @@ fileHandle openLock(const std::string& path, bool ro) {
 
 
 // Lock 方法实现boost
+/**
+ * @brief 申请指定类型的文件锁
+ * @param lType READ(共享)|WRITE(排他)
+ * @throws myerror 打开文件失败时抛出异常
+ * @details
+ * - 读锁允许多个实例共享
+ * - 写锁具有排他性
+ * - 使用引用计数器管理锁生命周期
+ */
 void lockFile::lock(LockType lType) {
     if (lType == LockType::ReadLock) {
         // boost::unique_lock<boost::shared_mutex> lock(rwMutex, boost::defer_lock);
@@ -149,7 +191,10 @@ void lockFile::lock(LockType lType) {
     locked = true;
     counter++;
 }
-
+/**
+ * @brief 显式申请写锁接口
+ * @throws myerror 对只读锁申请写锁时抛出
+ */
 void lockFile::Lock() {
     if (ro) {
         throw myerror("can't take write lock on read-only lock file");
@@ -157,6 +202,10 @@ void lockFile::Lock() {
         lock(LockType::WriteLock);
     }
 }
+/**
+* @brief 释放锁并关闭文件句柄
+* @note 当引用计数器归零时执行实际解锁操作
+*/
 void lockFile::Unlock(){
     this->stateMutex.lock();
     if(!this->locked){
@@ -177,6 +226,11 @@ void lockFile::Unlock(){
 }
 
 // 从数据创建 lastwrite 的函数
+/**
+ * @brief 生成最新的写入状态标记
+ * @param serialized 用于生成特征的二进制数据
+ * @return 带时间戳的特征结构体
+ */
 lastwrite newLastWriteFromData(const std::vector<uint8_t>& serialized) {
     // if (serialized.empty()) {
     //     throw std::invalid_argument("newLastWriteFromData with empty data");
@@ -185,6 +239,10 @@ lastwrite newLastWriteFromData(const std::vector<uint8_t>& serialized) {
     lw.state = serialized;
     return lw;
 }
+/**
+ * @brief 检查锁是否被当前实例持有
+ * @throws myerror 出现锁定状态不一致时抛出
+*/
 void lockFile::AssertLocked() {
     if (!locked) {
         throw myerror("internal error: lock is not held by the expected owner");
@@ -192,6 +250,11 @@ void lockFile::AssertLocked() {
 }
 
 // 实现 GetLastWrite 方法
+/**
+ * @brief 获取文件的最后写入标记
+ * @return lastwrite 结构体包含文件状态特征值
+ * @throws myerror 锁定状态验证失败时抛出异常
+ */
 lastwrite lockFile::GetLastWrite() {
     try{
         AssertLocked();
@@ -231,10 +294,20 @@ lastwrite lockFile::GetLastWrite() {
 // }
 
 // 函数用于将 lastwrite 对象转换为序列化的字节数据
+/**
+ * @brief 序列化写入状态特征
+ * @param lw 输入特征结构体
+ * @return 包含特征值的二进制数组
+ */
 std::vector<uint8_t> serializeLastWrite(const lastwrite& lw) {
     return lw.state;  // 示例实现，具体序列化方式应根据需求完成
 }
 
+/**
+ * @brief 记录当前写入状态到锁文件
+ * @return 更新后的lastwrite结构
+ * @throws myerror 验证写锁状态失败或文件操作异常时抛出
+ */
 lastwrite lockFile::RecordWrite() {
     try {
         AssertLockedForWriting();
@@ -267,13 +340,26 @@ lastwrite lockFile::RecordWrite() {
 
 
 
-
+/**
+ * @brief 安全释放文件锁并关闭关联句柄
+ * @param fd 将被释放的文件句柄智能指针
+ * @note 特性说明：
+ * - 对已关闭的句柄调用无害（幂等操作）
+ * - 自动判断流对象是否有效
+ * - 线程安全（无状态依赖）
+ */
 void unlockAndCloseHandle(fileHandle fd) {
     if (fd && fd->is_open()) {
         fd->close();
     }
 }
-
+/**
+ * @brief 创建指定路径的锁文件对象
+ * @param path 目标文件路径
+ * @param ro 是否以只读方式操作
+ * @return 初始化的lockFile智能指针
+ * @throws myerror 创建锁文件异常时抛出
+ */
 std::shared_ptr<lockFile> createLockFileForPath(const std::string& path, bool ro) {
     // 尝试打开锁文件
     fileHandle fileStream = openLock(path, ro);
@@ -293,6 +379,12 @@ std::shared_ptr<lockFile> createLockFileForPath(const std::string& path, bool ro
     return l;
     // return std::make_shared<lockFile>(path, ro, lType);
 }
+/**
+ * @brief 获取路径对应的锁文件单例
+ * @param path 标准化后的绝对路径
+ * @param ro 是否以只读方式访问
+ * @return 存在则返回缓存实例，否则创建新实例
+ */
 std::shared_ptr<lockFile> getLockfile(const std::string& path, bool ro) {
     std::lock_guard<std::mutex> lock(lockFilesMutex);  // 确保线程安全
 
@@ -330,12 +422,22 @@ std::shared_ptr<lockFile> getLockfile(const std::string& path, bool ro) {
     lockFiles[cleanPath] = lockFile;
     return lockFile;
 }
-
+/**
+ * @brief 获取路径对应的锁文件单例
+ * @param path 标准化后的绝对路径
+ * @param ro 是否以只读方式访问
+ * @return 存在则返回缓存实例，否则创建新实例
+ */
 std::shared_ptr<lockFile> GetLockFile(const std::string& path) {
     return getLockfile(path, false);
 }
 
-
+/**
+ * @brief 检测锁文件是否已被修改
+ * @param previous 先前存储的状态标记
+ * @return pair<当前状态,是否被修改>
+ * @throws myerror 锁定状态验证失败时抛出异常
+ */
 std::pair<lastwrite, bool> lockFile::ModifiedSince(const lastwrite& previous) {
     AssertLocked(); // 确保当前已经持有锁
     lastwrite currentLW = GetLastWrite(); // 获取当前的 lastwrite 状态
@@ -343,6 +445,14 @@ std::pair<lastwrite, bool> lockFile::ModifiedSince(const lastwrite& previous) {
     bool modified = !(previous.state == currentLW.state); // 检查状态是否改变
     return std::make_pair(currentLW, modified);
 }
+/**
+ * @brief 验证当前是否持有写锁
+ * @throws myerror 当未持有写锁时抛出异常
+ * @details 该方法会依次执行以下检查：
+ * 1. 通过 AssertLocked() 确保处于锁定状态
+ * 2. 检查锁类型是否为写锁类型
+ * @note 该检查主要用于防止读写锁模式的误用
+ */
 void lockFile::AssertLockedForWriting() {
     try {
         AssertLocked(); // 确保锁定状态

@@ -1,7 +1,19 @@
+/**
+ * @file regexp.cpp
+ * @brief 正则表达式工具实现文件
+ * 
+ * 提供正则表达式的编译、匹配、查找、替换等功能的实现
+ */
 #include "utils/common/regexp.h"
 
 
 // const bool precompile=false;
+
+/**
+ * @brief 创建延迟编译的正则表达式对象
+ * @param val 正则表达式字符串
+ * @return std::shared_ptr<Regexp> 共享指针指向的正则表达式对象
+ */
 std::shared_ptr<Regexp> Delayed(const std::string& val) {
     auto re = std::make_shared<Regexp>(val);
     re->val = val;
@@ -11,10 +23,18 @@ std::shared_ptr<Regexp> Delayed(const std::string& val) {
     return re;
 }
 
+/**
+ * @brief 强制编译正则表达式
+ * @throws std::regex_error 如果正则表达式无效
+ */
 void Regexp::MustCompile(){
     auto reg=std::make_shared<std::regex>(val);
     regexp=reg;
 }
+/**
+ * @brief 编译正则表达式(惰性编译)
+ * @details 如果precompile为false，则延迟到第一次使用时编译
+ */
 void Regexp::compile() {
     if (precompile) {
         return;
@@ -23,6 +43,14 @@ void Regexp::compile() {
         this->MustCompile();
     });
 }
+/**
+ * @brief 扩展匹配结果到目标字符串
+ * @param dst 目标字符串
+ * @param tmpl 模板字符串
+ * @param src 源字符串
+ * @param match 匹配位置信息
+ * @return std::string 扩展后的字符串
+ */
 std::string Regexp::Expand(const std::string& dst, const std::string& tmpl, const std::string& src, const std::vector<int>& match) {
     compile();
 

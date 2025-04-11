@@ -1,6 +1,12 @@
 #include "storage/storage/overlay.h"
 
 // parseOptions函数定义
+/**
+ * @brief 解析overlay挂载选项字符串向量
+ * @param options 输入的选项字符串向量
+ * @return std::shared_ptr<OverlayOptions> 解析后的选项对象
+ * @note 如果输入为空向量，将返回默认初始化的选项对象
+ */
 std::shared_ptr<OverlayOptions> parseOptions(const std::vector<std::string>& options) {
     auto o = std::make_shared<OverlayOptions>();
 
@@ -24,18 +30,38 @@ string Join(const vector<string>& elem);
 // const std::string mountProgramFlagFile = ".has-mount-program";
 
 // getMountProgramFlagFile 函数的实现，使用 Join 函数
+/**
+ * @brief 获取挂载程序标志文件路径
+ * @param path 基础路径
+ * @return std::string 完整的标志文件路径
+ * @note 标志文件名为".has-mount-program"
+ */
 std::string getMountProgramFlagFile(const std::string& path) {
     // 将路径和文件名作为元素放入 vector 中
     std::vector<std::string> paths = {path, mountProgramFlagFile};
     // 使用 Join 函数拼接路径
     return Join(paths);
 }
+/**
+ * @brief 去除字符串首尾空白字符
+ * @param input 输入字符串
+ * @return std::string 去除空白后的字符串副本
+ * @note 使用boost::trim实现
+ */
 std::string trim_copy(const std::string& input) {
     std::string result = input;      // 创建一个副本
     boost::trim(result);             // 使用 boost::trim 去除首尾空白
     return result;                   // 返回处理后的字符串
 }
 // SupportsNativeOverlay函数实现
+/**
+ * @brief 检查系统是否支持原生overlay文件系统
+ * @param home 主目录路径
+ * @param runhome 运行时目录路径
+ * @return bool 是否支持原生overlay
+ * @throw myerror 如果发生文件系统操作错误
+ * @note 会检查挂载程序标志文件和文件系统类型
+ */
 bool SupportsNativeOverlay(const std::string& home, const std::string& runhome) {
     try {
         // 1. 检查用户ID是否为0以及路径是否为空
@@ -100,11 +126,24 @@ bool SupportsNativeOverlay(const std::string& home, const std::string& runhome) 
 
 
 
+/**
+ * @brief 检查文件是否可执行
+ * @param file 文件路径
+ * @return bool 文件是否存在且可执行
+ * @note 检查文件存在性、常规文件属性和执行权限
+ */
 bool isExecutable(const boost::filesystem::path& file) {
     return boost::filesystem::exists(file) &&
            boost::filesystem::is_regular_file(file) &&
            (boost::filesystem::status(file).permissions() & boost::filesystem::perms::owner_exe);
 }
+/**
+ * @brief 在系统PATH中查找可执行文件
+ * @param file 要查找的可执行文件名
+ * @return std::string 找到的可执行文件完整路径
+ * @throw myerror 如果PATH未设置或文件未找到
+ * @note 如果文件包含路径分隔符，则直接检查该路径
+ */
 std::string LookPath(const std::string& file) {
     try {
         // 如果 file 包含路径分隔符，则直接检查这个路径
@@ -141,6 +180,12 @@ std::string LookPath(const std::string& file) {
         throw myerror("未知错误: " + std::string(e.what()));
     }
 }
+/**
+ * @brief 创建新的简单层ID映射更新器
+ * @param protoDriver 协议驱动接口指针
+ * @return std::shared_ptr<LayerIDMapUpdater_interface> 层ID映射更新器实例
+ * @note 返回naiveLayerIDMapUpdater的共享指针
+ */
 std::shared_ptr<LayerIDMapUpdater_interface> NewNaiveLayerIDMapUpdater(std::shared_ptr<ProtoDriver_interface> protoDriver) {
     // 创建一个 naiveLayerIDMapUpdater 实例并返回它的 shared_ptr
     return std::make_shared<naiveLayerIDMapUpdater>(protoDriver); // 确保这里返回的是 std::shared_ptr
@@ -153,6 +198,14 @@ std::map<FsMagic, std::string> FsNames = {
     {0x0000EF53, "extfs"},
     // 可以继续补充其他文件系统
 };
+/**
+ * @brief 初始化overlay驱动
+ * @param home 主目录路径
+ * @param options 驱动选项
+ * @return Driver 初始化后的驱动对象
+ * @throw myerror 如果目录创建失败或其他初始化错误
+ * @note 处理挂载程序、文件系统检查和驱动配置
+ */
 Driver Init(const std::string& home, const driver_Options& options) {
     try {
         // 解析选项

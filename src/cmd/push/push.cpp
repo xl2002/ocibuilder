@@ -22,7 +22,12 @@
 
 /**
  * @brief 初始化 push 命令的内容
- *
+ * @details 配置 push 命令的元信息（名称、描述、示例）及命令行选项：
+ *          - `--format`: 指定 manifest 格式（oci/v2s1/v2s2）
+ *          - `--authfile`: 指定认证文件路径
+ * @note 命令支持两种调用方式：
+ *       - 远程推送：`ocibuilder push registry/image:tag`
+ *       - 本地推送：`ocibuilder push src dst`
  */
 void init_push()
 {
@@ -57,8 +62,19 @@ void init_push()
 }
 
 /**
- * @brief push 命令Run操作的
- *
+ * @brief 执行远程镜像推送的核心逻辑
+ * @param cmd Command 对象，提供上下文和标志位访问
+ * @param args 命令行参数，需包含目标镜像地址
+ * @param iopts push 命令选项，包括 manifest 格式等
+ * @details 执行流程：
+ *          1. 认证检查（Bearer Token 获取）
+ *          2. 解析镜像地址（registry/repo:tag）
+ *          3. 分步上传：
+ *             - Blobs 层数据（并行校验+断点续传）
+ *             - Config 文件
+ *             - Manifest 文件
+ * @warning 需确保网络连通性和仓库写入权限
+ * @return 无返回值，失败时直接终止进程
  */
 void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
 {
@@ -296,6 +312,14 @@ void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
     std::cout << "Push success!!" << std::endl;
 }
 
+/**
+ * @brief 从参数字符串中提取并转换路径
+ * @param param 格式为 "prefix:path:suffix" 的字符串
+ * @return std::string 转换后的绝对路径
+ * @throws 无显式抛出，但路径无效时可能触发 filesystem_error
+ * @example 
+ *  输入 "docker:./path:latest" → 返回 "/abs/path/to/current/dir/path"
+ */
 std::string extractAndConvertPath(const std::string &param)
 {
     // 找到第一个冒号的位置
@@ -313,7 +337,19 @@ std::string extractAndConvertPath(const std::string &param)
     
     return absolutePath.string();
 }
-
+/**
+ * @brief 执行本地目录镜像推送
+ * @param cmd Command 对象，提供存储库上下文
+ * @param args 命令行参数，需包含源镜像名和目标路径
+ * @param iopts push 命令选项（当前主要用 authfile）
+ * @details 实现功能：
+ *          1. 源镜像元数据解析（index.json）
+ *          2. 文件系统操作：
+ *             - 创建目标目录结构
+ *             - 拷贝 blob/config/manifest 文件
+ *             - 生成/更新目标 index.json
+ * @note 适用于离线环境镜像迁移
+ */
 void pushCmdLocal(Command &cmd, vector<string> args, pushOptions * iopts)
 {
     std::string destPath, withinTransport, destSpec, newImageName;

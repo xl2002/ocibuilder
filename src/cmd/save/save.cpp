@@ -20,8 +20,8 @@
 //namespace json = boost::json;
 
 /**
- * @brief 初始化 push 命令的内容
- *
+ * @brief 初始化 save 命令的 CLI 配置
+ * @details 定义命令参数，设置必选选项 --output，绑定命令执行函数 saveCmd
  */
 void init_save()
 {
@@ -63,7 +63,11 @@ void init_save()
     rootcmd.AddCommand({saveCommand});
     // return imagesCommand;
 }
-
+/**
+ * @brief 从完整路径参数中提取父目录的绝对路径
+ * @param param 完整的文件路径参数
+ * @return 提取得到的父目录的绝对路径字符串
+ */
 std::string extractPath(const std::string &param)
 {
 
@@ -180,7 +184,18 @@ bool convertOciConfigToDockerLayerConfig(const std::string &ociConfigPath, const
     }
 }
 
-
+/**
+ * @brief 执行镜像保存的核心逻辑
+ * @param cmd 命令对象的引用
+ * @param args 命令行参数列表
+ * @param iopts 保存命令的配置选项
+ * @details 主要流程包含：
+ * - 解析镜像存储路径
+ * - 处理 OCI 镜像元数据
+ * - 构建 Docker 兼容格式的 manifest
+ * - 转换层文件格式
+ * - 创建最终 tar 归档
+ */
 void saveCmd(Command &cmd, vector<string> args, saveOptions * iopts)
 {
     std::string destPath, withinTransport, destSpec, newImageName;

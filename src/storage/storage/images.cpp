@@ -1,11 +1,25 @@
 #include "storage/storage/images.h"
 // #include "image/buildah/image.h"
 //recomputeDigests 函数的实现
+/**
+ * @brief 检查大数据名称是否是manifest类型
+ * @param name 要检查的大数据名称
+ * @return bool 如果名称以"manifest"开头返回true，否则返回false
+ */
 bool bigDataNameIsManifest(const std::string& name) {
     // 这里 ImageDigestManifestBigDataNamePrefix 是定义为大数据名称的前缀
     const std::string ImageDigestManifestBigDataNamePrefix = "manifest"; 
     return name.find(ImageDigestManifestBigDataNamePrefix) == 0;
 }
+/**
+ * @brief 重新计算图像的摘要信息
+ * @details 该函数会：
+ *          1. 验证并收集固定摘要
+ *          2. 验证并收集大数据摘要
+ *          3. 去重处理所有摘要
+ *          4. 如果固定摘要为空，则设置第一个有效摘要
+ * @throws myerror 当摘要验证失败时抛出
+ */
 void storage::Image::recomputeDigests() {
     try {
         // 存储唯一的有效摘要

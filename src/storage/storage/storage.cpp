@@ -13,13 +13,28 @@ namespace fs = boost::filesystem;
 
 // 计算 numContainerLocationIndex
 constexpr unsigned int numContainerLocationIndex = 2; // 这里的 2 是因为我们有两个容器位置的标志
+/**
+ * @brief 获取存储的运行根目录路径
+ * 
+ * @return string 返回运行根目录路径
+ */
 string Store:: RunRoot()
 {
     return this->run_root;
 }
+/**
+ * @brief 获取镜像存储路径
+ * 
+ * @return std::string 返回镜像存储路径
+ */
 std::string  Store::GetImageStoragePath(){
     return this->run_root+defaultImagestore;
 }
+/**
+ * @brief 获取层存储路径
+ * 
+ * @return std::string 返回层存储路径
+ */
 std::string Store:: GetlayerStoragePath()
 {
     return this->run_root+defaultlayerpath;
@@ -31,6 +46,12 @@ string Join(const vector<string>& elem) {
 shared_ptr<Driver> New(const string& name, const driver_Options& config);
 
 
+/**
+ * @brief 创建并锁定图形驱动
+ * 
+ * @return shared_ptr<Driver> 返回创建的驱动指针
+ * @throws myerror 如果创建驱动失败则抛出异常
+ */
 shared_ptr<Driver> Store::createGraphDriverLocked() {
     // driver_Options config{
     //     root: graph_root,
@@ -56,6 +77,12 @@ shared_ptr<Driver> Store::createGraphDriverLocked() {
 }
 
 
+/**
+ * @brief 检查镜像存储是否被修改
+ * 
+ * @param lastWrite 传入的上次写入时间，如果被修改会更新此参数
+ * @return bool 返回是否被修改
+ */
 bool ImageStore::checkModified(lastwrite& lastWrite) {
     // 从 lockfile 中获取是否修改过的状态以及当前的 lastwrite
     auto ret=lockfile->ModifiedSince(lastWrite);
@@ -71,10 +98,24 @@ bool ImageStore::checkModified(lastwrite& lastWrite) {
 }
 
 // imagespath 函数的实现
+/**
+ * @brief 获取镜像索引文件路径
+ * 
+ * @return std::string 返回镜像索引文件路径
+ */
 std::string ImageStore::imagespath(){
     return Join({dir, "index.json"}); // Join 函数用于拼接路径，dir 是 imageStore 的成员变量
 }
 //parseJson 函数的实现
+/**
+ * @brief 解析JSON格式的镜像数据
+ * 
+ * @param data 包含JSON数据的字节向量
+ * @param images 输出参数，存储解析后的镜像对象
+ * @param dir 镜像存储目录路径
+ * @return bool 解析成功返回true
+ * @throws myerror 解析失败抛出异常
+ */
 bool parseJson(const vector<uint8_t>& data, vector<shared_ptr<storage::Image>>& images, const string& dir) {
     try {
         std::string index_str=vectorToString(data);
@@ -113,6 +154,13 @@ bool parseJson(const vector<uint8_t>& data, vector<shared_ptr<storage::Image>>& 
     return true;
 }
 // 实现 stringSliceWithoutValue 函数
+/**
+ * @brief 从字符串向量中移除指定值
+ * 
+ * @param slice 输入字符串向量
+ * @param value 要移除的值
+ * @return std::vector<std::string> 返回不包含指定值的新向量
+ */
 std::vector<std::string> ImageStore::stringSliceWithoutValue(const std::vector<std::string>& slice, const std::string& value) {
     std::vector<std::string> modified;
     modified.reserve(slice.size()); // 预留空间以提高效率
@@ -123,6 +171,12 @@ std::vector<std::string> ImageStore::stringSliceWithoutValue(const std::vector<s
     return modified;
 }
 // 实现 removeName 函数
+/**
+ * @brief 从镜像中移除指定名称
+ * 
+ * @param image 要修改的镜像对象
+ * @param name 要移除的名称
+ */
 void ImageStore::removeName(std::shared_ptr<storage::Image> image, const std::string& name) {
     // 确保持有写锁
     boost::unique_lock<boost::shared_mutex> lock(inProcessLock);
@@ -131,6 +185,11 @@ void ImageStore::removeName(std::shared_ptr<storage::Image> image, const std::st
 
 
 //Save 函数的实现
+/**
+ * @brief 保存镜像存储数据到文件
+ * 
+ * @throws myerror 如果保存失败则抛出异常
+ */
 void ImageStore::Save() {
     try {
         // 检查是否允许修改
@@ -171,6 +230,13 @@ void ImageStore::Save() {
     }
 }
 // load 函数定义
+/**
+ * @brief 加载镜像存储数据
+ * 
+ * @param lockedForWriting 是否以写模式锁定
+ * @return bool 加载成功返回true
+ * @throws myerror 加载失败抛出异常
+ */
 bool ImageStore::load(bool lockedForWriting) {
     try {
         string rpath = imagespath(); // 获取镜像存储路径
@@ -266,6 +332,14 @@ bool ImageStore::load(bool lockedForWriting) {
     }
 }
 // reloadIfChanged 函数定义
+/**
+ * @brief 如果镜像存储有变化则重新加载
+ * 
+ * @param lockedForWriting 是否以写模式锁定
+ * @param tryLockedForWriting 输出参数，指示是否尝试了写锁定
+ * @return bool 返回是否需要重新加载
+ * @throws myerror 操作失败抛出异常
+ */
 bool ImageStore::reloadIfChanged(bool lockedForWriting, bool& tryLockedForWriting) {
     // 获取当前的 lastwrite 状态
     lastwrite lastWrite;
@@ -293,6 +367,13 @@ bool ImageStore::reloadIfChanged(bool lockedForWriting, bool& tryLockedForWritin
 
     return false; // 没有错误，未尝试写锁定
 }
+/**
+ * @brief 以写模式启动并可选重新加载
+ * 
+ * @param canReload 是否可以重新加载
+ * @return bool 操作成功返回true
+ * @throws myerror 操作失败抛出异常
+ */
 bool ImageStore::startWritingWithReload(bool canReload) {
     try {
         // 锁定 lockFile 对象
@@ -323,6 +404,13 @@ bool ImageStore::startWritingWithReload(bool canReload) {
         throw myerror("startWritingWithReload failed: " + std::string(e.what()));
     }
 }
+/**
+ * @brief 创建新的镜像存储
+ * 
+ * @param dir 镜像存储目录路径
+ * @return shared_ptr<rwImageStore_interface> 返回创建的镜像存储对象
+ * @throws myerror 创建失败抛出异常
+ */
 shared_ptr<rwImageStore_interface> newImageStore(const string& dir) {
     try {
         // 创建目录
@@ -387,11 +475,23 @@ shared_ptr<rwImageStore_interface> newImageStore(const string& dir) {
 
 
 // containerLocationFromIndex 函数定义
+/**
+ * @brief 从索引获取容器位置
+ * 
+ * @param index 位置索引
+ * @return containerLocations 返回容器位置枚举值
+ */
 containerLocations containerLocationFromIndex(int index) {
     return static_cast<containerLocations>(1 << index);
 }
 
 //containerStore::Save函数的实现
+/**
+ * @brief 保存容器存储数据到指定位置
+ * 
+ * @param saveLocations 要保存的位置(位掩码)
+ * @throws myerror 保存失败抛出异常
+ */
 void containerStore::Save(containerLocations saveLocations) {
     try {
         // 确保持有写锁
@@ -479,6 +579,17 @@ std::vector<std::string> dedupeStrings(const std::vector<std::string>& names);
  * @param layer 
  * @param options 
  * @return std::shared_ptr<Container> 
+ */
+/**
+ * @brief 创建新容器
+ * 
+ * @param id 容器ID，如果为空则自动生成
+ * @param names 容器名称列表
+ * @param image 关联的镜像ID
+ * @param layer 关联的层ID
+ * @param options 容器选项
+ * @return std::shared_ptr<Container> 返回创建的容器对象
+ * @throws std::runtime_error 如果名称已存在则抛出异常
  */
 std::shared_ptr<Container> containerStore::create(const std::string& id, const std::vector<std::string>& names, 
                                                   const std::string& image, const std::string& layer, 
@@ -640,6 +751,13 @@ bool parseJsonContainers(const std::vector<uint8_t>& data, std::vector<std::shar
     }
     return true;
 }
+/**
+ * @brief 加载容器存储数据
+ * 
+ * @param lockedForWriting 是否以写模式锁定
+ * @return bool 加载成功返回true
+ * @throws myerror 加载失败抛出异常
+ */
 bool containerStore::load(bool lockedForWriting) {
     try {
         // 定义并初始化容器
@@ -728,6 +846,12 @@ bool containerStore::load(bool lockedForWriting) {
         throw;
     }
 }
+/**
+ * @brief 检查容器存储是否被修改
+ * 
+ * @param lastWrite 传入的上次写入时间，如果被修改会更新此参数
+ * @return bool 返回是否被修改
+ */
 bool containerStore::checkModified(lastwrite& lastWrite) {
     // 从 lockfile 中获取是否修改过的状态以及当前的 lastwrite
     auto ret=lockfile->ModifiedSince(lastWrite);
@@ -744,6 +868,13 @@ bool containerStore::checkModified(lastwrite& lastWrite) {
 /// @brief containerStore::reloadIfChanged函数的实现
 /// @param lockedForWriting 
 /// @return 
+/**
+ * @brief 如果容器存储有变化则重新加载
+ * 
+ * @param lockedForWriting 是否以写模式锁定
+ * @return bool 返回是否需要重新加载
+ * @throws myerror 操作失败抛出异常
+ */
 bool containerStore::reloadIfChanged(bool lockedForWriting) {
     lastwrite lastWrite;
     bool modified = false;
@@ -777,6 +908,13 @@ bool containerStore::reloadIfChanged(bool lockedForWriting) {
 /// @brief containerStore::startWritingWithReload函数实现
 /// @param canReload 
 /// @return 
+/**
+ * @brief 以写模式启动并可选重新加载
+ * 
+ * @param canReload 是否可以重新加载
+ * @return bool 操作成功返回true
+ * @throws myerror 操作失败抛出异常
+ */
 bool containerStore::startWritingWithReload(bool canReload) {
     try {
         // 锁定 lockFile 对象
@@ -801,6 +939,15 @@ bool containerStore::startWritingWithReload(bool canReload) {
     }
 }
 //newContainerStore的实现
+/**
+ * @brief 创建新的容器存储
+ * 
+ * @param dir 容器存储目录路径
+ * @param runDir 运行时目录路径
+ * @param transient 是否为临时存储
+ * @return std::shared_ptr<rwContainerStore_interface> 返回创建的容器存储对象
+ * @throws myerror 创建失败抛出异常
+ */
 std::shared_ptr<rwContainerStore_interface> newContainerStore(const std::string& dir, const std::string& runDir, bool transient) {
     try {
         // 创建目录
@@ -865,6 +1012,12 @@ std::shared_ptr<rwContainerStore_interface> newContainerStore(const std::string&
 
 
 
+/**
+ * @brief 加载存储数据
+ * 
+ * @param s 要加载的存储对象指针
+ * @throws myerror 加载失败抛出异常
+ */
 void load(Store* s) {
     try {
         // Lambda 捕获 store 指针
@@ -942,6 +1095,11 @@ void load(Store* s) {
     }
 }
 
+/**
+ * @brief 加载存储数据(成员函数版本)
+ * 
+ * @throws myerror 加载失败抛出异常
+ */
 void Store::load() {
     try {
         ::load(this);
@@ -952,6 +1110,12 @@ void Store::load() {
 void Store::DeleteContainer(std::string id){
     return;
 }
+/**
+ * @brief 根据ID获取镜像
+ * 
+ * @param id 镜像ID或名称
+ * @return std::shared_ptr<storage::Image> 返回找到的镜像对象，未找到返回nullptr
+ */
 std::shared_ptr<storage::Image> Store::Image(std::string id){
     std::vector<std::shared_ptr<roImageStore_interface>> images_store;
     images_store.push_back(this->image_store);
@@ -967,6 +1131,12 @@ std::shared_ptr<storage::Image> Store::Image(std::string id){
     return nullptr;
 }
 
+/**
+ * @brief 根据ID获取镜像详细信息
+ * 
+ * @param id 镜像ID
+ * @return std::shared_ptr<storage::Image> 返回镜像对象，未找到返回nullptr
+ */
 std::shared_ptr<storage::Image> ImageStore::Get(const std::string& id) {
     auto image=this->lookup(id);
     if(image!=nullptr){
@@ -990,6 +1160,12 @@ std::shared_ptr<storage::Image> ImageStore::Get(const std::string& id) {
     return nullptr;
 }
 
+/**
+ * @brief 查找镜像
+ * 
+ * @param id 镜像ID或名称
+ * @return std::shared_ptr<storage::Image> 返回找到的镜像对象，未找到返回nullptr
+ */
 std::shared_ptr<storage::Image> ImageStore::lookup(const std::string& id){
     // auto it=id.find(':');
     bool isDigest=std::regex_match(id,*ShortIdentifierRegexp);
@@ -1011,6 +1187,12 @@ std::shared_ptr<storage::Image> ImageStore::lookup(const std::string& id){
  * 
  * @param name 
  * @param newname 
+ */
+/**
+ * @brief 为镜像添加新标签
+ * 
+ * @param name 原镜像名称
+ * @param newname 新标签名称
  */
 void ImageStore::newtag(std::string name,std::string newname){
     //1. 通过name查找镜像
@@ -1098,6 +1280,11 @@ std::string ImageStore::configid(std::string manifestid){
  * @brief 删除某个镜像
  * 
  * @param id 
+ */
+/**
+ * @brief 删除指定镜像
+ * 
+ * @param id 要删除的镜像ID或名称
  */
 void ImageStore::Delete(const std::string& id){
     std::cout<<"delete image "<<id<<std::endl;
@@ -1290,6 +1477,11 @@ bool ImageStore::Exists(const std::string& id)  {
  * 
  * @return std::vector<storage::Image> 
  */
+/**
+ * @brief 获取所有镜像列表
+ * 
+ * @return std::vector<storage::Image> 返回所有镜像的向量
+ */
 std::vector<storage::Image> ImageStore::Images()  {
     std::vector<storage::Image> images;  // 用于存储所有镜像的详细信息
     //2. map<std::string, shared_ptr<storage::Image>> byname;中存储了所有镜像的名字和镜像的指针
@@ -1372,6 +1564,12 @@ void ImageStore::SetFlag(const std::string& id, const std::string& flag, const s
  * 
  * @return std::shared_ptr<rwLayerStore_interface> 
  */
+/**
+ * @brief 获取两种类型的层存储
+ * 
+ * @return std::shared_ptr<rwLayerStore_interface> 返回层存储对象
+ * @throws myerror 获取失败抛出异常
+ */
 std::shared_ptr<rwLayerStore_interface> Store::bothLayerStoreKinds() {
     try {
         // 只需要返回rwLayerStore
@@ -1385,6 +1583,12 @@ std::shared_ptr<rwLayerStore_interface> Store::bothLayerStoreKinds() {
  * @brief 得到overlay中layer
  * 
  * @return std::shared_ptr<rwLayerStore_interface> 
+ */
+/**
+ * @brief 获取两种类型的层存储(锁定版本)
+ * 
+ * @return std::shared_ptr<rwLayerStore_interface> 返回层存储对象
+ * @throws myerror 获取失败抛出异常
  */
 std::shared_ptr<rwLayerStore_interface> Store::bothLayerStoreKindsLocked() {
     // 获取 primary layer store
@@ -1401,6 +1605,12 @@ std::shared_ptr<rwLayerStore_interface> Store::bothLayerStoreKindsLocked() {
  * @brief 返回overly的内容
  * 
  * @return std::shared_ptr<rwLayerStore_interface> 
+ */
+/**
+ * @brief 获取层存储(锁定版本)
+ * 
+ * @return std::shared_ptr<rwLayerStore_interface> 返回层存储对象
+ * @throws myerror 获取失败抛出异常
  */
 std::shared_ptr<rwLayerStore_interface> Store::getLayerStoreLocked() {
     try {
@@ -1450,6 +1660,17 @@ std::shared_ptr<rwLayerStore_interface> Store::getLayerStoreLocked() {
  * @param driver 
  * @param transient 
  * @return std::shared_ptr<rwLayerStore_interface> 
+ */
+/**
+ * @brief 创建新的层存储
+ * 
+ * @param rundir 运行时目录路径
+ * @param layerdir 层存储目录路径
+ * @param imagedir 镜像目录路径(可选)
+ * @param driver 驱动对象
+ * @param transient 是否为临时存储
+ * @return std::shared_ptr<rwLayerStore_interface> 返回创建的层存储对象
+ * @throws myerror 创建失败抛出异常
  */
 std::shared_ptr<rwLayerStore_interface> Store::newLayerStore(
     std::string rundir, 
@@ -1524,6 +1745,18 @@ std::shared_ptr<rwLayerStore_interface> Store::newLayerStore(
  * @param options 
  * @return std::shared_ptr<Container> 
  */
+/**
+ * @brief 创建新容器
+ * 
+ * @param id 容器ID
+ * @param names 容器名称列表
+ * @param image 关联的镜像ID
+ * @param layer 关联的层ID
+ * @param metadata 容器元数据
+ * @param options 容器选项
+ * @return std::shared_ptr<Container> 返回创建的容器对象
+ * @throws myerror 创建失败抛出异常
+ */
 std::shared_ptr<Container> Store::CreateContainer(
     const std::string& id, 
     const std::vector<std::string>& names, 
@@ -1572,6 +1805,11 @@ std::shared_ptr<Container> Store::CreateContainer(
     }
 }
 
+/**
+ * @brief 保存层数据
+ * 
+ * @return bool 保存成功返回true
+ */
 bool Store::savelayers(){
     return this->layer_store_use_getters->savelayer();
 }

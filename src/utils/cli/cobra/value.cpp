@@ -20,7 +20,8 @@ string StringValue::String(){
 /**
  * @brief 设置StringValue的值
  * 
- * @param value 
+ * @param value 要设置的字符串值
+ * @note 此操作会直接修改内部存储的值
  */
 void StringValue::Set(string value){
     // *(this->value)=value;
@@ -67,7 +68,8 @@ string StringArrayValue::String(){
 /**
  * @brief 设置StringArrayValue类型的值
  * 
- * @param value 需要设置的值
+ * @param value 要添加的字符串值
+ * @note 如果是第一次设置，会替换整个数组；否则会追加到数组末尾
  */
 void StringArrayValue::Set(string value){
     if(!changed){
@@ -137,7 +139,8 @@ string BoolValue::String(){
 /**
  * @brief 设置BoolValue类型的值
  * 
- * @param value 
+ * @param value 要设置的布尔值字符串("true"或"false")
+ * @throw 如果传入非"true"/"false"字符串不会有任何效果
  */
 void BoolValue::Set(string value){
     if(value=="true"){
@@ -187,7 +190,8 @@ string IntValue::String(){
 /**
  * @brief 设置IntValue类型的值
  * 
- * @param value 
+ * @param value 要设置的整数字符串
+ * @throw std::invalid_argument 如果字符串无法转换为整数
  */
 void IntValue::Set(string value){
     *(this->value)=std::stoi(value);
@@ -226,7 +230,9 @@ string int64Value:: String(){
 /**
  * @brief 设置int64Value类型的值
  * 
- * @param value 
+ * @param value 要设置的64位整数字符串
+ * @throw std::invalid_argument 如果字符串无法转换为64位整数
+ * @note 值会以16进制形式存储
  */
 void int64Value:: Set(string value){
     int64_t v=std::stoll(value);
@@ -266,7 +272,9 @@ string uint64Value:: String(){
 /**
  * @brief 设置uint64Value类型的值
  * 
- * @param value 
+ * @param value 要设置的无符号64位整数字符串
+ * @throw std::invalid_argument 如果字符串无法转换为无符号64位整数
+ * @note 值会以16进制形式存储
  */
 void uint64Value:: Set(string value){
     int64_t v=std::stoull(value);
@@ -314,7 +322,8 @@ string stringSliceValue::String(){
 /**
  * @brief 设置stringSliceValue类型的值
  * 
- * @param value 
+ * @param value 要添加的字符串值
+ * @note 如果是第一次设置，会替换整个切片；否则会追加到切片末尾
  */
 void stringSliceValue::Set(string value){
     if(!changed){

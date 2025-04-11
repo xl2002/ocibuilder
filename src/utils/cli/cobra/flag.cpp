@@ -165,6 +165,14 @@ void Flagset::IntVar(int& option_name, string name, int value, string usage){
  * @param value 
  * @param usage 
  */
+/**
+ * @brief 创建值为int64_t的标签
+ * 
+ * @param option_name 存储标志值的int64_t变量引用
+ * @param name 标签名
+ * @param value 标签默认值
+ * @param usage 标签用途说明
+ */
 void Flagset::Int64Var(int64_t& option_name, string name, int value, string usage){
     int64Value* pvalue=newInt64Value(value,option_name);
     Flag* flag=Addvar(pvalue,name,usage);

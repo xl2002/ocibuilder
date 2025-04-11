@@ -1,10 +1,22 @@
 #include "utils/common/semaphore.h"
 
+/**
+ * @brief 创建新的Weighted信号量对象
+ * @param n 信号量的初始容量
+ * @return 返回共享指针指向新创建的Weighted对象
+ */
 std::shared_ptr<Weighted> NewWeighted(int64_t n) {
     return std::make_shared<Weighted>(n);
 }
 // Acquire 函数，用于获取信号量
-bool  Weighted::Acquire( int64_t n) {
+/**
+ * @brief 获取指定数量的信号量资源
+ * @param n 请求获取的资源数量
+ * @return true 获取成功
+ * @return false 获取失败(请求数量超过容量或超时)
+ * @note 该方法会阻塞直到获取到资源或超时
+ */
+bool Weighted::Acquire(int64_t n) {
     std::unique_lock<std::mutex> lock(mu);  // 互斥锁
 
     // 如果有足够的资源并且没有等待者，立即获取资源
@@ -58,8 +70,12 @@ bool  Weighted::Acquire( int64_t n) {
     return true;
     
 }
-
 // 通知等待者的方法
+/**
+ * @brief 通知等待队列中的等待者
+ * @details 检查是否有足够的资源满足等待队列头部的请求，
+ *          如果有则唤醒该等待者并分配资源
+ */
 void Weighted::notifyWaiters() {
     std::lock_guard<std::mutex> lock(mu); // 确保互斥锁的自动释放
 
@@ -86,8 +102,13 @@ void Weighted::notifyWaiters() {
         next.ready.set_value("");
     }
 }
-
 // 释放信号量的方法，传入释放的权重 n
+/**
+ * @brief 释放指定数量的信号量资源
+ * @param n 要释放的资源数量
+ * @throw std::runtime_error 如果释放数量超过当前持有量
+ * @note 释放后会通知等待队列中的等待者
+ */
 void Weighted::Release(int64_t n) {
     std::unique_lock<std::mutex> lock(mu); // 自动加锁和解锁
 
@@ -103,8 +124,13 @@ void Weighted::Release(int64_t n) {
     // 通知等待者
     notifyWaiters();
     lock.unlock();
-}
-// 尝试获取信号量，传入请求的权重 n，如果成功则返回 true，失败则返回 false
+}// 尝试获取信号量，传入请求的权重 n，如果成功则返回 true，失败则返回 false
+/**
+ * @brief 尝试获取信号量资源(非阻塞)
+ * @param n 请求获取的资源数量
+ * @return true 获取成功
+ * @return false 获取失败(资源不足或有等待者)
+ */
 bool Weighted::TryAcquire(int64_t n) {
     std::lock_guard<std::mutex> lock(mu); // 自动加锁和解锁
 

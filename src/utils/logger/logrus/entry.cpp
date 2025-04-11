@@ -1,11 +1,29 @@
+/**
+ * @file entry.cpp
+ * @brief Entry类实现文件，提供日志条目相关功能
+ * 
+ * 该文件实现了Entry类，用于表示单个日志条目，包含日志级别、消息、上下文等信息，
+ * 并提供了一系列方法来操作日志条目。
+ */
 #include "utils/logger/logrus/entry.h"
 
 
+/**
+ * @brief 添加单个字段到日志条目
+ * @param key 字段键名
+ * @param value 字段值
+ * @return std::shared_ptr<Entry> 包含新字段的日志条目新实例
+ */
 std::shared_ptr<Entry> Entry::WithField(const std::string& key, const std::string& value) {
     std::unordered_map<std::string, std::string> fields{{key, value}};
     return WithFields(fields);
 }
 
+/**
+ * @brief 添加多个字段到日志条目
+ * @param fields 字段映射表，包含多个键值对
+ * @return std::shared_ptr<Entry> 包含新字段的日志条目新实例
+ */
 std::shared_ptr<Entry> Entry::WithFields(const std::unordered_map<std::string, std::string>& fields) {
     auto newEntry = std::make_shared<Entry>(*this);  // 复制当前 Entry
     for (const auto& f : fields) {
@@ -16,6 +34,11 @@ std::shared_ptr<Entry> Entry::WithFields(const std::unordered_map<std::string, s
     return newEntry;
 }
 
+/**
+ * @brief 添加错误信息到日志条目
+ * @param err 错误描述信息
+ * @return std::shared_ptr<Entry> 包含错误信息的日志条目新实例
+ */
 std::shared_ptr<Entry> Entry::WithError(const std::string& err) {
     return WithField("ErrorKey", err);
 }
@@ -24,6 +47,11 @@ std::shared_ptr<Entry> Entry::WithError(const std::string& err) {
 //     Data["context"] = ctx;
 //     return shared_from_this();
 // }
+/**
+ * @brief 添加上下文信息到日志条目
+ * @param ctx 上下文对象指针
+ * @return std::shared_ptr<Entry> 包含上下文信息的日志条目新实例
+ */
 std::shared_ptr<Entry> Entry::WithContext(const std::shared_ptr<Context>& ctx) {
     // 创建新的 Entry，并复制当前对象的数据
     auto newEntry = std::make_shared<Entry>(*this);
@@ -31,50 +59,97 @@ std::shared_ptr<Entry> Entry::WithContext(const std::shared_ptr<Context>& ctx) {
     return newEntry;
 }
 
+/**
+ * @brief 设置日志条目的时间戳
+ * @param time 时间点对象
+ * @return std::shared_ptr<Entry> 包含新时间戳的日志条目新实例
+ */
 std::shared_ptr<Entry> Entry::WithTime(const std::chrono::system_clock::time_point& time) {
     auto newEntry = std::make_shared<Entry>(*this);  // 复制当前 Entry
     newEntry->Time = time;
     return newEntry;
 }
 
+/**
+ * @brief 记录TRACE级别日志
+ * @param args 日志参数列表
+ */
 void Entry::Trace(const std::vector<boost::any>& args) {
     Log(level::TraceLevel, args);
 }
+/**
+ * @brief 记录DEBUG级别日志
+ * @param args 日志参数列表
+ */
 void Entry::Debug(const std::vector<boost::any>& args) {
     Log(level::DebugLevel, args);
 }
 // Print 方法调用 Info 方法
+/**
+ * @brief 记录INFO级别日志(Print别名)
+ * @param args 日志参数列表
+ */
 void Entry::Print(const std::vector<boost::any>& args) {
     Info(args);
 }
 // Info 方法调用 Log 方法
+/**
+ * @brief 记录INFO级别日志
+ * @param args 日志参数列表
+ */
 void Entry::Info(const std::vector<boost::any>& args) {
     Log(level::InfoLevel, args);
 }
 
+/**
+ * @brief 记录WARN级别日志
+ * @param args 日志参数列表
+ */
 void Entry::Warn(const std::vector<boost::any>& args) {
     Log(level::WarnLevel, args);
 }
 
+/**
+ * @brief 记录WARN级别日志(Warning别名)
+ * @param args 日志参数列表
+ */
 void Entry::Warning(const std::vector<boost::any>& args) {
     Warn(args);
 }
 
+/**
+ * @brief 记录ERROR级别日志
+ * @param args 日志参数列表
+ */
 void Entry::Error(const std::vector<boost::any>& args) {
     Log(level::ErrorLevel, args);
 }
 
+/**
+ * @brief 记录FATAL级别日志并退出程序
+ * @param args 日志参数列表
+ */
 void Entry::Fatal(const std::vector<boost::any>& args) {
     Log(level::FatalLevel, args);
     LoggerPtr->Exit(1);
 }
 
+/**
+ * @brief 记录PANIC级别日志并抛出异常
+ * @param args 日志参数列表
+ */
 void Entry::Panic(const std::vector<boost::any>& args) {
     Log(level::PanicLevel, args);
 }
 
 
 //Logf 方法
+/**
+ * @brief 格式化日志记录方法
+ * @param level 日志级别
+ * @param format 格式化字符串
+ * @param ... 可变参数列表
+ */
 void Entry::Logf(const Level& level, const std::string& format, ...) {
     if (LoggerPtr && LoggerPtr->IsLevelEnabled(level)) {
         // std::string formattedMessage = formatString(format, args);
@@ -92,6 +167,11 @@ void Entry::Logf(const Level& level, const std::string& format, ...) {
 }
 
 // 主日志方法，接受任意参数并处理
+/**
+ * @brief 主日志记录方法
+ * @param level 日志级别
+ * @param args 日志参数列表
+ */
 void Entry::Log(const Level& level, const std::vector<boost::any>& args) {
     if (LoggerPtr->IsLevelEnabled(level)) {
         std::string message = formatArgs(args);
@@ -102,6 +182,11 @@ void Entry::Log(const Level& level, const std::vector<boost::any>& args) {
 // 
 // 实际记录日志：：日志核心处理逻辑
 // 日志核心处理逻辑
+/**
+ * @brief 日志核心处理逻辑(内部方法)
+ * @param level 日志级别
+ * @param msg 日志消息
+ */
 void Entry::log(const Level& level, const std::string& msg) {
     auto newEntry = Dup();
 
@@ -280,6 +365,10 @@ void Entry::Panicln(const std::vector<boost::any> &args)
 
 
 // Dup 方法：创建当前 Entry 的副本
+/**
+ * @brief 创建当前Entry的副本
+ * @return std::shared_ptr<Entry> 新的Entry实例
+ */
 std::shared_ptr<Entry> Entry::Dup() {
     Fields newData = Data;  // 深拷贝 Data
     auto newEntry= std::make_shared<Entry>();
@@ -297,12 +386,19 @@ std::shared_ptr<Entry> Entry::Dup() {
     // return std::make_shared<Entry>(LoggerPtr, newData, Time, ContextPtr, err);
 }
 // 获取关联的 BufferPool_interface
+/**
+ * @brief 获取关联的BufferPool
+ * @return std::shared_ptr<BufferPool_interface> BufferPool指针
+ */
 std::shared_ptr<BufferPool_interface> Entry::getBufferPool() {
     if (LoggerPtr && LoggerPtr->BufferPoolPtr) {
         return LoggerPtr->BufferPoolPtr;
     }
     return globalBufferPool; // 返回默认的全局 BufferPool_interface
 }
+/**
+ * @brief 触发日志钩子(内部方法)
+ */
 void Entry::fireHooks() {
     // 临时 LevelHooks 对象，用于复制 Logger 的钩子
     LevelHooks tmpHooks;
@@ -322,6 +418,9 @@ void Entry::fireHooks() {
     }
 }
 
+/**
+ * @brief 写入日志内容(内部方法)
+ */
 void Entry::write() {
     std::lock_guard<std::mutex> guard(LoggerPtr->mu->lock);
 
@@ -351,6 +450,10 @@ void Entry::write() {
     }
 }
 
+/**
+ * @brief 检查是否有调用者信息
+ * @return bool 是否有调用者信息
+ */
 bool Entry::HasCaller(){
     return LoggerPtr != nullptr && LoggerPtr->ReportCaller && Caller != nullptr;
 }
@@ -438,10 +541,19 @@ std::shared_ptr<Frame> getCaller() {
 }
 
 // NewEntry 静态工厂方法实现
+/**
+ * @brief 创建新的Entry实例(静态工厂方法)
+ * @param logger 关联的Logger对象
+ * @return std::shared_ptr<Entry> 新的Entry实例
+ */
 std::shared_ptr<Entry> Entry::NewEntry(std::shared_ptr<Logger> logger) {
     return std::make_shared<Entry>(std::move(logger));  // 创建并返回一个共享的 Entry 对象
 }
 
+/**
+ * @brief 获取日志条目的字节表示
+ * @return std::pair<std::vector<uint8_t>, std::string> 字节数据和错误消息
+ */
 std::pair<std::vector<uint8_t>, std::string> Entry::Bytes() {
     if (!LoggerPtr || !LoggerPtr->FormatterPtr) {
         // 返回空数据和错误消息，如果 Logger 或 Formatter 为空

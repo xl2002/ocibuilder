@@ -2,8 +2,16 @@
 #include "utils/common/go/string.h"
 #include "utils/parse/dockerfileparse.h"
 #include "utils/common/error.h"
-// splitCommand takes a single line of text and parses out the cmd and args,
-// which are used for dispatching to more exact parsing functions.
+
+/**
+ * @brief 解析命令行，分割出命令、参数和标志
+ * @param line 输入的命令行字符串
+ * @return 包含三个元素的元组：
+ *         1. 命令(转换为小写)
+ *         2. 标志列表(--开头的参数)
+ *         3. 剩余参数部分
+ * @throws myerror 如果解析过程中出现错误
+ */
 std::tuple<std::string, std::vector<std::string>, std::string> splitCommand(const std::string& line) {
     std::string args;
     std::vector<std::string> flags;
@@ -28,6 +36,13 @@ std::tuple<std::string, std::vector<std::string>, std::string> splitCommand(cons
     return std::make_tuple(cmd, flags, TrimSpace(args));
 }
 
+/**
+ * @brief 从命令行中提取构建器标志(--开头的参数)
+ * @param line 输入的命令行字符串
+ * @return 包含两个元素的元组：
+ *         1. 剩余未处理的命令行部分
+ *         2. 提取到的标志列表
+ */
 std::tuple<std::string, std::vector<std::string>> extractBuilderFlags(const std::string& line) {
     const int inSpaces = 0;
     const int inWord = 1;
