@@ -9,6 +9,9 @@
 #include "utils/common/json.h"
 #include "image/image_types/v1/config.h"
 // std::shared_ptr<PolicyTransportScopes> storageAllowedPolicyScopes=std::make_shared<PolicyTransportScopes>();
+/**
+ * @brief 删除构建器关联的容器
+ */
 void Builder::Delete(){
     try{
         store->DeleteContainer(ContainerID);
@@ -20,6 +23,13 @@ void Builder::Delete(){
     ContainerID.clear();
 }
 
+/**
+ * @brief 添加一个前置的空层到镜像历史记录中
+ * @param created 创建时间点
+ * @param createdBy 创建者信息
+ * @param author 作者信息
+ * @param comment 注释信息
+ */
 void Builder::AddPrependedEmptyLayer(std::shared_ptr<std::chrono::system_clock::time_point> created, std::string createdBy,std::string author, std::string comment){
     if(created!=nullptr){
         auto copiedTimestamp=*created;
@@ -33,55 +43,114 @@ void Builder::AddPrependedEmptyLayer(std::shared_ptr<std::chrono::system_clock::
     emptyLayer.emptyLayer=true;
     this->PrependedEmptyLayers.push_back(emptyLayer);
 }
+/**
+ * @brief 设置镜像创建者信息
+ * @param how 创建者描述信息
+ */
 void  Builder::SetCreatedBy(std::string how){
     this->ImageCreatedBy=how;
 }
+/**
+ * @brief 获取镜像创建者信息
+ * @return 创建者描述信息
+ */
 std::string  Builder::CreatedBy(){
     return this->ImageCreatedBy;
 }
+/**
+ * @brief 清除镜像的所有注解信息
+ */
 void  Builder::ClearAnnotations(){
     this->ImageAnnotations.clear();
 }
+/**
+ * @brief 设置镜像的目标架构
+ * @param arch 架构名称(如amd64, arm64等)
+ */
 void  Builder::SetArchitecture(std::string arch){
     this->OCIv1->platform.Architecture=arch;
 }
+/**
+ * @brief 设置镜像维护者信息
+ * @param who 维护者名称
+ */
 void Builder:: SetMaintainer(std::string who){
     for(auto & hi: this->OCIv1->history){
         hi.author=who;
     }
 }
+/**
+ * @brief 获取镜像目标操作系统
+ * @return 操作系统名称
+ */
 std::string  Builder::OS(){
     return this->OCIv1->platform.OS;
 }
+/**
+ * @brief 设置镜像目标操作系统
+ * @param os 操作系统名称
+ */
 void Builder::SetOS(std::string os){
     this->OCIv1->platform.OS=os;
 }
+/**
+ * @brief 获取镜像操作系统版本
+ * @return 操作系统版本字符串
+ */
 std::string Builder::OSVersion(){
     return this->OCIv1->platform.OSVersion;
 }
+/**
+ * @brief 设置镜像操作系统版本
+ * @param osVersion 操作系统版本字符串
+ */
 void Builder::SetOSVersion(std::string osVersion){
     this->OCIv1->platform.OSVersion=osVersion;
 }
+/**
+ * @brief 设置镜像暴露的端口
+ * @param port 端口号字符串
+ */
 void Builder::SetPorts(std::string port){
     this->OCIv1->config.exposedPorts[port]=boost::json::object();
 }
+/**
+ * @brief 设置容器主机名
+ * @param name 主机名
+ */
 void Builder::SetHostname(std::string name){
     this->Docker->config->Hostname=name;
 }
+/**
+ * @brief 设置容器域名
+ * @param name 域名
+ */
 void Builder::SetDomainname(std::string name){
     if(name!="" && this->Format!=Dockerv2ImageManifest){
         std::cout<<"DOMAINNAME is not supported for OCI image format, domainname "+name+ "will be ignored. Must use `docker` format"<<std::endl;
     }
     this->Docker->config->Domainname=name;
 }
+/**
+ * @brief 设置容器运行用户
+ * @param spec 用户描述字符串
+ */
 void Builder::SetUser(std::string spec){
     this->OCIv1->config.user=spec;
     this->Docker->config->User=spec;
 }
+/**
+ * @brief 清除所有暴露的端口设置
+ */
 void Builder::ClearPorts(){
     this->OCIv1->config.exposedPorts.clear();
     this->Docker->config->ExposedPorts.clear();
 }
+/**
+ * @brief 设置容器环境变量
+ * @param k 环境变量名
+ * @param v 环境变量值
+ */
 void Builder::SetEnv(std::string k,std::string v){
     auto reset=[&](std::vector<std::string>& s){
         std::vector<std::string> n;
@@ -98,15 +167,27 @@ void Builder::SetEnv(std::string k,std::string v){
 }
 
 
+/**
+ * @brief 设置容器默认命令
+ * @param cmd 命令参数列表
+ */
 void Builder::SetCmd(std::vector<std::string> cmd){
     this->OCIv1->config.cmd=cmd;
     this->Docker->config->Cmd=cmd;
 }
 
+/**
+ * @brief 清除所有卷挂载设置
+ */
 void Builder::ClearVolumes(){
     this->OCIv1->config.volumes.clear();
     this->Docker->config->Volumes.clear();
 }
+/**
+ * @brief 添加卷挂载设置
+ * @param k 卷路径
+ * @param v 挂载点路径
+ */
 void Builder::AddVolume(std::string k,std::string v){
     // this->OCIv1->config.volumes[k]=v;
     std::string volume;
@@ -120,27 +201,50 @@ void Builder::AddVolume(std::string k,std::string v){
     this->OCIv1->config.volumes[volume]=boost::json::object();
 
 }
+/**
+ * @brief 清除所有ONBUILD指令
+ */
 void Builder::ClearOnBuild(){
     this->Docker->config->OnBuild.clear();
 }
+/**
+ * @brief 设置容器工作目录
+ * @param there 工作目录路径
+ */
 void Builder::SetWorkDir(std::string there){
     this->OCIv1->config.workingDir=there;
     this->Docker->config->WorkingDir=there;
 }
+/**
+ * @brief 设置容器入口点
+ * @param ep 入口点参数列表
+ */
 void Builder::SetEntrypoint(std::vector<std::string> ep){
     this->OCIv1->config.entrypoint=ep;
     this->Docker->config->Entrypoint=ep;
 }
+/**
+ * @brief 设置容器默认shell
+ * @param shell shell路径列表
+ */
 void Builder::SetShell(std::vector<std::string> shell){
     if(!shell.empty() && this->Format!=Dockerv2ImageManifest){
         std::cout<<"SHELL is not supported for OCI image format, shell will be ignored. Must use `docker` format"<<std::endl;
     }
     this->Docker->config->Shell=shell;
 }
+/**
+ * @brief 设置容器停止信号
+ * @param sig 信号名称或编号
+ */
 void Builder::SetStopSignal(std::string sig){
     this->Docker->config->StopSignal=sig;
     this->OCIv1->config.stopSignal=sig;
 }
+/**
+ * @brief 设置容器健康检查配置
+ * @param config 健康检查配置对象
+ */
 void Builder::SetHealthcheck(std::shared_ptr<HealthConfig> config){
     this->Docker->config->Healthcheck=nullptr;
     if(config!=nullptr){
@@ -157,15 +261,29 @@ void Builder::SetHealthcheck(std::shared_ptr<HealthConfig> config){
     }
 }
 
+/**
+ * @brief 清除所有标签设置
+ */
 void Builder::ClearLabels(){
     this->Docker->config->Labels.clear();
     this->OCIv1->config.labels.clear();
 }
+/**
+ * @brief 设置容器标签
+ * @param k 标签键
+ * @param v 标签值
+ */
 void Builder::SetLabel(std::string k,std::string v){
     this->OCIv1->config.labels[k]=v;
     this->Docker->config->Labels[k]=v;
 }
 
+/**
+ * @brief 提交容器为镜像
+ * @param dest 目标镜像引用
+ * @param options 提交选项
+ * @return tuple包含: 镜像ID, 规范引用, 清单摘要
+ */
 std::tuple<std::string,std::shared_ptr<Canonical_interface>,std::shared_ptr<Digest>>  Builder::Commit(
     std::shared_ptr<ImageReference_interface> dest,
     std::shared_ptr<CommitOptions> options
@@ -309,11 +427,23 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,std::shared_ptr<Dige
     return std::make_tuple(imgID,ref,manifestDigest);
 }
 
+/**
+ * @brief 检查是否允许访问指定注册表
+ * @param forWhat 操作描述
+ * @param dest 目标镜像引用
+ * @return 是否允许访问
+ */
 bool checkRegistrySourcesAllows(std::string forWhat,std::shared_ptr<ImageReference_interface> dest){
     
     return false;
 }
 
+/**
+ * @brief 创建新的构建器实例
+ * @param store 存储接口
+ * @param options 构建选项
+ * @return 新的构建器实例
+ */
 std::shared_ptr<Builder> NewBuilder(std::shared_ptr<Store> store,std::shared_ptr<BuilderOptions> options){
     if(options->CommonBuildOpts==nullptr){
         options->CommonBuildOpts=std::make_shared<CommonBuildOptions>();

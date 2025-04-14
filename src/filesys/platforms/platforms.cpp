@@ -3,11 +3,27 @@
 #include "utils/common/error.h"
 #include "filesys/platforms/default_unix.h"
 // static std::regex specifierRe("[a-zA-Z0-9]+");
+/**
+ * @brief 标准化平台规范对象
+ * @param platform 要标准化的平台对象指针
+ * @return 标准化后的平台对象指针
+ * @note 会调用normalizeOS和normalizeArch对OS和Architecture进行标准化
+ */
 std::shared_ptr<Platform> Normalize(std::shared_ptr<Platform> platform) {
     platform->OS=normalizeOS(platform->OS);
     std::tie(platform->Architecture,platform->Variant)=normalizeArch(platform->Architecture,platform->Variant);
     return platform;
 }
+/**
+ * @brief 解析平台规范字符串
+ * @param specifier 平台规范字符串，格式为"os/arch/variant"或"os/arch"或"os"
+ * @return 解析后的平台对象指针
+ * @throw myerror 如果规范无效或包含未知操作系统/架构
+ * @note 支持1-3部分格式：
+ *       1部分: "os"或"arch"
+ *       2部分: "os/arch"
+ *       3部分: "os/arch/variant"
+ */
 std::shared_ptr<Platform> PlatForms::Parse(const std::string& specifier) {
     
     Platform p;

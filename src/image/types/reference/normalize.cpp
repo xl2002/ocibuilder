@@ -3,6 +3,14 @@
 
 std::pair<std::string, std::string> splitDockerDomain(const std::string& name);
 
+/**
+ * @brief 解析并规范化命名引用
+ * 
+ * @param s 要解析的字符串引用
+ * @return std::shared_ptr<Named_interface> 返回解析后的命名接口指针
+ * @throws std::invalid_argument 如果仓库名称不是小写
+ * @throws std::runtime_error 如果引用没有名称
+ */
 std::shared_ptr<Named_interface> ParseNormalizedNamed(std::string s){
     auto split = splitDockerDomain(s);
     auto domain = split.first;
@@ -45,6 +53,12 @@ std::shared_ptr<Named_interface> ParseNormalizedNamed(std::string s){
 // splitDockerDomain 将仓库名称拆分为域名和剩余名称字符串。
 // 如果未找到有效的域名，则使用默认域名。仓库名称
 // 需要在此之前已经验证。
+/**
+ * @brief 拆分Docker域名和剩余名称
+ * 
+ * @param name 完整的仓库名称
+ * @return std::pair<std::string, std::string> 返回域名和剩余名称对
+ */
 std::pair<std::string, std::string> splitDockerDomain(const std::string& name) {
     size_t i = name.find('/');
     std::string domain, remainder;
@@ -70,6 +84,14 @@ std::pair<std::string, std::string> splitDockerDomain(const std::string& name) {
 }
 
 
+/**
+ * @brief 为命名引用添加标签
+ * 
+ * @param name 命名接口指针
+ * @param tag 要添加的标签
+ * @return std::shared_ptr<NamedTagged_interface> 返回带标签的命名接口指针
+ * @throws myerror 如果标签格式无效
+ */
 std::shared_ptr<NamedTagged_interface> WithTag(std::shared_ptr<Named_interface> name, const std::string& tag) {
     if (!std::regex_match(tag, *(anchoredTagRegexp->GetRegex()))) {
         throw myerror("标签格式无效");
@@ -102,6 +124,13 @@ std::shared_ptr<NamedTagged_interface> WithTag(std::shared_ptr<Named_interface> 
 }
 
 // TagNameOnly 如果引用仅具有仓库名称，则将默认标签“latest”添加到引用中。
+/**
+ * @brief 为仅包含名称的引用添加默认标签
+ * 
+ * @param ref 命名接口指针
+ * @return std::shared_ptr<Named_interface> 返回带默认标签的命名接口指针
+ * @throws myerror 如果添加标签失败
+ */
 std::shared_ptr<Named_interface> TagNameOnly(const std::shared_ptr<Named_interface>& ref) {
     if (IsNameOnly(ref)) {
         std::shared_ptr<NamedTagged_interface> namedTagged;
@@ -119,6 +148,13 @@ std::shared_ptr<Named_interface> TagNameOnly(const std::shared_ptr<Named_interfa
 // ParseDockerRef 规范化图像引用，遵循Docker约定。主要是为了向后兼容。
 // 返回的引用只能是标记或摘要形式。如果引用包含标签和摘要，
 // 函数将返回摘要引用。
+/**
+ * @brief 解析Docker引用并规范化
+ * 
+ * @param ref 要解析的Docker引用字符串
+ * @return std::shared_ptr<Named_interface> 返回规范化后的命名接口指针
+ * @throws myerror 如果解析失败
+ */
 std::shared_ptr<Named_interface> ParseDockerRef(const std::string& ref) {
     try {
         std::shared_ptr<Named_interface> named = ParseNormalizedNamed(ref);

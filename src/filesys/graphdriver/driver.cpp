@@ -8,6 +8,13 @@ const std::string lowerFile = "lowers";
 string Clean(const string& path);
 string join(const vector<string>& elem);
 string Join(const vector<string>& elem);
+/**
+ * @brief 获取指定名称的驱动程序实例
+ * @param name 驱动程序名称
+ * @param config 驱动程序配置选项
+ * @return 返回驱动程序共享指针
+ * @throws myerror 当驱动程序未找到时抛出
+ */
 shared_ptr<Driver> GetDriver(const string& name, const driver_Options& config) {
     // GetDriver 初始化并返回已注册的驱动程序
     vector<string> pathElements = { config.root, name };
@@ -26,11 +33,19 @@ shared_ptr<Driver> GetDriver(const string& name, const driver_Options& config) {
     // 抛出myerror类型的错误，表示驱动程序未找到
     throw myerror("failed to GetDriver graph " + name + " " + config.root + ": " + "ErrNotSupported");
 }
-// 检查文件或目录是否存在
+/**
+ * @brief 检查文件或目录是否存在
+ * @param path 要检查的文件路径
+ * @return 如果路径存在返回true，否则返回false
+ */
 bool exists(const string& path) {
     return access(path.c_str(), F_OK) != -1; // F_OK 检查文件是否存在
 }
-// 扫描目录并返回已存在的驱动程序
+/**
+ * @brief 扫描目录并返回已存在的驱动程序
+ * @param root 要扫描的根目录路径
+ * @return 返回包含驱动程序名称和存在状态的unordered_map
+ */
 unordered_map<string, bool> ScanPriorDrivers(const string& root) {
     unordered_map<string, bool> driversMap;
 
@@ -45,7 +60,14 @@ unordered_map<string, bool> ScanPriorDrivers(const string& root) {
 
     return driversMap;
 }
-// getBuiltinDriver 函数实现
+/**
+ * @brief 获取内置驱动程序实例
+ * @param name 驱动程序名称
+ * @param home 驱动程序主目录路径
+ * @param options 驱动程序配置选项
+ * @return 返回驱动程序共享指针
+ * @throws myerror 当驱动程序未找到时抛出
+ */
 shared_ptr<Driver> getBuiltinDriver(const std::string& name, const std::string& home, const driver_Options& options) {
     auto it = drivers.find(name);
     if (it != drivers.end()) {
@@ -77,6 +99,13 @@ std::vector<std::string> Priority = {
     "zfs",
     "vfs"
 };
+/**
+ * @brief 创建新的驱动程序实例
+ * @param name 可选驱动程序名称，如果为空则自动选择
+ * @param config 驱动程序配置选项
+ * @return 返回驱动程序共享指针
+ * @throws myerror 当无法创建驱动程序时抛出
+ */
 shared_ptr<Driver> New(const string& name, const driver_Options& config) {
     if (!name.empty()) {
         // 如果指定了驱动名称，尝试加载指定的驱动，并记录到日志中,日志系统先不考虑
@@ -160,13 +189,20 @@ void Driver::UpdateLayerIDMap(string& id) {
 
 }
 /**
- * @brief 在Driver类的home目录下创建子目录id，仅仅得到子目录的路径
- * 
- * @param id 
- * @param useImageStore 
- * @return std::tuple<std::string,std::string,bool> 
+ * @brief 获取指定ID的存储目录路径
+ * @param id 存储层ID
+ * @param useImageStore 是否使用镜像存储路径
+ * @return tuple<路径,主目录路径,是否使用镜像存储>
+ * @throws myerror 当路径操作失败时抛出
  */
 // dir2 函数实现
+/**
+ * @brief 获取指定ID的存储目录路径
+ * @param id 存储层ID
+ * @param useImageStore 是否使用镜像存储路径
+ * @return tuple<路径,主目录路径,是否使用镜像存储>
+ * @throws myerror 当路径操作失败时抛出
+ */
 std::tuple<std::string, std::string, bool> Driver::dir2(std::string& id, bool useImageStore) {
     std::string homedir;
 
@@ -203,6 +239,12 @@ std::tuple<std::string, std::string, bool> Driver::dir2(std::string& id, bool us
     }
 }
 // getLower函数实现
+/**
+ * @brief 获取父层的lower信息
+ * @param parent 父层ID
+ * @return 返回合并后的lower路径字符串
+ * @throws myerror 当父层不存在或读取文件失败时抛出
+ */
 std::string getLower(const std::string& parent) {
     try {
         // 获取父目录路径
@@ -276,11 +318,20 @@ std::string getLower(const std::string& parent) {
     }
 }
 /**
- * @brief 创建oDriver.home下的目录结构
- *  
- * @param id 文件夹名
- * @param parent id对应层的父层
- * @param readOnly 
+ * @brief 创建存储层目录结构
+ * @param id 存储层ID
+ * @param parent 父层ID
+ * @param opts 创建选项，包含UID/GID映射等配置
+ * @param readOnly 是否创建只读层
+ * @throws myerror 当目录创建失败或权限设置失败时抛出
+ */
+/**
+ * @brief 创建存储层目录结构
+ * @param id 存储层ID
+ * @param parent 父层ID
+ * @param opts 创建选项，包含UID/GID映射等配置
+ * @param readOnly 是否创建只读层
+ * @throws myerror 当目录创建失败或权限设置失败时抛出
  */
 void Driver::create(const std::string& id, const std::string& parent, std::shared_ptr<CreateOpts> opts, bool readOnly) {
     try {
@@ -366,11 +417,18 @@ void Driver::create(const std::string& id, const std::string& parent, std::share
     }
 }
 /**
- * @brief 根据id创建layer层
- * 
- * @param id 
- * @param parent 
- * @param opts 
+ * @brief 创建可读写的存储层
+ * @param id 层ID
+ * @param parent 父层ID
+ * @param opts 创建选项，包含存储配额等配置
+ * @throws myerror 当创建失败或配置无效时抛出
+ */
+/**
+ * @brief 创建可读写的存储层
+ * @param id 层ID
+ * @param parent 父层ID
+ * @param opts 创建选项，包含存储配额等配置
+ * @throws myerror 当创建失败或配置无效时抛出
  */
 void Driver::CreateReadWrite(const std::string& id, const std::string& parent, std::shared_ptr<CreateOpts> opts) {
     try {
@@ -406,7 +464,3 @@ void Driver::CreateReadWrite(const std::string& id, const std::string& parent, s
         throw myerror("Failed to create read-write layer."); // 将其他异常转换为 myerror 类型异常
     }
 }
-
-
-
-

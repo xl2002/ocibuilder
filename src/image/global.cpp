@@ -15,8 +15,17 @@
 #include "image/types/signature/policy_config.h"
 #include "image/types/define/types.h"
 // 全局变量定义
+/// @brief 存储允许的策略作用域
+/// @details 定义不同传输协议允许的策略作用域
 std::shared_ptr<PolicyTransportScopes> storageAllowedPolicyScopes;
 
+/// @brief 拉取策略映射表
+/// @details 将字符串策略名称映射到对应的Pull_Policy枚举值
+/// 包含以下策略:
+/// - "missing": PullIfMissing
+/// - "always": PullAlways  
+/// - "never": PullNever
+/// - "ifnewer": PullIfNewer
 map<string,Pull_Policy>PolicyMap;
 
 Algorithm_sha256 sha_256;
@@ -36,14 +45,23 @@ std::string builtinRegistriesConfPath;
 std::string userRegistriesFile;
 std::string userRegistriesDir;
 
+/// @brief 内容描述符的媒体类型
 std::string MediaTypeDescriptor;
+/// @brief oci-layout的媒体类型
 std::string MediaTypeLayoutHeader;
+/// @brief 镜像索引的媒体类型  
 std::string MediaTypeImageIndex;
+/// @brief 镜像清单的媒体类型
 std::string MediaTypeImageManifest;
+/// @brief 镜像配置的媒体类型
 std::string MediaTypeImageConfig;
+/// @brief 空JSON对象的媒体类型
 std::string MediaTypeEmptyJSON;
+/// @brief 镜像层的媒体类型(tar格式)
 std::string MediaTypeImageLayer;
+/// @brief 镜像层的媒体类型(gzip压缩)
 std::string MediaTypeImageLayerGzip;
+/// @brief 镜像层的媒体类型(zstd压缩) 
 std::string MediaTypeImageLayerZstd;
 std::string BuildAuthor;
 
@@ -53,9 +71,13 @@ string windows;
 string darwin;
 string freebsd;
 
+/// @brief 旧版默认域名(index.docker.io)
 std::string legacyDefaultDomain;
+/// @brief 当前默认域名(docker.io)
 std::string defaultDomain;
+/// @brief 官方仓库名称(library)
 std::string officialRepoName;
+/// @brief 默认标签(latest)
 std::string defaultTag;
 
 std::string userPolicyFile;
@@ -74,8 +96,17 @@ std::string DOCKER;
 std::string SEV;
 std::string SNP;
 /**
- * @brief 初始化image的全局变量
+ * @brief 初始化镜像相关的全局变量和配置
  * 
+ * @details 该函数负责初始化整个镜像模块所需的全局变量，包括：
+ * 1. 拉取策略映射(PolicyMap)
+ * 2. 摘要算法配置(sha_256)
+ * 3. 媒体类型定义(MediaType*)
+ * 4. 默认域名和标签配置(defaultDomain/defaultTag)
+ * 5. 传输协议注册(Register)
+ * 6. 正则表达式模式(DigestRegexp)
+ * 
+ * @note 该函数应在程序启动时调用一次，确保所有全局变量正确初始化
  */
 void init_image(){
     storageAllowedPolicyScopes=std::make_shared<PolicyTransportScopes>();

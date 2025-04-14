@@ -1,6 +1,10 @@
 #include "image/buildah/digester.h"
 #include "image/digest/algorithm.h"
 #include "image/buildah/tar.h"
+/**
+ * @brief 获取摘要器的内容类型
+ * @return std::string 内容类型字符串
+ */
 std::string simpleDigester::ContentType(){
     return contentType;
 }
@@ -17,9 +21,16 @@ void simpleDigester::write(const std::string& data){
         this->hasher->data=this->hasher->Hash_num(std::vector<uint8_t>(data.begin(), data.end()));
     }
 }
+/**
+ * @brief 关闭摘要器并释放资源
+ */
 void simpleDigester::close(){
     return;
 }
+/**
+ * @brief 获取当前计算的摘要值
+ * @return std::shared_ptr<::Digest> 摘要对象指针
+ */
 std::shared_ptr<::Digest> simpleDigester::Digest(){
     return this->digester->Digest();
 }
@@ -40,6 +51,9 @@ std::shared_ptr<digester_interface> newSimpleDigester(string contentType){
     digester->digester = finalDigester;
     return digester;
 }
+/**
+ * @brief 关闭当前打开的摘要器
+ */
 void CompositeDigester::closeOpenDigester(){
     if(closer!=nullptr){
         closer->close();
@@ -77,6 +91,10 @@ std::pair<std::string, std::shared_ptr<Digest>> CompositeDigester::Digest() {
         }
     }
 }
+/**
+ * @brief 重置复合摘要器状态
+ * 关闭所有打开的摘要器并清空摘要器列表
+ */
 void  CompositeDigester::Restart(){
     closeOpenDigester();
     digesters.clear();

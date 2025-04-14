@@ -5,6 +5,13 @@ std::once_flag isCgroupV2Once;
 // Linux/Unix上的实现
 constexpr long CGROUP2_SUPER_MAGIC = 0x63677270;
 
+/**
+ * @brief Check if cgroup v2 is supported on the system
+ * 
+ * @return std::tuple<bool, boost::optional<std::error_code>> 
+ *         Tuple containing (is_supported, error_code)
+ * @note On Linux checks actual support, on Windows always returns false
+ */
 std::tuple<bool, boost::optional<std::error_code>> Enabled() {
     std::call_once(isCgroupV2Once, []() {
         struct statfs st;

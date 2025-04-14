@@ -37,13 +37,24 @@ std::shared_ptr<Hash_256> Algorithm_sha256::Hash() {
     SHA256_Init(hash_256->sha256.get());
     return std::shared_ptr<Hash_256>(hash_256);
 }
+/**
+ * @brief 检查当前算法是否可用
+ * @return bool 返回算法是否可用
+ * @details 通过检查算法映射表中是否存在当前算法来判断可用性
+ */
 bool Algorithm_sha256::Available(){
     if(algorithms.find(*this)!=algorithms.end()){
         return true;
     }
     return false;
 }
-// Validate 验证编码部分的字符串
+/**
+ * @brief 验证编码字符串格式
+ * @param encoded 待验证的编码字符串
+ * @throw std::runtime_error 当算法不支持时抛出
+ * @throw std::invalid_argument 当长度或格式不匹配时抛出
+ * @details 检查编码字符串是否符合算法要求的长度和正则表达式格式
+ */
 void Algorithm_sha256::Validate(const std::string& encoded) {
     auto it = anchoredEncodedRegexps.find(*this);
     
@@ -66,7 +77,11 @@ void Algorithm_sha256::Validate(const std::string& encoded) {
     
     throw std::invalid_argument("ErrDigestInvalidFormat");
 }
-// Size 返回哈希生成的字节数
+/**
+ * @brief 获取哈希值的字节长度
+ * @return int 返回哈希值的字节长度
+ * @details 根据当前算法类型返回对应的哈希值长度
+ */
 int Algorithm_sha256::Size() {
     auto it = algorithms.find(*this);
     
@@ -112,6 +127,11 @@ std::shared_ptr<Digester_interface> Algorithm_sha256::Digester(){
     
 }
 
+/**
+ * @brief 获取算法名称字符串
+ * @return std::string 返回算法名称
+ * @details 返回当前算法的字符串表示形式
+ */
 std::string Algorithm_sha256::String(){
     return this->value;
 }

@@ -13,7 +13,17 @@
 // #include <boost/align.hpp>
 
 std::mutex cachedConfigMutex;
-// New 函数返回一个 Config 对象，如 containers.conf(5) 手册页中所描述。
+/**
+ * @brief 创建新的容器配置对象
+ * @param options 配置选项指针，可为nullptr使用默认选项
+ * @return std::shared_ptr<Config> 新创建的配置对象
+ * @details 
+ * - 如果options为nullptr，会创建默认选项
+ * - 如果options->SetDefault为true，会缓存配置作为默认配置
+ * - 内部调用newLocked()完成实际配置创建
+ * - 线程安全，使用mutex保护缓存操作
+ * @throws myerror 如果配置创建失败
+ */
 std::shared_ptr<Config> New(std::shared_ptr<Options> options) {
     if (!options) {
         options = std::make_shared<Options>();
@@ -33,10 +43,15 @@ std::shared_ptr<Config> New(std::shared_ptr<Options> options) {
     
     
 }
-// Default returns the default container config.  If no default config has been
-// set yet, a new config will be loaded by New() and set as the default one.
-// All callers are expected to use the returned Config read only.  Changing
-// data may impact other call sites.
+/**
+ * @brief 获取默认容器配置
+ * @return std::shared_ptr<Config> 默认配置对象
+ * @details
+ * - 如果默认配置未设置，会通过New()创建并缓存新配置
+ * - 返回的配置应被视为只读，修改会影响所有调用方
+ * - 线程安全，使用mutex保护缓存操作
+ * @throws myerror 如果配置创建失败
+ */
 std::shared_ptr<Config> Config_defaut() {
     // int num=0;
     std::lock_guard<std::mutex> lock(cachedConfigMutex);
@@ -56,6 +71,19 @@ std::shared_ptr<Config> Config_defaut() {
     }
 }
 
+/**
+ * @brief 创建并初始化新的配置对象(内部使用)
+ * @param options 配置选项
+ * @return std::shared_ptr<Config> 初始化后的配置对象
+ * @details
+ * - 从默认配置开始
+ * - 加载系统配置并合并
+ * - 处理模块配置
+ * - 处理环境变量覆盖
+ * - 验证并设置环境
+ * - 如果options->SetDefault为true，会缓存配置
+ * @throws myerror 如果配置创建或验证失败
+ */
 std::shared_ptr<Config> newLocked(std::shared_ptr<Options> options) {
     // 使用内置默认值开始
     std::shared_ptr<Config> config;
@@ -126,6 +154,18 @@ std::shared_ptr<Config> newLocked(std::shared_ptr<Options> options) {
     }
     return config;
 }
+/**
+ * @brief 获取系统级配置文件路径列表
+ * @return std::tuple<std::vector<std::string>, boost::system::error_code> 
+ *         配置文件路径列表和错误码
+ * @details
+ * - 检查containersConfEnv环境变量指定的配置文件
+ * - 添加默认系统配置文件路径
+ * - 添加系统配置目录(.d)中的配置文件
+ * - 添加用户配置文件路径
+ * - 添加用户配置目录(.d)中的配置文件
+ * - 返回的路径已按字母顺序排序
+ */
 std::tuple<std::vector<std::string>, boost::system::error_code> systemConfigs() {
     std::vector<std::string> configs;
     boost::system::error_code finalErr;
@@ -174,6 +214,19 @@ std::tuple<std::vector<std::string>, boost::system::error_code> systemConfigs() 
 }
 
 namespace fs = boost::filesystem;
+/**
+ * @brief 从指定目录添加配置文件到配置列表
+ * @param dirPath 要扫描的目录路径
+ * @param configs 现有的配置文件路径列表
+ * @return std::pair<std::vector<std::string>, boost::system::error_code>
+ *         更新后的配置文件列表和错误码
+ * @details
+ * - 扫描指定目录下的.conf文件
+ * - 忽略子目录
+ * - 按字母顺序排序找到的文件
+ * - 合并到现有配置列表
+ * - 如果目录不存在，返回原列表
+ */
 std::pair<std::vector<std::string>,  boost::system::error_code>
 addConfigs(const std::string& dirPath, std::vector<std::string>& configs) {
     std::vector<std::string> newConfigs;
@@ -213,6 +266,16 @@ addConfigs(const std::string& dirPath, std::vector<std::string>& configs) {
     return {configs, ec};
 }
 
+/**
+ * @brief 获取用户级配置文件路径
+ * @return std::tuple<std::string, boost::system::error_code>
+ *         用户配置文件路径和错误码
+ * @details
+ * - 优先检查XDG_CONFIG_HOME环境变量
+ * - 如果未设置，则使用HOME/USERPROFILE环境变量
+ * - 在Windows和Linux上使用不同的环境变量
+ * - 返回路径格式为: [config_dir]/_configPath
+ */
 std::tuple<std::string, boost::system::error_code> userConfigPath() {
     std::string configPath;
     boost::system::error_code ec;
@@ -294,6 +357,16 @@ std::tuple<std::string, boost::system::error_code> userConfigPath() {
 // }
 // Find the specified modules in the options. Return an error if a specific
 // module cannot be located on the host.
+/**
+ * @brief 获取配置选项中的模块路径列表
+ * @return std::vector<std::string> 模块路径列表
+ * @details
+ * - 如果Modules为空，返回空列表
+ * - 否则解析模块路径并返回
+ * - 模块路径可能来自环境变量或配置选项
+ * - 实际实现中会检查模块是否存在
+ * @note 当前实现仅返回空列表，完整实现需解析模块路径
+ */
 std::vector<std::string> Options::modules() {
     std::vector<std::string> configs;
     boost::system::error_code ec;

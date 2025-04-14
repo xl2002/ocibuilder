@@ -15,7 +15,15 @@ std::shared_ptr<IDMappings> NewIDMappingsFromMaps(std::vector<IDMap> uids, std::
     mappings->gids = gids;
     return mappings;
 }
-//只考虑uid和gid相同且为0的情况
+/**
+ * @brief Safely change file/directory ownership
+ * @param name Path to the file/directory
+ * @param uid Target user ID
+ * @param gid Target group ID
+ * @return true if ownership is already root (0:0), false otherwise
+ * @throws myerror if file doesn't exist or stat fails
+ * @note Currently only checks for root ownership (0:0)
+ */
 bool SafeChown(const std::string& name, int uid, int gid) {
     // 检查文件或目录是否存在
     if (!boost::filesystem::exists(name)) {
@@ -40,7 +48,17 @@ bool SafeChown(const std::string& name, int uid, int gid) {
     // }
     return true; // 返回 false，表示进行了修改
 }
-// 使用你提供的MkdirAll实现
+/**
+ * @brief Create directory with specified permissions and ownership
+ * @param path Directory path to create
+ * @param mode Permission mode (octal)
+ * @param ownerUID Target user ID
+ * @param ownerGID Target group ID 
+ * @param mkAll Create parent directories if needed
+ * @param chownExisting Change ownership of existing directories
+ * @return true on success, false on failure
+ * @throws myerror on filesystem errors
+ */
 bool mkdirAs(const std::string& path, int mode, int ownerUID, int ownerGID, bool mkAll, bool chownExisting) {
     std::vector<std::string> paths;
     try {
@@ -89,7 +107,15 @@ bool mkdirAs(const std::string& path, int mode, int ownerUID, int ownerGID, bool
     return true;
 }
 
-// 递归创建路径上的所有目录，并根据给定的UID和GID修改所有者
+/**
+ * @brief Recursively create directories with ownership
+ * @param path Directory path to create
+ * @param mode Permission mode (octal)
+ * @param ownerUID Target user ID
+ * @param ownerGID Target group ID
+ * @return true on success, false on failure
+ * @note Wrapper around mkdirAs with mkAll=true and chownExisting=true
+ */
 bool MkdirAllAs(const std::string& path, int mode, int ownerUID, int ownerGID) {
     try {
         return mkdirAs(path, mode, ownerUID, ownerGID, true, true);
@@ -97,6 +123,15 @@ bool MkdirAllAs(const std::string& path, int mode, int ownerUID, int ownerGID) {
         return false;
     }
 }
+/**
+ * @brief Recursively create directories and chown only new ones
+ * @param path Directory path to create
+ * @param mode Permission mode (octal)
+ * @param ownerUID Target user ID
+ * @param ownerGID Target group ID
+ * @throws myerror on filesystem errors
+ * @note Wrapper around mkdirAs with mkAll=true and chownExisting=false
+ */
 void MkdirAllAndChownNew(const std::string& path, int mode, int ownerUID, int ownerGID) {
     try {
         mkdirAs(path, mode, ownerUID, ownerGID, true, false);

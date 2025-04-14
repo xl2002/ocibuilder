@@ -10,6 +10,12 @@
 #include <boost/asio/ip/network_v4.hpp> // 使用 Boost 库中的 asio 进行网络处理
 #include "utils/common/go/file.h"
 
+/**
+ * @brief 获取默认配置
+ * @details 创建并返回包含容器、网络、引擎等默认配置的Config对象
+ * @return 包含所有默认配置的shared_ptr<Config>对象
+ * @throws myerror 如果获取默认引擎配置失败
+ */
 std::shared_ptr<Config> defaultConfig() {
     std::shared_ptr<EngineConfig> defaultengineConfig;
     boost::optional<myerror> err;
@@ -111,12 +117,20 @@ std::shared_ptr<Config> defaultConfig() {
     return ret_config;
     // return std::make_shared<Config>();
 }
+/**
+ * @brief 获取默认的Secret配置
+ * @return 包含默认Secret配置的shared_ptr<SecretConfig>对象(使用"file"驱动)
+ */
 std::shared_ptr<SecretConfig> defaultSecretConfig() {
     auto secret=std::make_shared<SecretConfig>();
     secret->Driver="file";
     return secret;
 }
-// defaultMachineConfig 返回默认的机器配置
+/**
+ * @brief 获取默认的机器配置
+ * @details 创建并返回包含CPU核心数、内存大小、磁盘大小等默认机器配置
+ * @return 包含默认机器配置的shared_ptr<MachineConfig>对象
+ */
 std::shared_ptr<MachineConfig> defaultMachineConfig() {
     // 获取系统 CPU 核心数量
     uint64_t cpus = std::thread::hardware_concurrency() / 2;
@@ -133,11 +147,22 @@ std::shared_ptr<MachineConfig> defaultMachineConfig() {
     mach->Rosetta=true;
     return mach;
 }
+/**
+ * @brief 获取默认的Farm配置
+ * @details 创建并返回包含空列表的默认Farm配置对象
+ * @return 包含默认Farm配置的shared_ptr<FarmConfig>对象
+ */
 std::shared_ptr<FarmConfig> defaultFarmConfig() {
     auto farm=std::make_shared<FarmConfig>();
     farm->List=std::map<std::string,std::string>();
     return farm;
 }
+/**
+ * @brief 获取默认的Engine配置
+ * @details 创建并返回包含运行时路径、临时目录、事件日志等默认引擎配置
+ * @return 包含EngineConfig和可能错误的元组
+ * @throws myerror 如果获取临时目录失败
+ */
 std::tuple<std::shared_ptr<EngineConfig>,boost::optional<myerror>> defaultEngineConfig() {
     auto c=std::make_shared<EngineConfig>();
     std::string tmp;
@@ -282,24 +307,60 @@ std::tuple<std::shared_ptr<EngineConfig>,boost::optional<myerror>> defaultEngine
     return std::make_tuple(c,boost::none);
 }
 
+/**
+ * @brief 获取默认临时目录
+ * @details 返回默认的临时目录路径"/run/libpod"
+ * @return 包含路径和可能错误的元组
+ */
 std::tuple<std::string,boost::optional<myerror>> defaultTmpDir(){
     return std::make_tuple("/run/libpod",boost::none);
 }
+/**
+ * @brief 获取默认的Compose providers列表
+ * @details 返回默认的Unix compose providers列表
+ * @return 包含默认compose providers路径的字符串向量
+ */
 std::vector<std::string> getDefaultComposeProviders(){
     return defaultUnixComposeProviders;
 }
+/**
+ * @brief 获取默认的临时目录路径
+ * @details 返回由defaultRunRoot和"tmp"组成的临时目录路径
+ * @return 临时目录路径字符串
+ */
 std::string getDefaultTmpDir(){
     return defaultRunRoot+Separator+"tmp";
 }
+/**
+ * @brief 获取默认的cgroup管理器
+ * @details 返回默认的cgroup管理器类型字符串"CgroupfsCgroupsManager"
+ * @return cgroup管理器类型字符串
+ */
 std::string defaultCgroupManager(){
     return CgroupfsCgroupsManager;
 }
+/**
+ * @brief 获取默认的事件日志记录器
+ * @details 返回默认的事件日志记录器类型字符串"file"
+ * @return 事件日志记录器类型字符串
+ */
 std::string defaultEventsLogger(){
     return "file";
 }
+/**
+ * @brief 获取默认的日志驱动
+ * @details 返回默认的日志驱动类型字符串"k8s-file"
+ * @return 日志驱动类型字符串
+ */
 std::string defaultLogDriver(){
     return "k8s-file";
 }
+/**
+ * @brief 获取默认的SSH配置文件路径
+ * @details 根据操作系统返回不同的默认SSH配置路径
+ * @note Linux系统返回"/root/.ssh/config"，Windows系统返回"C:\\ProgramData\\ssh\\sshd_config"
+ * @return 平台特定的SSH配置文件路径字符串
+ */
 std::string getDefaultSSHConfig(){
     #ifdef __linux__
     return "/root/.ssh/config";
@@ -307,6 +368,14 @@ std::string getDefaultSSHConfig(){
     return "C:\\ProgramData\\ssh\\sshd_config";
     #endif
 }
+/**
+ * @brief 解析子网池配置
+ * @details 使用Boost库解析CIDR格式的子网字符串并创建SubnetPool对象
+ * @param subnet CIDR格式的子网字符串(如"192.168.1.0/24")
+ * @param size 子网池的大小
+ * @return 包含解析后的IP网络和池大小的SubnetPool对象
+ * @throws std::invalid_argument 如果提供的子网无效
+ */
 SubnetPool parseSubnetPool(const std::string& subnet, int size) {
     // 使用 Boost 库解析 CIDR
     boost::system::error_code ec;
@@ -323,6 +392,12 @@ SubnetPool parseSubnetPool(const std::string& subnet, int size) {
     
     return SubnetPool(ipNet, size);
 }
+/**
+ * @brief 获取默认的机器用户名
+ * @details 返回硬编码的默认机器用户名"core"
+ * @note 这是一个固定的默认值，可能需要在特定环境中覆盖
+ * @return 默认机器用户名字符串"core"
+ */
 std::string getDefaultMachineUser(){
     return "core";
 }
