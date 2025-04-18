@@ -4,21 +4,37 @@
 #include <boost/lexical_cast.hpp>
 
 
+/**
+ * @brief 获取默认的锁类型
+ * @return 返回默认锁类型字符串("shm")
+ */
 std::string getDefaultLockType(){
     return "shm";
 }
+/**
+ * @brief 获取Libpod临时目录路径
+ * @return 返回默认的Libpod临时目录路径("/run/libpod")
+ */
 std::string getLibpodTmpDir(){
     return "/run/libpod";
 }
 
+/**
+ * @brief 获取默认的机器挂载卷配置
+ * @return 返回默认挂载卷配置向量(包含"$HOME:$HOME")
+ */
 std::vector<std::string> getDefaultMachineVolumes(){
     return std::vector<std::string>{"$HOME:$HOME"};
 
 }
-// getDefaultProcessLimits 返回当前进程的nproc限制，格式为ulimits
-// 注意：nfile有时不能设置为无限制，限制硬编码为(oldMaxSize) 1048576 (2^20)，参见：http://stackoverflow.com/a/1213069/1811501
-// 在无特权容器中，这将失败，进程将使用其当前的限制
-// constexpr rlim_t oldMaxSize = 1048576; // 2^20
+/**
+ * @brief 获取默认的进程限制配置
+ * @details 返回当前进程的nproc限制，格式为ulimits\n
+ * 注意：nfile有时不能设置为无限制，限制硬编码为(oldMaxSize) 1048576 (2^20)\n
+ * 在无特权容器中，这将失败，进程将使用其当前的限制\n
+ * 参见：http://stackoverflow.com/a/1213069/1811501
+ * @return 返回进程限制配置向量
+ */
 std::vector<std::string> getDefaultProcessLimits() {
 #ifndef _WIN32
     struct rlimit rlim = {1048576, 1048576};  // 设置初始的硬编码值
@@ -57,6 +73,10 @@ std::vector<std::string> getDefaultProcessLimits() {
     return defaultLimits;
     // return std::vector<std::string>{"nproc=4194304:4194304"};
 }
+/**
+ * @brief 检查SELinux是否启用
+ * @return true-SELinux已启用, false-SELinux未启用
+ */
 bool selinuxEnabled(){
     return GetEnabled();
 }

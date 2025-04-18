@@ -7,8 +7,9 @@
       "request": "launch",
       "args": [
         "push",
-        "image1:latest",
-        "oci:E:/Project/Image/test/image1:imagetest:latest"
+        "--format",
+        "oci",
+        "192.168.1.102:80/library/image1:latest"
       ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",

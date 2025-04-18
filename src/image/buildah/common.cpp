@@ -2,6 +2,14 @@
 #include "image/types/copy.h"
 #include "image/buildah/retry.h"
 
+/**
+ * @brief 获取系统上下文配置
+ * 
+ * @param store 存储接口指针
+ * @param defaults 默认系统上下文配置
+ * @param signaturePolicyPath 签名策略文件路径
+ * @return std::shared_ptr<SystemContext> 返回配置好的系统上下文对象
+ */
 std::shared_ptr<SystemContext> getSystemContext(
     std::shared_ptr<Store_interface> store,
     std::shared_ptr<SystemContext> defaults,

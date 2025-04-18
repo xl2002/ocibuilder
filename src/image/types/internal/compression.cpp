@@ -154,6 +154,16 @@ void gzip_decompress(std::istream& inputStream, std::ostream& outputStream) {
         std::cerr << "Error during decompression: " << e.what() << std::endl;
     }
 }
+/**
+ * @brief 创建新的压缩算法对象
+ * 
+ * @param name 算法名称
+ * @param nontrivialBaseVariantName 基础变体名称
+ * @param prefix 算法标识前缀
+ * @param decompressor 解压缩函数指针
+ * @param compressor 压缩函数指针
+ * @return std::shared_ptr<Algorithm> 返回算法对象的智能指针
+ */
 std::shared_ptr<Algorithm> NewAlgorithm(string name,std::string nontrivialBaseVariantName,std::vector<uint8_t> prefix,DecompressorFunc decompressor,CompressorFunc compressor){
     auto algorithm=std::make_shared<Algorithm>();
     algorithm->name=name;
@@ -163,9 +173,21 @@ std::shared_ptr<Algorithm> NewAlgorithm(string name,std::string nontrivialBaseVa
     algorithm->compressor=compressor;
     return algorithm;   
 }
+/**
+ * @brief 获取算法的压缩函数
+ * 
+ * @param algorithm 算法对象
+ * @return CompressorFunc 返回压缩函数指针
+ */
 CompressorFunc AlgorithmCompressor(std::shared_ptr<Algorithm> algorithm){
     return algorithm->compressor;
 }
+/**
+ * @brief 获取算法的解压缩函数
+ * 
+ * @param algorithm 算法对象
+ * @return DecompressorFunc 返回解压缩函数指针
+ */
 DecompressorFunc AlgorithmDecompressor(std::shared_ptr<Algorithm> algorithm){
     return algorithm->decompressor;    
 }

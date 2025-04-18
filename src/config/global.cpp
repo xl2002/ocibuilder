@@ -105,8 +105,17 @@ std::string containersConfEnv;
 std::string containersConfOverrideEnv;
 
 /**
- * @brief 初始化config全局变量
+ * @brief 初始化容器配置的全局变量
+ * @details 该函数初始化所有与容器配置相关的全局变量，包括:
+ * - 配置文件路径(_configPath, UserOverrideContainersConfig等)
+ * - 默认路径(_defaultGraphRoot, _defaultTransport等)
+ * - 默认安全设置(DefaultMaskedPaths, DefaultReadOnlyPaths等)
+ * - 默认能力集(DefaultCapabilities)
+ * - 网络相关设置(DefaultSubnetPools, DefaultCNIPluginDirs等)
+ * - 其他运行时配置(DefaultLogSizeMax, DefaultPidsLimit等)
  * 
+ * 这些变量在程序启动时初始化，并在整个生命周期中使用。
+ * 修改这些变量会影响所有容器的默认行为。
  */
 void init_config(){
     _configPath = "containers/containers.conf";

@@ -1,5 +1,11 @@
 #include "filesys/graphdriver/driver_linux_windows.h"
 
+/**
+ * @brief 获取指定路径的文件系统类型标识
+ * @param rootpath 要检查的根路径
+ * @return 返回文件系统魔法常量 
+ * @throws myerror 当无法获取文件系统信息时抛出
+ */
 FsMagic GetFSMagic(const std::string& rootpath) {
     try {
         // 提取文件目录

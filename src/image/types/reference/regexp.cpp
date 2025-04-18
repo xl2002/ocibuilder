@@ -47,6 +47,13 @@ std::shared_ptr<Regexp> anchoredDigestRegexp;
 std::shared_ptr<Regexp> anchoredNameRegexp,anchoredIdentifierRegexp;
 
 
+/**
+ * @brief 初始化所有正则表达式模式
+ * 
+ * 初始化用于解析容器镜像引用的各种正则表达式模式，
+ * 包括域名、标签、摘要、标识符等组件。
+ * 该函数应在程序启动时调用一次。
+ */
 void init_regexp() {
 
     alphaNumeric="[a-z0-9]+";
@@ -90,6 +97,12 @@ void init_regexp() {
     anchoredIdentifierRegexp=Delayed(anchoredIdentifier);
 }
 
+/**
+ * @brief 转义字符串中的正则表达式保留字符
+ * 
+ * @param s 要转义的原始字符串
+ * @return std::string 转义后的字符串
+ */
 std::string literal(const std::string& s) {
     std::string escaped;
     for (char c : s) {
@@ -102,6 +115,12 @@ std::string literal(const std::string& s) {
     return escaped;
 }
 // 定义一个完整的表达式，其中每个正则表达式必须跟随前一个。
+/**
+ * @brief 构建正则表达式字符串
+ * 
+ * @param res 要连接的字符串列表
+ * @return std::string 连接后的正则表达式字符串
+ */
 std::string expression(std::initializer_list<std::string> res) {
     std::ostringstream oss;
     for (const auto& str : res) {
@@ -109,19 +128,49 @@ std::string expression(std::initializer_list<std::string> res) {
     }
     return oss.str();
 }
+/**
+ * @brief 构建可选的正则表达式部分
+ * 
+ * @param res 要设置为可选的字符串列表
+ * @return std::string 添加了?量词的正则表达式
+ */
 std::string optional(std::initializer_list<std::string> res) {
     return group({expression(res)})+'?';
 }
+/**
+ * @brief 构建重复的正则表达式部分
+ * 
+ * @param res 要设置为重复的字符串列表
+ * @return std::string 添加了+量词的正则表达式
+ */
 std::string repeated(std::initializer_list<std::string> res) {
     auto exp=expression(res);
     return group({exp})+'+';
 }
+/**
+ * @brief 构建非捕获组
+ * 
+ * @param res 要分组的字符串列表
+ * @return std::string 非捕获组正则表达式
+ */
 std::string group(std::initializer_list<std::string> res) {
     return "(?:" + expression(res) + ')';
 }
+/**
+ * @brief 构建捕获组
+ * 
+ * @param res 要捕获的字符串列表
+ * @return std::string 捕获组正则表达式
+ */
 std::string capture(std::initializer_list<std::string> res) {
     return '(' + expression(res) + ')';
 }
+/**
+ * @brief 构建锚定正则表达式
+ * 
+ * @param res 要锚定的字符串列表
+ * @return std::string 添加了^和$锚点的正则表达式
+ */
 std::string anchored(std::initializer_list<std::string> res) {
     return '^' + expression(res) + '$';
 }

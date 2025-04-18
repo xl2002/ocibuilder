@@ -11,6 +11,12 @@ std::shared_ptr<OCI1> OCI1FromManifest(std::vector<uint8_t> manifestBlob){
     return std::make_shared<OCI1>(oci1);
 }
 
+/**
+ * @brief 从blob数据创建OCI1对象
+ * @param manblob 镜像manifest的二进制数据
+ * @param mt 媒体类型(未使用)
+ * @return std::shared_ptr<OCI1> 返回创建的OCI1对象指针
+ */
 std::shared_ptr<OCI1> FromBlob(std::vector<uint8_t> manblob, std::string mt){
     return OCI1FromManifest(manblob);
 }
@@ -29,6 +35,11 @@ std::vector<LayerInfo> OCI1::LayerInfos(){
     }
     return blobs;
 }
+/**
+ * @brief 从OCI1描述符创建BlobInfo对象
+ * @param desc OCI1描述符指针
+ * @return std::shared_ptr<::BlobInfo> 返回创建的BlobInfo对象指针
+ */
 std::shared_ptr<::BlobInfo> BlobInfoFromOCI1Descriptor(std::shared_ptr<Descriptor> desc){
     auto ret=std::make_shared<::BlobInfo>();
     ret->Digest=std::make_shared<Digest>(desc->Digests);

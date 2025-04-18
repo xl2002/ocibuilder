@@ -21,15 +21,29 @@
 // 	// Token prefix for looking for helper binary under $BINDIR
 // 	bindirPrefix = "$BINDIR";
 
+/**
+ * @brief 检查cgroups配置并调整相关设置
+ */
 void Config::CheckCgroupsAndAdjustConfig(){
     return;
 }
 
 
-// Helper function to check if the user is not root
+/**
+ * @brief 检查用户是否不是root用户
+ * @param user 要检查的用户名或UID
+ * @return true-用户不是root, false-用户是root
+ */
 bool userNotRoot(const std::string& user) {
     return user.empty() || user == "root" || user == "0";
 }
+/**
+ * @brief 获取并处理容器的能力列表
+ * @param user 用户名，用于判断是否是root用户
+ * @param addCapabilities 要添加的能力列表
+ * @param dropCapabilities 要删除的能力列表 
+ * @return 处理后的能力列表
+ */
 std::vector<std::string> Config::Capabilities(const std::string& user,
                                     const std::vector<std::string>& addCapabilities,
                                     const std::vector<std::string>& dropCapabilities) {
@@ -43,13 +57,27 @@ std::vector<std::string> Config::Capabilities(const std::string& user,
     // return mergedCapabilities;
     return std::vector<std::string>();
 }
+/**
+ * @brief 获取容器配置的卷列表
+ * @return 容器卷配置列表
+ */
 std::vector<std::string> Config::Volumes(){
     return Containers->Volumes->Get();
 }
 
+/**
+ * @brief 获取容器的默认环境变量配置
+ * @return 默认环境变量列表
+ */
 std::vector<std::string> Config::GetDefaultEnv(){
     return GetDefaultEnvEx(Containers->EnvHost,Containers->HTTPProxy);
 }
+/**
+ * @brief 获取容器的默认环境变量配置(扩展版本)
+ * @param envHost 是否包含主机环境变量
+ * @param httpProxy 是否包含HTTP代理设置
+ * @return 处理后的环境变量列表
+ */
 std::vector<std::string> Config::GetDefaultEnvEx(bool envHost,bool httpProxy){
     std::vector<std::string> env;
     if(envHost){
@@ -61,6 +89,10 @@ std::vector<std::string> Config::GetDefaultEnvEx(bool envHost,bool httpProxy){
     env.insert(env.end(),Env.begin(),Env.end());
     return env;
 }
+/**
+ * @brief 为容器的能力列表添加CAP前缀
+ * 确保所有能力项都有正确的"CAP_"前缀格式
+ */
 void Config::addCAPPrefix() {
     // 获取默认能力列表
     std::vector<std::string> caps = Containers->DefaultCapabilities->Get();
@@ -78,12 +110,20 @@ void Config::addCAPPrefix() {
     // 设置新的能力列表
     Containers->DefaultCapabilities->Set(newCaps);
 }
+/**
+ * @brief 验证容器配置的有效性
+ * 检查标签功能是否启用，未启用则禁用相关配置
+ */
 void Config::Validate(){
     if(!Containers->EnableLabeling){
         SetDisabled();
     }
 }
-// 设置环境变量的方法
+/**
+ * @brief 设置引擎环境变量
+ * 从Engine配置中读取环境变量并设置到系统环境
+ * 跳过已存在的环境变量和无效的KEY=value格式
+ */
 void Config::setupEnv() {
     for (const auto& env : Engine->Env->Get()) {
         // 分割 KEY=value
