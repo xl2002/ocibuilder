@@ -9,6 +9,7 @@
  *
  */
 #include "cmd/push/push.h"
+#include "image/buildah/retry.h"
 #include "network/network.h"
 #include "utils/cli/cli/common.h"
 #include "security/auth.h"
@@ -193,29 +194,46 @@ void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
         // 判断这层数据是否在服务器存在，不存在再传输
         if (!ifBlobExists(url->host, url->port, url->imageName, shaId, url->projectName))
         {
-            std::pair<std::string, std::string> initResult = initUpload(url->host, url->port, url->imageName, url->projectName);
-            if (initResult.first.empty() || initResult.second.empty()) {
-                std::cerr << "Failed to initialize upload for blob: " << shaId << std::endl;
-                allBlobsUploaded = false;
-                break;
-            }
+            // 创建重试配置
+            auto retryOptions = std::make_shared<Retry::Options>();
+            retryOptions->MaxRetry = 3;
+            retryOptions->Delay = std::chrono::seconds(1);
+
+            // 初始化上传(带重试)
+            std::pair<std::string, std::string> initResult;
+
+                initResult = initUpload(url->host, url->port, url->imageName, url->projectName);
+                if (initResult.first.empty() || initResult.second.empty()) {
+                    throw std::runtime_error("Failed to initialize upload");
+                }
+
             uid = initResult.first;
             state = initResult.second;
+            
             // 拿到data数据大小
             std::ifstream file(filePath, std::ios::binary | std::ios::ate);
             std::size_t total_size = file.tellg();
             file.close();
-            // 上传数据
-            std::pair<std::string, std::string> uploadResult = uploadBlobChunk(url->host, url->port, uid, state, filePath, 0, total_size, total_size, url->imageName, url->projectName);
-            if (uploadResult.first.empty() || uploadResult.second.empty()) {
-                std::cerr << "Failed to upload blob: " << shaId << std::endl;
-                allBlobsUploaded = false;
-                break;
-            }
+            
+            // 上传数据(带重试)
+            std::pair<std::string, std::string> uploadResult;
+            RetryIfNecessary([&](){
+                uploadResult = uploadBlobChunk(url->host, url->port, uid, state, filePath, 0, total_size, total_size, url->imageName, url->projectName);
+                if (uploadResult.first.empty() || uploadResult.second.empty()) {
+                    throw std::runtime_error("Failed to upload blob chunk");
+                }
+            }, retryOptions);
+            
             uid = uploadResult.first;
             state = uploadResult.second;
-            // 完成本次上传
-            finalizeUpload(url->host, url->port, uid, shaId, state, url->imageName, url->projectName);
+            
+            // 完成上传(带重试)
+            RetryIfNecessary([&](){
+                finalizeUpload(url->host, url->port, uid, shaId, state, url->imageName, url->projectName);
+                if (!ifBlobExists(url->host, url->port, url->imageName, shaId, url->projectName)) {
+                    throw std::runtime_error("Blob upload verification failed");
+                }
+            }, retryOptions);
             // 上传完成后再次检查blob是否存在
             if (!ifBlobExists(url->host, url->port, url->imageName, shaId, url->projectName)) {
                 std::cerr << "Blob upload verification failed: " << shaId << " not found in repository" << std::endl;

@@ -102,7 +102,6 @@ std::string TypeBind;
 // TypeTmpfs 是用于挂载 tmpfs 的类型
 /// @brief tmpfs挂载类型
 std::string TypeTmpfs;
-std::string TypeTmpfs;
 // TypeCache 是用于挂载主机上常用的持久缓存的类型
 /// @brief 缓存挂载类型
 std::string TypeCache;

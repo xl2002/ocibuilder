@@ -52,6 +52,27 @@
 
 /// @var GOARCH
 /// @brief 系统架构标识(amd64/arm等)
+// 全局变量定义
+std::string ErrNotSupported;
+std::string ErrPrerequisites;
+std::string ErrIncompatibleFS;
+std::string ErrLayerUnknown;
+
+std::unordered_map<std::string, std::function<std::shared_ptr<Driver>(const std::string&, const driver_Options&)>> drivers;
+
+bool isCgroupV2;
+boost::optional<std::error_code> isCgroupV2Err;
+
+std::regex specifierRe;
+
+std::string readOnlyFileLabel;
+std::shared_ptr<selinuxState> state;
+bool haveThreadSelf;
+std::string policyRootVal;
+std::map<std::string, std::string> labels;
+
+std::string GOOS;
+std::string GOARCH;
 /**
  * @brief 初始化文件系统全局环境
  * 
