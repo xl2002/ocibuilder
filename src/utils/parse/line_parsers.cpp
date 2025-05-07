@@ -1,7 +1,20 @@
+/**
+ * @file line_parsers.cpp
+ * @brief 实现各种行解析功能的工具函数
+ * @author [作者名]
+ * @date 2025-04-09
+ */
+
 #include "utils/parse/line_parsers.h"
 #include "utils/common/error.h"
-// #include <nlohmann/json.hpp>
-// 函数用于解析空白分隔的字符串列表
+/**
+ * @brief 解析空白分隔的字符串列表
+ * @param rest 要解析的输入字符串
+ * @param d 指令对象指针
+ * @return 包含解析结果节点和属性映射的元组
+ *         - 第一个元素是解析后的节点树
+ *         - 第二个元素是属性映射表
+ */
 std::tuple<std::shared_ptr<Node>, std::map<std::string, bool>> 
 parseStringsWhitespaceDelimited(const std::string& rest, std::shared_ptr<Directive>d) {
     if (rest.empty()) {
@@ -27,15 +40,24 @@ parseStringsWhitespaceDelimited(const std::string& rest, std::shared_ptr<Directi
 
     return std::make_tuple(rootnode, std::map<std::string, bool>());
 }
+/**
+ * @brief 解析阶段枚举
+ * 
+ * 定义在解析字符串时的不同状态
+ */
 enum ParsePhase {
-    InSpaces, // Looking for start of a word
-    InWord,
-    InQuote
+    InSpaces, ///< 查找单词开始状态
+    InWord,   ///< 处理单词状态
+    InQuote   ///< 处理引号内内容状态
 };
 
-// Helper function to parse words (i.e., space-delimited or quoted strings) in a statement.
-// The quotes are preserved as part of this function and they are stripped later
-// as part of processWords().
+/**
+ * @brief 解析语句中的单词(空格分隔或引号包围的字符串)
+ * @param rest 要解析的输入字符串
+ * @param d 指令对象指针
+ * @return 解析出的单词列表
+ * @note 引号会保留在结果中，稍后会在processWords()中被去除
+ */
 std::vector<std::string> parseWords(const std::string& rest, std::shared_ptr<Directive> d) {
     std::vector<std::string> words;
     ParsePhase phase = InSpaces;
@@ -105,7 +127,12 @@ std::vector<std::string> parseWords(const std::string& rest, std::shared_ptr<Dir
 
     return words;
 }
-// Function to create a new key-value node
+/**
+ * @brief 创建新的键值对节点
+ * @param key 键字符串
+ * @param value 值字符串
+ * @return 新创建的节点指针
+ */
 std::shared_ptr<Node> newKeyValueNode(const std::string& key, const std::string& value) {
     auto node = std::make_shared<Node>();
     node->Value = key;
@@ -113,7 +140,13 @@ std::shared_ptr<Node> newKeyValueNode(const std::string& key, const std::string&
     node->Next->Value = value;
     return node;
 }
-// Function to append a key-value node to the list
+/**
+ * @brief 将键值对节点追加到列表中
+ * @param node 要追加的节点
+ * @param rootNode 列表根节点
+ * @param prevNode 前一个节点
+ * @return 包含更新后的根节点和前一个节点的元组
+ */
 std::tuple<std::shared_ptr<Node>, std::shared_ptr<Node>> appendKeyValueNode(
     std::shared_ptr<Node> node,
     std::shared_ptr<Node> rootNode,
@@ -129,6 +162,14 @@ std::tuple<std::shared_ptr<Node>, std::shared_ptr<Node>> appendKeyValueNode(
     prevNode = node->Next;
     return std::make_tuple(rootNode, prevNode);
 }
+/**
+ * @brief 解析名称-值对
+ * @param rest 要解析的输入字符串
+ * @param key 键名
+ * @param d 指令对象指针
+ * @return 解析后的节点树
+ * @throws myerror 当输入格式不正确时抛出异常
+ */
 std::shared_ptr<Node> parseNameVal(const std::string& rest, const std::string& key, std::shared_ptr<Directive> d) {
     // 使用 parseWords 函数解析字符串 rest，返回单词列表
     std::vector<std::string> words = parseWords(rest, d);
@@ -171,6 +212,14 @@ std::shared_ptr<Node> parseNameVal(const std::string& rest, const std::string& k
     return rootNode;
 }
 // const std::string commandLabel = "LABEL";
+
+/**
+ * @brief 解析LABEL指令
+ * @param rest 要解析的输入字符串
+ * @param d 指令对象指针
+ * @return 包含解析结果节点和属性映射的元组
+ * @throws myerror 当解析失败时抛出异常
+ */
 std::tuple<std::shared_ptr<Node>, std::map<std::string, bool>>
 parseLabel(const std::string& rest, std::shared_ptr<Directive> d) {
     // 假设 parseNameVal 是一个已定义的函数，返回一个 tuple
@@ -185,6 +234,13 @@ parseLabel(const std::string& rest, std::shared_ptr<Directive> d) {
         throw;
     }
 }
+/**
+ * @brief 解析ENV指令
+ * @param rest 要解析的输入字符串
+ * @param d 指令对象指针
+ * @return 包含解析结果节点和属性映射的元组
+ * @throws myerror 当解析失败时抛出异常
+ */
 std::tuple<std::shared_ptr<Node>, std::map<std::string, bool>>
 parseEnv(const std::string& rest, std::shared_ptr<Directive> d) {
     // 假设 parseNameVal 是一个已定义的函数，返回一个 tuple
@@ -199,7 +255,11 @@ parseEnv(const std::string& rest, std::shared_ptr<Directive> d) {
         throw;
     }
 }
-// 去除字符串前导和尾部空白
+/**
+ * @brief 去除字符串前导和尾部空白
+ * @param str 输入字符串
+ * @return 去除空白后的字符串
+ */
 std::string trim(const std::string& str) {
     size_t start = 0;
     size_t end = str.size();
@@ -214,7 +274,13 @@ std::string trim(const std::string& str) {
     return str.substr(start, end - start);
 }
 
-// 从字符串中提取下一个 JSON 字符串
+/**
+ * @brief 从字符串中提取下一个JSON字符串
+ * @param str 输入字符串
+ * @param pos 当前解析位置(会被更新)
+ * @return 提取出的字符串
+ * @throws myerror 当字符串未正确终止时抛出异常
+ */
 std::string extractNextString(const std::string& str, size_t& pos) {
     std::string result;
     bool inQuotes = false;
@@ -240,19 +306,37 @@ std::string extractNextString(const std::string& str, size_t& pos) {
     throw myerror("Unterminated string in JSON");
 }
 
-// 解析 JSON 对象
+/**
+ * @brief 解析JSON对象
+ * @param str 包含JSON的字符串
+ * @param pos 当前解析位置(会被更新)
+ * @return 包含解析结果节点、属性映射和异常指针的元组
+ * @throws myerror 当JSON格式不正确时抛出异常
+ */
 std::tuple<std::shared_ptr<Node>, std::map<std::string, bool>, std::exception_ptr> parseJSONObject(
     const std::string& str,
     size_t& pos
 );
 
-// 解析 JSON 数组
+/**
+ * @brief 解析JSON数组
+ * @param str 包含JSON的字符串
+ * @param pos 当前解析位置(会被更新)
+ * @return 包含解析结果节点、属性映射和异常指针的元组
+ * @throws myerror 当JSON格式不正确时抛出异常
+ */
 std::tuple<std::shared_ptr<Node>, std::map<std::string, bool>, std::exception_ptr> parseJSONArray(
     const std::string& str,
     size_t& pos
 );
 
-// 解析 JSON 数组或对象
+/**
+ * @brief 解析JSON数组或对象
+ * @param rest 要解析的输入字符串
+ * @param d 指令对象指针
+ * @return 包含解析结果节点、属性映射和异常指针的元组
+ * @throws myerror 当JSON格式不正确时抛出异常
+ */
 std::tuple<std::shared_ptr<Node>, std::map<std::string, bool>, std::exception_ptr> parseJSON(
     const std::string& rest,
     const std::shared_ptr<Directive> d
@@ -349,7 +433,16 @@ std::tuple<std::shared_ptr<Node>, std::map<std::string, bool>, std::exception_pt
     return std::make_tuple(top, std::map<std::string, bool>{{"json", true}}, nullptr);
 }
 
-// 解析 JSON 数组
+/**
+ * @brief 解析JSON数组
+ * @param str 包含JSON数组的字符串
+ * @param pos 当前解析位置(会被更新)
+ * @return 包含解析结果节点、属性映射和异常指针的元组
+ *         - 第一个元素是解析后的节点链表
+ *         - 第二个元素是属性映射表(json=true表示JSON格式)
+ *         - 第三个元素是异常指针(解析成功时为nullptr)
+ * @throws myerror 当JSON格式不正确时抛出异常
+ */
 std::tuple<std::shared_ptr<Node>, std::map<std::string, bool>, std::exception_ptr> parseJSONArray(
     const std::string& str,
     size_t& pos
@@ -409,12 +502,13 @@ std::tuple<std::shared_ptr<Node>, std::map<std::string, bool>, std::exception_pt
 
     return std::make_tuple(top, std::map<std::string, bool>{{"json", true}}, nullptr);
 }
-// parseMaybeJSONToList 实现
-// auto errDockerfileNotStringArray=std::make_exception_ptr(
-//             myerror("when using JSON array syntax, arrays must be comprised of strings only")
-//         );
-// Helper function to split a string by whitespace
-
+/**
+ * @brief 尝试将输入解析为JSON列表，失败则回退到空白分隔解析
+ * @param rest 要解析的输入字符串
+ * @param d 指令对象指针
+ * @return 包含解析结果节点和属性映射的元组
+ * @throws myerror 当JSON数组包含非字符串元素时抛出异常
+ */
 std::tuple<std::shared_ptr<Node>, std::map<std::string, bool>> parseMaybeJSONToList(
     const std::string& rest,
     const std::shared_ptr<Directive> d
@@ -436,6 +530,13 @@ std::tuple<std::shared_ptr<Node>, std::map<std::string, bool>> parseMaybeJSONToL
     }
     return parseStringsWhitespaceDelimited(rest, d);
 }
+/**
+ * @brief 尝试将输入解析为JSON，失败则作为普通字符串处理
+ * @param rest 要解析的输入字符串
+ * @param d 指令对象指针
+ * @return 包含解析结果节点和属性映射的元组
+ * @throws myerror 当JSON数组包含非字符串元素时抛出异常
+ */
 std::tuple<std::shared_ptr<Node>, std::map<std::string, bool>> parseMaybeJSON(
     const std::string& rest,
     const std::shared_ptr<Directive> d
@@ -461,6 +562,12 @@ std::tuple<std::shared_ptr<Node>, std::map<std::string, bool>> parseMaybeJSON(
     node->Value=rest;
     return std::make_tuple(node, std::map<std::string, bool>());
 }
+/**
+ * @brief 将输入作为简单字符串解析
+ * @param rest 要解析的输入字符串
+ * @param d 指令对象指针
+ * @return 包含解析结果节点和属性映射的元组
+ */
 std::tuple<std::shared_ptr<Node>, std::map<std::string, bool>> parseString(
     const std::string& rest,
     const std::shared_ptr<Directive> d
@@ -472,6 +579,12 @@ std::tuple<std::shared_ptr<Node>, std::map<std::string, bool>> parseString(
     node->Value=rest;
     return std::make_tuple(node, std::map<std::string, bool>());
 }
+/**
+ * @brief 忽略输入的特殊解析器
+ * @param rest 要解析的输入字符串(被忽略)
+ * @param d 指令对象指针
+ * @return 包含空节点和空属性映射的元组
+ */
 std::tuple<std::shared_ptr<Node>, std::map<std::string, bool>> parseIgnore(
     const std::string& rest,
     const std::shared_ptr<Directive> d

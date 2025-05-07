@@ -9,6 +9,22 @@
 #include "image/image_types/v1/annotations.h"
 #include <boost/filesystem.hpp>
 
+/**
+ * @brief Create a new Builder instance with specified store and options
+ * 
+ * @param store The storage backend to use for container operations
+ * @param options Configuration options for the new builder
+ * @return std::shared_ptr<Builder> Shared pointer to the newly created Builder instance
+ * 
+ * @details This factory function creates and initializes a new Builder instance.
+ * It handles pulling base images if specified in options, creates a working container,
+ * and configures all builder properties based on the provided options.
+ * 
+ * @note The function may throw exceptions if image pulling or container creation fails
+ * @see Builder
+ * @see BuilderOptions
+ * @see Store
+ */
 std::shared_ptr<Builder> newBuilder(std::shared_ptr<Store> store,std::shared_ptr<BuilderOptions> options){
     std::shared_ptr<ImageReference_interface> ref=nullptr;
     std::shared_ptr<storage::Image> img=nullptr;

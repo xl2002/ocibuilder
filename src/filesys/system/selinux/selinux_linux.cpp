@@ -31,12 +31,23 @@ boost::once_flag loadLabelsOnce;
 // std::map<std::string, std::string> labels;
 
 // 设置 enabled 状态，并返回设置后的状态
+/**
+ * @brief Set SELinux enabled state
+ * 
+ * @param enabled Whether to enable SELinux
+ * @return bool Current enabled state
+ */
 bool selinuxState::setEnable(bool enabled) {
     std::lock_guard<std::mutex> lock(mtx);  // 加锁，作用域结束时自动解锁
     enabledSet = true;
     this->enabled = enabled;
     return this->enabled;
 }
+/**
+ * @brief Get current SELinux enabled state
+ * 
+ * @return bool True if SELinux is enabled, false otherwise
+ */
 bool selinuxState::getEnabled() {
     // 锁定互斥锁，保证线程安全
     mtx.lock();
@@ -70,9 +81,17 @@ bool selinuxState::getEnabled() {
 //     enabledSet=true;
 //     return enabled;
 // }
+/**
+ * @brief Global function to get SELinux enabled state
+ * 
+ * @return bool True if SELinux is enabled, false otherwise
+ */
 bool getEnabled() {
     return state->getEnabled();
 }
+/**
+ * @brief Global function to disable SELinux
+ */
 void setDisabled(){
     state->setEnable(false);
 }

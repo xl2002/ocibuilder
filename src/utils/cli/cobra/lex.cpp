@@ -1,10 +1,26 @@
 #include "utils/cli/cobra/lex.h"
+
+/**
+ * @file lex.cpp
+ * @brief 实现命令行词法分析相关功能
+ * @details 包含词法分析器Lex及其相关类的实现
+ */
+/**
+ * @brief 创建新的Lex对象
+ * @param escapeToken 转义字符
+ * @return std::shared_ptr<Lex> 返回Lex智能指针
+ */
 std::shared_ptr<Lex> NewLex(const char& escapeToken){
     auto ret=std::make_shared<Lex>();
     ret->escapeToken=escapeToken;
     return ret;
 }
 
+/**
+ * @brief 构建环境变量映射
+ * @param env 环境变量字符串数组，格式为"KEY=VALUE"
+ * @return std::map<std::string, std::string> 返回环境变量键值对映射
+ */
 std::map<std::string, std::string> BuildEnvs(const std::vector<std::string>& env) {
     std::map<std::string, std::string> envs;
 
@@ -24,22 +40,46 @@ std::map<std::string, std::string> BuildEnvs(const std::vector<std::string>& env
 
     return envs;
 }
+/**
+ * @brief 处理单个单词，返回处理后的字符串
+ * @param word 要处理的单词
+ * @param env 环境变量数组
+ * @return std::string 处理后的字符串
+ */
 std::string Lex::ProcessWord(std::string word,std::vector<std::string> env){
     std::string w;
     std::vector<std::string> words;
     std::tie(w,words)=process(word,BuildEnvs(env));
     return w;
 }
+/**
+ * @brief 处理单词，返回拆分后的单词数组
+ * @param word 要处理的单词
+ * @param env 环境变量数组
+ * @return std::vector<std::string> 拆分后的单词数组
+ */
 std::vector<std::string>Lex::ProcessWords(std::string word,std::vector<std::string> env){
     std::string w;
     std::vector<std::string> words;
     std::tie(w,words)=process(word,BuildEnvs(env));
     return words;
 }
+/**
+ * @brief 处理单词的核心方法
+ * @param word 要处理的单词
+ * @param env 环境变量映射
+ * @return std::tuple<std::string, std::vector<std::string>> 返回处理后的字符串和单词数组
+ */
 std::tuple<std::string, std::vector<std::string>> Lex::process(std::string word, std::map<std::string, std::string> env) {
     auto sw=init(word,env);
     return sw->process(word);
 }
+/**
+ * @brief 初始化shellWord_lex对象
+ * @param word 要处理的单词
+ * @param env 环境变量映射
+ * @return std::shared_ptr<shellWord_lex> 返回初始化的shellWord_lex对象
+ */
 std::shared_ptr<shellWord_lex> Lex::init(std::string word, std::map<std::string, std::string> env) {
     auto sw=std::make_shared<shellWord_lex>();
     sw->envs=env;
@@ -52,6 +92,12 @@ std::shared_ptr<shellWord_lex> Lex::init(std::string word, std::map<std::string,
     return sw;
 }
 
+/**
+ * @brief 处理源字符串
+ * @param source 要处理的源字符串
+ * @return std::tuple<std::string,std::vector<std::string>> 返回处理后的字符串和单词数组
+ * @throws myerror 处理失败时抛出异常
+ */
 std::tuple<std::string,std::vector<std::string>> shellWord_lex::process(std::string source){
     std::string word;
     std::vector<std::string> words;
@@ -65,6 +111,12 @@ std::tuple<std::string,std::vector<std::string>> shellWord_lex::process(std::str
         throw myerror(std::string(e.what())+"\nfailed to process "+source);
     }
 }
+/**
+ * @brief 处理字符串直到遇到指定停止字符
+ * @param stopChar 停止处理的字符
+ * @return std::tuple<std::string, std::vector<std::string>> 返回处理后的字符串和单词数组
+ * @throws std::runtime_error 遇到意外的语句结束时抛出异常
+ */
 std::tuple<std::string, std::vector<std::string>> shellWord_lex::processStopOn(char stopChar) {
     std::ostringstream result;
     wordsStruct_lex words;
@@ -130,6 +182,11 @@ std::tuple<std::string, std::vector<std::string>> shellWord_lex::processStopOn(c
 
     return std::make_tuple(result.str(), words.getWords());
 }
+/**
+ * @brief 处理$符号(环境变量引用)
+ * @return std::string 返回处理后的字符串
+ * @throws std::runtime_error 遇到不支持的修饰符或未设置的环境变量时抛出异常
+ */
 std::string shellWord_lex::processDollar() {
     ss.get(); // Consume $
 
@@ -227,6 +284,10 @@ bool isSpecialParam(char ch) {
             return false;
     }
 }
+/**
+ * @brief 处理环境变量名称
+ * @return std::string 返回处理后的环境变量名称
+ */
 std::string shellWord_lex::processName() {
     std::string name;
     char ch;
@@ -254,6 +315,11 @@ std::string shellWord_lex::processName() {
     return name;
 }
 // 处理单引号内的内容
+/**
+ * @brief 处理单引号内容
+ * @return std::string 返回处理后的字符串
+ * @throws myerror 遇到未匹配的单引号时抛出异常
+ */
 std::string shellWord_lex::processSingleQuote() {
     std::ostringstream result;
     char ch;
@@ -278,6 +344,11 @@ std::string shellWord_lex::processSingleQuote() {
     throw myerror("unexpected end of statement while looking for matching single-quote");
 }
 
+/**
+ * @brief 处理双引号内容
+ * @return std::string 返回处理后的字符串
+ * @throws myerror 遇到未匹配的双引号时抛出异常
+ */
 std::string shellWord_lex::processDoubleQuote() {
     std::ostringstream result;
     char ch;
@@ -321,6 +392,10 @@ std::string shellWord_lex::processDoubleQuote() {
     throw myerror("unexpected end of statement while looking for matching double-quote");
 }
 // 添加单个字符到当前单词中
+/**
+ * @brief 添加字符到当前单词中
+ * @param ch 要添加的字符
+ */
 void wordsStruct_lex::addChar(char ch) {
     if (std::isspace(ch) && inWord) {
         // 遇到空格时，如果正在处理一个单词，则将当前单词添加到列表中
@@ -334,20 +409,36 @@ void wordsStruct_lex::addChar(char ch) {
         addRawChar(ch);
     }
 }
+/**
+ * @brief 添加原始字符到当前单词中(不处理空格)
+ * @param ch 要添加的字符
+ */
 void wordsStruct_lex:: addRawChar(char ch) {
     word+=ch;
     inWord = true;
 }
 
+/**
+ * @brief 添加字符串到当前单词中(处理每个字符)
+ * @param str 要添加的字符串
+ */
 void wordsStruct_lex::addString(const std::string& str) {
     for(auto& ch:str){
         addChar(ch);
     }
 }
+/**
+ * @brief 添加原始字符串到当前单词中(不处理空格)
+ * @param str 要添加的字符串
+ */
 void wordsStruct_lex::addRawString(const std::string& str) {
     word+=str;
     inWord = true;
 }
+/**
+ * @brief 获取所有处理后的单词
+ * @return std::vector<std::string> 返回单词数组
+ */
 std::vector<std::string> wordsStruct_lex::getWords(){
     if(word.size()>0){
         words.push_back(word);

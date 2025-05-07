@@ -78,7 +78,18 @@ std::shared_ptr<Builder> openBuilder(std::shared_ptr<Store> store,std::string na
 
     return builder;
 }
-// 手动解析 [args1,arg2] 格式的字符串到字符串数组
+/**
+ * @brief 手动解析 [args1,arg2] 格式的字符串到字符串数组
+ * 
+ * 该函数用于解析类似JSON数组格式的字符串输入，但不需要严格的JSON格式。
+ * 主要处理以下情况：
+ * 1. 空输入 - 返回空数组
+ * 2. 非数组格式输入 - 返回包含该字符串的单元素数组
+ * 3. 数组格式输入 - 解析并返回字符串数组
+ * 
+ * @param input 要解析的输入字符串
+ * @return std::vector<std::string> 解析后的字符串数组
+ */
 std::vector<std::string> parseManualArray(const std::string& input) {
     // 检查输入是否为空
     if (input.empty()) {
@@ -122,7 +133,18 @@ std::vector<std::string> parseManualArray(const std::string& input) {
 
     return result;
 }
-// 更新 Entrypoint 的方法
+/**
+ * @brief 更新Builder对象中的Entrypoint配置
+ * 
+ * 该函数根据输入的entrypoint字符串更新Builder对象的Entrypoint配置。
+ * 处理以下情况：
+ * 1. 空字符串 - 清空Entrypoint
+ * 2. JSON数组格式字符串 - 解析为字符串数组设置Entrypoint
+ * 3. 普通字符串 - 直接设置为Entrypoint
+ * 
+ * @param builder 要更新的Builder对象
+ * @param entrypoint 新的Entrypoint配置字符串
+ */
 void updateEntrypoint(std::shared_ptr<Builder> builder, const std::string& entrypoint) {
     if (entrypoint.empty()) {
         // 如果 entrypoint 为空，设置为空

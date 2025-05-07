@@ -119,6 +119,14 @@ string GetFormat(string format){
     }
 }
 
+/**
+ * @brief 检查是否应该使用分层存储
+ * 
+ * 通过检查环境变量BUILDAH_LAYERS的值来确定是否使用分层存储。
+ * 当环境变量值为"true"或"1"时返回true，否则返回false。
+ * 
+ * @return bool 是否使用分层存储
+ */
 bool UseLayers(){
     const char* layersEnv=boost::compute::detail::getenv("BUILDAH_LAYERS");
     if (!layersEnv) {
@@ -280,6 +288,17 @@ string UsageTemplate(){
                 {{end}}"};
     return str;
 }
+/**
+ * @brief 模板渲染函数
+ * 
+ * 根据给定的模板文本和命令数据渲染输出到指定输出流。
+ * 处理命令的帮助信息、用法、别名、示例和标志的格式化输出。
+ * 
+ * @param out 输出流对象
+ * @param text 模板文本
+ * @param data 命令数据对象
+ * @throws myerror 如果模板渲染失败
+ */
 void tmpl(std::ostream& out, const std::string& text,Command& data){
     try {
         // 模拟帮助命令数据

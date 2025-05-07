@@ -1,3 +1,9 @@
+/**
+ * @file global.cpp
+ * @brief 定义utils模块的全局变量和初始化函数
+ * @details 包含utils模块使用的全局变量定义和初始化函数init_utils()
+ */
+
 #include "utils/init/init_global.h"
 #include "utils/cli/cobra/command.h"
 #include "utils/logger/logrus/entry.h"
@@ -10,25 +16,41 @@
 #include "utils/parse/buildkitparser.h"
 #include "utils/parse/parse.h"
 // 全局变量定义
+/// @brief 命令行标志集合指针
 Flagset* CommandLine;
 
+/// @brief 全局缓冲池接口指针
 std::shared_ptr<BufferPool_interface> globalBufferPool;
 
+/// @brief logrus包名
 std::string logrusPackage;
+/// @brief 最小调用深度
 int minimumCallerDepth;
+/// @brief 最大调用深度 
 int maximumCallerDepth;
+/// @brief 已知logrus帧数
 int knownLogrusFrames;
 
+/// @brief 标准日志记录器
 std::shared_ptr<Logger> Std;
 
+/// @brief 转义命令token正则表达式
 std::shared_ptr<Regexp> tokenEscapeCommand;
+/// @brief 平台命令token正则表达式
 std::shared_ptr<Regexp> tokenPlatformCommand;
+/// @brief 空白字符token正则表达式
 std::shared_ptr<Regexp> tokenWhitespace;
+/// @brief 注释token正则表达式
 std::shared_ptr<Regexp> tokenComment;
+/// @brief heredoc指令映射表
 std::map<std::string, bool> heredocDirectives;
+/// @brief 默认平台token
 std::string defaultPlatformToken;
+/// @brief 默认转义字符
 char DefaultEscapeToken;
+/// @brief 复合heredoc指令映射表
 std::map<std::string, bool> heredocCompoundDirectives;
+/// @brief Dockerfile命令命名空间
 namespace dockerfilecommand {
     std::string Add;
     std::string Arg;
@@ -49,17 +71,25 @@ namespace dockerfilecommand {
     std::string Volume;
     std::string Workdir;
 };
+/// @brief 命令分发函数映射表
 std::map<std::string, DispatchFunction> dispatch;
 
+/// @brief 预编译标志
 bool precompile;
 
+/// @brief 路径分隔符
 char Separator;
 // 定义 handlers 为一个存储函数的 vector
+/// @brief 处理函数vector
 std::vector<std::function<void()>> handlers;
 
+/// @brief 空白字符正则表达式
 std::regex reWhitespace;
+/// @brief 注释正则表达式
 std::regex reComment;
+/// @brief heredoc正则表达式
 std::regex reHeredoc;
+/// @brief 前导制表符正则表达式
 std::regex reLeadingTabs;
 
 // SeccompDefaultPath 定义了默认的 seccomp 配置文件路径
@@ -67,19 +97,30 @@ std::regex reLeadingTabs;
 // SeccompOverridePath 如果存在，则覆盖默认的 seccomp 配置文件路径
 // std::string SeccompOverridePath;
 // TypeBind 是用于挂载主机目录的类型
+/// @brief 绑定挂载类型
 std::string TypeBind;
 // TypeTmpfs 是用于挂载 tmpfs 的类型
+/// @brief tmpfs挂载类型
 std::string TypeTmpfs;
 // TypeCache 是用于挂载主机上常用的持久缓存的类型
+/// @brief 缓存挂载类型
 std::string TypeCache;
 // mount=type=cache 必须在主机上创建一个持久目录，以便在所有连续的构建中都可用。
 // 以下目录的生命周期将继承主机如何处理临时目录的方式
+/// @brief Buildah缓存目录路径
 std::string BuildahCacheDir;
 
 
 /**
  * @brief 初始化utils模块的全局变量
- * 
+ * @details 初始化所有utils模块使用的全局变量，包括：
+ *          - 命令行标志集合
+ *          - 缓冲池
+ *          - 日志相关配置
+ *          - 正则表达式模式
+ *          - Dockerfile命令映射
+ *          - 路径分隔符
+ *          - 挂载类型定义
  */
 void init_utils(){
     CommandLine=NewFlagSet("buildah");

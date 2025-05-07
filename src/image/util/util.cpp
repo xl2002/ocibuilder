@@ -94,6 +94,16 @@ std::string resolveSymlinks(const std::string& path) {
     }
 }
 
+/**
+ * @brief 验证并解析镜像标签名称
+ * 
+ * @param imagespec 镜像名称字符串
+ * @return std::shared_ptr<ImageReference_interface> 返回解析后的镜像引用对象
+ * @throws myerror 如果镜像名称无法解析
+ * @note 会尝试两种方式解析：
+ *       1. 直接解析输入的名称
+ *       2. 添加默认传输前缀后再次尝试解析
+ */
 std::shared_ptr<ImageReference_interface> VerifyTagName(std::string imagespec){
     // try
     // {
@@ -119,12 +129,25 @@ std::shared_ptr<ImageReference_interface> VerifyTagName(std::string imagespec){
     return ref;
 }
 
+/**
+ * @brief 标准化平台信息
+ * 
+ * @param platform 原始平台信息
+ * @return Platform 返回标准化后的平台信息
+ * @note 当前实现直接返回输入参数，需要根据实际需求完善
+ */
 Platform NormalizePlatform(Platform platform){
 
     return platform;
 }
 
+/**
+ * @brief 检查集合中是否包含指定元素
+ * 
+ * @param m 要检查的字符串集合
+ * @param k 要查找的元素
+ * @return bool 如果集合中包含元素则返回true，否则返回false
+ */
 bool SetHas(std::set<std::string> m,std::string k){
     return m.find(k)!=m.end();
 }
-

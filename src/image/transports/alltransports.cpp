@@ -8,6 +8,12 @@
 //     }
 //     return std::make_tuple(str.substr(0, pos), str.substr(pos + 1), true);
 // }
+/**
+ * @brief 解析镜像名称字符串为ImageReference对象
+ * 
+ * @param imgName 镜像名称字符串，格式为"transport:reference"
+ * @return std::shared_ptr<ImageReference_interface> 解析成功的ImageReference对象指针，失败返回nullptr
+ */
 std::shared_ptr<ImageReference_interface> ParseImageName(std::string imgName){
     std::string transportName, withinTransport;
     bool valid;
@@ -29,6 +35,12 @@ std::shared_ptr<ImageReference_interface> ParseImageName(std::string imgName){
     return ref;
 }
 
+/**
+ * @brief 从镜像名称字符串中提取传输协议对象
+ * 
+ * @param imgName 镜像名称字符串，格式为"transport:reference"
+ * @return std::shared_ptr<ImageTransport_interface> 对应的传输协议对象指针，失败返回nullptr
+ */
 std::shared_ptr<ImageTransport_interface> TransportFromImageName(std::string imgName){
     std::string transportName, withinTransport;
     bool valid;

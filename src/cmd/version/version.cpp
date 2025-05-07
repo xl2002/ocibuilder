@@ -17,7 +17,7 @@
 #include "utils/common/json.h"
 /**
  * @brief 初始化 version 命令的内容
- * 
+ * @details 创建 version 命令对象，设置命令名称、描述、示例及 JSON 输出选项
  */
 void init_version(){
     versionOptions* options=new versionOptions();
@@ -37,6 +37,10 @@ void init_version(){
     rootcmd.AddCommand({versionCommand});
     // return imagesCommand;
 }
+/**
+ * @brief 获取当前操作系统和 CPU 架构信息
+ * @return std::string 返回格式为 "操作系统/架构" 的字符串（如 "Linux/x86_64"）
+ */
 std::string OSAndArch(){
     std::string os,arch;
     #if BOOST_OS_WINDOWS
@@ -62,8 +66,9 @@ std::string OSAndArch(){
     return os+"/"+arch;
 }
 /**
- * @brief version输出版本信息
- * 
+ * @brief 输出版本信息
+ * @param iopts 版本命令选项，包含是否以 JSON 格式输出的标志
+ * @details 根据参数决定以普通文本或 JSON 格式输出版本信息（包括编译器版本、构建时间等）
  */
 void versionCmd(versionOptions* iopts){
     //1. 构建versionInfo对象，

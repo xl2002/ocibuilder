@@ -19,6 +19,11 @@
 namespace http = boost::beast::http;
 using boost::property_tree::ptree;
 
+/**
+ * @brief 对字符串进行base64编码
+ * @param in 要编码的输入字符串
+ * @return 编码后的base64字符串
+ */
 std::string base64_encode(const std::string &in)
 {
     std::string out;
@@ -27,18 +32,36 @@ std::string base64_encode(const std::string &in)
     return out;
 }
 
+/**
+ * @brief 创建新的HTTP请求
+ * @param method HTTP方法(GET/POST等)
+ * @param path 请求路径
+ * @param headers HTTP头信息
+ * @param body 请求体内容
+ * @return 构造好的HTTP请求对象
+ */
 beast::http::request<beast::http::string_body> NewRequest(std::string method, std::string path, std::map<std::string, std::string> headers,std::string body){
     
     return beast::http::request<beast::http::string_body>();
 }
 
 // 用正则表达式检查是否是IP地址（IPv4）
+/**
+ * @brief 检查字符串是否是有效的IPv4地址
+ * @param host 要检查的主机地址字符串
+ * @return 如果是有效IPv4地址返回true，否则false
+ */
 bool isIPAddress(const std::string& host) {
     std::regex ipv4Pattern(R"(^(\d{1,3}\.){3}\d{1,3}$)");
     return std::regex_match(host, ipv4Pattern);
 }
 
 // DNS解析函数：将URL解析为IP地址
+/**
+ * @brief 解析主机名为IP地址
+ * @param host 要解析的主机名
+ * @return 解析后的IP地址字符串，解析失败返回空字符串
+ */
 std::string resolve_dns(const std::string& host) {
     try {
         // 创建 Boost Asio io_service 对象
@@ -262,6 +285,12 @@ std::shared_ptr<URL>resolveLoginURL(std::string path){
  * @return true 
  * @return false 
  */
+/**
+ * @brief 设置请求的认证信息
+ * @param req HTTP请求对象
+ * @param extraScope 额外的认证范围
+ * @return 设置成功返回true，失败返回false
+ */
 bool dockerClient::setupRequestAuth(beast::http::request<beast::http::string_body> req,std::shared_ptr<authScope> extraScope){
     return true;
 }
@@ -273,11 +302,23 @@ bool dockerClient::setupRequestAuth(beast::http::request<beast::http::string_bod
  * @param req 
  * @return std::tuple<beast::http::response<beast::http::string_body>,asio::streambuf> 
  */
+/**
+ * @brief 执行HTTP请求
+ * @param ioc IO上下文
+ * @param hosttype 主机类型
+ * @param req HTTP请求对象
+ * @return 包含HTTP响应和流缓冲区的元组
+ */
 std::tuple<beast::http::response<beast::http::string_body>,asio::streambuf> dockerClient::Do(asio::io_context& ioc,std::string hosttype,beast::http::request<beast::http::string_body> req){
     
 }
 
 
+/**
+ * @brief 从响应体中提取token
+ * @param response_body HTTP响应体
+ * @return 提取到的token字符串，未找到返回空字符串
+ */
 std::string extractToken(const std::string& response_body){
     // 查找 "token" 字段的位置
     std::string token_key = "\"token\":\"";
@@ -300,6 +341,14 @@ std::string extractToken(const std::string& response_body){
 }
 
 
+/**
+ * @brief 获取认证token
+ * @param host 主机地址
+ * @param port 端口号
+ * @param projectName 项目名称
+ * @param imagetName 镜像名称
+ * @return 获取到的token字符串
+ */
 std::string getToken(const std::string& host, const std::string& port,const::string& projectName,const::string& imagetName){
     // std::string target="/service/token?service=harbor-registry&scope=repository:library/busybox:pull";
     std::string target="/service/token?service=harbor-registry&scope=repository:"+projectName+"/"+imagetName+":pull";
@@ -352,6 +401,12 @@ std::string getToken(const std::string& host, const std::string& port,const::str
  * @param host 
  * @param port 
  * @return 
+ */
+/**
+ * @brief 检查服务器是否支持v2协议
+ * @param host 主机地址
+ * @param port 端口号
+ * @return 支持返回true，否则false
  */
 bool ifSupportV2(const std::string& host,const std::string& port){
     try {
@@ -406,6 +461,12 @@ bool ifSupportV2(const std::string& host,const std::string& port){
 }
 
 // acore的认证方式采用用户名+密码
+/**
+ * @brief 设置基本认证(Basic Auth)
+ * @param req HTTP请求对象
+ * @param user 用户名
+ * @param passwd 密码
+ */
 void setAuthorization(beast::http::request<beast::http::empty_body>& req, const std::string& user, const std::string& passwd) {
     std::string credentials = user + ":" + passwd;
     std::string encoded_credentials = base64_encode(credentials);
@@ -413,6 +474,11 @@ void setAuthorization(beast::http::request<beast::http::empty_body>& req, const 
 }
 
 // harbor的认证方式采用cookie+token
+/**
+ * @brief 设置Bearer Token认证
+ * @param req HTTP请求对象
+ * @param token 认证token
+ */
 void setAuthorization(beast::http::request<beast::http::empty_body>& req, const std::string& token) {
     if (!token.empty()) {
         req.set(http::field::authorization, "Bearer " + token);
@@ -427,6 +493,15 @@ void setAuthorization(beast::http::request<beast::http::empty_body>& req, const 
  * @param imageName 
  * @param shaId 
  * @return 
+ */
+/**
+ * @brief 检查blob数据是否存在于服务器
+ * @param host 主机地址
+ * @param port 端口号
+ * @param imageName 镜像名称
+ * @param shaId blob的SHA256摘要
+ * @param projectName 项目名称
+ * @return 存在返回true，否则false
  */
 bool ifBlobExists(const std::string& host,const std::string& port,const std::string& imageName,const std::string& shaId,const std::string& projectName){
     try {
@@ -487,6 +562,15 @@ bool ifBlobExists(const std::string& host,const std::string& port,const std::str
  * @param shaId 
  * @return 
  */
+/**
+ * @brief 检查manifest是否存在于服务器
+ * @param host 主机地址
+ * @param port 端口号
+ * @param imageName 镜像名称
+ * @param version 镜像版本
+ * @param projectName 项目名称
+ * @return 存在返回true，否则false
+ */
 bool ifManifestExists(const std::string& host,const std::string& port,const std::string& imageName, const std::string version,const std::string& projectName){
     try {
         // 配置参数
@@ -545,6 +629,14 @@ bool ifManifestExists(const std::string& host,const std::string& port,const std:
  * @param port 
  * @param target 
  * @return 
+ */
+/**
+ * @brief 初始化上传请求
+ * @param host 主机地址
+ * @param port 端口号
+ * @param imageName 镜像名称
+ * @param projectName 项目名称
+ * @return 包含上传UID和state的pair
  */
 std::pair<std::string, std::string> initUpload(const std::string& host, const std::string& port,const std::string& imageName,const std::string& projectName) {
     try {
@@ -637,6 +729,20 @@ std::pair<std::string, std::string> initUpload(const std::string& host, const st
  * @param total_size 
  * @param imageName 
  * @return 
+ */
+/**
+ * @brief 上传blob数据块
+ * @param host 主机地址
+ * @param port 端口号
+ * @param uid 上传UID
+ * @param state 上传状态
+ * @param file_path 文件路径
+ * @param start 起始位置
+ * @param end 结束位置
+ * @param total_size 总大小
+ * @param imageName 镜像名称
+ * @param projectName 项目名称
+ * @return 包含新UID和state的pair
  */
 std::pair<std::string, std::string> uploadBlobChunk(const std::string& host, const std::string& port, const std::string& uid, const std::string& state,
                             const std::string& file_path, std::size_t start, std::size_t end, std::size_t total_size,const std::string& imageName,const std::string& projectName) {
@@ -741,6 +847,11 @@ std::pair<std::string, std::string> uploadBlobChunk(const std::string& host, con
     }
 }
 
+/**
+ * @brief 递归处理manifest树节点
+ * @param node 属性树节点
+ * @param level 当前层级(root/config/layers)
+ */
 void getManifest(ptree& node, const std::string& level)
 {
     try {
@@ -769,6 +880,11 @@ void getManifest(ptree& node, const std::string& level)
     }
 }
 
+/**
+ * @brief 写入v1格式的manifest文件
+ * @param filePath 输入文件路径
+ * @return 生成的manifest文件路径
+ */
 std::string write_v1_manifest(const std::string& filePath)
 {
     ptree manifest;
@@ -786,6 +902,11 @@ std::string write_v1_manifest(const std::string& filePath)
     return new_path;
 }
 
+/**
+ * @brief 写入新的manifest文件
+ * @param file_path 输入文件路径
+ * @return 生成的manifest文件路径
+ */
 std::string write_manifest_new(const std::string& file_path)
 {
     std::ifstream ifs(file_path);
@@ -822,6 +943,20 @@ std::string write_manifest_new(const std::string& file_path)
  * @param end 
  * @param imageName 
  * @param version 
+ */
+/**
+ * @brief 上传manifest文件
+ * @param host 主机地址
+ * @param port 端口号
+ * @param file_path 文件路径
+ * @param start 起始位置
+ * @param end 结束位置
+ * @param imageName 镜像名称
+ * @param version 镜像版本
+ * @param ManifestType manifest类型
+ * @param projectName 项目名称
+ * @param v1 是否v1格式
+ * @param store_basic_path 存储基础路径
  */
 void uploadManifest(const std::string& host, const std::string& port, const std::string& file_path, std::size_t start, std::size_t end, 
                                             const std::string& imageName, const std::string version, const std::string& ManifestType,const std::string& projectName, 
@@ -919,6 +1054,16 @@ void uploadManifest(const std::string& host, const std::string& port, const std:
  * @param imageName 
  * @param projectName
  */
+/**
+ * @brief 完成上传请求
+ * @param host 主机地址
+ * @param port 端口号
+ * @param uid 上传UID
+ * @param shaId SHA256摘要
+ * @param state 上传状态
+ * @param imageName 镜像名称
+ * @param projectName 项目名称
+ */
 void finalizeUpload(const std::string& host, const std::string& port, const std::string& uid, const std::string& shaId, const std::string& state,const std::string& imageName,const std::string& projectName) {
     try {
         asio::io_context ioc;
@@ -968,12 +1113,23 @@ void finalizeUpload(const std::string& host, const std::string& port, const std:
     }
 }
 
+/**
+ * @brief 检查文件SHA256摘要是否正确
+ * @param sha256 预期的SHA256摘要
+ * @param filepath 文件路径
+ * @return 匹配返回true，否则false
+ */
 bool isCorrect(std::string sha256,std::string filepath){
     auto digest = Fromfile(filepath);
     return digest->Encoded() == sha256;
 }
 
 
+/**
+ * @brief 解压gzip压缩的字符串
+ * @param compressed 压缩的字符串
+ * @return 解压后的字符串
+ */
 std::string gzDecompressToString(const std::string& compressed) {
     z_stream strm;
     strm.zalloc = NULL;
@@ -1009,6 +1165,16 @@ std::string gzDecompressToString(const std::string& compressed) {
     return decompressed;
 }
 
+/**
+ * @brief 登录并获取token
+ * @param host 主机地址
+ * @param port 端口号
+ * @param user 用户名
+ * @param passwd 密码
+ * @param projectName 项目名称
+ * @param imageName 镜像名称
+ * @return 获取到的token字符串
+ */
 std::string loginGetToken(std::string host, std::string port, std::string user, std::string passwd, std::string projectName, std::string imageName)
 {
     asio::io_context ioc;
@@ -1079,6 +1245,16 @@ std::string loginGetToken(std::string host, std::string port, std::string user, 
 }
 
 // login最后需要获取一个token，如果有这个token，则将其嵌入到authroization中，否则authorization是用户名和密码
+/**
+ * @brief 登录并获取token
+ * @param user 用户名
+ * @param passwd 密码
+ * @param host 主机地址
+ * @param port 端口号
+ * @param projectName 项目名称
+ * @param imageName 镜像名称
+ * @return 获取到的token字符串
+ */
 std::string login_and_getToken(const std::string& user, const std::string& passwd, const std::string& host, const std::string& port, 
     const std::string& projectName, const std::string& imageName) {
     try {
@@ -1150,6 +1326,14 @@ std::string login_and_getToken(const std::string& user, const std::string& passw
     return "";
 }
 
+/**
+ * @brief 登录到registry
+ * @param host 主机地址
+ * @param port 端口号
+ * @param user 用户名
+ * @param passwd 密码
+ * @return 登录成功返回true，否则false
+ */
 bool login(const std::string& host, const std::string& port, const std::string& user, const std::string& passwd) {
     try {
 
@@ -1199,6 +1383,14 @@ bool login(const std::string& host, const std::string& port, const std::string& 
 }
 
 
+/**
+ * @brief 拉取blob数据
+ * @param host 主机地址
+ * @param port 端口号
+ * @param projectName 项目名称
+ * @param imageName 镜像名称
+ * @param digest blob摘要
+ */
 void pullBlob(const std::string& host, const std::string& port,const::string& projectName,const::string& imageName,const std::string digest){
     // std::string target = "/v2/library/busyboximage5/blobs/sha256:f28efabc598d38f0b7cea1641bd20b097b8c5aaf090035d7167370608d86fb67"; // API v2 路径
     std::string target= "/v2/"+projectName+"/"+imageName+"/blobs/"+digest;
@@ -1316,6 +1508,17 @@ void pullBlob(const std::string& host, const std::string& port,const::string& pr
     }
 }
 
+/**
+ * @brief 拉取配置数据
+ * @param host 主机地址
+ * @param port 端口号
+ * @param projectName 项目名称
+ * @param imageName 镜像名称
+ * @param digest 配置摘要
+ * @param os 目标操作系统
+ * @param arch 目标架构
+ * @return 拉取成功返回true，否则false
+ */
 bool pullConfig(const std::string& host, const std::string& port,const::string& projectName,const::string& imageName,const std::string digest,const std::string& os,const std::string& arch){
     // std::string target = "/v2/library/busyboximage5/blobs/sha256:f28efabc598d38f0b7cea1641bd20b097b8c5aaf090035d7167370608d86fb67"; // API v2 路径
     std::string target= "/v2/"+projectName+"/"+imageName+"/blobs/"+digest;
@@ -1448,6 +1651,17 @@ bool pullConfig(const std::string& host, const std::string& port,const::string& 
 }
 
 
+/**
+ * @brief 拉取manifest和关联的blob数据
+ * @param host 主机地址
+ * @param port 端口号
+ * @param projectName 项目名称
+ * @param imageName 镜像名称
+ * @param version 镜像版本
+ * @param os 目标操作系统
+ * @param arch 目标架构
+ * @return 包含manifest摘要和大小的元组
+ */
 std::tuple<std::string,size_t> pullManifestAndBlob(const std::string& host, const std::string& port,const::string& projectName,const::string& imageName,const std::string version,const std::string& os,const std::string& arch){
     // std::string target = "/v2/library/busyboximage5/blobs/sha256:f28efabc598d38f0b7cea1641bd20b097b8c5aaf090035d7167370608d86fb67"; // API v2 路径
     std::string target= "/v2/"+projectName+"/"+imageName+"/manifests/"+version;

@@ -23,6 +23,11 @@ string PullPolicy::String(){
                 return "";
         }
 }
+/**
+ * @brief 验证PullPolicy值是否有效
+ * 
+ * @return bool 如果值是有效的PullPolicy枚举值则返回true，否则返回false
+ */
 bool PullPolicy::Validate() {
     auto p=this->value;
     if(p==PullIfMissing||p==PullAlways||p==PullIfNewer||p==PullNever) {
@@ -38,7 +43,13 @@ bool PullPolicy::Validate() {
 // 	{"ifnewer", PullIfNewer}
 // };
 
-// 解析拉取策略函数
+/**
+ * @brief 解析字符串为PullPolicy对象
+ * 
+ * @param s 输入字符串，可以是"always"、"missing"、"never"、"ifnewer"等
+ * @return std::shared_ptr<PullPolicy> 返回对应的PullPolicy智能指针
+ * @throws std::runtime_error 如果输入字符串不是有效的PullPolicy则抛出异常
+ */
 std::shared_ptr<PullPolicy> ParsePullPolicy(const std::string& s) {
     if (s == "always" || s == "Always") {
         return std::make_shared<PullPolicy>(Pull_Policy::PullAlways);

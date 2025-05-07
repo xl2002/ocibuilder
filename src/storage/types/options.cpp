@@ -33,11 +33,22 @@ std::once_flag defaultloadoptions;
 
 std::mutex storesLock;
 
+/**
+ * @brief 重新加载配置文件内容到存储选项
+ * @param configFile 配置文件路径
+ * @param storeOptions 存储选项指针，用于接收加载的配置
+ */
 void ReloadConfigurationFile(const std::string& configFile, StoreOptions* storeOptions) {
     // 实现加载配置文件的逻辑
     // 这部分需要根据实际情况来实现
 }
 
+/**
+ * @brief 检查并重新加载配置文件(如果需要)
+ * @param configFile 配置文件路径
+ * @param storeOptions 存储选项指针，用于接收加载的配置
+ * @return bool 如果配置文件已重新加载返回true，否则返回false
+ */
 bool ReloadConfigurationFileIfNeeded(const std::string& configFile, StoreOptions* storeOptions) {
     std::lock_guard<std::mutex> lock(prevReloadConfig.mutex);
 
@@ -72,6 +83,10 @@ bool ReloadConfigurationFileIfNeeded(const std::string& configFile, StoreOptions
     return true;
 
 }
+/**
+ * @brief 设置存储选项的默认值
+ * @param options 要设置默认值的存储选项引用
+ */
 void setDefaults(StoreOptions& options) {
     if (options.run_root.empty()) {
         options.run_root = defaultRunRoot;
@@ -80,6 +95,11 @@ void setDefaults(StoreOptions& options) {
         options.graph_root = defaultGraphRoot;
     }
 }
+/**
+ * @brief 加载默认存储选项
+ * @details 从环境变量或默认位置加载存储配置，并设置默认值
+ * @throws myerror 如果加载配置失败则抛出异常
+ */
 void loadDefaultStoreOptions() {
     try {
         defaultStoreOptions.graph_driver_name.clear();
@@ -150,6 +170,12 @@ void loadDefaultStoreOptions() {
         throw; // 重新抛出异常，以便上层函数处理
     }
 }
+/**
+ * @brief 扩展路径中的环境变量和特殊标记
+ * @param path 要扩展的原始路径
+ * @param rootlessUID 用于替换$UID标记的用户ID
+ * @return std::string 扩展后的完整路径
+ */
 std::string expandEnvPath(const std::string& path, int rootlessUID) {
     std::string expandedPath = path;
 
@@ -186,10 +212,20 @@ std::string expandEnvPath(const std::string& path, int rootlessUID) {
     
     return expandedPath;
 }
+/**
+ * @brief 获取环境变量值
+ * @param name 环境变量名
+ * @return std::string 环境变量值，如果未设置则返回空字符串
+ */
 std::string getEnv(const std::string& name) {
     const char* value = boost::compute::detail::getenv(name.c_str());
     return value ? std::string(value) : std::string();
 }
+/**
+ * @brief 获取rootless用户ID
+ * @return int 用户ID，如果无法获取则返回0
+ * @throws myerror 如果获取过程中发生错误则抛出异常
+ */
 int getRootlessUID() {
     try {
         // 获取环境变量
@@ -239,6 +275,11 @@ StoreOptions DefaultStoreOptions() {
     }
     return storeptions;
 }
+/**
+ * @brief 获取默认存储选项
+ * @return StoreOptions 默认存储选项对象
+ * @throws myerror 如果加载默认选项失败则抛出异常
+ */
 StoreOptions defaultOptions(){
     try{
         std::call_once(defaultStoreOptionsFlag, loadDefaultStoreOptions);
@@ -308,6 +349,10 @@ std::string DefaultConfigFile() {
  * 
  * @return std::string 返回用户家目录路径
  */
+/**
+ * @brief 获取用户家目录路径
+ * @return std::string 用户家目录路径
+ */
 std::string getHomeDir() {
     return "./"; // 替换为实际的用户家目录获取方法
 }
@@ -316,6 +361,10 @@ std::string getHomeDir() {
  * 该函数用于获取环境变量 XDG_CONFIG_HOME 的值
  * 
  * @return std::string 
+ */
+/**
+ * @brief 获取XDG配置目录路径
+ * @return std::string XDG_CONFIG_HOME环境变量值或空字符串
  */
 std::string getConfigHome() {
     return boost::compute::detail::getenv("XDG_CONFIG_HOME") ? boost::compute::detail::getenv("XDG_CONFIG_HOME") : "";
@@ -329,10 +378,18 @@ std::string getConfigHome() {
  * @return true 始终返回 true，表示使用用户个人存储
  * @return false 永远不会返回 false，因为当前的实现始终返回 true
  */
+/**
+ * @brief 检查是否使用用户个人存储
+ * @return bool 是否使用用户个人存储
+ */
 bool usePerUserStorage() {
     return false; // 假设始终使用用户个人存储
 }
 /// @brief 包装了 std::call_once 调用，确保 loadDefaultStoreOptions 只执行一次。
+/**
+ * @brief 如果需要则加载默认存储选项
+ * @return bool 加载是否成功
+ */
 bool loadDefaultStoreOptionsIfNeeded() {
     try {
         std::call_once(defaultStoreOptionsFlag, loadDefaultStoreOptions);
@@ -343,11 +400,21 @@ bool loadDefaultStoreOptionsIfNeeded() {
 }
 
 // 判断路径是否存在以及是否为目录
+/**
+ * @brief 检查目录是否存在
+ * @param path 要检查的目录路径
+ * @return bool 目录是否存在且为目录类型
+ */
 bool DirectoryExists(const std::string& path) {
     boost::filesystem::path p(path);
     return boost::filesystem::exists(p) && boost::filesystem::is_directory(p);
 }
 // 递归创建路径上的所有目录
+/**
+ * @brief 递归创建目录
+ * @param path 要创建的目录路径
+ * @return bool 创建是否成功
+ */
 bool MkdirAll(const std::string& path) {
     boost::filesystem::path p(path);
 
@@ -383,6 +450,11 @@ bool MkdirAll(const std::string& path) {
  * @return StoreOptions 存储选项对象
  * @throws myerror 获取默认配置文件路径时出现错误
  */
+/**
+ * @brief 加载存储选项
+ * @return StoreOptions 加载的存储选项对象
+ * @throws myerror 如果加载失败则抛出异常
+ */
 StoreOptions loadStoreOptions() {
     StoreOptions result;
     try {
@@ -414,6 +486,12 @@ StoreOptions loadStoreOptions() {
  * 
  * @param storageConf 配置文件路径
  * @return StoreOptions 存储选项对象
+ */
+/**
+ * @brief 从配置文件加载存储选项
+ * @param storageConf 配置文件路径
+ * @return StoreOptions 加载的存储选项对象
+ * @throws myerror 如果加载失败则抛出异常
  */
 StoreOptions loadStoreOptionsFromConfFile(const std::string& storageConf) {
     StoreOptions storageOpts;
@@ -493,6 +571,12 @@ StoreOptions loadStoreOptionsFromConfFile(const std::string& storageConf) {
 
     return storageOpts;
 }
+/**
+ * @brief 获取或创建存储实例
+ * @param options 存储选项
+ * @return std::shared_ptr<Store> 存储实例指针
+ * @throws myerror 如果创建存储失败则抛出异常
+ */
 std::shared_ptr<Store> GetStore(StoreOptions options) {
     try {
         // 初始化默认配置
@@ -592,6 +676,11 @@ std::shared_ptr<Store> GetStore(StoreOptions options) {
 }
 
 // 将 std::string 转换为 std::wstring
+/**
+ * @brief 将std::string转换为std::wstring
+ * @param s 要转换的字符串
+ * @return std::wstring 转换后的宽字符串
+ */
 std::wstring s2ws(const std::string& s) {
     return std::wstring(s.begin(), s.end());
 }

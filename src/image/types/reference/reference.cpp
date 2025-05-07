@@ -35,6 +35,14 @@ string named::Name(){
 }
 
 
+/**
+ * @brief 为命名引用添加摘要信息
+ * 
+ * @param name 命名接口指针
+ * @param digest 摘要信息指针
+ * @return std::shared_ptr<Canonical_interface> 返回带摘要的规范接口指针
+ * @throws myerror 如果摘要格式无效
+ */
 std::shared_ptr<Canonical_interface> WithDigest(std::shared_ptr<Named_interface> name,std::shared_ptr<Digest> digest){
     if(!anchoredDigestRegexp->Match(digest->String())){
         throw myerror("Digest is not in a valid format");
@@ -60,6 +68,12 @@ std::shared_ptr<Canonical_interface> WithDigest(std::shared_ptr<Named_interface>
     ret->digest=digest;
     return ret;
 }
+/**
+ * @brief 获取最适合的引用类型
+ * 
+ * @param ref 引用指针
+ * @return std::shared_ptr<Reference_interface> 返回最适合的引用接口指针
+ */
 std::shared_ptr<Reference_interface> getBestReferenceType(std::shared_ptr<reference> ref){
     // std::shared_ptr<Reference_interface> ret;
     if(ref->digest->digest==""){
@@ -74,6 +88,13 @@ std::shared_ptr<Reference_interface> getBestReferenceType(std::shared_ptr<refere
     }
     return ref;
 }
+/**
+ * @brief 解析引用字符串并创建引用对象
+ * 
+ * @param s 要解析的引用字符串
+ * @return std::shared_ptr<Reference_interface> 返回解析后的引用接口指针
+ * @throws std::invalid_argument 如果字符串格式无效
+ */
 std::shared_ptr<Reference_interface> Parse(std::string s){
     auto index1=s.find('/');
     auto index2=s.find(':');
@@ -99,6 +120,12 @@ std::shared_ptr<Reference_interface> Parse(std::string s){
     return r;
     // return ref;
 }
+/**
+ * @brief 获取命名引用的域名部分
+ * 
+ * @param named 命名接口指针
+ * @return std::string 返回域名，如果无法获取则返回空字符串
+ */
 std::string Domain(std::shared_ptr<Named_interface> named){
     auto r=std::dynamic_pointer_cast<namedRepository_interface>(named);
     if(r){
@@ -106,6 +133,12 @@ std::string Domain(std::shared_ptr<Named_interface> named){
     }
     return "";
 }
+/**
+ * @brief 修剪命名引用，只保留域名和路径部分
+ * 
+ * @param ref 要修剪的命名接口指针
+ * @return std::shared_ptr<Named_interface> 返回修剪后的命名接口指针
+ */
 std::shared_ptr<Named_interface> TrimNamed(std::shared_ptr<Named_interface> ref){
     std::string domain,path;
     std::tie(domain,path)=SplitHostname(ref);
@@ -114,6 +147,12 @@ std::shared_ptr<Named_interface> TrimNamed(std::shared_ptr<Named_interface> ref)
     ret->path=path;
     return ret;
 }
+/**
+ * @brief 拆分命名引用的主机名和路径部分
+ * 
+ * @param named 命名接口指针
+ * @return std::tuple<std::string,std::string> 返回包含域名和路径的元组
+ */
 std::tuple<std::string,std::string> SplitHostname(std::shared_ptr<Named_interface> named){
     auto r=std::dynamic_pointer_cast<namedRepository_interface>(named);
     if(r){

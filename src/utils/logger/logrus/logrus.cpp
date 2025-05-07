@@ -1,5 +1,12 @@
+/** @file logrus.cpp 
+ * @brief Logrus日志级别实现 
+ */
+
 #include "utils/logger/logrus/logrus.h"
 
+/** @brief 将日志级别转换为字符串表示
+ * @return 返回日志级别的字符串表示，转换失败返回"unknown"
+ */
 std::string Level::String() {
     try
     {
@@ -12,6 +19,10 @@ std::string Level::String() {
     }
 }
 
+/** @brief 将日志级别序列化为文本
+ * @return 返回包含日志级别名称的字节向量
+ * @throw myerror 当日志级别无效时抛出异常
+ */
 std::vector<uint8_t> Level::MarshalText(){
     if(lvl==level::TraceLevel){
         return std::vector<uint8_t>({'t', 'r', 'a', 'c', 'e'});
@@ -36,6 +47,11 @@ std::vector<uint8_t> Level::MarshalText(){
     }
     throw myerror("not a valid logrus level "+std::to_string((int)lvl));
 }
+/** @brief 解析字符串为日志级别
+ * @param lvl 要解析的日志级别字符串
+ * @return 返回对应的Level对象
+ * @throw myerror 当字符串不是有效的日志级别时抛出异常
+ */
 Level ParseLevel(std::string lvl){
     std::transform(lvl.begin(), lvl.end(), lvl.begin(), ::tolower);
     if(lvl=="trace"){
@@ -62,6 +78,10 @@ Level ParseLevel(std::string lvl){
         throw myerror("not a valid logrus Level: "+lvl);
     }
 }
+/** @brief 从字节向量反序列化日志级别
+ * @param text 包含日志级别名称的字节向量
+ * @throw myerror 当反序列化失败时抛出异常
+ */
 void Level:: UnmarshalText(std::vector<uint8_t> text){
     try
     {
@@ -73,4 +93,3 @@ void Level:: UnmarshalText(std::vector<uint8_t> text){
         throw;
     }
 }
-

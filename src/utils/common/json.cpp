@@ -1,6 +1,17 @@
 #include "utils/common/json.h"
 
-// 自定义 JSON 格式化函数
+/**
+ * @file json.cpp
+ * @brief JSON格式化工具实现文件
+ */
+
+/**
+ * @brief 格式化JSON值为可读字符串
+ * @param jv 要格式化的JSON值
+ * @param indent 初始缩进级别(空格数)
+ * @return 格式化后的JSON字符串
+ * @details 递归处理JSON对象和数组，生成带缩进的格式化字符串
+ */
 std::string format_json(const boost::json::value& jv, int indent) {
     std::string indent_str(indent, ' '); // 用于控制缩进
     std::ostringstream oss;

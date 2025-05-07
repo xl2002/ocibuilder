@@ -9,6 +9,11 @@
 #include "utils/parse/split_command.h"
 #include "utils/cli/cobra/lex.h"
 #include "utils/parse/buildkitparser.h"
+/**
+ * @brief 将节点内容转储为字符串表示
+ * @details 递归转储节点及其子节点的内容，包括值、标志和heredoc信息
+ * @return std::string 节点的字符串表示
+ */
 std::string Node::Dump() const {
     std::ostringstream oss;
     oss << Value;
@@ -47,10 +52,20 @@ std::string Node::Dump() const {
     return TrimSpace(oss.str());
 }
 
+/**
+ * @brief 设置节点的起始和结束行号
+ * @param start 起始行号
+ * @param end 结束行号
+ */
 void Node::lines(const int start, const int end) {
     StartLine=start;
     EndLine=end;
 }
+/**
+ * @brief 检查节点是否可以包含heredoc
+ * @details 检查节点类型、JSON属性和复合指令情况
+ * @return bool 如果节点可以包含heredoc返回true，否则返回false
+ */
 bool Node::canContainHeredoc() const {
     // Convert Value to lowercase
     std::string lowerValue = toLower(Value);
@@ -79,6 +94,12 @@ bool Node::canContainHeredoc() const {
     return true;
 }
 // Adds a new child node and updates line information
+/**
+ * @brief 添加子节点并更新行号信息
+ * @param child 要添加的子节点
+ * @param startLine 子节点起始行号
+ * @param endLine 子节点结束行号
+ */
 void Node::AddChild(std::shared_ptr<Node> child, int startLine, int endLine) {
     // Update the child's line information
     child->lines(startLine, endLine);
@@ -127,6 +148,12 @@ void Node::AddChild(std::shared_ptr<Node> child, int startLine, int endLine) {
 // std::map<std::string, bool> heredocCompoundDirectives = {
 //     {"ONBUILD", true}
 // };
+/**
+ * @brief 设置转义字符
+ * @details 设置Dockerfile解析使用的转义字符，只能是`或\
+ * @param s 要设置的转义字符
+ * @throws myerror 如果转义字符无效
+ */
 void Directive::setEscapeToken(const std::string& s){
     if (s != "`" && s != "\\") {
             throw myerror("invalid ESCAPE '" + s + "'. Must be ` or \\");
@@ -135,6 +162,12 @@ void Directive::setEscapeToken(const std::string& s){
     lineContinuationRegex = std::make_shared<std::regex>("\\\\" + s + "[ \t]*$");
 }
 // Member function to set platform token
+/**
+ * @brief 设置平台标识符
+ * @details 设置Dockerfile构建的目标平台
+ * @param s 平台标识符字符串
+ * @throws myerror 如果平台标识符无效
+ */
 void Directive::setPlatformToken(const std::string& s) {
     std::string lower_s = toLower(s);
     std::vector<std::string> valid = { getRuntimeGOOS() };  // Assuming getRuntimeGOOS() returns the current OS.
@@ -150,6 +183,11 @@ void Directive::setPlatformToken(const std::string& s) {
     }
 }
 
+/**
+ * @brief 处理可能的解析器指令
+ * @details 检查并处理Dockerfile中的解析器指令(escape/platform)
+ * @param line 要检查的行内容
+ */
 void Directive::possibleParserDirective(const std::string& line) {
     if (processingComplete) {
         return;
@@ -185,12 +223,23 @@ void Directive::possibleParserDirective(const std::string& line) {
     processingComplete = true;
 }
 
+/**
+ * @brief 创建默认指令对象
+ * @return std::shared_ptr<Directive> 包含默认escape和platform设置的指令对象
+ */
 std::shared_ptr<Directive> NewDefaultDirective() {
     auto directive=std::make_shared<Directive>();
     directive->setEscapeToken(std::string(1, DefaultEscapeToken));
     directive->setPlatformToken(defaultPlatformToken);
     return directive;
 }
+/**
+ * @brief 解析Dockerfile内容
+ * @details 主解析函数，处理Dockerfile内容并构建AST
+ * @param rwc 包含Dockerfile内容的输入流
+ * @return std::shared_ptr<Result> 包含AST、警告和解析结果的智能指针
+ * @throws myerror 如果解析过程中出现错误
+ */
 std::shared_ptr<Result> Parse(std::stringstream& rwc) {
     std::string str=rwc.str();
     std::vector<uint8_t> origin(str.begin(),str.end());
@@ -288,6 +337,13 @@ std::shared_ptr<Result> Parse(std::stringstream& rwc) {
     return ret;
     // return {root, warnings};
 }
+/**
+ * @brief 从行内容提取heredoc信息
+ * @details 解析行内容中的heredoc标记并返回Heredoc对象集合
+ * @param line 要解析的行内容
+ * @return std::vector<Heredoc> 包含所有heredoc信息的集合
+ * @throws myerror 如果heredoc格式无效
+ */
 std::vector<Heredoc>heredocsFromLine(const std::string& line) {
     auto shlex = NewLex('\\');
     shlex->RawQuotes = true;
@@ -313,6 +369,13 @@ std::vector<Heredoc>heredocsFromLine(const std::string& line) {
 
     return docs;
 }
+/**
+ * @brief 从行内容创建新节点
+ * @details 解析Dockerfile行并创建对应的AST节点
+ * @param line 要解析的行内容
+ * @param directive 当前解析指令对象
+ * @return std::shared_ptr<Node> 新创建的节点
+ */
 std::shared_ptr<Node> newNodeFromLine(const std::string& line, std::shared_ptr<Directive> directive) {
     // 将命令拆分为命令、标志和参数
     std::string cmd, args;
@@ -344,11 +407,23 @@ std::shared_ptr<Node> newNodeFromLine(const std::string& line, std::shared_ptr<D
     return newnode;
 }
 
+/**
+ * @brief 去除字符串中的注释
+ * @details 移除字符串中#符号及其后的所有内容
+ * @param src 输入字符串
+ * @return std::string 去除注释后的字符串
+ */
 std::string trimComments(const std::string& src) {
     static const std::regex tokenComment(R"(#.*?\r?$)", std::regex_constants::ECMAScript);
     std::string result = std::regex_replace(src, tokenComment, "");
     return result;
 }
+/**
+ * @brief 去除字符串两端的空白字符
+ * @details 移除字符串开头和结尾的空格、制表符等空白字符
+ * @param src 输入字符串
+ * @return std::string 去除空白后的字符串
+ */
 std::string trimWhitespace(const std::string& src) {
     std::string result = src;
     result.erase(result.begin(), std::find_if(result.begin(), result.end(), [](unsigned char ch) {
@@ -356,6 +431,12 @@ std::string trimWhitespace(const std::string& src) {
     }));
     return result;
 }
+/**
+ * @brief 去除字符串开头的空白字符
+ * @details 仅移除字符串开头的空白字符，保留结尾空白
+ * @param src 输入字符串
+ * @return std::string 去除开头空白后的字符串
+ */
 std::string trimLeadingWhitespace(const std::string& src) {
     std::string result = src;
     result.erase(result.begin(), std::find_if(result.begin(), result.end(), [](unsigned char ch) {
@@ -363,6 +444,12 @@ std::string trimLeadingWhitespace(const std::string& src) {
     }));
     return result;
 }
+/**
+ * @brief 去除字符串开头的制表符
+ * @details 仅移除字符串开头的制表符(\t)，保留其他空白字符
+ * @param src 输入字符串
+ * @return std::string 去除开头制表符后的字符串
+ */
 std::string trimLeadingTabs(const std::string& src) {
     std::string result = src;
     result.erase(result.begin(), std::find_if(result.begin(), result.end(), [](unsigned char ch) {
@@ -370,6 +457,12 @@ std::string trimLeadingTabs(const std::string& src) {
     }));
     return result;
 }
+/**
+ * @brief 去除字符串末尾的换行符
+ * @details 移除字符串末尾的\r和\n字符
+ * @param src 输入字符串
+ * @return std::string 去除换行符后的字符串
+ */
 std::string trimNewline(const std::string& src) {
     std::string result = src;
     result.erase(std::find_if(result.rbegin(), result.rend(), [](unsigned char ch) {
@@ -377,6 +470,13 @@ std::string trimNewline(const std::string& src) {
     }).base(), result.end());
     return result;
 }
+/**
+ * @brief 去除续行字符
+ * @details 根据指令对象中的续行正则表达式，去除行末的续行字符
+ * @param line 要处理的字符串行
+ * @param d 包含续行正则表达式的指令对象
+ * @return std::tuple<std::string,bool> 返回处理后的字符串和是否到达行尾的标记
+ */
 std::tuple<std::string,bool> trimContinuationCharacter(std::string line, std::shared_ptr<Directive> d) {
     std::smatch match;
     if (std::regex_search(line, match, *d->lineContinuationRegex)) {
@@ -386,12 +486,27 @@ std::tuple<std::string,bool> trimContinuationCharacter(std::string line, std::sh
     }
     return std::make_tuple(line, true);
 }
+/**
+ * @brief 检查是否是空续行
+ * @details 检查行是否只包含空白字符或注释(即空续行)
+ * @param line 要检查的行
+ * @return bool 如果是空续行返回true，否则返回false
+ */
 bool isEmptyContinuationLine(const std::string& line) {
     std::string trimmed = trimWhitespace(line);
     trimmed = trimComments(trimmed);
     return trimmed.empty();
 }
 
+/**
+ * @brief 处理Dockerfile行
+ * @details 处理Dockerfile行内容，包括去除空白、注释和解析指令
+ * @param d 指令对象
+ * @param token 要处理的行内容
+ * @param stripLeftWhitespace 是否去除左侧空白字符
+ * @return std::string 处理后的行内容
+ * @throws myerror 如果解析指令时出错
+ */
 std::string processLine(std::shared_ptr<Directive> d, const std::string& token, bool stripLeftWhitespace) {
     std::string processedToken = token;
 

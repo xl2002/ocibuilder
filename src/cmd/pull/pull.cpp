@@ -13,7 +13,14 @@
 #include "image/image_types/v1/mediatype.h"
 /**
  * @brief 初始化 pull 命令的内容
- * 
+ * @details 配置 pull 命令的元信息（名称、描述、示例）及命令行选项：
+ *          - `--all-tags`: 拉取镜像的所有标签
+ *          - `--os`: 指定目标操作系统（默认 linux）
+ *          - `--arch`: 指定目标架构（默认 amd64）
+ *          - `--format`: 指定 manifest 格式（oci/v2s1/v2s2）
+ * @note 命令示例：
+ *       - `ocibuilder pull imagename`
+ *       - `ocibuilder pull docker-daemon:imagename:imagetag`
  */
 void init_pull(){
     pullOptions* options=new pullOptions();
@@ -39,8 +46,18 @@ void init_pull(){
 }
 
 /**
- * @brief pull 命令Run操作的
- * 
+ * @brief 执行 pull 命令的核心逻辑
+ * @param cmd Command 对象，提供上下文和标志位访问
+ * @param args 命令行参数，需至少包含一个参数（镜像名称或路径）
+ * @param iopts pull 命令选项，包括是否拉取所有标签等
+ * @details 根据参数分为两种拉取模式：
+ *          1. **远程拉取**：从 registry 下载镜像并存储到本地仓库
+ *             - 支持 `--all-tags` 批量拉取
+ *             - 自动处理认证（Bearer Token）
+ *          2. **本地拉取**：从指定文件夹加载 OCI 镜像文件到仓库
+ * @note 异常处理：
+ *       - 镜像不存在时输出错误信息并退出
+ *       - 文件操作失败时终止流程
  */
 void pullCmd(Command& cmd, vector<string> args,pullOptions* iopts){
     std::string src;

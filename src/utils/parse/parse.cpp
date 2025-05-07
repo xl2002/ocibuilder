@@ -475,12 +475,25 @@ std::vector<platforms> PlatformsFromOptions(Command* cmd){
     return Platforms;
 }
 // Volume parses the input of --volume
+/**
+ * @brief 解析单个volume字符串并返回Mount对象
+ * 
+ * @param volume 格式为"src:dest[:options]"的volume字符串
+ * @return Mount 解析后的挂载点对象
+ * @throws myerror 如果volume格式无效
+ */
 Mount Volume(string volume){
     auto mount=Mount();
     
     return mount;
 }
 
+/**
+ * @brief 批量解析volume字符串
+ * 
+ * @param volumes 包含多个volume字符串的vector
+ * @throws myerror 如果任何volume字符串格式无效
+ */
 void Volumes( std::vector<std::string> volumes){
     try
     {
@@ -498,6 +511,15 @@ void Volumes( std::vector<std::string> volumes){
 }
 
 
+/**
+ * @brief 查找并解析容器忽略文件
+ * 
+ * @param contextDir 上下文目录路径
+ * @param path 显式指定的忽略文件路径(可选)
+ * @param containerFiles 容器文件列表
+ * @return tuple<vector<string>, string> 返回排除模式列表和忽略文件路径
+ * @throws myerror 如果解析忽略文件时出错
+ */
 std::tuple<std::vector<std::string>, std::string> ContainerIgnoreFile(
     const std::string& contextDir, const std::string& path, const std::vector<std::string>& containerFiles) {
     
@@ -555,8 +577,15 @@ std::tuple<std::vector<std::string>, std::string> ContainerIgnoreFile(
     return std::make_tuple(excludes, ignorePath);
 }
 
+/**
+ * @brief 解析并创建Secret对象映射
+ * 
+ * @param secrets 包含secret配置字符串的vector
+ * @return map<string, shared_ptr<Secret>> 返回secret名称到Secret对象的映射
+ */
 std::map<std::string,std::shared_ptr<Secret>> Secrets(std::vector<std::string> secrets){
     return std::map<std::string,std::shared_ptr<Secret>>();
 }
+
 // std::map<std::string,std::shared_ptr<Source>> SSH(std::vector<std::string> sshSources){
 // }

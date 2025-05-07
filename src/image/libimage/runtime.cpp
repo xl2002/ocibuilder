@@ -10,6 +10,21 @@
 #include "storage/storage/images.h"
 #include <boost/filesystem.hpp>
 namespace fs = boost::filesystem;
+/**
+ * @brief 从存储创建运行时实例
+ * 
+ * @param store 存储接口指针
+ * @param options 运行时选项指针(可选)
+ * @return std::shared_ptr<Runtime> 返回创建的Runtime实例
+ * 
+ * @details 该函数:
+ * 1. 如果options为空则创建默认选项
+ * 2. 设置系统上下文
+ * 3. 初始化注册表配置路径
+ * 4. 创建并返回Runtime实例
+ * 
+ * @note 如果SystemContext未设置会创建默认上下文
+ */
 std::shared_ptr<Runtime> RuntimeFromStore(std::shared_ptr<Store> store,std::shared_ptr<RuntimeOptions> options) {
     if( options==nullptr ) {
         options=std::make_shared<RuntimeOptions>();
@@ -29,6 +44,14 @@ std::shared_ptr<Runtime> RuntimeFromStore(std::shared_ptr<Store> store,std::shar
     ret_runtime->systemContext=systemContext;
     return ret_runtime;
 }
+/**
+ * @brief 设置注册表配置文件路径
+ * 
+ * @param systemContext 系统上下文指针
+ * 
+ * @details 如果systemContext中未设置SystemRegistriesConfDirPath，
+ * 则设置默认路径
+ */
 void setRegistriesConfPath(std::shared_ptr<SystemContext> systemContext) {
     if(systemContext->SystemRegistriesConfDirPath!="") {
         return;
@@ -36,6 +59,23 @@ void setRegistriesConfPath(std::shared_ptr<SystemContext> systemContext) {
     return;
 }
 
+/**
+ * @brief 拉取镜像
+ * 
+ * @param name 镜像名称或路径
+ * @param pullPolicy 拉取策略
+ * @param options 拉取选项(可选)
+ * @return std::vector<std::shared_ptr<LibImage::Image>> 返回拉取的镜像列表
+ * 
+ * @details 该函数:
+ * 1. 检查是否为本地路径或scratch镜像
+ * 2. 解析镜像名称
+ * 3. 根据传输类型调用不同拉取逻辑
+ * 4. 检查平台匹配性
+ * 
+ * @throw myerror 如果镜像名称解析失败或拉取失败
+ * @see copyFromRegistry
+ */
 std::vector<std::shared_ptr<LibImage::Image>> Runtime::Pull(std::string name,std::shared_ptr<PullPolicy> pullPolicy,std::shared_ptr<PullOptions> options) {
     // Debugf("Pulling image %s (policy: %s)",name.c_str(),pullPolicy->String().c_str());
     if(fs::exists(name)) {//from 后面为文件夹
@@ -140,6 +180,19 @@ std::vector<std::shared_ptr<LibImage::Image>> Runtime::Pull(std::string name,std
     return localImages;
 }
 
+/**
+ * @brief 从注册表复制镜像
+ * 
+ * @param ref 镜像引用
+ * @param inputName 输入镜像名称
+ * @param pullPolicy 拉取策略 
+ * @param options 拉取选项
+ * @return std::vector<std::string> 返回拉取的镜像名称列表
+ * 
+ * @details 根据pullPolicy和options决定是拉取单个镜像还是所有标签
+ * 
+ * @see copySingleImageFromRegistry
+ */
 std::vector<std::string> Runtime::copyFromRegistry(std::shared_ptr<ImageReference_interface> ref,std::string inputName,std::shared_ptr<PullPolicy> pullPolicy,std::shared_ptr<PullOptions> options) {
 
     if(!pullPolicy->Validate()) {
@@ -151,6 +204,21 @@ std::vector<std::string> Runtime::copyFromRegistry(std::shared_ptr<ImageReferenc
     return {};
 }
 
+/**
+ * @brief 从注册表复制单个镜像
+ * 
+ * @param imageName 镜像名称
+ * @param pullPolicy 拉取策略
+ * @param options 拉取选项
+ * @return std::vector<std::string> 返回拉取的镜像名称
+ * 
+ * @details 该函数:
+ * 1. 验证拉取策略
+ * 2. 查找本地镜像
+ * 3. 检查镜像是否损坏
+ * 
+ * @throw myerror 如果查找镜像失败
+ */
 std::vector<std::string> Runtime::copySingleImageFromRegistry(std::string imageName,std::shared_ptr<PullPolicy> pullPolicy,std::shared_ptr<PullOptions> options) {
     if(!pullPolicy->Validate()) {
         return {};
@@ -182,6 +250,22 @@ std::vector<std::string> Runtime::copySingleImageFromRegistry(std::string imageN
 
 }
 
+/**
+ * @brief 查找镜像
+ * 
+ * @param name 镜像名称
+ * @param options 查找选项(可选)
+ * @return std::tuple<std::shared_ptr<LibImage::Image>,std::string> 返回找到的镜像及其名称
+ * 
+ * @details 该函数:
+ * 1. 解析镜像名称
+ * 2. 规范化平台选项
+ * 3. 解析本地候选镜像
+ * 4. 在本地存储中查找匹配的镜像
+ * 
+ * @throw myerror 如果名称解析失败或查找失败
+ * @see lookupImageInLocalStorage
+ */
 std::tuple<std::shared_ptr<LibImage::Image>,std::string> Runtime::LookupImage(std::string name,std::shared_ptr<LookupImageOptions> options) {
     // Debugf("Looking up image %s in local storage",name.c_str());
     if(options==nullptr) {
@@ -252,6 +336,23 @@ std::tuple<std::shared_ptr<LibImage::Image>,std::string> Runtime::LookupImage(st
 }
 
 // std::shared_ptr<LibImage::Image> Runtime::lookupImageInLocalStorage(std::string name,std::string candidate,std::shared_ptr<Named_interface> namedCandidate,std::shared_ptr<LookupImageOptions> options) {
+/**
+ * @brief 在本地存储中查找镜像
+ * 
+ * @param name 镜像名称
+ * @param candidate 候选名称
+ * @param namedCandidate 命名的候选引用
+ * @param options 查找选项
+ * @return std::shared_ptr<LibImage::Image> 返回找到的镜像
+ * 
+ * @details 该函数:
+ * 1. 解析存储引用
+ * 2. 检查平台匹配性
+ * 3. 将存储镜像转换为LibImage格式
+ * 
+ * @throw myerror 如果引用解析失败或平台不匹配
+ * @see storageToImage
+ */
 std::shared_ptr<LibImage::Image> Runtime::lookupImageInLocalStorage(std::string name,std::string candidate,std::shared_ptr<Named_interface> namedCandidate,std::shared_ptr<LookupImageOptions> options){
     std::shared_ptr<storage::Image> img;
     std::shared_ptr<ImageReference_interface> ref;
@@ -283,6 +384,15 @@ std::shared_ptr<LibImage::Image> Runtime::lookupImageInLocalStorage(std::string 
     
     return image;
 }
+/**
+ * @brief 将存储镜像转换为LibImage格式
+ * 
+ * @param img 存储镜像
+ * @param ref 镜像引用
+ * @return std::shared_ptr<LibImage::Image> 返回转换后的镜像
+ * 
+ * @details 创建新的LibImage实例并设置相关属性
+ */
 std::shared_ptr<LibImage::Image> Runtime::storageToImage(std::shared_ptr<storage::Image> img,std::shared_ptr<ImageReference_interface> ref) {
     auto image=std::make_shared<LibImage::Image>();
     image->runtime=std::make_shared<Runtime>(*this);

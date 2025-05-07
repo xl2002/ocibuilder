@@ -574,9 +574,16 @@ void legacyArgs(Command*cmd,vector<string>args){
 }
 /**
  * @brief 根据给定的参数和命令树查找目标命令
- * <p>在最高节点上运行。只能往下搜索。
- * @param ret_args 查找解析的参数
- * @return Command* 查找到的Command对象
+ * 
+ * @details 在命令树中递归查找匹配给定参数的命令。从当前命令节点开始，
+ * 只能向下搜索子命令。如果找到匹配命令，则返回该命令指针，并将解析后的
+ * 参数存入ret_args。
+ * 
+ * @param args 输入参数列表
+ * @param ret_args [out] 查找解析后的参数
+ * @return Command* 查找到的Command对象指针，如果没有找到则返回nullptr
+ * 
+ * @note 此函数会处理命令标志并验证参数有效性
  */
 Command* Command::Find(vector<string>args,vector<string>&ret_args){
     // Command commandFound;
@@ -611,10 +618,15 @@ bool commandNameMatches(string s, string t){
     return s==t;
 }
 /**
- * @brief 根据next在子命令中查找
+ * @brief 在子命令中查找指定名称的命令
  * 
- * @param next Command对象名
- * @return Command* 目标Command对象的指针
+ * @details 在当前命令的子命令列表中查找名称匹配next的命令。
+ * 如果找到匹配命令，则设置其commandcallas.name并返回指针。
+ * 
+ * @param next 要查找的子命令名称
+ * @return Command* 找到的子命令指针，未找到则返回nullptr
+ * 
+ * @note 此函数仅进行名称匹配，不处理参数解析
  */
 Command* Command::findNext(string next){
     // vector<Command*> matches;
@@ -627,15 +639,24 @@ Command* Command::findNext(string next){
     return nullptr;
 }
 /**
- * @brief 执行命令
+ * @brief 执行命令及其相关处理流程
  * 
- * @details 根据解析出的参数执行命令。该函数首先执行InitDefaultHelpFlag()和InitDefaultVersionFlag()函数，然后解析参数flags。如果解析出的help标志为true，则直接返回。如果命令不可执行，则直接返回。
+ * @details 完整的命令执行流程包括：
+ * 1. 初始化默认help和version标志
+ * 2. 解析输入参数
+ * 3. 检查help标志，如果设置则显示帮助信息
+ * 4. 检查命令是否可执行(Runnable)
+ * 5. 执行父命令的PersistentPreRun回调(如果存在)
+ * 6. 执行当前命令的PreRun回调(如果存在) 
+ * 7. 验证必需标志和标志组
+ * 8. 执行主Run函数
+ * 9. 执行PostRun回调(如果存在)
+ * 10. 执行父命令的PersistentPostRun回调(如果存在)
  * 
- * 接下来，遍历所有的父命令，如果其中存在PersistentPreRun函数，则执行该函数。然后执行PreRun函数，如果有的话。然后执行ValidateRequiredFlags()和ValidateFlagGroups()函数，最后执行Run函数。
+ * @param args 输入参数列表
+ * @throws myerror 如果任何步骤失败则抛出异常
  * 
- * 如果Run函数执行完成后，还有PostRun函数，则执行PostRun函数。最后，遍历所有的父命令，如果其中存在PersistentPostRun函数，则执行该函数。
- * 
- * @param args 参数列表
+ * @note 此函数是命令执行的主入口点，处理完整的生命周期
  */
 void Command::execute(vector<string> args){
     InitDefaultHelpFlag();
@@ -746,9 +767,17 @@ void Command::execute(vector<string> args){
     return;
 }
 /**
- * @brief ParseFlags 解析持久标志树和本地标志。
+ * @brief 解析命令标志
+ * 
+ * @details 解析输入参数中的标志，包括：
+ * - 合并持久化标志
+ * - 解析本地标志
+ * - 处理标志参数
  * 
  * @param args 输入参数列表
+ * @throws myerror 如果解析失败则抛出异常
+ * 
+ * @note 此函数会修改内部flags状态
  */
 void Command::ParseFlags(vector<string> args){
     mergePersistentFlags();
@@ -764,10 +793,15 @@ void Command::ParseFlags(vector<string> args){
     
 }
 /**
- * @brief ValidateRequiredFlags 验证所有必需的标志是否存在，否则返回错误
+ * @brief 验证必需标志
  * 
- * @return true 
- * @return false 
+ * @details 检查所有标记为required的标志是否已设置值。
+ * 如果发现未设置的必需标志，则抛出异常。
+ * 
+ * @return true 验证通过
+ * @throws myerror 如果发现未设置的必需标志
+ * 
+ * @note 此函数会遍历所有标志，性能开销较大
  */
 bool Command::ValidateRequiredFlags(){
     auto flags=Flags();
@@ -806,8 +840,15 @@ bool Command:: Runnable(){
     return false;
 }
 /**
- * @brief mergePersistentFlags将PersistentFlags()合并到Flags(),并添加所有父级缺少的持久标志。
+ * @brief 合并持久化标志
  * 
+ * @details 将当前命令的持久化标志和所有父命令的持久化标志
+ * 合并到本地标志集中。具体步骤：
+ * 1. 更新父命令持久标志(parent_persistent_flags)
+ * 2. 将当前持久标志加入本地标志
+ * 3. 将父命令持久标志加入本地标志
+ * 
+ * @note 此函数会修改flags和parent_persistent_flags状态
  */
 void Command::mergePersistentFlags(){
     updateParentsPflags();
@@ -842,16 +883,16 @@ void Command::VisitParents(const function<void(Command*)>& fn){
     }
 }
 /**
- * @brief Flag_find 递归查找匹配的标志。
+ * @brief 查找标志
  * 
- * @param name 标志的名称
- * @return Flag* 返回匹配的标志指针，如果没有找到，则为nullptr
+ * @details 递归查找指定名称的标志，查找顺序：
+ * 1. 先在本地标志集中查找
+ * 2. 如果未找到，则在持久化标志集中查找
  * 
- * @details 
- * 首先在命令的标志集中查找匹配的标志。如果没有找到，则在命令的持久化标志集中查找匹配的标志。
+ * @param name 要查找的标志名称
+ * @return Flag* 找到的标志指针，未找到则返回nullptr
  * 
- * @note 
- * 如果在持久化标志集中找到匹配的标志，那么返回的标志指针的所有权属于持久化标志集。
+ * @note 返回的标志指针生命周期由所属标志集管理
  */
 Flag* Command::Flag_find(string name){
     Flagset* flags=Flags();
@@ -862,10 +903,16 @@ Flag* Command::Flag_find(string name){
     return flag;
 }
 /**
- * @brief 递归查找匹配的持久标志。
+ * @brief 查找持久化标志
  * 
- * @param name 
- * @return Flag* 
+ * @details 递归查找指定名称的持久化标志，查找顺序：
+ * 1. 在当前命令的持久标志集中查找
+ * 2. 在父命令的持久标志集中查找
+ * 
+ * @param name 要查找的标志名称
+ * @return Flag* 找到的标志指针，未找到则返回nullptr
+ * 
+ * @note 此函数会触发父标志集更新(updateParentsPflags)
  */
 Flag* Command::persistentFlag_find(string name){
     Flag* flag;

@@ -137,6 +137,22 @@ namespace fs = boost::filesystem;
 // 归档文件时的固定时间戳（1970-01-01 00:00:00 UTC）
 const time_t FIXED_MTIME = 0;
 
+/**
+ * @brief 将单个文件添加到tar归档中
+ * 
+ * @param a libarchive归档对象指针
+ * @param file_path 要添加的文件的完整路径
+ * @param base_path 基础路径，用于计算相对路径
+ * 
+ * @details 该函数负责:
+ * 1. 获取文件状态信息
+ * 2. 创建相对于base_path的相对路径
+ * 3. 设置归档条目属性(大小、权限、时间戳等)
+ * 4. 写入文件内容到归档
+ * 
+ * @note 如果文件状态获取失败或写入出错会输出错误信息
+ * @see createTar
+ */
 void add_file_to_archive(struct archive* a, const fs::path& file_path, const fs::path& base_path) {
     struct archive_entry* entry;
     struct stat st;
@@ -189,6 +205,25 @@ void add_file_to_archive(struct archive* a, const fs::path& file_path, const fs:
 
     archive_entry_free(entry);
 }
+/**
+ * @brief 创建tar归档文件
+ * 
+ * @param tarFilePath 要创建的tar文件路径
+ * @param directory 要打包的目录路径
+ * 
+ * @details 该函数实现完整的tar归档创建流程:
+ * 1. 验证目录存在性
+ * 2. 初始化libarchive对象
+ * 3. 设置tar格式
+ * 4. 递归遍历目录结构
+ * 5. 调用add_file_to_archive添加每个文件
+ * 6. 处理目录条目
+ * 7. 关闭归档
+ * 
+ * @throw fs::filesystem_error 如果目录遍历出错
+ * @note 会在控制台输出操作进度信息
+ * @see add_file_to_archive
+ */
 
 void createTar(const std::string& tarFilePath, const fs::path& directory) {
     if (!fs::exists(directory)) {
@@ -260,6 +295,12 @@ std::shared_ptr<tarFilterer> newTarFilterer(const std::string& tarFilePath, cons
  * @brief 关闭pipeWriter_TarHeader文件流
  * 
  */
+/**
+ * @brief 关闭tar过滤器关联的文件流
+ * 
+ * @details 安全关闭pipeWriter_TarHeader文件流，
+ * 如果流已经关闭则不做任何操作
+ */
 void tarFilterer::Close() {
     // 检查文件流是否已经打开
     if (pipeWriter_TarHeader.is_open()) {
@@ -268,6 +309,13 @@ void tarFilterer::Close() {
     }
 }
 
+/**
+ * @brief 获取内容类型
+ * 
+ * @return std::string 返回嵌套digester的内容类型
+ * 
+ * @see digester_interface::ContentType
+ */
 std::string tarDigester::ContentType(){
     return this->nested->ContentType();
 }
@@ -276,10 +324,22 @@ std::string tarDigester::ContentType(){
  * 
  * @param data 
  */
+/**
+ * @brief 写入数据到摘要计算器
+ * 
+ * @param data 要写入的数据
+ * 
+ * @details 将数据转发给嵌套的digester进行计算
+ */
 void tarDigester::write(const std::string& data){
     this->nested->write(data);
 }
 
+/**
+ * @brief 关闭摘要计算器
+ * 
+ * @details 关闭关联的tar过滤器并标记为已关闭状态
+ */
 void tarDigester::close(){
     if(this->isOpen){
         this->isOpen=false;
@@ -287,6 +347,13 @@ void tarDigester::close(){
     }
     return;
 }
+/**
+ * @brief 获取计算完成的摘要
+ * 
+ * @return std::shared_ptr<::Digest> 摘要对象指针
+ * 
+ * @details 从嵌套digester获取计算结果
+ */
 std::shared_ptr<::Digest> tarDigester::Digest(){
     return this->nested->Digest();
 }
@@ -298,6 +365,24 @@ std::shared_ptr<::Digest> tarDigester::Digest(){
  * @return std::shared_ptr<digester_interface> 
  */
 // newTarDigester 函数实现
+/**
+ * @brief 创建新的tar摘要计算器
+ * 
+ * @param contentType 内容类型字符串
+ * @param tarFilePath 要创建的tar文件路径
+ * @param directory 要打包的目录路径
+ * @return std::tuple<std::shared_ptr<Digest>,int> 包含摘要对象和文件长度的元组
+ * 
+ * @details 该函数:
+ * 1. 创建基础digester
+ * 2. 创建tar过滤器并生成tar文件
+ * 3. 计算tar文件摘要
+ * 4. 返回摘要和文件大小
+ * 
+ * @throw myerror 如果tar文件创建失败
+ * @see newTarFilterer
+ * @see newSimpleDigester
+ */
 std::tuple<std::shared_ptr<Digest>,int> newTarDigester(const std::string& contentType, const std::string& tarFilePath, const fs::path& directory) {
     // 创建嵌套的 digester
     auto nested = newSimpleDigester(contentType);

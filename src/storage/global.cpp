@@ -34,7 +34,14 @@ vector<std::shared_ptr<Store>> stores;
 ReloadConfig prevReloadConfig;
 /**
  * @brief 初始化storage模块的全局变量
- * 
+ * @details 该函数初始化容器存储相关的全局配置变量，包括：
+ *          - 存储传输接口
+ *          - overlay驱动配置
+ *          - 存储配置文件路径
+ *          - 用户命名空间大小限制
+ *          - 默认存储路径等
+ * @note 会根据操作系统类型(linux/windows)设置不同的默认路径格式
+ * @warning 该函数应在程序启动时尽早调用
  */
 void init_storage(){
     Transport= std::make_shared<storageTransport>();

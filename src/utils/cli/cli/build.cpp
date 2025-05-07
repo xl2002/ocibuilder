@@ -1,3 +1,13 @@
+/**
+ * @file build.cpp
+ * @brief 实现构建相关的功能函数
+ * @details 包含生成构建选项和容器文件处理的核心功能
+ * 
+ * 主要功能:
+ * - GenBuildOptions: 根据命令行参数生成构建选项
+ * - getContainerfiles: 处理输入的容器文件路径
+ */
+
 #include "utils/cli/cli/build.h"
 #include "security/auth.h"
 #include "image/util/util.h"
@@ -249,9 +259,13 @@ void GenBuildOptions(Command* cmd, vector<string> inputArgs,BuildOptions* iopts,
     return;
 }
 /**
- * @brief getContainerfiles 函数将命令行参数转换为容器文件
- * @param files 命令行参数
- * @return vector<string> 容器文件
+ * @brief 将命令行参数转换为容器文件路径
+ * @param files 输入的文件路径列表
+ * @details 
+ * - 处理特殊路径"-"，将其转换为".//"
+ * - 其他路径保持不变
+ * @return vector<string> 处理后的容器文件路径列表
+ * @note 此函数主要用于规范化输入的容器文件路径
  */
 vector<string> getContainerfiles(vector<string> files) {
     vector<string> ret_containerfiles;
@@ -264,4 +278,3 @@ vector<string> getContainerfiles(vector<string> files) {
     }
     return ret_containerfiles;
 }
-

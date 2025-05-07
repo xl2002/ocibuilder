@@ -12,7 +12,8 @@
 #include "utils/cli/cli/common.h"
 /**
  * @brief 初始化 tag 命令的内容
- * 
+ * @details 创建并配置 tag 命令对象，设置命令名称、描述、示例及参数要求。
+ *          该命令用于为本地镜像添加一个或多个新名称。
  */
 void init_tag(){
     string name{"tag"};
@@ -30,8 +31,12 @@ void init_tag(){
 }
 
 /**
- * @brief tag命令给镜像添加新的名称
- * 
+ * @brief 执行 tag 命令，为镜像添加新名称
+ * @param cmd  Command 对象，包含命令上下文信息
+ * @param args 命令行参数列表，至少包含两个参数：
+ *             - args[0]: 原始镜像名称
+ *             - args[1]: 要添加的新名称
+ * @details 通过镜像存储库的 `newtag` 方法实现名称添加，若失败则输出错误并退出。
  */
 void tagCmd(Command& cmd, vector<string> args){
     //1. 加载镜像仓库

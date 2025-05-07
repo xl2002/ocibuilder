@@ -41,6 +41,14 @@ static const WORD_32 k[64] = {
 };
 
 /*********************** FUNCTION DEFINITIONS ***********************/
+/**
+ * @brief 执行SHA256哈希计算的核心变换函数
+ * @param ctx SHA256上下文指针
+ * @param data 输入数据块(64字节)
+ * @details 对单个64字节数据块执行SHA256压缩函数。
+ *          实现包括消息扩展和64轮哈希计算。
+ *          遵循FIPS 180-4标准中的算法规范。
+ */
 void sha256_transform(SHA256_CTX *ctx, const BYTE data[])
 {
 	WORD_32 a, b, c, d, e, f, g, h, i, j, t1, t2, m[64];
@@ -82,6 +90,13 @@ void sha256_transform(SHA256_CTX *ctx, const BYTE data[])
 	ctx->state[7] += h;
 }
 
+/**
+ * @brief 初始化SHA256上下文
+ * @param ctx 要初始化的SHA256上下文指针
+ * @details 将上下文重置为初始状态，包括:
+ *          - 设置初始哈希值(前8个素数平方根的小数部分前32位)
+ *          - 重置数据长度计数器和位计数器
+ */
 void sha256_init(SHA256_CTX *ctx)
 {
 	ctx->datalen = 0;
@@ -96,6 +111,14 @@ void sha256_init(SHA256_CTX *ctx)
 	ctx->state[7] = 0x5be0cd19;
 }
 
+/**
+ * @brief 更新SHA256哈希计算状态
+ * @param ctx SHA256上下文指针
+ * @param data 输入数据字节数组
+ * @param len 输入数据长度(字节数)
+ * @details 处理输入数据，累积到64字节块后触发sha256_transform。
+ *          支持分块处理大数据，维护中间状态。
+ */
 void sha256_update(SHA256_CTX *ctx, const BYTE data[], size_t len)
 {
 	WORD_32 i;
@@ -111,6 +134,14 @@ void sha256_update(SHA256_CTX *ctx, const BYTE data[], size_t len)
 	}
 }
 
+/**
+ * @brief 完成SHA256哈希计算并输出结果
+ * @param ctx SHA256上下文指针
+ * @param hash 输出缓冲区(32字节)
+ * @details 执行最终填充和长度追加，处理最后一个数据块，
+ *          并将结果哈希值转换为大端字节序输出。
+ *          遵循FIPS 180-4的填充规范。
+ */
 void sha256_final(SHA256_CTX *ctx, BYTE hash[])
 {
 	WORD_32 i;
