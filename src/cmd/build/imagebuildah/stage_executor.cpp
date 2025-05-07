@@ -152,7 +152,7 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,bool> StageExecutor:
         auto lastInstruction=!moreInstructions;
         auto step=ib->Step_new();
         try{
-            step->Resolve(node);
+            step->Resolve(node);//得修改from的处理逻辑
         }catch(const myerror& e){
             throw myerror("resolving step "+std::to_string(i)+": "+std::string(e.what()));
         }
@@ -290,7 +290,14 @@ std::shared_ptr<Builder> StageExecutor::prepare(
     }
     if(initializeIBConfig){
         auto volumes=std::map<std::string, std::string>();
+        for(auto it:builder->Volumes()){
+            volumes[it]="";
+        }
         auto ports=std::vector<Port>();
+        for(auto p:builder->Ports()){
+            Port tmpp(p);
+            ports.push_back(tmpp);
+        }
         auto dConfig=std::make_shared<container_Config>();
         dConfig->Hostname=builder->Hostname();
         dConfig->Domainname=builder->Domainname();
@@ -307,14 +314,14 @@ std::shared_ptr<Builder> StageExecutor::prepare(
         dConfig->Volumes=volumes;
         dConfig->ExposedPorts=ports;
         auto rootfs=std::make_shared<Docker::RootFS>();
-        if(builder->Docker->RootFS!=nullptr){
-            rootfs->Type=builder->Docker->RootFS->Type;
+        if(&builder->OCIv1->rootFS!=nullptr){
+            rootfs->Type=builder->OCIv1->rootFS.type;
         }
-        for(auto i:builder->Docker->RootFS->DiffIDs){
-            rootfs->Layers.push_back(i->String());
+        for(auto i:builder->OCIv1->rootFS.diffIDs){
+            rootfs->Layers.push_back(i);
         }
         auto dImage=std::make_shared<Docker::Image>();
-        dImage->Parent=builder->FromImage;
+        dImage->Parent=builder->FromImageID;
         dImage->ContainerConfig=dConfig;
         dImage->Container=builder->Container;
         dImage->Architecture=builder->Architecture();
@@ -465,7 +472,7 @@ std::pair<std::string,std::shared_ptr<Canonical_interface>> StageExecutor::commi
         
     }
     this->builder->SetCmd(config->Cmd);
-    this->builder->ClearVolumes();
+    // this->builder->ClearVolumes();
     for(auto& v:config->Volumes){
         this->builder->AddVolume(v.first,v.second);
     }
@@ -493,9 +500,9 @@ std::pair<std::string,std::shared_ptr<Canonical_interface>> StageExecutor::commi
     for(auto& v:config->Labels){
         this->builder->SetLabel(v.first,v.second);
     }
-    if(this->executor->commonBuildOptions->IdentityLabel==OptionalBool::OptionalBoolUndefined || this->executor->commonBuildOptions->IdentityLabel==OptionalBool::OptionalBoolTrue){
-        this->builder->SetLabel(BuilderIdentityAnnotation,version);
-    }
+    // if(this->executor->commonBuildOptions->IdentityLabel==OptionalBool::OptionalBoolUndefined || this->executor->commonBuildOptions->IdentityLabel==OptionalBool::OptionalBoolTrue){
+    //     this->builder->SetLabel(BuilderIdentityAnnotation,version);
+    // }
     for(auto& l:this->executor->unsetLabels){
         
     }
@@ -516,6 +523,7 @@ std::pair<std::string,std::shared_ptr<Canonical_interface>> StageExecutor::commi
     }
     auto options=std::make_shared<CommitOptions>();
     options->Compression=this->executor->compression;
+    options->outputimage=output;
     options->SignaturePolicyPath=this->executor->signaturePolicyPath;
     options->ReportWriter=writer;
     options->PreferredManifestType=this->executor->outputFormat;

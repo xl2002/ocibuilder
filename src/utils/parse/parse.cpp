@@ -113,7 +113,7 @@ shared_ptr< SystemContext> SystemContextFromOptions(Command* c){
         if(c->Flag_find("short-name-alias-conf")->changed){
 
         }
-        ctx->DockerRegistryUserAgent="Buildah/"+version;
+        ctx->DockerRegistryUserAgent="ociBuild/"+version;
         if(c->Flag_find("os")!=nullptr && c->Flag_find("os")->changed){
             ctx->OSChoice=flags->GetString("os");
         }

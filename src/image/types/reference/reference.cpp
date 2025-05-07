@@ -77,8 +77,14 @@ std::shared_ptr<Reference_interface> getBestReferenceType(std::shared_ptr<refere
 std::shared_ptr<Reference_interface> Parse(std::string s){
     auto index1=s.find('/');
     auto index2=s.find(':');
-    string domain=s.substr(0,index1);
-    string path=s.substr(index1+1,index2-index1-1);
+    string domain,path;
+    if(index1==string::npos){
+        domain="";
+        path=s.substr(0,index2);
+    }else{
+        domain=s.substr(0,index1);
+        path=s.substr(index1+1,index2-index1-1);
+    }
     string tag=s.substr(index2+1);
     auto ref=std::make_shared<reference>();
     ref->tag=tag;

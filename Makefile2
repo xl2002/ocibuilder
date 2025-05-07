@@ -67,7 +67,7 @@ SRC		:= src
 OCI		:= oci_images
 
 ifeq ($(OS),Windows_NT)
-MAIN	:= main.exe
+MAIN	:= ociBuild
 SOURCEDIRS	:= $(SRC) $(shell dir /s /b /ad $(SRC))
 INCLUDEDIRS	:= $(INCLUDE)
 LIBDIRS		:= $(LIB)
@@ -75,7 +75,7 @@ FIXPATH = $(subst /,\,$1)
 RM			:= del /q /f
 MD	:= mkdir
 else
-MAIN	:= main
+MAIN	:= ociBuild
 SOURCEDIRS	:= $(shell find $(SRC) -type d)
 INCLUDEDIRS	:= $(INCLUDE)
 LIBDIRS		:= $(LIB)

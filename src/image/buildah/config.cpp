@@ -4,10 +4,22 @@
 //     return this->OCIv1->platform->Architecture;
 // }
 //读取镜像的config信息
-void Builder::initConfig(std::shared_ptr<Image_interface> img,std::shared_ptr<SystemContext> sys){
+void Builder::initConfig(std::shared_ptr<storage::Image> img,std::shared_ptr<SystemContext> sys){
     
     if(img!=nullptr){
-        
+        if(img->image_index==nullptr){
+            return;
+        }
+        auto manifestMIMEType=img->image_index->mediaType;
+        auto rawManifest=marshal(*img->image_manifest);
+        auto rawConfig = marshal(*img->image_config);
+        this->Manifest=stringToVector(rawManifest);
+        this->Config=stringToVector(rawConfig);
+        if(this->FromImageDigest==""){
+            this->FromImageDigest=img->image_index->digest;
+        }
+        this->FromImage=img->Names[0];
+        this->OCIv1=img->image_config;
     }
 }
 void Builder::SetAnnotation(std::string key,std::string value){

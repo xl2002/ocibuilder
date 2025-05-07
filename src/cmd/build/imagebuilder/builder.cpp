@@ -4,7 +4,7 @@
 #include "utils/cli/cli/common.h"
 #include "cmd/build/imagebuilder/internals.h"
 #include "cmd/build/imagebuilder/dispatchers.h"
-
+#include "config/defaut.h"
 void logExecutor::UnrecognizedInstruction(std::shared_ptr<Step> step){
     return;
 }
@@ -300,7 +300,7 @@ std::vector<std::shared_ptr<Node>> SplitChildren(std::shared_ptr<Node>node,std::
         }
     }
     // if()
-    // node->Children=children;
+    node->Children=children;
     return split;
 }
 
@@ -340,7 +340,7 @@ void Image_Builder::Run(std::shared_ptr<Step> step,Executor_Interface* exec,bool
         // std::string src,dest;
         // std::tie(src,dest,std::ignore)=Cut(path,':');//src为容器里的路径，dest为主机上的路径
         this->Volumes->Add(path.first);
-        if(path.second.size()==0){
+        if(path.second.size()==0&&path.first.find(":")==std::string::npos){
             exec->Preserve(path.first);
         }
     }
@@ -373,7 +373,16 @@ std::shared_ptr<container_Config> Image_Builder::Config(){
     return config;
 }
 void Image_Builder::FromImage(std::shared_ptr<Docker::Image>image,std::shared_ptr<Node>node){
-
+    SplitChildren(node,"from");
+    this->RunConfig=std::make_shared<container_Config>(*image->Config);
+    this->Env=mergeEnv(this->Env,this->RunConfig->Env);
+    this->RunConfig->Env.clear();
+    this->RunConfig->Env.push_back(defaultContainerEnv.front());
+    this->RunConfig->Volumes.clear();
+    if(image->Config==nullptr || image->Config->OnBuild.empty()){
+        return;
+    }
+    return ;
 }
 // Add 方法：添加路径并返回是否成功
 bool VolumeSet::Add( const std::string& path) {

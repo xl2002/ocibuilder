@@ -113,19 +113,19 @@ void from(
     b->RunConfig->Image = name;
 
     // 将拷贝操作添加到待处理的列表中
-    if(b->PendingCopies.size()==0&&name!="scratch"){
-        boost::filesystem::path src(name);
-        auto absrc=boost::filesystem::absolute(src);
-        Copy c;
-        c.From = "from";
-        c.Src.push_back(absrc.string());
-        c.Dest = "";
-        c.Download = false;
-        c.Chown = chown;
-        c.Chmod = chmod;
-        // c.Files = files;
-        b->PendingCopies.push_back(c);
-    }
+    // if(b->PendingCopies.size()==0&&name!="scratch"){
+    //     boost::filesystem::path src(name);
+    //     auto absrc=boost::filesystem::absolute(src);
+    //     Copy c;
+    //     c.From = "from";
+    //     c.Src.push_back(absrc.string());
+    //     c.Dest = "";
+    //     c.Download = false;
+    //     c.Chown = chown;
+    //     c.Chmod = chmod;
+    //     // c.Files = files;
+    //     b->PendingCopies.push_back(c);
+    // }
     // TODO: 处理 onbuild
 }
 // LABEL some json data describing the image

@@ -149,6 +149,7 @@ class Builder {
     void SetOS(std::string os);
     std::string OSVersion();
     void SetOSVersion(std::string osVersion);
+    std::vector<std::string> Ports();
     void SetPorts(std::string port);
     void SetHostname(std::string name);
     void SetDomainname(std::string name);
@@ -157,6 +158,7 @@ class Builder {
     void SetEnv(std::string k,std::string v);
     void SetCmd(std::vector<std::string> cmd);
     void ClearVolumes();
+    std::vector<std::string> Volumes();
     void AddVolume(std::string k,std::string v);
     void ClearOnBuild();
     void SetWorkDir(std::string there);
@@ -172,7 +174,7 @@ class Builder {
         std::shared_ptr<CommitOptions> options
     );
     std::shared_ptr<containerImageRef> makeContainerImageRef(std::shared_ptr<CommitOptions> options);
-    void initConfig(std::shared_ptr<Image_interface> img,std::shared_ptr<SystemContext> sys);
+    void initConfig(std::shared_ptr<storage::Image> img,std::shared_ptr<SystemContext> sys);
     void SetAnnotation(std::string key,std::string value);
     std::string Hostname();
     std::string Domainname();

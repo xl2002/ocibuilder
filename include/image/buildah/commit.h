@@ -53,6 +53,8 @@ class CommitOptions {
     bool OmitTimestamp=false;
 
     bool check=false;
+
+    std::string outputimage;
     // SignBy 是用于签署图片的 GPG 密钥指纹
     std::string SignBy;
 

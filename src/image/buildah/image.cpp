@@ -25,12 +25,17 @@ std::shared_ptr<containerImageRef> Builder::makeContainerImageRef(std::shared_pt
     if(!boost::filesystem::is_directory(this->FromImage)){
         parent=NewDigestFromEncoded(std::make_shared<Algorithm_sha256>(Canonical_sha256),this->FromImageID)->String();
     }
+
     auto ref=std::make_shared<containerImageRef>();
     ref->fromImageName=this->FromImage;
     ref->fromImageID=container->ImageID;
+    if(!this->FromImageDigest.empty()){
+        ref->baseImageManifest=this->FromImageDigest.substr(7);
+    }
     ref->store=this->store;
     ref->compression=options->Compression;
     ref->names=container->Names;
+    ref->name=options->outputimage;
     ref->containerID=container->ID;
     ref->mountLabel=this->MountLabel;
     ref->layerID=container->LayerID;
@@ -72,7 +77,7 @@ std::shared_ptr<Named_interface> containerImageRef::DockerReference(){
 std::shared_ptr<Image_interface>  containerImageRef::NewImage(std::shared_ptr<SystemContext>sys){
     return nullptr;
 }
-void AddcCheck(std::vector<std::string> layers,std::string srcpath,std::string destpath){
+void AddcCheck(std::string name,std::vector<std::string> layers,std::string srcpath,std::string destpath){
     //TODO
     std::string checkpath=destpath+"/check.json";//中间缓存文件
     auto checks=std::make_shared<Check>();//TODO
@@ -107,7 +112,14 @@ void AddcCheck(std::vector<std::string> layers,std::string srcpath,std::string d
     }
     file<<checkjson;
     file.close();
-    std::string target=srcpath+"/"+layers.back()+"/diff/check.json";
+    std::string layerId=layers.back();
+    std::string targets = ":\\/";
+    // std::replace(name.begin(),name.end(),':','_');
+    std::replace_if(name.begin(), name.end(),
+        [&targets](char c) {
+            return targets.find(c) != std::string::npos;
+        },'_');
+    std::string target=srcpath+"/"+layerId+"/diff/check_"+name+".json";
     try{
         boost::filesystem::path src_path(checkpath);
         boost::filesystem::path target_path(target);
@@ -127,12 +139,33 @@ std::shared_ptr<ImageSource_interface> containerImageRef::NewImageSource(std::sh
     // 1. 得到整个镜像所有层的ID
     auto manifestType=this->preferredManifestType;
     std::vector<std::string>layers;
+    // if(this->fromImageID!=""&&this->fromImageName!="scratch"){
+        // layers.push_back(this->fromImageID);//当FROM后面为scratch时，fromImageID为空
+    // }
+    // 添加基础镜像的层记录
     if(this->fromImageID!=""&&this->fromImageName!="scratch"){
-        layers.push_back(this->fromImageID);//当FROM后面为scratch时，fromImageID为空
+        auto imagestorePath=this->store->GetImageStoragePath();
+        auto Configpath=imagestorePath+"/blobs/sha256/"+this->fromImageID;
+        if(!boost::filesystem::exists(Configpath)){
+            std::cerr<<"the base Image Manifest isn't exists!"<<std::endl;
+            return nullptr;
+        }
+        boost::filesystem::ifstream Configfile(Configpath,std::ios::binary);
+        // 使用 std::ostringstream 将流的内容读取到字符串
+        std::ostringstream buffer;
+        buffer << Configfile.rdbuf();  // 读取整个文件内容
+        std::string fileContent = buffer.str();  // 转换为 std::string
+        v1::Image m;
+        if(!fileContent.empty()){
+            m=unmarshal<v1::Image>(fileContent);
+        }
+        Configfile.close();
+        for(auto& l:m.rootFS.diffIDs){
+            layers.push_back(l.substr(7));
+        }
     }
-    // layers.push_back(this->fromImageID);
     layers.push_back(this->layerID);
-    auto destpath=MkdirTemp(getDefaultTmpDir(),"buildah");
+    auto destpath=MkdirTemp(getDefaultTmpDir(),"ociBuild");
 
     // 2. 构建整个镜像的config和manifest(默认的)
     std::shared_ptr<v1::Image> oimage;
@@ -140,6 +173,7 @@ std::shared_ptr<ImageSource_interface> containerImageRef::NewImageSource(std::sh
     std::tie(oimage,omanifest)=createConfigsAndManifests();
     auto srcpath=this->store->GetlayerStoragePath();
     
+
     std::map<Digest, blobLayerInfo> blobLayers;
     // std::vector<std::shared_ptr<Layer>> Layers;
     
@@ -147,8 +181,10 @@ std::shared_ptr<ImageSource_interface> containerImageRef::NewImageSource(std::sh
     auto layerstore=std::dynamic_pointer_cast<layerStore>(s->layer_store_use_getters);
     auto now = std::chrono::system_clock::now();
     if(check){
-        AddcCheck(layers,srcpath,destpath);
+        std::vector<std::string>checklayers{this->layerID};
+        AddcCheck(this->name,checklayers,srcpath,destpath);
     }
+
     for(auto layer:layers){
         // 3. 将原目录下diff文件夹下的内容复制到目的缓存目录下，如果目的目录不存在则新建目录
         //  int64_t Copy_directory(const fs::path& source, const fs::path& destination)复制目录的函数已写好，并且返回数据大小
@@ -176,9 +212,10 @@ std::shared_ptr<ImageSource_interface> containerImageRef::NewImageSource(std::sh
         auto finalBlobName=destpath+"/"+tardigest;//TODO
         try {
             if(boost::filesystem::exists(srcpath+"/"+tardigest)){//文件存在，不重命名
-                fs::remove_all(srcpath+"/"+layer);
-                layerstore->deleteLayer(tardigest);//删除存在的记录，后面添加最新的记录
-
+                if(layer!=tardigest){
+                    fs::remove_all(srcpath+"/"+layer);
+                    layerstore->deleteLayer(tardigest);//删除存在的记录，后面添加最新的记录
+                }
             }else{
                 boost::filesystem::path src_path(srcpath);
                 boost::filesystem::path layer_path(layer);
@@ -285,7 +322,7 @@ std::tuple<std::shared_ptr<v1::Image>,std::shared_ptr<Manifest>> containerImageR
     oimage.created=now;
     oimage.rootFS.type=TypeLayers;
     oimage.author=BuildAuthor;
-    oimage.config.env.push_back("PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin");
+    // oimage.config.env.push_back("PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin");
     // oimage.config.cmd.push_back("sh");
     if(oimage.platform.OS==""){
         oimage.platform.OS="linux";
@@ -293,6 +330,7 @@ std::tuple<std::shared_ptr<v1::Image>,std::shared_ptr<Manifest>> containerImageR
     if(oimage.platform.Architecture==""){
         oimage.platform.Architecture="amd64";
     }
+    oimage.rootFS.diffIDs.clear();
     auto omanifest=std::make_shared<Manifest>();
     omanifest->SchemaVersion=2;
     omanifest->MediaType=MediaTypeImageManifest;

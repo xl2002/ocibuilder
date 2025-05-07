@@ -21,6 +21,7 @@ class containerImageRef: public ImageReference_interface{
     public:
     std::string fromImageName;                  // 源镜像的名称
     std::string fromImageID;                    // 源镜像的ID
+    std::string baseImageManifest;
     std::shared_ptr<Store_interface> store=nullptr;                        // 存储库
     std::shared_ptr<Compression> compression=std::make_shared<::Compression>();             // 压缩类型
     std::string name;                           // 镜像名称

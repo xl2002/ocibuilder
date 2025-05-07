@@ -1,19 +1,19 @@
 #!/bin/bash
-
+login --username admin --password Harbor12345 192.168.1.102:80
 echo "Starting login command..."
 echo "Command: ./output/main.exe login --username admin --password 123456 192.168.1.102:5000"
 
 # Execute the login command
-./output/main login --username admin --password 123456 192.168.1.102:5000
+./output/main 
 
 echo "Starting push command..."
-echo "Command: ./output/main.exe push 192.168.1.102:5000/library/image:latest"
+echo "Command: ./output/main.exe push 192.168.1.102:5000/library/image:1.0"
 
 # Record start time
 start=$(date +%s)
 
 # Execute the push command
-./output/main push 192.168.1.102:5000/library/image:latest
+./output/main push 192.168.1.102:80/library/image:1.0
 
 # Record end time
 end=$(date +%s)

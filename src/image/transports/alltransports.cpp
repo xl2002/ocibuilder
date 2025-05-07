@@ -22,6 +22,7 @@ std::shared_ptr<ImageReference_interface> ParseImageName(std::string imgName){
     if (transport==nullptr) {
         // std::cerr << "Invalid image name \"" + imgName + "\", unknown transport \"" + transportName + "\"" << std::endl;
         return nullptr;
+        // throw myerror("Invalid image name " + imgName + " , unknown transport " + transportName);
     }
     std::shared_ptr<ImageReference_interface> ref;
     std::tie(ref, std::ignore) =ParseReference(withinTransport);

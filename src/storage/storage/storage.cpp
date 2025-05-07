@@ -88,7 +88,8 @@ bool parseJson(const vector<uint8_t>& data, vector<shared_ptr<storage::Image>>& 
             oss << manifestf.rdbuf();
             auto manifest=unmarshal<Manifest>(oss.str());
             // image->image_manifest=std::make_shared<Manifest>(manifest);
-            image->ID=manifest.Config.Digests.Encoded().substr(0,12);//获得镜像的config的digest的前12位
+            // image->ID=manifest.Config.Digests.Encoded().substr(0,12);//获得镜像的config的digest的前12位
+            image->ID=manifest.Config.Digests.Encoded();
             manifestf.close();
             // image->digest=std::make_shared<Digest>(it.digest);
             std::string name=it.annotations["org.opencontainers.image.ref.name"];
@@ -206,7 +207,7 @@ bool ImageStore::load(bool lockedForWriting) {
         // 处理每个镜像
         for (size_t n = 0; n < images.size(); ++n) {
             auto& image = images[n];
-            ids[image->ID] = images[n];
+            ids[image->ID.substr(0,12)] = images[n];
             idlist.push_back(image->ID);
 
             // 检查是否有名称冲突

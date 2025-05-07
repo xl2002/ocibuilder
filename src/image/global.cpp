@@ -152,8 +152,8 @@ void init_image(){
     userPolicyFile=FromSlash("/.config/containers/policy.json");
     systemDefaultPolicyPath="/etc/containers/policy.json";
 
-	BuilderIdentityAnnotation = "io.buildah.version";
-    Package="buildah";
+	BuilderIdentityAnnotation = "io.ociBuild.version";
+    Package="ociBuild";
     version="1.0";
     DefaultRuntime="runc";
     OCIv1ImageManifest="application/vnd.oci.image.manifest.v1+json";

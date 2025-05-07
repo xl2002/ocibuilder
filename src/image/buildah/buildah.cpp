@@ -62,6 +62,13 @@ std::string Builder::OSVersion(){
 void Builder::SetOSVersion(std::string osVersion){
     this->OCIv1->platform.OSVersion=osVersion;
 }
+std::vector<std::string> Builder::Ports(){
+    std::vector<std::string> p;
+    for(auto k:this->OCIv1->config.exposedPorts){
+        p.push_back(k.first);
+    }
+    return p;
+}
 void Builder::SetPorts(std::string port){
     this->OCIv1->config.exposedPorts[port]=boost::json::object();
 }
@@ -106,6 +113,13 @@ void Builder::SetCmd(std::vector<std::string> cmd){
 void Builder::ClearVolumes(){
     this->OCIv1->config.volumes.clear();
     this->Docker->config->Volumes.clear();
+}
+std::vector<std::string> Builder::Volumes(){
+    std::vector<std::string> v;
+    for(auto it:this->OCIv1->config.volumes){
+        v.push_back(it.first);
+    }
+    return v;
 }
 void Builder::AddVolume(std::string k,std::string v){
     // this->OCIv1->config.volumes[k]=v;

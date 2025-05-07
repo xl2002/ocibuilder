@@ -38,7 +38,6 @@ std::shared_ptr<Config> New(std::shared_ptr<Options> options) {
 // All callers are expected to use the returned Config read only.  Changing
 // data may impact other call sites.
 std::shared_ptr<Config> Config_defaut() {
-    // int num=0;
     std::lock_guard<std::mutex> lock(cachedConfigMutex);
     if(cachedConfig!=nullptr){
         return cachedConfig;

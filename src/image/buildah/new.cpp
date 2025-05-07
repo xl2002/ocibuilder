@@ -11,7 +11,7 @@
 
 std::shared_ptr<Builder> newBuilder(std::shared_ptr<Store> store,std::shared_ptr<BuilderOptions> options){
     std::shared_ptr<ImageReference_interface> ref=nullptr;
-    std::shared_ptr<storage::Image> img=std::make_shared<storage::Image>();
+    std::shared_ptr<storage::Image> img=nullptr;
     // if(options->FromImage=="scratch"){
     //     options->FromImage="";
     // }
@@ -87,6 +87,7 @@ std::shared_ptr<Builder> newBuilder(std::shared_ptr<Store> store,std::shared_ptr
     builder->FromImage=imageSpec;
     builder->FromImageID=imageID;
     builder->FromImageDigest=imageDigest;
+    // builder->FromImageDigest=img->image_index->
     builder->GroupAdd=options->GroupAdd;
     builder->Container=tmpName;
     builder->ContainerID=container->ID;
@@ -107,7 +108,7 @@ std::shared_ptr<Builder> newBuilder(std::shared_ptr<Store> store,std::shared_ptr
     
     try{
         if(!boost::filesystem::exists(imageSpec)){
-            builder->initConfig(src,systemContext);
+            builder->initConfig(img,systemContext);
         }
     }catch(const myerror & e){
         throw;
