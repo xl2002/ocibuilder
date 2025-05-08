@@ -27,6 +27,7 @@
 #include "image/types/reference/reference.h"
 #include "cmd/build/imagebuildah/build.h"
 #include "storage/storage/storage.h"
+#include "utils/logger/ProcessSafeLogger.h"
 // #include <filesystem>
 // #include "context.h"
 // #include "creat.h"

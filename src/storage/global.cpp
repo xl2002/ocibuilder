@@ -5,6 +5,7 @@
 #include "storage/lockfile/lockfile.h"
 #include "storage/storage/overlay.h"
 #include "storage/types/options.h"
+#include "utils/logger/ProcessSafeLogger.h"
 // 全局变量定义
 std::shared_ptr<StoreTransport_interface> Transport;
 
@@ -32,6 +33,11 @@ StoreOptions storeptions;
 StoreOptions defaultStoreOptions;
 vector<std::shared_ptr<Store>> stores;
 ReloadConfig prevReloadConfig;
+std::shared_ptr<ProcessSafeLogger> logger;
+std::string log_dir;
+std::string log_prefix;
+
+
 /**
  * @brief 初始化storage模块的全局变量
  * @details 该函数初始化容器存储相关的全局配置变量，包括：
@@ -82,4 +88,7 @@ void init_storage(){
     AutoUserNsMinSize=1024;
     AutoUserNsMaxSize=65536;
     defaultConfigFileSet = false;
+    log_dir=defaultRunRoot+"/log";
+    log_prefix="ociBuild";
+    logger=Newlogger();
 }

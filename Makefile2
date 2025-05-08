@@ -22,6 +22,9 @@ ifeq ($(OS),Windows_NT)
     LFLAGS += -lboost_random-mgw12-mt-x64-1_75
     LFLAGS += -lboost_json-mgw12-mt-x64-1_75
     LFLAGS += -lboost_iostreams-mgw12-mt-x64-1_75
+	LFLAGS += -lboost_log-mgw12-mt-x64-1_75
+	LFLAGS += -lboost_log_setup-mgw12-mt-x64-1_75
+	LFLAGS += -lboost_date_time-mgw12-mt-x64-1_75
     LFLAGS += -lssl
 	LFLAGS += -larchive_static
     LFLAGS += -lcrypto
@@ -39,6 +42,9 @@ else
     LFLAGS += -lboost_json
     LFLAGS += -lboost_iostreams
 	LFLAGS += -lboost_stacktrace_basic
+	LFLAGS += -lboost_log
+	LFLAGS += -lboost_log_setup
+	LFLAGS += -lboost_date_time
 	LFLAGS += -pthread
     LFLAGS += -lssl
 	LFLAGS += -larchive

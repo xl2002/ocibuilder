@@ -15,6 +15,7 @@
 #include "utils/logger/logrus/alt_exit.h"
 #include "utils/parse/buildkitparser.h"
 #include "utils/parse/parse.h"
+
 // 全局变量定义
 /// @brief 命令行标志集合指针
 Flagset* CommandLine;
@@ -33,6 +34,7 @@ int knownLogrusFrames;
 
 /// @brief 标准日志记录器
 std::shared_ptr<Logger> Std;
+
 
 /// @brief 转义命令token正则表达式
 std::shared_ptr<Regexp> tokenEscapeCommand;
@@ -133,6 +135,7 @@ void init_utils(){
     maximumCallerDepth=25;
     knownLogrusFrames=4;
     Std=New();
+
 
     tokenEscapeCommand=Delayed(R"(^#[ \t]*escape[ \t]*=[ \t]*(.).*$)");
     tokenPlatformCommand=Delayed(R"(^#[ \t]*platform[ \t]*=[ \t]*(.*)$)");

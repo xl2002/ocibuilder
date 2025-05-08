@@ -240,6 +240,8 @@ void init_buildcmd(){
 void buildCmd(Command& cmd, vector<string> args,BuildOptions* iopts){
     try {
         // cout<<"hello buildah-build!"<<endl;
+        logger->set_module("build");
+        logger->log_info("hello buildah-build!");
         // 打开日志文件
         if(cmd.Flag_find("logfile")->changed){
             iopts->logwriter->open(iopts->Logfile,std::ios::out | std::ios::trunc);

@@ -9,7 +9,8 @@
         // "push",
         // "image1:latest",
         // "oci:E:/Project/Image/test/image1:imagetest:latest"
-        "build","--file","Dockerfile.prod","--tag","image1:1.0","."
+        // "build","--file","Dockerfile.prod","--tag","image1:1.0","."
+        "build","--tag","image:latest","."
       ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
