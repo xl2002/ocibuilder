@@ -518,7 +518,7 @@ bool ifSupportV2(const std::string& host,const std::string& port){
             }
         }
         unsigned status_code = static_cast<unsigned>(res.result_int());
-        logger->log_info("Response status code: " + std::to_string(status_code));
+        logger->log_info("checking if support v2,Response status code: " + std::to_string(status_code));
         // 检查响应状态码
         if (res.result() == beast::http::status::ok) {
             return true;
@@ -618,7 +618,7 @@ bool ifBlobExists(const std::string& host,const std::string& port,const std::str
 
         // 根据状态码判断 blob 是否存在
         unsigned status_code = static_cast<unsigned>(res.result_int());
-        logger->log_info("Response status code: " + std::to_string(status_code));
+        logger->log_info("checking if blob exist,Response status code: " + std::to_string(status_code)+" shaID: "+shaId);
         if (res.result() == beast::http::status::ok) {
             return true;
         }
@@ -687,7 +687,7 @@ bool ifManifestExists(const std::string& host,const std::string& port,const std:
         auto res = parser.get();
 
         unsigned status_code = static_cast<unsigned>(res.result_int());
-        logger->log_info("Response status code: " + std::to_string(status_code));
+        logger->log_info("checking if manifest exist,Response status code: " + std::to_string(status_code)+"target: "+target);
         // 根据状态码判断 blob 是否存在
         if (res.result() == beast::http::status::ok) {
             return true;
@@ -749,7 +749,7 @@ std::pair<std::string, std::string> initUpload(const std::string& host, const st
         beast::http::read(stream, buffer, parser);
         auto res = parser.get();
         unsigned status_code = static_cast<unsigned>(res.result_int());
-        logger->log_info("Response status code: " + std::to_string(status_code));
+        logger->log_info("initing upload,Response status code: " + std::to_string(status_code));
 
         if (res.result() != beast::http::status::accepted) {
             throw std::runtime_error("Failed to initiate upload");
@@ -890,7 +890,7 @@ std::pair<std::string, std::string> uploadBlobChunk(const std::string& host, con
         beast::http::read(stream, buffer, parser);
         auto res = parser.get();
         unsigned status_code = static_cast<unsigned>(res.result_int());
-        logger->log_info("Response status code: " + std::to_string(status_code));
+        logger->log_info("upload blob chunk,Response status code: " + std::to_string(status_code));
 
         if (res.result() != beast::http::status::accepted) {
             throw std::runtime_error("Failed to upload blob chunk");
@@ -1149,7 +1149,7 @@ void uploadManifest(const std::string& host, const std::string& port, const std:
         beast::http::read(stream, buffer, parser);
         auto res = parser.get();
         unsigned status_code = static_cast<unsigned>(res.result_int());
-        logger->log_info("Response status code: " + std::to_string(status_code));
+        logger->log_info("uploading manifest,Response status code: " + std::to_string(status_code));
 
         if (res.result() != beast::http::status::ok && res.result() != beast::http::status::created) {
             throw std::runtime_error("Failed to upload manifest");
@@ -1326,7 +1326,7 @@ std::string loginGetToken(std::string host, std::string port, std::string user, 
     http::response<http::string_body> res2;
     http::read(stream2, buffer2, res2);
     unsigned status_code = static_cast<unsigned>(res2.result_int());
-    logger->log_info("Response status code: " + std::to_string(status_code));
+    logger->log_info("get token ,Response status code: " + std::to_string(status_code));
 
     // 需要从接收到的响应中读取token
     if (res2.result() == http::status::ok) {
@@ -1497,7 +1497,7 @@ bool login(const std::string& host, const std::string& port, const std::string& 
         http::response<http::dynamic_body> res;
         http::read(stream, buffer, res);
         unsigned status_code = static_cast<unsigned>(res.result_int());
-        logger->log_info("Response status code: " + std::to_string(status_code));
+        logger->log_info("login,Response status code: " + std::to_string(status_code));
         if (res.result() == http::status::ok) {
             logger->log_info("Login success!!");
             std::cout << "Login success!!" << std::endl;
