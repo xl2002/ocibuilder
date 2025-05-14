@@ -10,6 +10,7 @@
  */
 #include "cmd/tag/tag.h"
 #include "utils/cli/cli/common.h"
+#include "utils/logger/ProcessSafeLogger.h"
 /**
  * @brief 初始化 tag 命令的内容
  * @details 创建并配置 tag 命令对象，设置命令名称、描述、示例及参数要求。
@@ -39,6 +40,7 @@ void init_tag(){
  * @details 通过镜像存储库的 `newtag` 方法实现名称添加，若失败则输出错误并退出。
  */
 void tagCmd(Command& cmd, vector<string> args){
+    logger->log_info("Start tag command for image: " + args[0]);
     //1. 加载镜像仓库
     auto store=getStore(&cmd);
     //2. 添加新的名称，通过imagestore->newtag(name,newname)实现
@@ -46,7 +48,9 @@ void tagCmd(Command& cmd, vector<string> args){
     auto images=store->image_store;
     try{
         images->newtag(args[0],args[1]);
+        logger->log_info("Successfully tagged " + args[0] + " as " + args[1]);
     }catch(const myerror& e){
+        logger->log_error("Failed to tag image: " + std::string(e.what()));
         e.logerror();
         exit(1);
     }

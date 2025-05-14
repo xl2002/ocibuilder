@@ -24,6 +24,10 @@ using namespace std;
 
 enum class LockType { ReadLock, WriteLock };
 typedef std::shared_ptr<boost::filesystem::fstream> fileHandle;
+
+/**
+ * @brief 面向对象文件锁的核心类
+ */
 class lockFile {
 public:
     lockFile() = default;

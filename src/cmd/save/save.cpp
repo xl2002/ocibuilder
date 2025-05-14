@@ -12,6 +12,7 @@
 #include "network/network.h"
 #include "utils/cli/cli/common.h"
 #include "security/auth.h"
+#include "utils/logger/ProcessSafeLogger.h"
 #include "utils/common/go/string.h"
 #include "utils/common/go/file.h"
 #include "image/digest/digest.h"
@@ -198,6 +199,9 @@ bool convertOciConfigToDockerLayerConfig(const std::string &ociConfigPath, const
  */
 void saveCmd(Command &cmd, vector<string> args, saveOptions * iopts)
 {
+    logger->set_module("save");
+    logger->log_info("Starting to save image: " + args[0] + " to " + iopts->output);
+    
     std::string destPath, withinTransport, destSpec, newImageName;
     
     // 1. 获得令牌.save不需要
@@ -255,6 +259,7 @@ void saveCmd(Command &cmd, vector<string> args, saveOptions * iopts)
     }
     if (manifest_index == -1)
     {
+        logger->log_warning("Invalid image name: " + withinTransport);
         std::cerr << "Invalid imageName" << std::endl;
         return;
     }
@@ -263,6 +268,7 @@ void saveCmd(Command &cmd, vector<string> args, saveOptions * iopts)
     std::string manifestPath = store.get()->image_store_dir + "/blobs/sha256/" + index.manifests[manifest_index].digest.substr(7);
     if (!fs::exists(manifestPath))
     {
+        logger->log_error("Manifest file not found: " + manifestPath);
         std::cerr << "Manifest file not found" << std::endl;
         return;
     }
@@ -277,6 +283,7 @@ void saveCmd(Command &cmd, vector<string> args, saveOptions * iopts)
     std::string configPath = store.get()->image_store_dir + "/blobs/sha256/" + manifest.Config.Digests.digest.substr(7);
     if (!fs::exists(configPath))
     {
+        logger->log_error("Config file not found: " + configPath);
         std::cerr << "Config file not found" << std::endl;
         return;
     }
@@ -289,9 +296,10 @@ void saveCmd(Command &cmd, vector<string> args, saveOptions * iopts)
 
     for (auto &layer : manifest.Layers) {
         std::string layerPath = store.get()->image_store_dir + "/blobs/sha256/" + layer.Digests.digest.substr(7);
-        if (!fs::exists(layerPath)) {
-            std::cerr << "Layer not found: " << layerPath << std::endl;
-            return;
+    if (!fs::exists(layerPath)) {
+        logger->log_error("Layer file not found: " + layerPath);
+        std::cerr << "Layer not found: " << layerPath << std::endl;
+        return;
         }
         layerPaths.push_back(layerPath);
         layers.push_back(layerPath.substr(layerPath.find_last_of('/') + 1)+"/layer.tar");
@@ -344,6 +352,6 @@ void saveCmd(Command &cmd, vector<string> args, saveOptions * iopts)
     fs::remove_all(destSpec);
     //if(!fs::exists(destSpec))cout << "Error delete!"<<endl;
     delete iopts;
+    logger->log_info("Successfully saved image to: " + iopts->output);
     std::cout << "Save to local dir success!!" << std::endl;
 }
-

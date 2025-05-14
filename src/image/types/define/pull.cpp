@@ -1,5 +1,5 @@
 #include "image/types/define/pull.h"
-
+#include "utils/logger/ProcessSafeLogger.h"
 
 /**
  * @brief 将 Pull_Policy 类型转换为字符串类型
@@ -19,6 +19,7 @@ string PullPolicy::String(){
             case PullNever:
                 return "never";
             default:
+            logger->log_error("unrecognized policy "+value);
                 std::cerr << "unrecognized policy " << value << std::endl;
                 return "";
         }
@@ -60,6 +61,7 @@ std::shared_ptr<PullPolicy> ParsePullPolicy(const std::string& s) {
     } else if (s == "never" || s == "Never") {
         return std::make_shared<PullPolicy>(Pull_Policy::PullNever);
     } else {
+        logger->log_error("unsupported pull policy: " + s);
         throw std::runtime_error("unsupported pull policy: " + s); // 抛出异常
     }
 }

@@ -2,6 +2,7 @@
 #include "utils/common/go/string.h"
 #include "utils/common/go/file.h"
 #include "boost/filesystem.hpp"
+#include "utils/logger/ProcessSafeLogger.h"
 /**
  * @brief 将destination的内容添加到mountPoint的diff文件夹中
  * 
@@ -23,6 +24,7 @@ void Builder::Add(std::string destination,bool extract,std::shared_ptr<AddAndCop
         auto srcpath=boost::filesystem::path(source);
         srcpath.make_preferred();
         if(!boost::filesystem::exists(srcpath)){
+            logger->log_error("source is not exist");
             std::cout<<"source is not exist"<<std::endl;
             continue;
         }
@@ -54,6 +56,7 @@ void Builder::Save(std::string name){
     std::string configPath = storagedir + "config";
     boost::filesystem::ofstream configFile(configPath, std::ios::binary | std::ios::trunc);
     if (!configFile) {
+        logger->log_error("Failed to open config file for writing: "+configPath);
         std::cerr << "Failed to open config file for writing: " << configPath << std::endl;
         return;
     }
@@ -89,6 +92,7 @@ void Builder::Save(std::string name){
     std::string manifestPath = storagedir + "manifest";
     boost::filesystem::ofstream manifestFile(manifestPath, std::ios::binary | std::ios::trunc);
     if (!manifestFile) {
+        logger->log_error("Failed to open manifest file for writing: "+manifestPath);
         std::cerr << "Failed to open manifest file for writing: " << manifestPath << std::endl;
         return;
     }

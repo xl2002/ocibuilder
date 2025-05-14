@@ -1,4 +1,5 @@
 #include "utils/cli/cobra/args.h"
+#include "utils/logger/ProcessSafeLogger.h"
 /**
  * @brief 设置参数列表最大的数量
  * 

@@ -16,6 +16,7 @@
 #include "utils/common/json.h"
 #include <memory>
 #include <boost/json.hpp>
+#include "utils/logger/ProcessSafeLogger.h"
 // #include <boost/json/src.hpp>
 /**
  * @brief 初始化 inspect 命令的内容
@@ -41,21 +42,23 @@ void init_inspect(){
  */
 std::shared_ptr<Store> getStore(Command* cmd);
 void inspectCmd(Command& cmd, vector<string> args){
+    logger->set_module("inspect");
+    logger->log_info("Start inspect command execution");
     //1. 加载镜像仓库
     std::shared_ptr<Store> store = getStore(&cmd);
     if (!store) {
-        std::cerr << "Failed to load image store." << std::endl;
+        logger->log_error("Failed to load image store");
         return;
     }
     //2. 获得指定镜像的信息auto imagestore=store->Image(imageName/imageID);
     if (args.empty()) {
-        std::cerr << "No image name or ID provided." << std::endl;
+        logger->log_error("No image name or ID provided");
         return;
     }
     string imageNameOrID = args[0];
     std::shared_ptr<storage::Image> imagestore = store->Image(imageNameOrID);
     if (!imagestore) {
-        std::cerr << "Image not found: " << imageNameOrID << std::endl;
+        logger->log_error("Image not found: " + imageNameOrID);
         return;
     }
     //3. 根据获得imagestore构造BuilderInfo，只需要填充OCI镜像部分
@@ -92,4 +95,5 @@ void inspectCmd(Command& cmd, vector<string> args){
     //4. 打印镜像信息，unmarshal得到BuilderInfo的json字符串
     boost::json::value jv = boost::json::value_from(builderInfo);
     std::cout<<format_json(jv)<<std::endl;
+    logger->log_info("Inspect command completed successfully");
 }

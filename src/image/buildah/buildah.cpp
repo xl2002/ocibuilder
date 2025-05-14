@@ -8,6 +8,7 @@
 #include "image/buildah/new.h"
 #include "utils/common/json.h"
 #include "image/image_types/v1/config.h"
+#include "utils/logger/ProcessSafeLogger.h"
 // std::shared_ptr<PolicyTransportScopes> storageAllowedPolicyScopes=std::make_shared<PolicyTransportScopes>();
 /**
  * @brief 删除构建器关联的容器
@@ -130,6 +131,7 @@ void Builder::SetHostname(std::string name){
  */
 void Builder::SetDomainname(std::string name){
     if(name!="" && this->Format!=Dockerv2ImageManifest){
+        logger->log_warning("DOMAINNAME is not supported for OCI image format, domainname "+name+ "will be ignored. Must use `docker` format");
         std::cout<<"DOMAINNAME is not supported for OCI image format, domainname "+name+ "will be ignored. Must use `docker` format"<<std::endl;
     }
     this->Docker->config->Domainname=name;
@@ -234,6 +236,7 @@ void Builder::SetEntrypoint(std::vector<std::string> ep){
  */
 void Builder::SetShell(std::vector<std::string> shell){
     if(!shell.empty() && this->Format!=Dockerv2ImageManifest){
+        logger->log_warning("SHELL is not supported for OCI image format, shell will be ignored. Must use `docker` format");
         std::cout<<"SHELL is not supported for OCI image format, shell will be ignored. Must use `docker` format"<<std::endl;
     }
     this->Docker->config->Shell=shell;
@@ -254,6 +257,7 @@ void Builder::SetHealthcheck(std::shared_ptr<HealthConfig> config){
     this->Docker->config->Healthcheck=nullptr;
     if(config!=nullptr){
         if(this->Format!=Dockerv2ImageManifest){
+            logger->log_warning("HEALTHCHECK is not supported for OCI image format and will be ignored. Must use `docker` format");
             std::cout<<"HEALTHCHECK is not supported for OCI image format and will be ignored. Must use `docker` format"<<std::endl;
         }
         auto hc=std::make_shared<HealthConfig>();
@@ -307,15 +311,18 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,std::shared_ptr<Dige
     try{
         blocked=isReferenceBlocked(dest,systemContext);
     }catch(const myerror& e){
+        logger->log_error("checking if committing to registry for "+ImageName(dest)+" is blocked: "+std::string(e.what()));
         throw myerror("checking if committing to registry for "+ImageName(dest)+" is blocked: "+std::string(e.what()));
     }
     if(blocked){
+        logger->log_error("commit access to registry for"+ImageName(dest)+ "is blocked by configuration");
         throw myerror("commit access to registry for"+ImageName(dest)+ "is blocked by configuration");
     }
     std::shared_ptr<Policy> commitPolicy;
     try{
         commitPolicy=DefaultPolicy(systemContext);
     }catch(const myerror& e){
+        logger->log_error("obtaining default signature policy: "+std::string(e.what()));
         throw myerror("obtaining default signature policy: "+std::string(e.what()));
     }
     if(commitPolicy!=nullptr){
@@ -325,6 +332,7 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,std::shared_ptr<Dige
     try{
         policyContext=NewPolicyContext(commitPolicy);
     }catch(const myerror& e){
+        logger->log_error("creating new signature policy context: "+std::string(e.what()));
         throw myerror("creating new signature policy context: "+std::string(e.what()));
     }
     auto defer=[&](){
@@ -352,6 +360,7 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,std::shared_ptr<Dige
     try{
         src=this->makeContainerImageRef(options);
     }catch(const myerror& e){
+        logger->log_error("computing layer digests and building metadata for container "+this->ContainerID+":"+std::string(e.what()));
         throw myerror("computing layer digests and building metadata for container "+this->ContainerID+":"+std::string(e.what()));
     }
 
@@ -378,6 +387,7 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,std::shared_ptr<Dige
         coptions->check=options->check;
         manifestBytes=retryCopyImage(policyContext,maybeCachedDest,maybeCachedSrc,dest,coptions,options->MaxRetries,options->RetryDelay);
     }catch(const myerror& e){
+        logger->log_error("copying layers and metadata for container "+this->ContainerID+": "+std::string(e.what()));
         throw myerror("copying layers and metadata for container "+this->ContainerID+": "+std::string(e.what()));
     }
     // if(dest->Transport()->Name()==Transport->Name()){
@@ -414,6 +424,7 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,std::shared_ptr<Dige
     try{
         manifestDigest=manifest::Digest(manifestBytes);
     }catch(const myerror& e){
+        logger->log_error("computing digest of manifest of new image "+this->ContainerID+": "+std::string(e.what()));
         throw myerror("computing digest of manifest of new image "+this->ContainerID+": "+std::string(e.what()));
     }
     std::shared_ptr<Canonical_interface> ref=nullptr;

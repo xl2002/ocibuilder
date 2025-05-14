@@ -2,7 +2,7 @@
 #include "cmd/build/imagebuilder/internals.h"
 #include "utils/cli/cobra/lex.h"
 #include <boost/algorithm/string.hpp>
-
+#include "utils/logger/ProcessSafeLogger.h"
 
 // ENV foo bar
 //
@@ -387,25 +387,30 @@ void checkChmodConversion(const std::string& chmod) {
 
 // 返回 "command 至少需要一个参数" 错误
 myerror errAtLeastOneArgument(const std::string& command) {
+    logger->log_error(command + " requires at least one argument");
     return myerror(command + " requires at least one argument");
 }
 
 // 返回 "command 至少需要两个参数" 错误
 myerror errAtLeastTwoArgument(const std::string& command) {
+    logger->log_error(command + " requires at least two arguments");
     return myerror(command + " requires at least two arguments");
 }
 
 // 返回 "command 只需要一个参数" 错误
 myerror errExactlyOneArgument(const std::string& command) {
+    logger->log_error(command + " requires exactly one argument");
     return myerror(command + " requires exactly one argument");
 }
 
 // 返回 "command 参数过多" 错误
 myerror errTooManyArguments(const std::string& command) {
+    logger->log_error("Bad input to " + command + ", too many arguments");
     return myerror("Bad input to " + command + ", too many arguments");
 }
 
 // 返回 "command 参数需要为 JSON 格式" 错误
 myerror errNotJSON(const std::string& command) {
+    logger->log_error(command + " requires the arguments to be in JSON form");
     return myerror(command + " requires the arguments to be in JSON form");
 }

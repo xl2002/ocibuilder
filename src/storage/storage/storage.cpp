@@ -3,6 +3,7 @@
 #include "utils/common/go/string.h"
 #include "utils/common/json.h"
 #include "utils/common/go/file.h"
+#include "utils/logger/ProcessSafeLogger.h"
 #include "image/types/reference/regexp.h"
 #include <iostream>
 #include <fstream>
@@ -150,7 +151,10 @@ bool parseJson(const vector<uint8_t>& data, vector<shared_ptr<storage::Image>>& 
             images.push_back(image);
         }
     } catch (const std::exception& e) {
-        throw myerror("Failed to parse JSON: " + std::string(e.what()));
+        auto err = "Failed to parse JSON: " + std::string(e.what());
+        logger->log_error(err);
+        std::cerr << err << std::endl;
+        throw myerror(err);
     }
     return true;
 }
@@ -227,7 +231,9 @@ void ImageStore::Save() {
         // lastWrite = lockfile->RecordWrite(); // 需要根据实际情况实现
 
     } catch (const myerror& ex) {
-        std::cerr << "Error: " << ex.what() << std::endl;
+        auto err = "Error: " + std::string(ex.what());
+        logger->log_error(err);
+        std::cerr << err << std::endl;
     }
 }
 // load 函数定义
@@ -609,7 +615,9 @@ std::shared_ptr<Container> containerStore::create(const std::string& id, const s
         auto uniqueNames = dedupeStrings(names);
         for (const auto& name : uniqueNames) {
             if (byname.find(name) != byname.end()) {
-                throw std::runtime_error("Container name '" + name + "' is already in use.");
+                auto err = "Container name '" + name + "' is already in use.";
+                logger->log_error(err);
+                throw std::runtime_error(err);
             }
         }
 
@@ -1288,13 +1296,15 @@ std::string ImageStore::configid(std::string manifestid){
  * @param id 要删除的镜像ID或名称
  */
 void ImageStore::Delete(const std::string& id){
+    logger->log_info("delete image "+id);
     std::cout<<"delete image "<<id<<std::endl;
     if (id.size()==12 && isHexadecimal(id)){
         std::vector<std::shared_ptr<storage::Image>> matchingImages;
         std::copy_if(this->images.begin(),this->images.end(),std::back_inserter(matchingImages),[&id](std::shared_ptr<storage::Image> img){
-            return img->ID==id;
+            return img->ID.substr(0,12)==id;
         });
         if(matchingImages.size()==0){
+            logger->log_error("no such image: "+id);
             std::cerr<<"no such image: "<<id<<std::endl;
             return;
         }
@@ -1319,6 +1329,7 @@ void ImageStore::Delete(const std::string& id){
                     //删除镜像层
                     std::string layerpath=dir+"/blobs/sha256/"+layer.Digests.Encoded();
                     if(layerIsUnused(layer.Digests.Encoded())){
+                        logger->log_info("delete layer "+layer.Digests.Encoded());
                         std::cout<<"delete layer "<<layer.Digests.Encoded()<<std::endl;
                         if(boost::filesystem::exists(layerpath)){
                             boost::filesystem::remove(layerpath);
@@ -1333,23 +1344,28 @@ void ImageStore::Delete(const std::string& id){
         }
         //删除config文件
         std::string configpath=dir+"/blobs/sha256/"+configid.substr(7);
+        logger->log_info("delete config "+configid);
         std::cout<<"delete config "<<configid<<std::endl;
         if(boost::filesystem::exists(configpath)){
             boost::filesystem::remove(configpath);
         }else{
+            logger->log_error("no such config: "+configid);
             std::cerr<<"no such config: "<<configid<<std::endl;
         }
         //删除manifest文件
+        logger->log_error("delete manifest "+manifesid);
         std::cout<<"delete manifest "<<manifesid<<std::endl;
         if(boost::filesystem::exists(manifestpath)){
             boost::filesystem::remove(manifestpath);
         }else{
+            logger->log_error("no such manifest: "+manifesid);
             std::cerr<<"no such manifest: "<<manifesid<<std::endl;
         }
     }else{
         //id是镜像name
         auto image=this->lookup(id);
         if(image==nullptr){
+            logger->log_error("no such image: "+id);
             std::cerr<<"no such image: "<<id<<std::endl;
             return;
         }
@@ -1375,6 +1391,7 @@ void ImageStore::Delete(const std::string& id){
                 //删除镜像层
                 std::string layerpath=dir+"/blobs/sha256/"+layer.Digests.Encoded();
                 if(layerIsUnused(layer.Digests.Encoded())){
+                    logger->log_info("delete layer "+layer.Digests.Encoded());
                     std::cout<<"delete layer "<<layer.Digests.Encoded()<<std::endl;
                     if(boost::filesystem::exists(layerpath)){
                         boost::filesystem::remove(layerpath);
@@ -1396,6 +1413,7 @@ void ImageStore::Delete(const std::string& id){
                     //删除镜像层
                     std::string layerpath=dir+"/blobs/sha256/"+layer.Digests.Encoded();
                     if(layerIsUnused(layer.Digests.Encoded())){
+                        logger->log_info("delete layer "+layer.Digests.Encoded());
                         std::cout<<"delete layer "<<layer.Digests.Encoded()<<std::endl;
                         if(boost::filesystem::exists(layerpath)){
                             boost::filesystem::remove(layerpath);
@@ -1404,33 +1422,41 @@ void ImageStore::Delete(const std::string& id){
                 }
                 //删除config文件
                 std::string configpath=dir+"/blobs/sha256/"+configid.substr(7);
+                logger->log_info("delete config "+configid);
                 std::cout<<"delete config "<<configid<<std::endl;
                 if(boost::filesystem::exists(configpath)){
                     boost::filesystem::remove(configpath);
                 }else{
+                    logger->log_error("no such config: "+configid);
                     std::cerr<<"no such config: "<<configid<<std::endl;
                 }
                 //删除manifest文件
+                logger->log_info("delete manifest "+historytag);
                 std::cout<<"delete manifest "<<historytag<<std::endl;
                 if(boost::filesystem::exists(historytagpath)){
                     boost::filesystem::remove(historytagpath);
                 }else{
+                    logger->log_error("no such manifest: "+historytag);
                     std::cerr<<"no such manifest: "<<historytag<<std::endl;
                 }
             }
             //删除最新tag的config文件
             std::string configpath=dir+"/blobs/sha256/"+configid.substr(7);
+            logger->log_info("delete config "+configid);
             std::cout<<"delete config "<<configid<<std::endl;
             if(boost::filesystem::exists(configpath)){
                 boost::filesystem::remove(configpath);
             }else{
+                logger->log_error("no such config: "+configid);
                 std::cerr<<"no such config: "<<configid<<std::endl;
             }
             //删除manifest文件
+            logger->log_info("delete manifest "+manifesid);
             std::cout<<"delete manifest "<<manifesid<<std::endl;
             if(boost::filesystem::exists(manifestpath)){
                 boost::filesystem::remove(manifestpath);
             }else{
+                logger->log_error("no such manifest: "+manifesid);
                 std::cerr<<"no such manifest: "<<manifesid<<std::endl;
             }
         }
@@ -1576,6 +1602,7 @@ std::shared_ptr<rwLayerStore_interface> Store::bothLayerStoreKinds() {
         // 只需要返回rwLayerStore
         return bothLayerStoreKindsLocked();
     } catch (const myerror& e) {
+        logger->log_error("Error in bothLayerStoreKinds: ");
         throw myerror("Error in bothLayerStoreKinds: ");  // 重新抛出myerror
     }
 }
@@ -1595,6 +1622,7 @@ std::shared_ptr<rwLayerStore_interface> Store::bothLayerStoreKindsLocked() {
     // 获取 primary layer store
     auto primary = getLayerStoreLocked();
     if (!primary) {
+        logger->log_error("Error loading primary layer store");
         throw myerror("Error loading primary layer store");
     }
     
@@ -1642,12 +1670,14 @@ std::shared_ptr<rwLayerStore_interface> Store::getLayerStoreLocked() {
         // 调用 newLayerStore 函数
         auto rls = this->newLayerStore(rlpath.string(), glpath.string(), ilpath, this->graph_driver, this->transient_store);
         if (!rls) {
+            logger->log_error("Failed to create layer store");
             throw myerror("Failed to create layer store");
         }
 
         this->layer_store_use_getters = rls;
         return rls;
     } catch (const myerror& e) {
+        logger->log_error( "Error in getLayerStoreLocked: " +std::string(e.what()));
         std::cerr << "Error in getLayerStoreLocked: " << e.what() << std::endl;
         throw;
     }
@@ -1731,6 +1761,7 @@ std::shared_ptr<rwLayerStore_interface> Store::newLayerStore(
 
         return layerstore;
     } catch (const myerror& ex) {
+        logger->log_error("Layer store initialization error: " +std::string(ex.what()));
         std::cerr << "Layer store initialization error: " << ex.what() << std::endl;
         return nullptr;
     }
@@ -1801,7 +1832,9 @@ std::shared_ptr<Container> Store::CreateContainer(
         return container;
 
     } catch (const myerror& e) {
-        std::cerr << "Error while creating container: " << e.what() << std::endl;
+        auto err = "Error while creating container: " + std::string(e.what());
+        logger->log_error(err);
+        std::cerr << err << std::endl;
         throw;
     }
 }

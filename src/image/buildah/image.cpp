@@ -9,6 +9,7 @@
 #include "utils/common/json.h"
 #include <chrono>
 #include <boost/filesystem.hpp>
+#include "utils/logger/ProcessSafeLogger.h"
 /**
  * @brief 创建容器镜像引用对象
  * @param options 提交选项，包含镜像构建的各种配置参数
@@ -28,6 +29,7 @@ std::shared_ptr<containerImageRef> Builder::makeContainerImageRef(std::shared_pt
     auto createdBy=this->CreatedBy();
     std::string parent;
     if(!boost::filesystem::is_directory(this->FromImage)){
+        logger->log_info("Processing non-directory FromImage with ID: " + this->FromImageID);
         parent=NewDigestFromEncoded(std::make_shared<Algorithm_sha256>(Canonical_sha256),this->FromImageID)->String();
     }
 
@@ -107,6 +109,7 @@ std::shared_ptr<Named_interface> containerImageRef::DockerReference(){
 std::shared_ptr<Image_interface>  containerImageRef::NewImage(std::shared_ptr<SystemContext>sys){
     return nullptr;
 }
+
 void AddcCheck(std::string name,std::vector<std::string> layers,std::string srcpath,std::string destpath){
     //TODO
     std::string checkpath=destpath+"/check.json";//中间缓存文件
@@ -114,9 +117,11 @@ void AddcCheck(std::string name,std::vector<std::string> layers,std::string srcp
     checks->version=8;
     for(auto layer:layers){
         std::string overlaypath=srcpath+"/"+layer+"/diff";
-        if(!boost::filesystem::exists(overlaypath)){
-            std::cerr<<"overlaypath is not exist"<<std::endl;
-            continue;
+    if(!boost::filesystem::exists(overlaypath)){
+        logger->log_error("Overlay path does not exist: " + overlaypath);
+        std::cerr<<"overlaypath is not exist"<<std::endl;
+        logger->log_info("Skipping non-existent layer: " + layer);
+        continue;
         }
         std::string file_paths;
         boost::filesystem::path dir_path(overlaypath);
@@ -129,7 +134,6 @@ void AddcCheck(std::string name,std::vector<std::string> layers,std::string srcp
                 Pathlist pathlist;
                 pathlist.path=key;
                 pathlist.value=filedigest->Encoded();
-                // checks->Validation[key]=filedigest->Encoded();
                 checks->SHA256.push_back(pathlist);
             }
         }
@@ -137,6 +141,7 @@ void AddcCheck(std::string name,std::vector<std::string> layers,std::string srcp
     std::string checkjson=marshal<Check>(*checks);
     std::ofstream file(checkpath,std::ios::trunc);
     if(!file.is_open()){
+        logger->log_error("Failed to open check file: " + checkpath);
         std::cerr<<"Failed to open file: "<<checkpath<<std::endl;
         return;
     }
@@ -144,7 +149,6 @@ void AddcCheck(std::string name,std::vector<std::string> layers,std::string srcp
     file.close();
     std::string layerId=layers.back();
     std::string targets = ":\\/";
-    // std::replace(name.begin(),name.end(),':','_');
     std::replace_if(name.begin(), name.end(),
         [&targets](char c) {
             return targets.find(c) != std::string::npos;
@@ -154,10 +158,11 @@ void AddcCheck(std::string name,std::vector<std::string> layers,std::string srcp
         boost::filesystem::path src_path(checkpath);
         boost::filesystem::path target_path(target);
         Copy_file(src_path, target_path);
-        // 删除原文件
         boost::filesystem::remove_all(src_path);
+        logger->log_info("Successfully copied check file to: " + target);
     } catch (const boost::filesystem::filesystem_error& e){
         std::cerr<<"Failed to copy file: "<<e.what()<<std::endl;
+        logger->log_error("Copy operation failed - source: " + checkpath + " destination: " + target + " error: " + e.what());
     }
 }
 /**
@@ -209,17 +214,16 @@ std::shared_ptr<ImageSource_interface> containerImageRef::NewImageSource(std::sh
     // 1. 得到整个镜像所有层的ID
     auto manifestType=this->preferredManifestType;
     std::vector<std::string>layers;
-    // if(this->fromImageID!=""&&this->fromImageName!="scratch"){
-        // layers.push_back(this->fromImageID);//当FROM后面为scratch时，fromImageID为空
-    // }
-    // 添加基础镜像的层记录
     if(this->fromImageID!=""&&this->fromImageName!="scratch"){
         auto imagestorePath=this->store->GetImageStoragePath();
         auto Configpath=imagestorePath+"/blobs/sha256/"+this->fromImageID;
-        if(!boost::filesystem::exists(Configpath)){
-            std::cerr<<"the base Image Manifest isn't exists!"<<std::endl;
-            return nullptr;
+    if(!boost::filesystem::exists(Configpath)){
+        logger->log_error("Base Image Manifest doesn't exist at path: " + Configpath);
+        std::cerr<<"the base Image Manifest isn't exists!"<<std::endl;
+        logger->log_error("Failed to load base image: " + this->fromImageName);
+        return nullptr;
         }
+
         boost::filesystem::ifstream Configfile(Configpath,std::ios::binary);
         // 使用 std::ostringstream 将流的内容读取到字符串
         std::ostringstream buffer;
@@ -262,7 +266,9 @@ std::shared_ptr<ImageSource_interface> containerImageRef::NewImageSource(std::sh
         // auto  l=std::make_shared<Layer>();//TODO
         auto l=layerstore->lookup(layer);
         if(l==nullptr){
+            logger->log_error("Layer not found in store: " + layer);
             std::cerr<<"layer not found"<<std::endl;
+            logger->log_error("Missing layer in image build process: " + this->name);
             continue;
         }
         auto omediaType=MediaTypeImageLayer;//TODO
@@ -280,36 +286,32 @@ std::shared_ptr<ImageSource_interface> containerImageRef::NewImageSource(std::sh
         // 5. 计算tar文件的sha256值，并且重命名tar文件
         auto tardigest=tarfile->Encoded();//tar包的sha256
         auto finalBlobName=destpath+"/"+tardigest;//TODO
-        try {
-            if(boost::filesystem::exists(srcpath+"/"+tardigest)){//文件存在，不重命名
-                if(layer!=tardigest){
-                    fs::remove_all(srcpath+"/"+layer);
-                    layerstore->deleteLayer(tardigest);//删除存在的记录，后面添加最新的记录
-                }
-            }else{
-                boost::filesystem::path src_path(srcpath);
-                boost::filesystem::path layer_path(layer);
-                boost::filesystem::path target_path(tardigest);
-                // 复制文件到目标路径
-                // boost::filesystem::copy(src_path / layer_path, src_path / target_path);
-                try{
-                    boost::filesystem::rename(src_path / layer_path, src_path / target_path);
-                }catch(const boost::filesystem::filesystem_error& e){
-                    std::cerr << "cannot renaming file: " << e.what() << std::endl;
-                    Copy_directory(src_path / layer_path, src_path / target_path);
-                    // 删除原文件
-                    boost::filesystem::remove_all(src_path / layer_path);
-                }
-                // Copy_directory(src_path / layer_path, src_path / target_path);
-                // 删除原文件
-                // boost::filesystem::remove_all(src_path / layer_path);
-                // boost::filesystem::rename(src_path / layer_path, src_path / target_path);
-                // boost::filesystem::rename(srcpath+"/"+layer, srcpath+"/"+tardigest);//重命名overlay中的文件
+    try {
+        if(boost::filesystem::exists(srcpath+"/"+tardigest)){//文件存在，不重命名
+            if(layer!=tardigest){
+                fs::remove_all(srcpath+"/"+layer);
+                layerstore->deleteLayer(tardigest);//删除存在的记录，后面添加最新的记录
+                logger->log_info("Removed duplicate layer: " + layer);
             }
-            boost::filesystem::rename(tarfilepath, finalBlobName);
-            std::cout << "File renamed tarfle successfully: " << tardigest<< std::endl;
-        } catch (const boost::filesystem::filesystem_error& e) {
-            std::cerr << "Error renaming file: " << e.what() << std::endl;
+        }else{
+            boost::filesystem::path src_path(srcpath);
+            boost::filesystem::path layer_path(layer);
+            boost::filesystem::path target_path(tardigest);
+            try{
+                boost::filesystem::rename(src_path / layer_path, src_path / target_path);
+                logger->log_info("Renamed layer from " + layer + " to " + tardigest);
+            }catch(const boost::filesystem::filesystem_error& e){
+                std::cerr << "cannot renaming file: " << e.what() << std::endl;
+                logger->log_error("Rename failed, trying copy - source: " + layer + " dest: " + tardigest + " error: " + e.what());
+                Copy_directory(src_path / layer_path, src_path / target_path);
+                boost::filesystem::remove_all(src_path / layer_path);
+            }
+        }
+        boost::filesystem::rename(tarfilepath, finalBlobName);
+        logger->log_info("Successfully created blob: " + tardigest);
+    } catch (const boost::filesystem::filesystem_error& e) {
+        std::cerr << "Error renaming file: " << e.what() << std::endl;
+        logger->log_error("Blob creation failed for layer: " + layer + " error: " + e.what());
         }
         l->ID=tardigest;
         l->Names=this->names;
@@ -346,8 +348,10 @@ std::shared_ptr<ImageSource_interface> containerImageRef::NewImageSource(std::sh
     // }
     //删除原有的layer记录
     // layerstore->layers.insert(layerstore->layers.end(),Layers.begin(),Layers.end());
-    if(!layerstore->savelayer()){//更新overlay中的layer.json
-        std::cerr<<"save layer error"<<std::endl;
+            if(!layerstore->savelayer()){//更新overlay中的layer.json
+                logger->log_error("Failed to save layer store data for image: " + this->name);
+                std::cerr<<"save layer error"<<std::endl;
+                logger->log_error("Layer store update failed - image: " + this->name + " layers: " + std::to_string(layers.size()));
     }
     // 7. 将新构建的oci config反序列化为byte，记住marshal函数返回string，需要转化为vector<uint8_t>,函数在
     // std::vector<uint8_t> stringToVector(const std::string& str)
@@ -428,9 +432,11 @@ std::tuple<std::shared_ptr<v1::Image>,std::shared_ptr<Manifest>> containerImageR
     // oimage.config.cmd.push_back("sh");
     if(oimage.platform.OS==""){
         oimage.platform.OS="linux";
+        logger->log_info("Using default platform OS: linux");
     }
     if(oimage.platform.Architecture==""){
         oimage.platform.Architecture="amd64";
+        logger->log_info("Using default platform architecture: amd64");
     }
     oimage.rootFS.diffIDs.clear();
     auto omanifest=std::make_shared<Manifest>();
@@ -490,6 +496,7 @@ std::string computeLayerMIMEType(std::string what,std::shared_ptr<Compression> l
         if(layerCompression->value==compression::Gzip){
             omediaType=MediaTypeImageLayerGzip;
         }else{
+            logger->log_error("compressing :"+what+"with unknown compressor(?)");
             std::cerr<<"compressing :"+what+"with unknown compressor(?)"<<std::endl;
         }
     }
@@ -503,19 +510,6 @@ std::string computeLayerMIMEType(std::string what,std::shared_ptr<Compression> l
  * @return std::shared_ptr<ImageDestination_interface> 镜像目标接口指针
  * 
  * 当前实现返回nullptr，预留用于未来实现镜像上传功能
- */
-/**
- * @brief 创建新的镜像目标接口
- * @param sys 系统上下文指针
- * @return std::shared_ptr<ImageDestination_interface> 镜像目标接口指针
- * 
- * 当前实现返回nullptr，预留用于未来实现镜像上传功能。
- * 该函数计划用于：
- * 1. 创建镜像上传目标
- * 2. 处理镜像层上传
- * 3. 管理上传进度和状态
- * 
- * @note 当前版本尚未实现镜像上传功能
  */
 /**
  * @brief 创建新的镜像目标接口
@@ -612,41 +606,6 @@ std::tuple<std::vector<uint8_t>,std::string> containerImageSource::GetManifest(s
  * @brief 获取镜像层信息
  * @return std::vector<BlobInfo> 包含所有层信息的BlobInfo向量
  * 
- * 解析OCI1格式的manifest，提取所有层的信息，包括层ID、大小、媒体类型等
- */
-/**
- * @brief 获取镜像层信息
- * @return std::vector<BlobInfo> 包含所有层信息的BlobInfo向量
- * 
- * 解析OCI1格式的manifest，提取所有层的信息，包括层ID、大小、媒体类型等。
- * 每个BlobInfo包含以下信息:
- * - Digest: 层的摘要信息
- * - Size: 层的大小(字节)
- * - URLs: 可选的下载URL列表
- * - Annotations: 层的注解信息
- * - MediaType: 层的媒体类型
- */
-/**
- * @brief 获取镜像层信息
- * @return std::vector<BlobInfo> 包含所有层信息的BlobInfo向量
- * 
- * 解析OCI1格式的manifest，提取所有层的信息，包括层ID、大小、媒体类型等。
- * 该函数执行以下操作：
- * 1. 解析manifest数据为OCI1对象
- * 2. 提取所有层的信息
- * 3. 将层信息转换为BlobInfo格式返回
- * 
- * 每个BlobInfo包含以下信息:
- * - Digest: 层的摘要信息
- * - Size: 层的大小(字节)
- * - URLs: 可选的下载URL列表
- * - Annotations: 层的注解信息
- * - MediaType: 层的媒体类型
- */
-/**
- * @brief 获取镜像层信息
- * @return std::vector<BlobInfo> 包含所有层信息的BlobInfo向量
- * 
  * 解析OCI1格式的manifest，提取所有层的信息，包括层ID、大小、媒体类型等。
  * 该函数执行以下操作：
  * 1. 解析manifest数据为OCI1对象
@@ -683,37 +642,6 @@ std::vector<BlobInfo>  containerImageSource::LayerInfos(){
  * @brief 从manifest数据创建OCI1对象
  * @return std::shared_ptr<OCI1> OCI1格式的manifest对象指针
  * 
- * 解析manifest数据并转换为OCI1格式的对象，用于后续处理层信息等操作
- */
-/**
- * @brief 从manifest数据创建OCI1对象
- * @return std::shared_ptr<OCI1> OCI1格式的manifest对象指针
- * 
- * 解析manifest数据并转换为OCI1格式的对象，用于后续处理层信息等操作。
- * 该函数执行以下操作:
- * 1. 将二进制manifest数据转换为字符串
- * 2. 使用unmarshal函数解析为OCI1对象
- * 3. 返回封装在shared_ptr中的OCI1对象
- * 
- * @note 如果manifest数据格式无效，将抛出解析异常
- */
-/**
- * @brief 从manifest数据创建OCI1对象
- * @return std::shared_ptr<OCI1> OCI1格式的manifest对象指针
- * 
- * 解析manifest数据并转换为OCI1格式的对象，用于后续处理层信息等操作。
- * 该函数执行以下操作:
- * 1. 将二进制manifest数据转换为字符串
- * 2. 使用unmarshal函数解析为OCI1对象
- * 3. 返回封装在shared_ptr中的OCI1对象
- * 
- * @note 如果manifest数据格式无效，将抛出解析异常
- * @see LayerInfos() 使用此函数解析manifest以获取层信息
- */
-/**
- * @brief 从manifest数据创建OCI1对象
- * @return std::shared_ptr<OCI1> OCI1格式的manifest对象指针
- * 
  * 解析manifest数据并转换为OCI1格式的对象，用于后续处理层信息等操作。
  * 该函数执行以下操作:
  * 1. 将二进制manifest数据转换为字符串
@@ -742,40 +670,6 @@ std::shared_ptr<OCI1> containerImageSource::OCI1FromManifest(){
  * 
  * @return true 
  * @return false 
- */
-/**
- * @brief 保存镜像配置到存储
- * @return bool 保存成功返回true，失败返回false
- * 
- * 将镜像配置序列化为JSON格式并保存到镜像库的blobs/sha256目录下，
- * 文件以配置内容的SHA256哈希值命名
- */
-/**
- * @brief 保存镜像配置到存储
- * @return bool 保存成功返回true，失败返回false
- * 
- * 将镜像配置序列化为JSON格式并保存到镜像库的blobs/sha256目录下，
- * 文件以配置内容的SHA256哈希值命名。该函数执行以下操作：
- * 1. 使用互斥锁确保线程安全
- * 2. 将配置数据写入临时文件config.json
- * 3. 计算文件的SHA256哈希值
- * 4. 将文件重命名为哈希值
- * 
- * @note 如果写入或重命名过程中发生异常，将返回false
- */
-/**
- * @brief 保存镜像配置到存储
- * @return bool 保存成功返回true，失败返回false
- * 
- * 将镜像配置序列化为JSON格式并保存到镜像库的blobs/sha256目录下，
- * 文件以配置内容的SHA256哈希值命名。该函数执行以下操作：
- * 1. 使用互斥锁确保线程安全
- * 2. 将配置数据写入临时文件config.json
- * 3. 计算文件的SHA256哈希值
- * 4. 将文件重命名为哈希值
- * 
- * @note 如果写入或重命名过程中发生异常，将返回false
- * @see UploadManifest() 类似的文件保存机制
  */
 /**
  * @brief 保存镜像配置到存储
@@ -817,53 +711,6 @@ bool containerImageSource::SaveConfig(){
     }
 }
 
-/**
- * @brief 保存manifest文件
- * 
- * 该函数将manifestbytes（json字符串）保存到镜像库中。该函数会将manifestbytes写入到
- * 镜像库的manifest.json文件中，然后将其重命名。该函数将manifest的sha256值作为
- * 新的文件名。该函数返回包含manifest的sha256值的指针，如果写入失败返回nullptr
- * 
- * @param manifestbytes json字符串
- * @return std::shared_ptr<Digest> 
- */
-/**
- * @brief 上传并保存manifest文件
- * @param manifestbytes manifest的JSON字符串内容
- * @return std::shared_ptr<Digest> 返回manifest的SHA256摘要指针，失败返回nullptr
- * 
- * 将manifest内容写入临时文件，计算其SHA256哈希值后重命名文件，
- * 使用互斥锁确保线程安全
- */
-/**
- * @brief 上传并保存manifest文件
- * @param manifestbytes manifest的JSON字符串内容
- * @return std::shared_ptr<Digest> 返回manifest的SHA256摘要指针，失败返回nullptr
- * 
- * 将manifest内容写入临时文件，计算其SHA256哈希值后重命名文件，
- * 使用互斥锁确保线程安全。该函数执行以下操作：
- * 1. 使用互斥锁确保线程安全
- * 2. 将manifest数据写入临时文件manifest.json
- * 3. 计算文件的SHA256哈希值
- * 4. 将文件重命名为哈希值
- * 
- * @note 如果写入或重命名过程中发生异常，将返回nullptr
- */
-/**
- * @brief 上传并保存manifest文件
- * @param manifestbytes manifest的JSON字符串内容
- * @return std::shared_ptr<Digest> 返回manifest的SHA256摘要指针，失败返回nullptr
- * 
- * 将manifest内容写入临时文件，计算其SHA256哈希值后重命名文件，
- * 使用互斥锁确保线程安全。该函数执行以下操作：
- * 1. 使用互斥锁确保线程安全
- * 2. 将manifest数据写入临时文件manifest.json
- * 3. 计算文件的SHA256哈希值
- * 4. 将文件重命名为哈希值
- * 
- * @note 如果写入或重命名过程中发生异常，将返回nullptr
- * @see SaveConfig() 类似的配置文件保存机制
- */
 /**
  * @brief 上传并保存manifest文件
  * @param manifestbytes manifest的JSON字符串内容

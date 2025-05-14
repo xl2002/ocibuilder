@@ -5,6 +5,7 @@
 #include "cmd/build/imagebuilder/builder.h"
 #include "utils/common/error.h"
 #include "utils/logger/logrus/exported.h"
+#include "utils/logger/ProcessSafeLogger.h"
 #include <boost/filesystem.hpp>
 #include "config/defaut.h"
 #include "storage/types/options.h"
@@ -28,6 +29,7 @@ PullPolicy PullPolicyFromOptions(Command* c){
     //     pullFlagsCount++;
     // }
     if(pullFlagsCount>0){
+        logger->log_error("Multiple pull flags specified - can only set one of 'pull' or 'pull-always' or 'pull-never'");
         throw myerror("can only set one of 'pull' or 'pull-always' or 'pull-never'");
     }
     Pull_Policy pullPolicy=PullIfMissing;
@@ -130,6 +132,7 @@ shared_ptr< SystemContext> SystemContextFromOptions(Command* c){
     }
     catch(const myerror& e)
     {
+        logger->log_error("Failed to create SystemContext: " + std::string(e.what()));
         throw;
     }
     
@@ -267,6 +270,7 @@ shared_ptr<CommonBuildOptions> CommonbuildOptions(Command* cmd){
     }
     catch(const myerror& e)
     {
+        logger->log_error("Failed to parse security options: " + std::string(e.what()));
         throw;
     }
     return commonOpts;
@@ -432,6 +436,7 @@ shared_ptr<NamespaceOptions> idmappingOptions(Command* cmd,shared_ptr<Isolation>
     auto usernsOptions=NamespaceOptions();
     usernsOptions.val.emplace_back(usernsOption);
     if ((!uidmap.empty() || !gidmap.empty()) && usernsOption.Host) {
+        logger->log_error("Invalid ID mapping configuration - cannot specify ID mappings while using host's user namespace");
         throw myerror("can not specify ID mappings while using host's user namespace");
     }
     auto idm=IDMappingOptions();
@@ -527,12 +532,14 @@ std::tuple<std::vector<std::string>, std::string> ContainerIgnoreFile(
     std::string ignorePath;
 
     try {
+        std::string containerfilePath;
+        std::string containerfileIgnore;
         if (!path.empty()) {
             excludes = ParseIgnore(path);
             ignorePath = path;
         } else {
             for (const std::string& containerfile : containerFiles) {
-                std::string containerfilePath = containerfile;
+                containerfilePath = containerfile;
                 #ifndef __linux__
                 boost::filesystem::path p(containerfile);
                 if(containerfilePath.empty() || !p.is_absolute()){

@@ -1,6 +1,8 @@
 #include "storage/storage/layers.h"
 #include "utils/common/json.h"
+#include "utils/logger/ProcessSafeLogger.h"
 #include <boost/filesystem.hpp>
+
 using namespace boost::json;
 /**
  * @brief 对字符串向量进行去重处理
@@ -88,6 +90,7 @@ std::tuple<std::shared_ptr<Layer>,int64_t> layerStore::create(
         // boost::filesystem::path rundir(rundir);
         if (!boost::filesystem::exists(rundir)) {
             if (!boost::filesystem::create_directories(rundir)) {
+                logger->log_error("Failed to create rundir: " + rundir);
                 throw myerror("Failed to create rundir: " + rundir);
             }
         }
@@ -95,6 +98,7 @@ std::tuple<std::shared_ptr<Layer>,int64_t> layerStore::create(
         // boost::filesystem::path layerdir(layerdir);
         if (!boost::filesystem::exists(layerdir)) {
             if (!boost::filesystem::create_directories(layerdir)) {
+                logger->log_error("Failed to create layerdir: "+layerdir);
                 throw myerror("Failed to create layerdir: "+layerdir);
             }
         }
@@ -113,6 +117,7 @@ std::tuple<std::shared_ptr<Layer>,int64_t> layerStore::create(
         // 检查是否有重复的 name
         for (const auto& name : names) {
             if (byname.find(name) != byname.end()) {
+                logger->log_error("Duplicate Name: " + name);
                 throw myerror("Duplicate Name: " + name);
             }
         }
@@ -167,6 +172,12 @@ std::tuple<std::shared_ptr<Layer>,int64_t> layerStore::create(
         layer->Flags["incomplete"] = "true";  // 在 Layer 的标志中设置 incomplete 标志
 
         // 将 Layer 添加到 layers 列表中
+        int i = 0;
+        for(;i<layers.size();i++)
+        {
+            if(layers[i]->ID==layer->ID)break;
+        }
+        if(i==layers.size())
         layers.push_back(layer);
 
         // 将该 Layer 索引到 byid 和 byname 中
@@ -218,8 +229,10 @@ std::tuple<std::shared_ptr<Layer>,int64_t> layerStore::create(
         }
         return std::make_tuple(layer,-1);
     } catch (const boost::filesystem::filesystem_error& e) {
+        logger->log_error("Filesystem error: " + std::string(e.what()));
         throw myerror("Filesystem error: " + std::string(e.what()));
     } catch (const std::exception& e) {
+        logger->log_error("Error: " + std::string(e.what()));
         throw myerror("Error: " + std::string(e.what()));
     }
 }
@@ -233,6 +246,7 @@ std::tuple<std::shared_ptr<Layer>,int64_t> layerStore::create(
 void removeName(const std::shared_ptr<Layer>& layer, const std::string& name, 
                 std::map<std::string, std::shared_ptr<Layer>>& tempNames) {
     if (!layer) {
+        logger->log_error("Invalid layer: nullptr provided");
         throw myerror("Invalid layer: nullptr provided");
     }
 
@@ -240,8 +254,10 @@ void removeName(const std::shared_ptr<Layer>& layer, const std::string& name,
     auto it = tempNames.find(name);
     if (it != tempNames.end() && it->second == layer) {
         tempNames.erase(it);
+        logger->log_info("Removed name: " + name + " from tempNames");
         std::cout << "Removed name: " << name << " from tempNames" << std::endl;
     } else {
+        logger->log_info("Name: " + name + " not found in tempNames for this layer");
         std::cout << "Name: " << name << " not found in tempNames for this layer" << std::endl;
     }
 
@@ -250,8 +266,10 @@ void removeName(const std::shared_ptr<Layer>& layer, const std::string& name,
     auto nameIt = std::find(names.begin(), names.end(), name);
     if (nameIt != names.end()) {
         names.erase(nameIt);
+        logger->log_info("Removed name: " + name + " from layer ID: " + layer->ID);
         std::cout << "Removed name: " << name << " from layer ID: " << layer->ID << std::endl;
     } else {
+        logger->log_info("Name: " + name + " not found in layer ID: " + layer->ID);
         std::cout << "Name: " << name << " not found in layer ID: " << layer->ID << std::endl;
     }
 }
@@ -273,6 +291,7 @@ std::vector<std::shared_ptr<Layer>> parseLayersFromJson(const std::string& jsonD
         }
 
     } catch (const std::exception& ex) {
+        logger->log_error("Failed to parse JSON: " + std::string(ex.what()));
         std::cerr << "Failed to parse JSON: " << ex.what() << std::endl;
     }
 
@@ -308,6 +327,7 @@ bool layerStore::load(bool lockedForWriting) {
             file.seekg(0, std::ios::end);
             std::streampos fileSize = file.tellg();
             if(fileSize == 0) {
+                logger->log_info("the layer store is empty, and we will skip this layer");
                 std::cout<< "the layer store is empty, and we will skip this layer" << std::endl;
                 return true;
             }
@@ -361,6 +381,7 @@ bool layerStore::load(bool lockedForWriting) {
         return true;
     } catch (const myerror& e) {
         // 捕获并处理 myerror 类型错误
+        logger->log_error("Error in layerStore::load: " + std::string(e.what()));
         std::cerr << "Error in layerStore::load: " << e.what() << std::endl;
         return false;
     }

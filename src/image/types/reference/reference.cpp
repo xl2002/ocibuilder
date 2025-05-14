@@ -1,6 +1,7 @@
 #include "image/types/reference/reference.h"
 #include "image/types/reference/helpers.h"
 #include "image/types/reference/regexp.h"
+#include "utils/logger/ProcessSafeLogger.h"
 string canonical::String(){
     return "";
 }
@@ -45,6 +46,7 @@ string named::Name(){
  */
 std::shared_ptr<Canonical_interface> WithDigest(std::shared_ptr<Named_interface> name,std::shared_ptr<Digest> digest){
     if(!anchoredDigestRegexp->Match(digest->String())){
+        logger->log_error("Digest is not in a valid format");
         throw myerror("Digest is not in a valid format");
     }
     auto repo=std::make_shared<repository>();
@@ -82,6 +84,7 @@ std::shared_ptr<Reference_interface> getBestReferenceType(std::shared_ptr<refere
         tagref->tag=ref->tag;
         auto ret=std::dynamic_pointer_cast<Reference_interface>(tagref);
         if(ret==nullptr){
+            logger->log_error("getBestReferenceType fail");
             std::cerr<<"getBestReferenceType fail"<<std::endl;
         }
         return ret;

@@ -11,6 +11,8 @@
 #include "cmd/pull/pull.h"
 #include "utils/cli/cli/common.h"
 #include "image/image_types/v1/mediatype.h"
+#include "image/buildah/tar.h"
+#include "utils/logger/ProcessSafeLogger.h"
 /**
  * @brief 初始化 pull 命令的内容
  * @details 配置 pull 命令的元信息（名称、描述、示例）及命令行选项：
@@ -60,8 +62,10 @@ void init_pull(){
  *       - 文件操作失败时终止流程
  */
 void pullCmd(Command& cmd, vector<string> args,pullOptions* iopts){
+    logger->set_module("pull");
     std::string src;
     if(args.size()==0){
+        logger->log_error("No image specified for pull");
         std::cout<<"Please input the image you want to push!!"<<"\n";
         return;
     } else{
@@ -91,6 +95,7 @@ void pullCmd(Command& cmd, vector<string> args,pullOptions* iopts){
     // }
 
 
+    logger->log_info("Starting pull operation for image: " + src);
     dockerClient client;
     auto url=client.resolveRequestURL(src);
 
@@ -99,11 +104,15 @@ void pullCmd(Command& cmd, vector<string> args,pullOptions* iopts){
         loadLoginInfo(url->host+":"+url->port);
         loginAuth.cookie.erase();
         loginAuth.bearerToken.erase();
+        logger->log_info("Authenticating with registry: " + url->host + ":" + url->port);
         std::string btoken_push = login_and_getToken(userinfo.username, userinfo.password, url->host, url->port, url->projectName, url->imageName);
-        if (!btoken_push.empty())
+        if (!btoken_push.empty()) {
+            logger->log_info("Authentication successful");
             loginAuth.bearerToken = btoken_push;
-        else
+        } else {
+            logger->log_error("Authentication failed");
             loginAuth.bearerToken.erase();
+        }
         
         //获得bearer token
         // std::string token=getToken(url->host,url->port,url->projectName,url->imageName);
@@ -115,13 +124,15 @@ void pullCmd(Command& cmd, vector<string> args,pullOptions* iopts){
                 std::string digest="";
                 size_t mlen=0;
                 std::tie(digest,mlen)=pullManifestAndBlob(url->host,url->port,url->projectName,url->imageName,tagList[i],os,arch);
-                if(digest == "" || mlen == 0){
-                    std::cout<<"pull manifest error"<<std::endl;
-                    return;
+            if(digest == "" || mlen == 0){
+                logger->log_error("Failed to pull manifest");
+                std::cout<<"pull manifest error"<<std::endl;
+                return;
                 }
                 auto images=std::dynamic_pointer_cast<ImageStore>(store->image_store);
-                if(images==nullptr){
-                    std::cerr<<"imageindexs error"<<std::endl;
+            if(images==nullptr){
+                logger->log_error("Image store is null");
+                std::cerr<<"imageindexs error"<<std::endl;
                 }
                 auto newindex=std::make_shared<storage::manifest>();
                 std::string name =url->imageName+":"+tagList[i];
@@ -149,18 +160,75 @@ void pullCmd(Command& cmd, vector<string> args,pullOptions* iopts){
                     newimage->image_index=newindex;
                     images->images.push_back(newimage);
                 }
-                images->Save();
+            images->Save();
+            
+            //从文件读取manifest
+            boost::filesystem::ifstream manifestfile("oci_images/oci_registry/blobs/sha256/"+digest.substr(7),std::ios::binary);
+            std::ostringstream buffer1;
+            buffer1 << manifestfile.rdbuf();
+            std::string fileContent1 = buffer1.str();
+            auto manifest=unmarshal<::Manifest>(fileContent1);
+            //从文件读config
+            boost::filesystem::ifstream configfile("oci_images/oci_registry/blobs/sha256/"+manifest.Config.Digests.digest.substr(7),std::ios::binary);
+            std::ostringstream buffer2;
+            buffer2 << configfile.rdbuf();
+            std::string fileContent2 = buffer2.str();
+            auto config=unmarshal<v1::Image>(fileContent2);
+
+            auto Layers = manifest.Layers;
+            auto layerStore = store->getLayerStoreLocked();
+        if (!layerStore) {
+            //logger->log_error("Failed to get layer store");
+            return ;
+        }
+        auto layerOptions=std::make_shared<LayerOptions>();
+        
+        for(size_t j=0; j<Layers.size(); j++) {
+            std::string id = config.rootFS.diffIDs[i].substr(7);
+            std::string blobPath = "oci_images/oci_registry/blobs/sha256/" + 
+            Layers[j].Digests.digest.substr(7);
+            std::ifstream diff(blobPath, std::ios::binary);
+            std::shared_ptr<Layer> parentLayer = nullptr;
+            // if(i > 0) {
+            //     parentLayer = layerStore->lookup(manifest.Layers[i-1].Digests.digest);
+            // }
+            
+            //std::vector<std::string> names = {imageName+":"+version};
+            std::map<std::string, std::string> options;
+            layerStore->create(
+                id,
+                parentLayer,
+                {},//names,
+                "",
+                options,
+                layerOptions,
+                true,
+                diff
+            );
+            std::string outputFilePath = "oci_images/overlay/"+id+"/diff";
+
+            if (extractTarGz(blobPath, outputFilePath,config.rootFS.diffIDs[j].substr(7))) {
+                logger->log_info("Successfully extracted tar.gz");
+                std::cout << "extract targz successful" << std::endl;
+            } else {
+                logger->log_error("Failed to extract tar.gz");
+                std::cout << "extract targz failed" << std::endl;
+            }
+            layerStore->savelayer();
+        }
             }
         } else{
             std::string digest="";
             size_t mlen=0;
             std::tie(digest,mlen)=pullManifestAndBlob(url->host,url->port,url->projectName,url->imageName,url->version,os,arch);
             if(digest == "" || mlen == 0){
+                logger->log_error("Failed to pull manifest");
                 std::cout<<"pull manifest error"<<std::endl;
                 return;
             }
             auto images=std::dynamic_pointer_cast<ImageStore>(store->image_store);
             if(images==nullptr){
+                logger->log_error("Image store is null");
                 std::cerr<<"imageindexs error"<<std::endl;
             }
             auto newindex=std::make_shared<storage::manifest>();
@@ -176,7 +244,7 @@ void pullCmd(Command& cmd, vector<string> args,pullOptions* iopts){
                 std::string digest=newindex->digest;
                 if(digest!=image->image_index->digest){
                     newindex->historyTags.push_back(image->image_index->digest);
-                }
+                }          
                 auto it=find_if(newindex->historyTags.begin(),newindex->historyTags.end(),[digest](std::string d){
                     return digest==d;
                 });
@@ -190,6 +258,61 @@ void pullCmd(Command& cmd, vector<string> args,pullOptions* iopts){
                 images->images.push_back(newimage);
             }
             images->Save();
+            //从文件读取manifest
+            boost::filesystem::ifstream manifestfile("oci_images/oci_registry/blobs/sha256/"+digest.substr(7),std::ios::binary);
+            std::ostringstream buffer1;
+            buffer1 << manifestfile.rdbuf();
+            std::string fileContent1 = buffer1.str();
+            auto manifest=unmarshal<::Manifest>(fileContent1);
+
+            //从文件读config
+            boost::filesystem::ifstream configfile("oci_images/oci_registry/blobs/sha256/"+manifest.Config.Digests.digest.substr(7),std::ios::binary);
+            std::ostringstream buffer2;
+            buffer2 << configfile.rdbuf();
+            std::string fileContent2 = buffer2.str();
+            auto config=unmarshal<v1::Image>(fileContent2);
+
+            auto Layers = manifest.Layers;
+            auto layerStore = store->getLayerStoreLocked();
+        if (!layerStore) {
+            //logger->log_error("Failed to get layer store");
+            return ;
+        }
+        auto layerOptions=std::make_shared<LayerOptions>();
+        
+        for(size_t i=0; i<Layers.size(); i++) {
+            std::string id = config.rootFS.diffIDs[i].substr(7);
+            std::string blobPath = "oci_images/oci_registry/blobs/sha256/" + 
+            Layers[i].Digests.digest.substr(7);
+            std::ifstream diff(blobPath, std::ios::binary);
+            std::shared_ptr<Layer> parentLayer = nullptr;
+            // if(i > 0) {
+            //     parentLayer = layerStore->lookup(manifest.Layers[i-1].Digests.digest);
+            // }
+            
+            //std::vector<std::string> names = {imageName+":"+version};
+            std::map<std::string, std::string> options;
+            layerStore->create(
+                id,
+                parentLayer,
+                {},//names,
+                "",
+                options,
+                layerOptions,
+                true,
+                diff
+            );
+            std::string outputFilePath = "oci_images/overlay/"+id+"/diff";
+            if (extractTarGz(blobPath, outputFilePath,config.rootFS.diffIDs[i].substr(7))){
+                logger->log_info("Successfully extracted tar.gz");
+                std::cout << "extract targz successful" << std::endl;
+            } else {
+                logger->log_error("Failed to extract tar.gz");
+                std::cout << "extract targz failed" << std::endl;
+            }
+            layerStore->savelayer();
+        }
+
         }
 
     }else{//如果是从指定文件夹中拉取
@@ -197,10 +320,12 @@ void pullCmd(Command& cmd, vector<string> args,pullOptions* iopts){
         std::string destPath = "oci_images/oci_registry/blobs/sha256";
         std::string indexPath = url->localPullPath+"/index.json";
         if(!fs::exists(indexPath)){
+            logger->log_error("Index file does not exist: " + indexPath);
             std::cout << "File does not exist: " << indexPath << std::endl;
             return;
         }
         if (!fs::exists(destPath)) {
+            logger->log_info("Creating destination directory: " + destPath);
             fs::create_directories(destPath);
         }
         boost::filesystem::ifstream indexfile(indexPath,std::ios::binary);
@@ -216,6 +341,7 @@ void pullCmd(Command& cmd, vector<string> args,pullOptions* iopts){
 
         std::string manifestPath = url->localPullPath+"/blobs/sha256/"+index.manifests[0].digest.substr(7);
         if(!fs::exists(manifestPath)){
+            logger->log_error("Manifest file does not exist");
             std::cout << "ManifestFile does not exist: " << std::endl;
             return;
         }
@@ -234,6 +360,7 @@ void pullCmd(Command& cmd, vector<string> args,pullOptions* iopts){
 
         std::string configPath = url->localPullPath+"/blobs/sha256/"+manifest.Config.Digests.digest.substr(7);
         if(!fs::exists(configPath)){
+            logger->log_error("Config file does not exist");
             std::cout << "Config does not exist: " << std::endl;
             return;
         }
@@ -242,7 +369,8 @@ void pullCmd(Command& cmd, vector<string> args,pullOptions* iopts){
         for(size_t i=0;i<manifest.Layers.size();i++){
             std::string tmp=url->localPullPath+"/blobs/sha256/"+manifest.Layers[i].Digests.digest.substr(7);
             if(!fs::exists(tmp)){
-                std::cout << "Blob does not exist: " << std::endl;
+            logger->log_error("Blob file does not exist");
+            std::cout << "Blob does not exist: " << std::endl;
                 return;
             }
             blobPath.push_back(tmp);
@@ -258,12 +386,14 @@ void pullCmd(Command& cmd, vector<string> args,pullOptions* iopts){
         for(size_t i=0;i<manifest.Layers.size();i++){
             std::string blobsha=manifest.Layers[i].Digests.digest.substr(7);
             std::string blobP=url->localPullPath+"/blobs/sha256/"+blobsha;
+            logger->log_info("Copying blob: " + blobsha);
             fs::copy_file(blobP,destPath+"/"+blobsha,fs::copy_options::overwrite_existing);
         }
 
         //处理index.json
         auto images=std::dynamic_pointer_cast<ImageStore>(store->image_store);
         if(images==nullptr){
+            logger->log_error("Image store is null");
             std::cerr<<"imageindexs error"<<std::endl;
         }
         
@@ -294,7 +424,53 @@ void pullCmd(Command& cmd, vector<string> args,pullOptions* iopts){
             images->images.push_back(newimage);
         }
         images->Save();
+        //从文件读config
+        boost::filesystem::ifstream configfile(configPath,std::ios::binary);
+        std::ostringstream buffer2;
+        buffer2 << configfile.rdbuf();
+        std::string fileContent2 = buffer2.str();
+        auto config=unmarshal<v1::Image>(fileContent2);
         
+        auto layerStore = store->getLayerStoreLocked();
+        if (!layerStore) {
+            //logger->log_error("Failed to get layer store");
+            return ;
+        }
+        auto layerOptions=std::make_shared<LayerOptions>();
+        
+        for(size_t i=0; i<manifest.Layers.size(); i++) {
+            std::string id = config.rootFS.diffIDs[i].substr(7);
+            std::string blobPath = "oci_images/oci_registry/blobs/sha256/" + 
+            manifest.Layers[i].Digests.digest.substr(7);
+            std::ifstream diff(blobPath, std::ios::binary);
+            std::shared_ptr<Layer> parentLayer = nullptr;
+            // if(i > 0) {
+            //     parentLayer = layerStore->lookup(manifest.Layers[i-1].Digests.digest);
+            // }
+            
+            //std::vector<std::string> names = {imageName+":"+version};
+            std::map<std::string, std::string> options;
+            layerStore->create(
+                id,
+                parentLayer,
+                {},//names,
+                "",
+                options,
+                layerOptions,
+                true,
+                diff
+            );
+            std::string outputFilePath = "oci_images/overlay/"+id+"/diff";
+            if (extractTarGz(blobPath, outputFilePath,config.rootFS.diffIDs[i].substr(7))) {
+                logger->log_info("Successfully extracted tar.gz");
+                std::cout << "extract targz successful" << std::endl;
+            } else {
+                logger->log_error("Failed to extract tar.gz");
+                std::cout << "extract targz failed" << std::endl;
+            }
+            layerStore->savelayer();
+        }
     }
+    logger->log_info("Pull operation completed successfully");
     delete iopts;
 }

@@ -1,5 +1,5 @@
 #include "image/types/reference/normalize.h"
-
+#include "utils/logger/ProcessSafeLogger.h"
 
 std::pair<std::string, std::string> splitDockerDomain(const std::string& name);
 
@@ -26,6 +26,7 @@ std::shared_ptr<Named_interface> ParseNormalizedNamed(std::string s){
     std::string lowerRemoteName = remoteName;
     std::transform(lowerRemoteName.begin(), lowerRemoteName.end(), lowerRemoteName.begin(), ::tolower);
     if (lowerRemoteName != remoteName) {
+        logger->log_error("invalid reference format: repository name must be lowercase");
         throw std::invalid_argument("invalid reference format: repository name must be lowercase");
     }
 
@@ -35,6 +36,7 @@ std::shared_ptr<Named_interface> ParseNormalizedNamed(std::string s){
     // std::shared_ptr<Named_interface> ref = Parse(domain + "/" + remainder); // 示例，实际代码中应该调用 Parse 函数
 
     if (!ref) { // 假设 Parse 函数返回 nullptr 表示失败
+        logger->log_error("reference " + (domain + "/" + remainder) + " has no name");
         throw std::runtime_error("reference " + (domain + "/" + remainder) + " has no name");
     }
     // auto n=std::make_shared<Named_interface>();
@@ -94,6 +96,7 @@ std::pair<std::string, std::string> splitDockerDomain(const std::string& name) {
  */
 std::shared_ptr<NamedTagged_interface> WithTag(std::shared_ptr<Named_interface> name, const std::string& tag) {
     if (!std::regex_match(tag, *(anchoredTagRegexp->GetRegex()))) {
+        logger->log_error("标签格式无效");
         throw myerror("标签格式无效");
     }
 
@@ -118,6 +121,7 @@ std::shared_ptr<NamedTagged_interface> WithTag(std::shared_ptr<Named_interface> 
     auto ret=std::make_shared<taggedReference>(repo,tag);
     auto n=std::dynamic_pointer_cast<NamedTagged_interface>(ret);
     if(n==nullptr){
+        logger->log_error("WithTag fail");
         std::cerr<<"WithTag fail"<<std::endl;
     }
     return n;
@@ -159,6 +163,7 @@ std::shared_ptr<Named_interface> ParseDockerRef(const std::string& ref) {
     try {
         std::shared_ptr<Named_interface> named = ParseNormalizedNamed(ref);
         if (!named) {
+            logger->log_error("解析规范化命名失败");
             throw myerror("解析规范化命名失败");
         }
 

@@ -3,6 +3,7 @@
 #include "utils/common/error.h"
 #include "utils/common/go/string.h"
 #include "filesys/system/lcow_unix.h"
+#include "utils/logger/ProcessSafeLogger.h"
 #include <algorithm>
 #include <iomanip>
 #include <tuple>
@@ -156,6 +157,7 @@ void Node::AddChild(std::shared_ptr<Node> child, int startLine, int endLine) {
  */
 void Directive::setEscapeToken(const std::string& s){
     if (s != "`" && s != "\\") {
+            logger->log_error("Invalid escape token: " + s);
             throw myerror("invalid ESCAPE '" + s + "'. Must be ` or \\");
         }
     escapeToken = s[0];
@@ -179,6 +181,7 @@ void Directive::setPlatformToken(const std::string& s) {
     if (std::find(valid.begin(), valid.end(), lower_s) != valid.end()) {
         platformToken = lower_s;
     } else {
+        logger->log_error("Invalid platform token: " + s + ", valid platforms: " + vectorToString(valid));
         throw myerror("invalid PLATFORM '" + s + "'. Must be one of " + vectorToString(valid));
     }
 }
@@ -241,6 +244,7 @@ std::shared_ptr<Directive> NewDefaultDirective() {
  * @throws myerror 如果解析过程中出现错误
  */
 std::shared_ptr<Result> Parse(std::stringstream& rwc) {
+    logger->log_info("Start parsing Dockerfile");
     std::string str=rwc.str();
     std::vector<uint8_t> origin(str.begin(),str.end());
     auto d=NewDefaultDirective();
@@ -312,6 +316,7 @@ std::shared_ptr<Result> Parse(std::stringstream& rwc) {
                     heredoc.Content += "\n" + stringread;
                 }
                 if (!terminated) {
+                    logger->log_error("Unterminated heredoc: " + heredoc.Name);
                     throw myerror(heredoc.Name + ": unterminated heredoc");
                 }
                 child->Heredocs.emplace_back(heredoc); // Assuming heredocs are stored in Flags for simplicity
@@ -323,6 +328,7 @@ std::shared_ptr<Result> Parse(std::stringstream& rwc) {
     // auto children=root->Children;
     // Handle scanner errors, not directly applicable in C++
     if (rwc.bad()) {
+        logger->log_error("Dockerfile stream read error");
         throw myerror("Stream error occurred");
     }
 

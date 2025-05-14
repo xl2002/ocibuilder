@@ -1,4 +1,5 @@
 #include "image/types/internal/types.h"
+#include "utils/logger/ProcessSafeLogger.h"
 #include <boost/iostreams/filtering_stream.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/copy.hpp>
@@ -80,6 +81,7 @@ void gzip_compress(std::istream& inputStream, std::ostream& outputStream) {
         filterStream.reset(); // 刷新并关闭压缩器，确保写完所有数据
 
     } catch (const std::exception& e) {
+        logger->log_error("Error during compression: "+std::string(e.what()));
         std::cerr << "Error during compression: " << e.what() << std::endl;
     }
 }
@@ -148,9 +150,10 @@ void gzip_decompress(std::istream& inputStream, std::ostream& outputStream) {
 
         // 将过滤流数据写入输出流，完成解压缩
         outputStream << filterStream.rdbuf();
-
+        logger->log_info( "Decompression successful.");
         std::cout << "Decompression successful." << std::endl;
     } catch (const std::exception& e) {
+        logger->log_error("Error during decompression: "+std::string(e.what()));
         std::cerr << "Error during decompression: " << e.what() << std::endl;
     }
 }

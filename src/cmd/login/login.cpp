@@ -11,6 +11,7 @@
 #include "cmd/login/login.h"
 #include "utils/cli/cli/common.h"
 #include "storage/types/options.h"
+#include "utils/logger/ProcessSafeLogger.h"
 /**
  * @brief 初始化 login 命令的内容
  * 
@@ -40,10 +41,15 @@ void init_login(){
  * 
  */
 void loginCmd(Command& cmd, vector<string> args,LoginOptions* iopts){
+    logger->set_module("login");
+    logger->log_info("Start login command execution");
+    
     auto tmp=cmd.flags->actual_flags;
     std::string username=tmp["username"]->value->String();
     std::string password=tmp["password"]->value->String();
     std::string ipAddress = args[args.size()-1];
+    
+    logger->log_info("Login parameters - username: " + username + ", registry: " + ipAddress);
     user usr;
     usr.username=username;
     usr.password=password;
@@ -58,6 +64,7 @@ void loginCmd(Command& cmd, vector<string> args,LoginOptions* iopts){
     bool flag = login(host, port, username, password);
     if (!flag) {
         std::cerr << "fail to login!!" << "\n";
+        logger->log_error("Login failed for username: " + username + " at registry: " + ipAddress);
         return;
     }
 
@@ -82,10 +89,11 @@ void loginCmd(Command& cmd, vector<string> args,LoginOptions* iopts){
                     jsonData = jv.as_object();
                 }
             }
-        } else {
-            std::cerr << "Failed to open file for loading cookie.\n";
-            return;
-        }
+    } else {
+        std::cerr << "Failed to open file for loading cookie.\n";
+        logger->log_error("Failed to open auth file for loading cookie: " + authPath);
+        return;
+    }
     }
     
     jsonData[ipAddress] = boost::json::value_from(usr);
@@ -97,8 +105,10 @@ void loginCmd(Command& cmd, vector<string> args,LoginOptions* iopts){
         ofs.close();
     } else {
         std::cerr << "Failed to save credentials\n";
+        logger->log_error("Failed to save credentials to: " + authPath);
     }
     std::cout << "Credentials saved to auth.json\n";
+    logger->log_info("Login successful for username: " + username + " at registry: " + ipAddress);
     // saveLoginInfo(username,password, ipAddress);
 
 

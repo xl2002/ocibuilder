@@ -12,6 +12,7 @@
 #include "utils/cli/cli/common.h"
 #include "storage/storage/storage.h"
 #include "filesys/systems.h"
+#include "utils/logger/ProcessSafeLogger.h"
 #include <map>
 #include <string>
 #include <iostream>
@@ -49,6 +50,7 @@ std::map<std::string,std::string> hostInfo(){
     if (GetComputerNameA(hostname, &size) != 0) {
         info["Hostname"] = hostname;
     } else {
+        logger->log_error("Failed to get hostname.");
         std::cerr << "Failed to get hostname." << std::endl;
     }
     // 获取操作系统版本
@@ -61,6 +63,7 @@ std::map<std::string,std::string> hostInfo(){
                                 std::to_string(osvi.dwBuildNumber);
         info["OS Version"] = osVersion;
     } else {
+        logger->log_error("Failed to get OS version.");
         std::cerr << "Failed to get OS version." << std::endl;
     }
     // 获取内存信息
@@ -70,6 +73,7 @@ std::map<std::string,std::string> hostInfo(){
         info["Total RAM (MB)"] = std::to_string(memInfo.ullTotalPhys / (1024 * 1024));
         info["Free RAM (MB)"] = std::to_string(memInfo.ullAvailPhys / (1024 * 1024));
     } else {
+        logger->log_error("Failed to get memory information.");
         std::cerr << "Failed to get memory information." << std::endl;
     }
 #else
@@ -153,12 +157,21 @@ std::vector<InfoData> Information(std::shared_ptr<Store> store){
  * 
  */
 void infoCmd(Command& cmd){
+    logger->set_module("info");
+    logger->log_info("Starting info command execution");
     //1. 获取镜像库
     std::shared_ptr<Store> store = getStore(&cmd);
+    if(!store) {
+        logger->log_error("Failed to get store instance");
+        return;
+    }
+    
     //2. 获取信息
     std::vector<InfoData> infoList = Information(store);
+    
     //3. 格式化打印信息
     boost::json::value jv = boost::json::value_from(infoList);
     std::cout<<format_json(jv)<<std::endl;
+    
+    logger->log_info("Info command completed successfully");
 }
-

@@ -5,6 +5,7 @@
 #include "cmd/build/imagebuilder/internals.h"
 #include "cmd/build/imagebuilder/dispatchers.h"
 #include "config/defaut.h"
+#include "utils/logger/ProcessSafeLogger.h"
 void logExecutor::UnrecognizedInstruction(std::shared_ptr<Step> step){
     return;
 }
@@ -76,6 +77,7 @@ std::vector<std::string> ParseIgnore(const std::string& path) {
     
     if (file.bad()) {
         error_message = "Error reading file: " + path;
+        logger->log_error(error_message);
         // return excludes;
         throw myerror(error_message);
     }
@@ -168,8 +170,10 @@ std::string Image_Builder::From(std::shared_ptr<Node> node){
     }
     auto children=SplitChildren(node,"from");//分离from操作
     if(children.size()==0){
+        logger->log_error("no FROM statement found");
         throw myerror("no FROM statement found");
     }else if(children.size()>1){
+        logger->log_error("multiple FROM statements are not supported");
         throw myerror("multiple FROM statements are not supported");
     }else{
         auto step=Step_new();
@@ -198,6 +202,7 @@ void Image_Builder::extractHeadingArgsFromNode(std::shared_ptr<Node> node){
     // }
     for (auto i=0;i<node->Children.size();i++) {
         if (!node->Children[i]) {
+            logger->log_error("Warning: child is nullptr");
             std::cerr << "Warning: child is nullptr" << std::endl;
             continue; // 如果 child 为空则跳过
         }
@@ -347,12 +352,14 @@ void Image_Builder::Run(std::shared_ptr<Step> step,Executor_Interface* exec,bool
     try{
         exec->COPY(this->Excludes,copies);
     }catch(const myerror& e){
+        logger->log_error(std::string(e.what()));
         throw;
     }
     if(this->RunConfig->WorkingDir.size()>0){
         try{
             exec->EnsureContainerPathAs(this->RunConfig->WorkingDir,this->RunConfig->User,nullptr);
         }catch(const myerror& e){
+            logger->log_error(std::string(e.what()));
             throw;
         }
     }

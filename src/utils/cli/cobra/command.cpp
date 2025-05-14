@@ -10,6 +10,9 @@
  */
 #include "utils/cli/cobra/command.h"
 #include "utils/cli/cli/common.h"
+#include "utils/logger/ProcessSafeLogger.h"
+
+
 /**
  * @brief Command类的列表构造函数
  * <p>对命令的名称，介绍，使用例子进行初始化的构造函数
@@ -20,7 +23,9 @@
  */
 
 Command::Command(string& name,string& Short,string& Long, string& example):
-                name(name),Short(Short),Long(Long),example(example) {}
+                name(name),Short(Short),Long(Long),example(example) {
+
+}
 /**
  * @brief 销毁Command::Command对象
  * <p>主要是对自定义的对象指针进行销毁，注意销毁的顺序，避免重复释放资源
@@ -101,6 +106,7 @@ void Command::Execute(int argc, char const *argv[]){
     }
     catch(const myerror& e)
     {
+        logger->log_error("Command execution failed: " + string(e.what()));
         throw ;
     }
 }
@@ -156,8 +162,10 @@ void Command::ExecuteC(int argc, char const *argv[]){
     {
         std::string err_msg=e.what();
         if(err_msg=="help requested"){
+            logger->log_info("Help requested for command: " + cmd->Name());
             cmd->Helpfunc()(*cmd,args);
         }else{
+            logger->log_error("Command execution failed: " + string(e.what()));
             throw ;
         }
     }
@@ -274,6 +282,7 @@ void help_func(Command& cmd, vector<string> a){
     try{
         tmpl(std::cout,cmd.HelpTemplate(),cmd);
     }catch(const myerror& e){
+        logger->log_error("help error: "+std::string(e.what()));
         std::cerr<<"help error: "<<e.what()<<std::endl;
     }
 }
@@ -733,14 +742,15 @@ void Command::execute(vector<string> args){
         throw;
     }
     if(Run!=nullptr){
-        try
-        {
-            Run(*this,argWoFlags);
-        }
-        catch(const myerror& e)
-        {
-            throw;
-        }
+    try
+    {
+        Run(*this,argWoFlags);
+    }
+    catch(const myerror& e)
+    {
+        logger->log_error("Command handler failed: " + string(e.what()));
+        throw;
+    }
     }
     if(PostRun!=nullptr){
         try
@@ -812,6 +822,7 @@ bool Command::ValidateRequiredFlags(){
     };
     flags->VisitAll(fn);
     if(missingFlagNames.size()>0){
+        logger->log_error("required flag(s) "+to_string(missingFlagNames.size()) +" not set");
         throw myerror("required flag(s) "+to_string(missingFlagNames.size()) +" not set");
         // cerr<<"required flag(s) "<<to_string(missingFlagNames.size()) <<" not set"<<endl;
     }

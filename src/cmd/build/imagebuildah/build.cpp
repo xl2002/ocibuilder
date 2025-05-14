@@ -2,6 +2,7 @@
 #include <mutex>
 #include <future>
 #include "utils/cli/cli/common.h"
+#include "utils/logger/ProcessSafeLogger.h"
 #include "utils/parse/parse.h"
 #include "utils/logger/logrus/logger.h"
 #include <fstream>
@@ -18,10 +19,12 @@
 #include "config/new.h"
 std::tuple<std::string,std::shared_ptr<Canonical_interface>> buildDockerfilesOnce(shared_ptr<Store> stores,string logPrefix,shared_ptr<define_BuildOptions> options,vector<string>& containerFiles,vector<vector<byte>>& dockerfilecontents);
 string BuildDockerfiles(shared_ptr<Store> stores, shared_ptr<define_BuildOptions> options,vector<string> paths,shared_ptr<Canonical_interface> ret_ref){
-    // auto ctx = getContext();
+    logger->set_module("build");
+
 
     if (options->CommonBuildOpts == nullptr)
     {
+        logger->log_warning("CommonBuildOpts is null, initializing default options");
         //将options.CommonBuildOpts初始化重新为CommonBuildOptions 
     }
     try
@@ -30,15 +33,18 @@ string BuildDockerfiles(shared_ptr<Store> stores, shared_ptr<define_BuildOptions
     }
     catch(const myerror& e)
     {
+        logger->log_error("validating volumes: "+string(e.what()));
         throw myerror("validating volumes: "+string(e.what()));
     }
     
     if (paths.empty())
     {
+        logger->log_error("No dockerfiles specified");
         throw myerror("building: no dockerfiles specified");
     }
     if (options->PlatformsList.size() > 1 && options->IIDFile != "")
     {
+        logger->log_error("Cannot use iidfile with multiple platforms");
         throw myerror ("building multiple images, but iidfile %q can only be used to store one image ID "+ options->IIDFile);
     }
     
@@ -54,10 +60,17 @@ string BuildDockerfiles(shared_ptr<Store> stores, shared_ptr<define_BuildOptions
     // }
     // auto level = logger->GetLevel();
     // logger->SetLevel(level);
-    std::vector<std::shared_ptr<std::fstream>> dockerfiles;
+    struct DockerfileInfo {
+        std::shared_ptr<std::fstream> file;
+        std::string filename;
+    };
+    std::vector<DockerfileInfo> dockerfiles;
     auto deleter = [&]() {
-        for (auto& f : dockerfiles) {
-            f->close();
+        for (auto& info : dockerfiles) {
+            if (info.file && info.file->is_open()) {
+                info.file->close();
+                logger->log_info("Closed Dockerfile: " + info.filename);
+            }
         }
     };
     auto tags=options->AdditionalTags;
@@ -74,18 +87,19 @@ string BuildDockerfiles(shared_ptr<Store> stores, shared_ptr<define_BuildOptions
     }
     for (auto& dfile : paths)
     {
+        DockerfileInfo info;
         std::shared_ptr<std::fstream> data;
         if(hasPrefix(dfile,"http://")||hasPrefix(dfile,"https://")){
-            
+            logger->log_info("Processing remote Dockerfile: " + dfile);
         }else{
             struct stat buf;
             if(stat(dfile.c_str(),&buf)<0){ //判断文件是否存在
-                // throw myerror("no such file or directory: "+dfile);
-                // 如果文件不存在，参试试添加上上下文目录，比如在当前目录下，有一个文件，要在上下文目录下找，如果找不到，就报错
+                logger->log_warning("Dockerfile not found: " + dfile + ", trying context directory");
                 if(!hasPrefix(dfile,options->ContextDirectory)){
                     dfile=joinPath(options->ContextDirectory,dfile);
                 }
                 if(stat(dfile.c_str(),&buf)<0){
+                    logger->log_error("Dockerfile not found: " + dfile);
                     throw myerror("no such file or directory: "+dfile);
                 }
             }
@@ -101,25 +115,29 @@ string BuildDockerfiles(shared_ptr<Store> stores, shared_ptr<define_BuildOptions
                 throw myerror("no contents in "+dfile);
             }
             data=std::make_shared<std::fstream>(dfile,ios::in|ios::binary);
+            info.file = data;
+            info.filename = dfile;
             // data=std::make_shared<ifstream>(content);
         }
         if(hasPrefix(dfile,".in")){
 
         }
-        dockerfiles.emplace_back(data);
+        dockerfiles.emplace_back(info);
     }
     auto files=vector<vector<byte>>();
     for (auto& dockerfile : dockerfiles) {
         //默认构造的 std::istreambuf_iterator，表示流的结束（EOF）,后面的it表示结束
-        std::vector<byte> buffer((std::istreambuf_iterator<char>(*dockerfile)), std::istreambuf_iterator<char>());
+        std::vector<byte> buffer((std::istreambuf_iterator<char>(*dockerfile.file)), std::istreambuf_iterator<char>());//.file是后来加的，小心
         if(buffer.size()==0){
             std::cout<<"no contents in dockerfile"<<std::endl;
         }
         files.push_back(buffer);
     }
     if(options->JobSemaphore!=nullptr){
+        logger->log_info("Setting up job semaphore with " + std::to_string(*options->Jobs) + " jobs");
         if(options->Jobs!=nullptr){
             if(*(options->Jobs)<0){
+                logger->log_error("building: invalid value for jobs.  It must be a positive integer");
                 throw myerror("building: invalid value for jobs.  It must be a positive integer");
             }
             if(*(options->Jobs)>0){
@@ -131,6 +149,9 @@ string BuildDockerfiles(shared_ptr<Store> stores, shared_ptr<define_BuildOptions
     }
     auto manifestList=options->Manifest;
     options->Manifest="";
+    if (!manifestList.empty()) {
+        logger->log_warning("Manifest list processing is not fully implemented");
+    }
     class instance{
         public:
         Platform platform;
@@ -210,6 +231,7 @@ string BuildDockerfiles(shared_ptr<Store> stores, shared_ptr<define_BuildOptions
     string id=instances[0].ID;
     ret_ref=instances[0].Ref;
     deleter();
+    logger->log_info("Successfully built Dockerfiles, image ID: " + id);
     return id;
 
 }

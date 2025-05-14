@@ -1,4 +1,5 @@
 #include "utils/cli/cobra/lex.h"
+#include "utils/logger/ProcessSafeLogger.h"
 
 /**
  * @file lex.cpp
@@ -108,6 +109,7 @@ std::tuple<std::string,std::vector<std::string>> shellWord_lex::process(std::str
     }
     catch(const myerror& e)
     {
+        logger->log_error("Failed to process source: " + source + ", error: " + e.what());
         throw myerror(std::string(e.what())+"\nfailed to process "+source);
     }
 }
@@ -177,7 +179,9 @@ std::tuple<std::string, std::vector<std::string>> shellWord_lex::processStopOn(c
     }
 
     if (stopChar != '\0') {
-        throw std::runtime_error("unexpected end of statement while looking for matching character");
+        std::string errMsg = "unexpected end of statement while looking for matching character";
+        logger->log_error(errMsg);
+        throw std::runtime_error(errMsg);
     }
 
     return std::make_tuple(result.str(), words.getWords());
@@ -265,7 +269,9 @@ std::string shellWord_lex::processDollar() {
                 }
             }
         default:
-            throw std::runtime_error("unsupported modifier (" + chs + ") in substitution");
+            std::string errMsg = "unsupported modifier (" + chs + ") in substitution";
+            logger->log_error(errMsg);
+            throw std::runtime_error(errMsg);
     }
 }
 // 检查字符是否为特殊参数
@@ -341,7 +347,9 @@ std::string shellWord_lex::processSingleQuote() {
     }
 
     // 如果到达这里，表示遇到了文件结束而没有找到结束单引号
-    throw myerror("unexpected end of statement while looking for matching single-quote");
+    std::string errMsg = "unexpected end of statement while looking for matching single-quote";
+    logger->log_error(errMsg);
+    throw myerror(errMsg);
 }
 
 /**
@@ -389,7 +397,9 @@ std::string shellWord_lex::processDoubleQuote() {
         }
     }
 
-    throw myerror("unexpected end of statement while looking for matching double-quote");
+    std::string errMsg = "unexpected end of statement while looking for matching double-quote";
+    logger->log_error(errMsg);
+    throw myerror(errMsg);
 }
 // 添加单个字符到当前单词中
 /**

@@ -1,4 +1,5 @@
 #include "image/digest/algorithm.h"
+#include "utils/logger/ProcessSafeLogger.h"
 #include <sstream>
 #include <iomanip>
 #include <fstream>
@@ -60,6 +61,7 @@ void Algorithm_sha256::Validate(const std::string& encoded) {
     
     // 如果没有找到相应的正则表达式
     if (it == anchoredEncodedRegexps.end()) {
+        logger->log_error("ErrDigestUnsupported");
         throw std::runtime_error("ErrDigestUnsupported");
     }
     
@@ -67,6 +69,7 @@ void Algorithm_sha256::Validate(const std::string& encoded) {
     
     // 摘要必须始终是十六进制编码，确保它的十六进制部分大小总是 size*2
     if (Size() * 2 != encoded.length()) {
+        logger->log_error("ErrDigestInvalidLength");
         throw std::invalid_argument("ErrDigestInvalidLength");
     }
     
@@ -74,7 +77,7 @@ void Algorithm_sha256::Validate(const std::string& encoded) {
     if (std::regex_match(encoded, r)) {
         return; // 验证成功
     }
-    
+    logger->log_error("ErrDigestInvalidFormat");
     throw std::invalid_argument("ErrDigestInvalidFormat");
 }
 /**
@@ -138,6 +141,7 @@ std::string Algorithm_sha256::String(){
 std::shared_ptr<Digest> Algorithm_sha256::Fromfile(const std::string& filepath) {
     std::ifstream file(filepath, std::ios::binary);
     if (!file.is_open()) {
+        logger->log_error("can not open file:"+filepath);
         throw std::runtime_error("无法打开文件: " + filepath);
     }
 

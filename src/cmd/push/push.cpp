@@ -19,6 +19,7 @@
 #include "cmd/login/login.h"
 #include "image/image_types/v1/oci.h"
 #include "image/image_types/v1/config.h"
+#include "utils/logger/ProcessSafeLogger.h"
 
 
 /**
@@ -79,9 +80,13 @@ void init_push()
  */
 void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
 {
+    logger->set_module("push");
+    logger->log_info("Starting remote image push operation");
+    
     // 执行流程
     std::string src;
     // 1. 获得令牌
+    logger->log_info("Checking authentication file");
     CheckAuthFile(iopts);
     
     // 判断使用哪种格式
@@ -199,7 +204,7 @@ void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
             retryOptions->MaxRetry = 3;
             retryOptions->Delay = std::chrono::seconds(1);
 
-            // 初始化上传(带重试)
+            // 初始化上传
             std::pair<std::string, std::string> initResult;
 
                 initResult = initUpload(url->host, url->port, url->imageName, url->projectName);
@@ -215,7 +220,7 @@ void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
             std::size_t total_size = file.tellg();
             file.close();
             
-            // 上传数据(带重试)
+            // 上传数据
             std::pair<std::string, std::string> uploadResult;
             RetryIfNecessary([&](){
                 uploadResult = uploadBlobChunk(url->host, url->port, uid, state, filePath, 0, total_size, total_size, url->imageName, url->projectName);
@@ -244,6 +249,7 @@ void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
     }
     // 如果blob上传失败，直接返回
     if (!allBlobsUploaded) {
+        logger->log_error("Failed to push some blobs, aborting manifest upload");
         std::cerr << "Failed to push some blobs, aborting manifest upload" << std::endl;
         delete iopts;
         return;
@@ -327,6 +333,7 @@ void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
     //     uploadManifest(url->host, url->port, manifestPath, 0, total_size, url->imageName, url->version, manifestType, url->projectName);
     // }
     delete iopts;
+    logger->log_info("Remote image push completed successfully");
     std::cout << "Push success!!" << std::endl;
 }
 
@@ -370,6 +377,8 @@ std::string extractAndConvertPath(const std::string &param)
  */
 void pushCmdLocal(Command &cmd, vector<string> args, pushOptions * iopts)
 {
+    logger->set_module("push-local");
+    logger->log_info("Starting local image push operation");
     std::string destPath, withinTransport, destSpec, newImageName;
     // 1. 获得令牌
     CheckAuthFile(iopts);
@@ -524,5 +533,6 @@ void pushCmdLocal(Command &cmd, vector<string> args, pushOptions * iopts)
         images->Save();
     }
     delete iopts;
+    logger->log_info("Local image push completed successfully");
     std::cout << "Push local dir success!!" << std::endl;
 }

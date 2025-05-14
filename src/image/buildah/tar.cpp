@@ -4,7 +4,9 @@
 #include <fstream>
 #include <libarchive/archive.h>
 #include <libarchive/archive_entry.h>
+#include <zlib/zlib.h>
 #include <boost/algorithm/string.hpp>
+#include "utils/logger/ProcessSafeLogger.h"
 namespace fs = boost::filesystem;
 
 /**
@@ -190,6 +192,7 @@ void add_file_to_archive(struct archive* a, const fs::path& file_path, const fs:
     if (archive_write_header(a, entry) != ARCHIVE_OK) {
         std::cerr << "Error writing header for " << relative_path << ": " 
                   << archive_error_string(a) << std::endl;
+        logger->log_error("Failed to write header for " + relative_path + ": " + archive_error_string(a));
         archive_entry_free(entry);
         return;
     }
@@ -226,14 +229,18 @@ void add_file_to_archive(struct archive* a, const fs::path& file_path, const fs:
  */
 
 void createTar(const std::string& tarFilePath, const fs::path& directory) {
+    logger->log_info("Starting to create tar archive: "+tarFilePath+" from directory: "+directory.string().c_str());
+             
     if (!fs::exists(directory)) {
         std::cerr << "Error: Directory " << directory << " does not exist." << std::endl;
+        logger->log_error("Directory does not exist: " + directory.string());
         return;
     }
 
     struct archive* a = archive_write_new();
     if (!a) {
         std::cerr << "Error: Failed to create archive object." << std::endl;
+        logger->log_error("Failed to create archive object");
         return;
     }
 
@@ -245,6 +252,7 @@ void createTar(const std::string& tarFilePath, const fs::path& directory) {
     if (archive_write_open_filename(a, tarFilePath.c_str()) != ARCHIVE_OK) {
         std::cerr << "Error opening output file " << tarFilePath << ": " 
                   << archive_error_string(a) << std::endl;
+        logger->log_error("Failed to open output file " + tarFilePath + ": " + archive_error_string(a));
         archive_write_free(a);
         return;
     }
@@ -263,6 +271,7 @@ void createTar(const std::string& tarFilePath, const fs::path& directory) {
 
     if (archive_write_close(a) != ARCHIVE_OK) {
         std::cerr << "Error closing archive: " << archive_error_string(a) << std::endl;
+        logger->log_error("Failed to close archive: " + std::string(archive_error_string(a)));
     }
     archive_write_free(a);
 }
@@ -283,6 +292,7 @@ std::shared_ptr<tarFilterer> newTarFilterer(const std::string& tarFilePath, cons
     try {
         createTar(tarFilePath, directory.string());
     } catch (const myerror& e) {
+        logger->log_error("Error while creating tar: "+std::string(e.what()));
         std::cerr << "Error while creating tar: " << e.what() << std::endl;
         throw;
     }
@@ -405,4 +415,245 @@ std::tuple<std::shared_ptr<Digest>,int> newTarDigester(const std::string& conten
     // tarFile.close();
     // auto a=digester->Digest()->Encoded();
     return std::make_tuple(tardigest,buffer.str().length());
+}
+
+bool extractTarGz(const std::string& tarGzPath, const std::string& destDir, 
+    const std::string& expectedTarHash = "") {
+    // 创建临时文件名用于存储解压后的tar文件
+    std::string tempTarPath = tarGzPath + ".temp.tar";
+    
+    // 第一阶段：使用zlib解压gz部分得到tar文件
+    gzFile gzFilePtr = gzopen(tarGzPath.c_str(), "rb");
+    if (!gzFilePtr) {
+        logger->log_error( "Error: Failed to open gzip file: "+tarGzPath);
+        std::cerr << "Error: Failed to open gzip file: " << tarGzPath << std::endl;
+        return false;
+    }
+    
+    std::ofstream tempTarFile(tempTarPath, std::ios::binary);
+    if (!tempTarFile) {
+        logger->log_error("Error: Failed to create temporary tar file: "+tempTarPath);
+        std::cerr << "Error: Failed to create temporary tar file: " << tempTarPath << std::endl;
+        gzclose(gzFilePtr);
+        return false;
+    }
+    
+    // 解压gz文件到临时tar文件
+    constexpr int BUFFER_SIZE = 16384;
+    char buffer[BUFFER_SIZE];
+    int bytesRead;
+    
+    while ((bytesRead = gzread(gzFilePtr, buffer, BUFFER_SIZE)) > 0) {
+        tempTarFile.write(buffer, bytesRead);
+    }
+    
+    gzclose(gzFilePtr);
+    tempTarFile.close();
+    // 第二阶段：计算解压出的tar文件的SHA256值并校验
+    if (!expectedTarHash.empty()) {
+        std::ifstream tarFile(tempTarPath, std::ios::binary);
+        if (!tarFile) {
+            logger->log_error("Error: Failed to open temporary tar file: "+tempTarPath);
+            std::cerr << "Error: Failed to open temporary tar file: " << tempTarPath << std::endl;
+            return false;
+        }
+        
+        // SHA256_CTX sha256;
+        // if (!SHA256_Init(&sha256)) {
+        //     std::cerr << "Error: SHA256 initialization failed" << std::endl;
+        //     return false;
+        // }
+        
+        // while (tarFile) {
+        //     tarFile.read(buffer, BUFFER_SIZE);
+        //     size_t bytesRead = tarFile.gcount();
+        //     if (bytesRead > 0) {
+        //         if (!SHA256_Update(&sha256, buffer, bytesRead)) {
+        //             std::cerr << "Error: SHA256 update failed" << std::endl;
+        //             return false;
+        //         }
+        //     }
+        // }
+        
+        // unsigned char hash[SHA256_DIGEST_LENGTH];
+        // if (!SHA256_Final(hash, &sha256)) {
+        //     std::cerr << "Error: SHA256 finalization failed" << std::endl;
+        //     return false;
+        // }
+        
+        // std::stringstream ss;
+        // for(unsigned char c : hash) {
+        //     ss << std::hex << std::setw(2) << std::setfill('0') << (int)c;
+        // }
+        
+        std::string actualHash = Fromfile(tempTarPath)->digest.substr(7);
+        
+        if (actualHash != expectedTarHash) {
+            logger->log_error("Error: SHA256 verification failed!");
+            logger->log_error("  Expected: " + expectedTarHash+"  Actual:   " + actualHash);
+            std::cerr << "Error: SHA256 verification failed!" << std::endl;
+            std::cerr << "  Expected: " << expectedTarHash << std::endl;
+            std::cerr << "  Actual:   " << actualHash << std::endl;
+            // 清理临时文件
+            std::remove(tempTarPath.c_str());
+            return false;
+        }
+        logger->log_info("SHA256 verification passed for tar file.");
+        std::cout << "SHA256 verification passed for tar file." << std::endl;
+    }
+    
+    // 第三阶段：使用libarchive解压tar文件
+    struct archive *a = nullptr;
+    struct archive *ext = nullptr;
+    struct archive_entry *entry = nullptr;
+    int r;
+
+    // 创建archive reader，这次只需要支持tar格式
+    a = archive_read_new();
+    if (!a) {
+        logger->log_error("Error: Failed to create archive reader object.");
+        std::cerr << "Error: Failed to create archive reader object." << std::endl;
+        // 清理临时文件
+        std::remove(tempTarPath.c_str());
+        return false;
+    }
+    
+    archive_read_support_format_tar(a); // 只需要支持tar格式
+    // 不需要支持压缩，因为我们已经解压过了
+    
+    // 创建archive writer
+    ext = archive_write_disk_new();
+    if (!ext) {
+        logger->log_error("Error: Failed to create archive writer object.");
+        std::cerr << "Error: Failed to create archive writer object." << std::endl;
+        archive_read_free(a);
+        // 清理临时文件
+        std::remove(tempTarPath.c_str());
+        return false;
+    }
+    
+    archive_write_disk_set_options(ext, 
+        ARCHIVE_EXTRACT_TIME |
+        ARCHIVE_EXTRACT_PERM |
+        ARCHIVE_EXTRACT_ACL |
+        ARCHIVE_EXTRACT_FFLAGS);
+    archive_write_disk_set_standard_lookup(ext);
+
+    // 打开临时tar文件
+    r = archive_read_open_filename(a, tempTarPath.c_str(), 10240);
+    if (r != ARCHIVE_OK) {
+        std::cerr << "Error: Failed to open tar file '" << tempTarPath << "': " 
+                  << archive_error_string(a) << std::endl;
+        logger->log_error("Failed to open tar file " + tempTarPath + ": " + archive_error_string(a));
+        archive_read_free(a);
+        archive_write_free(ext);
+        // 清理临时文件
+        std::remove(tempTarPath.c_str());
+        return false;
+    }
+
+    // 处理tar文件中的每个条目
+    while ((r = archive_read_next_header(a, &entry)) == ARCHIVE_OK) {
+        const char* entryPath = archive_entry_pathname(entry);
+        if (!entryPath) {
+            logger->log_error ("Warning: Skipping entry with null path.");
+            std::cerr << "Warning: Skipping entry with null path." << std::endl;
+            continue;
+        }
+
+        // 构建目标路径
+        std::string destPath = destDir + "/" + entryPath;
+        
+        // 处理Windows路径分隔符
+        #ifdef _WIN32
+        for (size_t i = 0; i < destPath.length(); ++i) {
+            if (destPath[i] == '/')
+                destPath[i] = '\\';
+        }
+        #endif
+
+        // 设置条目的目标路径
+        archive_entry_set_pathname(entry, destPath.c_str());
+        
+        // 写入头部信息（创建目录/文件）
+        r = archive_write_header(ext, entry);
+        if (r != ARCHIVE_OK) {
+            std::cerr << "Error: Failed to write header for entry '" << entryPath 
+                      << "': " << archive_error_string(ext) << std::endl;
+            logger->log_error("Failed to write header for entry " + std::string(entryPath) + 
+                            ": " + archive_error_string(ext));
+            continue;
+        }
+            
+        if (archive_entry_size(entry) > 0) {
+            const void* buff;
+            size_t size;
+            int64_t offset;
+            
+            while (true) {
+                r = archive_read_data_block(a, &buff, &size, &offset);
+                if (r == ARCHIVE_EOF)
+                    break;
+                if (r != ARCHIVE_OK) {
+                    std::cerr << "Error: Failed to read data for entry '" << entryPath 
+                              << "': " << archive_error_string(a) << std::endl;
+                    logger->log_error("Failed to read data for entry " + std::string(entryPath) + 
+                                    ": " + archive_error_string(a));
+                    archive_read_close(a);
+                    archive_read_free(a);
+                    archive_write_close(ext);
+                    archive_write_free(ext);
+                    // 清理临时文件
+                    std::remove(tempTarPath.c_str());
+                    return false;
+                }
+                    
+                r = archive_write_data_block(ext, buff, size, offset);
+                if (r != ARCHIVE_OK) {
+                    std::cerr << "Error: Failed to write data for entry '" << entryPath 
+                              << "': " << archive_error_string(ext) << std::endl;
+                    logger->log_error("Failed to write data for entry " + std::string(entryPath) + 
+                                    ": " + archive_error_string(ext));
+                    archive_read_close(a);
+                    archive_read_free(a);
+                    archive_write_close(ext);
+                    archive_write_free(ext);
+                    // 清理临时文件
+                    std::remove(tempTarPath.c_str());
+                    return false;
+                }
+            }
+        }
+        
+        r = archive_write_finish_entry(ext);
+        if (r != ARCHIVE_OK) {
+            std::cerr << "Error: Failed to finish writing entry '" << entryPath 
+                      << "': " << archive_error_string(ext) << std::endl;
+            logger->log_error("Error: Failed to finish writing entry '" + std::string(entryPath) + "': "+ archive_error_string(ext));
+            archive_read_close(a);
+            archive_read_free(a);
+            archive_write_close(ext);
+            archive_write_free(ext);
+            // 清理临时文件
+            std::remove(tempTarPath.c_str());
+            return false;
+        }
+    }
+
+    if (r != ARCHIVE_EOF) {
+        logger->log_error("Error: Unexpected error while reading tar archive: " + std::string(archive_error_string(a)));
+        std::cerr << "Error: Unexpected error while reading tar archive: " 
+                  << archive_error_string(a) << std::endl;
+    }
+
+    // 清理资源
+    archive_read_close(a);
+    archive_read_free(a);
+    archive_write_close(ext);
+    archive_write_free(ext);
+    
+    // 删除临时tar文件
+    std::remove(tempTarPath.c_str());
+    
+    return (r == ARCHIVE_EOF);
 }

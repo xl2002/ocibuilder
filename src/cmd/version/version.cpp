@@ -11,6 +11,7 @@
 #include "cmd/version/version.h"
 #include "utils/cli/cli/common.h"
 #include "image/types/define/types.h"
+#include "utils/logger/ProcessSafeLogger.h"
 #include <sstream>
 #include "filesys/systems.h"
 #include <boost/predef.h>
@@ -71,6 +72,7 @@ std::string OSAndArch(){
  * @details 根据参数决定以普通文本或 JSON 格式输出版本信息（包括编译器版本、构建时间等）
  */
 void versionCmd(versionOptions* iopts){
+    logger->log_info("Start version command");
     //1. 构建versionInfo对象，
     auto v=std::make_shared<versionInfo>();
     v->Version=version;
@@ -96,5 +98,6 @@ void versionCmd(versionOptions* iopts){
         std::cout<<std::left<<std::setw(20)<<"BuildPlatform:"<<v->BuildPlatform<<std::endl;
     }
     delete iopts;
+    logger->log_info("Version command completed successfully");
     return;
 }

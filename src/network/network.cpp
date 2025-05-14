@@ -1,6 +1,9 @@
 #include "network/network.h"
+#include "utils/cli/cli/common.h"
+#include "utils/logger/ProcessSafeLogger.h"
 #include "image/digest/digest.h"
 #include "cmd/login/login.h"
+#include "storage/storage/storage.h"
 #include <zlib/zlib.h>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
@@ -63,6 +66,7 @@ bool isIPAddress(const std::string& host) {
  * @return 解析后的IP地址字符串，解析失败返回空字符串
  */
 std::string resolve_dns(const std::string& host) {
+    logger->log_info("Starting DNS resolution for host: " + host);
     try {
         // 创建 Boost Asio io_service 对象
         boost::asio::io_service io_service;
@@ -74,10 +78,11 @@ std::string resolve_dns(const std::string& host) {
         // 获取所有匹配的 IP 地址
         boost::asio::ip::tcp::resolver::iterator endpoints = resolver.resolve(query);
         
-        // 返回解析到的第一个IP地址
-        return endpoints->endpoint().address().to_string();
+        std::string ip = endpoints->endpoint().address().to_string();
+        logger->log_info("Successfully resolved " + host + " to IP: " + ip);
+        return ip;
     } catch (const boost::system::system_error& e) {
-        std::cerr << "Error resolving DNS: " << e.what() << std::endl;
+        logger->log_error("Failed to resolve DNS for host " + host + ": " + e.what());
         return "";  // 如果解析失败，返回空字符串
     }
 }
@@ -87,6 +92,16 @@ std::string resolve_dns(const std::string& host) {
  * 
  * @param path 
  * @return std::shared_ptr<URL> 
+ */
+/**
+ * @brief 解析push/pull命令的URL
+ * @param path 原始路径字符串
+ * @return 解析后的URL对象指针
+ * @details 
+ * - 处理oci:开头的本地路径
+ * - 解析主机、端口、项目名、镜像名和版本
+ * - 自动检测协议(http/https)
+ * - 对主机名进行DNS解析
  */
 std::shared_ptr<URL> dockerClient::resolveRequestURL(std::string path){
     auto url = std::make_shared<URL>();
@@ -102,7 +117,7 @@ std::shared_ptr<URL> dockerClient::resolveRequestURL(std::string path){
         // 从后向前找到最后两个冒号的位置
         size_t secondColon = remaining.find_last_of(':');
         if (secondColon == std::string::npos) {
-            std::cerr << "Invalid path format: No ':' found" << std::endl;
+            logger->log_error("Invalid path format: No ':' found");
             return url;
         }
 
@@ -111,6 +126,7 @@ std::shared_ptr<URL> dockerClient::resolveRequestURL(std::string path){
         pullPath = remaining.substr(0,firstColon);
 
         if(firstColon == secondColon){
+            logger->log_error("Invalid path format");
             std::cerr << "Invalid path format"<< std::endl;
             return url;
         }else{
@@ -134,7 +150,7 @@ std::shared_ptr<URL> dockerClient::resolveRequestURL(std::string path){
         // if (colonPos == std::string::npos || slashPos == std::string::npos || colonPos > slashPos) {
         //     throw std::invalid_argument("Invalid path format");
         // }
-
+        //192.168.0.1:5000/lib/xxx:latest?
         std::string host;
         if(colonPos == std::string::npos){
             host = path.substr(0,slashPos);
@@ -218,7 +234,18 @@ std::shared_ptr<URL> dockerClient::resolveRequestURL(std::string path){
  * @param path 
  * @return std::shared_ptr<URL> 
  */
-std::shared_ptr<URL>resolveLoginURL(std::string path){
+/**
+ * @brief 解析login命令的URL
+ * @param path 原始路径字符串
+ * @return 解析后的URL对象指针
+ * @details
+ * - 解析主机和端口
+ * - 自动检测协议(http/https)
+ * - 设置默认端口(5000/http, 443/https)
+ * - 对主机名进行DNS解析
+ */
+std::shared_ptr<URL> resolveLoginURL(std::string path) {
+    logger->log_info("Starting URL resolution for path: " + path);
     auto url = std::make_shared<URL>();
 
     // 解析路径，格式为 host:port
@@ -229,27 +256,36 @@ std::shared_ptr<URL>resolveLoginURL(std::string path){
     // 如果路径包含冒号，则表示可能包含端口
     if (colonPos != std::string::npos) {
         host = path.substr(0, colonPos);  // 提取主机名
+        logger->log_info("Colon found in path, extracted host: " + host);
     } else {
         host = path;  // 如果没有冒号，直接将路径当作主机名
+        logger->log_info("No colon found in path, using entire path as host: " + host);
     }
 
     // 提取端口号，如果存在冒号
     std::string portStr = "";
     if (colonPos != std::string::npos) {
         portStr = path.substr(colonPos + 1);  // 提取端口号
+        logger->log_info("Extracted port string: " + portStr);
+    } else {
+        logger->log_info("No port specified in path");
     }
 
     // 检查是否有明确的协议（http:// 或 https://）
     if (hasPrefix(host, "http://")) {
         url->scheme = "http";  // 如果是以 http:// 开头，使用 http 协议
+        logger->log_info("Protocol detected as http");
     } else if (hasPrefix(host, "https://")) {
         url->scheme = "https";  // 如果是以 https:// 开头，使用 https 协议
+        logger->log_info("Protocol detected as https");
     } else {
         // 如果没有明确的协议，判断是IP地址还是URL
         if (isIPAddress(host)) {
             url->scheme = "http";  // 如果是IP地址，使用 http 协议
+            logger->log_info("No protocol specified, using http for IP address");
         } else {
             url->scheme = "https";  // 否则默认为 https 协议
+            logger->log_info("No protocol specified, using https for domain name");
         }
     }
 
@@ -257,25 +293,36 @@ std::shared_ptr<URL>resolveLoginURL(std::string path){
     if (portStr.empty()) {
         if (url->scheme == "http") {
             portStr = "5000";  // http 协议默认端口为 5000
+            logger->log_info("Using default http port: 5000");
         } else if (url->scheme == "https") {
             portStr = "443";  // https 协议默认端口为 443
+            logger->log_info("Using default https port: 443");
         }
+    } else {
+        logger->log_info("Using specified port: " + portStr);
     }
 
     // 对于URL格式的主机名，需要进行DNS解析
     if (!isIPAddress(host)) {
+        logger->log_info("Performing DNS resolution for host: " + host);
+        std::string originalHost = host;
         host = resolve_dns(host);  // 使用DNS解析将主机解析为IP地址
         if (host.empty()) {
-            std::cerr << "DNS resolution failed for host: " << host << std::endl;
+            logger->log_error("DNS resolution failed for host: " + originalHost);
+            std::cerr << "DNS resolution failed for host: " << originalHost << std::endl;
             return url;
         }
+        logger->log_info("DNS resolved to IP: " + host);
     }
 
     url->host = host;
     url->port = portStr;
+    logger->log_info("URL resolution completed - Host: " + url->host + 
+             ", Port: " + url->port + ", Scheme: " + url->scheme);
 
     return url;
 }
+
 
 /**
  * @brief 获得认证令牌，获得的令牌直接存储到dockerClient中
@@ -290,6 +337,15 @@ std::shared_ptr<URL>resolveLoginURL(std::string path){
  * @param req HTTP请求对象
  * @param extraScope 额外的认证范围
  * @return 设置成功返回true，失败返回false
+ */
+/**
+ * @brief 设置请求的认证信息
+ * @param req HTTP请求对象
+ * @param extraScope 额外的认证范围
+ * @return 设置成功返回true，失败返回false
+ * @details
+ * - 根据认证类型(Basic/Bearer)设置Authorization头
+ * - 处理token缓存和更新
  */
 bool dockerClient::setupRequestAuth(beast::http::request<beast::http::string_body> req,std::shared_ptr<authScope> extraScope){
     return true;
@@ -308,6 +364,18 @@ bool dockerClient::setupRequestAuth(beast::http::request<beast::http::string_bod
  * @param hosttype 主机类型
  * @param req HTTP请求对象
  * @return 包含HTTP响应和流缓冲区的元组
+ */
+/**
+ * @brief 执行HTTP请求
+ * @param ioc IO上下文
+ * @param hosttype 主机类型
+ * @param req HTTP请求对象
+ * @return 包含HTTP响应和流缓冲区的元组
+ * @details
+ * - 建立TCP连接
+ * - 发送HTTP请求
+ * - 接收并解析响应
+ * - 处理连接关闭
  */
 std::tuple<beast::http::response<beast::http::string_body>,asio::streambuf> dockerClient::Do(asio::io_context& ioc,std::string hosttype,beast::http::request<beast::http::string_body> req){
     
@@ -456,6 +524,7 @@ bool ifSupportV2(const std::string& host,const std::string& port){
 
 
     } catch (const std::exception& e) {
+        logger->log_error(std::string(e.what()));
         std::cerr << "Error: " << e.what() << std::endl;
     }
 }
@@ -549,6 +618,7 @@ bool ifBlobExists(const std::string& host,const std::string& port,const std::str
         }
         stream.socket().shutdown(asio::ip::tcp::socket::shutdown_both);
     } catch (const std::exception& e) {
+        logger->log_error(std::string(e.what()));
         std::cerr << "Blob Exist Error: " << e.what() << "\n";
     }
     return false;
@@ -617,6 +687,7 @@ bool ifManifestExists(const std::string& host,const std::string& port,const std:
         }
         stream.socket().shutdown(asio::ip::tcp::socket::shutdown_both);
     } catch (const std::exception& e) {
+        logger->log_error(std::string(e.what()));
         std::cerr << "Manifest Exist Error: " << e.what() << "\n";
     }
     return false;
@@ -709,6 +780,7 @@ std::pair<std::string, std::string> initUpload(const std::string& host, const st
         return {uid_param,state_param};
 
     } catch (const std::exception& e) {
+        logger->log_error(std::string(e.what()));
         std::cerr << "Init Upload Error: " << e.what() << "\n";
         return {"", ""};
     }
@@ -842,6 +914,7 @@ std::pair<std::string, std::string> uploadBlobChunk(const std::string& host, con
         stream.socket().shutdown(tcp::socket::shutdown_both);
         return {new_uid, new_state};
     } catch (const std::exception& e) {
+        logger->log_error(std::string(e.what()));
         std::cerr << "Upload Blob Chunk Error: " << e.what() << "\n";
         return {uid, state};
     }
@@ -851,6 +924,16 @@ std::pair<std::string, std::string> uploadBlobChunk(const std::string& host, con
  * @brief 递归处理manifest树节点
  * @param node 属性树节点
  * @param level 当前层级(root/config/layers)
+ */
+/**
+ * @brief 递归处理manifest树节点
+ * @param node 属性树节点
+ * @param level 当前层级(root/config/layers)
+ * @details
+ * - 根据层级设置不同的mediaType
+ * - root层: application/vnd.oci.image.manifest.v1+json
+ * - config层: application/vnd.oci.config.v1+json 
+ * - layers层: application/vnd.oci.image.layer.v1.tar+gzip
  */
 void getManifest(ptree& node, const std::string& level)
 {
@@ -876,6 +959,7 @@ void getManifest(ptree& node, const std::string& level)
             }
         } 
     } catch(const std::exception& e) {
+        logger->log_error(std::string(e.what()));
         std::cerr << "Error: " << e.what() << std::endl;
     }
 }
@@ -884,6 +968,16 @@ void getManifest(ptree& node, const std::string& level)
  * @brief 写入v1格式的manifest文件
  * @param filePath 输入文件路径
  * @return 生成的manifest文件路径
+ */
+/**
+ * @brief 写入v1格式的manifest文件
+ * @param filePath 输入文件路径
+ * @return 生成的manifest文件路径
+ * @details
+ * - 读取JSON文件
+ * - 修改mediaType为OCI标准格式
+ * - 计算SHA256摘要
+ * - 以摘要值重命名文件
  */
 std::string write_v1_manifest(const std::string& filePath)
 {
@@ -906,6 +1000,16 @@ std::string write_v1_manifest(const std::string& filePath)
  * @brief 写入新的manifest文件
  * @param file_path 输入文件路径
  * @return 生成的manifest文件路径
+ */
+/**
+ * @brief 写入新的manifest文件(OCI格式)
+ * @param file_path 输入文件路径
+ * @return 生成的manifest文件路径
+ * @details
+ * - 解析原始manifest
+ * - 修改mediaType为OCI标准格式
+ * - 计算SHA256摘要
+ * - 以摘要值重命名文件
  */
 std::string write_manifest_new(const std::string& file_path)
 {
@@ -961,6 +1065,7 @@ std::string write_manifest_new(const std::string& file_path)
 void uploadManifest(const std::string& host, const std::string& port, const std::string& file_path, std::size_t start, std::size_t end, 
                                             const std::string& imageName, const std::string version, const std::string& ManifestType,const std::string& projectName, 
                                             bool v1, const std::string& store_basic_path) {
+    logger->log_info("Starting manifest upload for image: " + imageName + " version: " + version);
     try {
         // std::ifstream file(file_path, std::ios::binary);
         // if (!file) {
@@ -1037,9 +1142,10 @@ void uploadManifest(const std::string& host, const std::string& port, const std:
             throw std::runtime_error("Failed to upload manifest");
         }
         stream.socket().shutdown(tcp::socket::shutdown_both);
+        logger->log_info("Successfully uploaded manifest for image: " + imageName + " version: " + version);
         
     } catch (const std::exception& e) {
-        std::cerr << "Upload Manifest Error: " << e.what() << "\n";
+        logger->log_error("Upload Manifest Error: " + std::string(e.what()));
     }
 }
 
@@ -1109,6 +1215,7 @@ void finalizeUpload(const std::string& host, const std::string& port, const std:
         }
         stream.socket().shutdown(tcp::socket::shutdown_both);
     } catch (const std::exception& e) {
+        logger->log_error("Finalize Upload Error: "+std::string(e.what()));
         std::cerr << "Finalize Upload Error: " << e.what() << "\n";
     }
 }
@@ -1139,6 +1246,7 @@ std::string gzDecompressToString(const std::string& compressed) {
     int ret;
     ret = inflateInit2(&strm, MAX_WBITS + 16); // MAX_WBITS+16 is for handling GZIP headers
     if (ret != Z_OK) {
+        logger->log_warning("inflateInit2 failed");
         throw std::runtime_error("inflateInit2 failed");
     }
 
@@ -1155,6 +1263,7 @@ std::string gzDecompressToString(const std::string& compressed) {
     ret = inflate(&strm, Z_FINISH);
     if (ret != Z_STREAM_END) {
         inflateEnd(&strm);
+        logger->log_warning("Decompression failed");
         throw std::runtime_error("Decompression failed");
     }
 
@@ -1321,6 +1430,7 @@ std::string login_and_getToken(const std::string& user, const std::string& passw
             }
         }
     } catch (const std::exception& e) {
+        logger->log_error(std::string(e.what()));
         std::cerr << "Error: " << e.what() << std::endl;
     }
     return "";
@@ -1377,6 +1487,7 @@ bool login(const std::string& host, const std::string& port, const std::string& 
         }
 
     } catch (const std::exception& e) {
+        logger->log_error(std::string(e.what()));
         std::cerr << "Error: " << e.what() << std::endl;
     }
     return false;
@@ -1442,6 +1553,7 @@ void pullBlob(const std::string& host, const std::string& port,const::string& pr
 
         // 发送请求
         beast::http::write(stream, req);
+        logger->log_info("HTTP request sent.");
         std::cout << "HTTP request sent." << std::endl;
 
         // 接收响应
@@ -1462,6 +1574,7 @@ void pullBlob(const std::string& host, const std::string& port,const::string& pr
 
         // 检查响应状态
         if (res.result() != beast::http::status::ok) {
+            logger->log_error("HTTP request failed with status: "+std::to_string(res.result_int())+" "+ std::string(res.reason()));
             std::cerr << "HTTP request failed with status: " << res.result_int() << " " << res.reason() << std::endl;
             return;
         }
@@ -1473,37 +1586,45 @@ void pullBlob(const std::string& host, const std::string& port,const::string& pr
         // 输出响应体到文件
         std::ofstream ofs(output_tmp, std::ios::binary); // 打开文件为二进制模式
         if (!ofs) {
+            logger->log_error("Failed to open file for writing: "+output_tmp);
             std::cerr << "Failed to open file for writing: " << output_tmp << std::endl;
             return;
         }
 
         ofs << res.body(); // 将响应体写入文件
         ofs.close();
+        logger->log_info("Blob saved to: "+output_tmp);
         std::cout << "Blob saved to: " << output_tmp << std::endl;
         //校验
         if(isCorrect(shaId,output_tmp)){
             // 写blob
             std::ofstream ofs1(output_file, std::ios::binary); // 打开文件为二进制模式
             if (!ofs1) {
+                logger->log_error("Failed to open file for writing: "+output_file);
                 std::cerr << "Failed to open file for writing: " << output_file << std::endl;
                 return;
             }
 
             ofs1 << res.body(); // 将响应体写入文件
             ofs1.close();
+            logger->log_info("Blob saved to: "+output_file);
             std::cout << "Blob saved to: " << output_file << std::endl;
         }
 
         if(std::remove(output_tmp.c_str())==0){
+            logger->log_info("tmp manifest deleted successfully: "+output_tmp);
             std::cout << "tmp manifest deleted successfully: " << output_tmp << std::endl;
         }else{
+            logger->log_error( "Failed to delete file: "+output_tmp);
             std::cerr << "Failed to delete file: " << output_tmp << std::endl;
         }
 
 
     } catch (const beast::system_error& se) {
+        logger->log_error("System error: "+std::string(se.what()));
         std::cerr << "System error: " << se.what() << std::endl;
     } catch (const std::exception& e) {
+        logger->log_error("Exception: "+std::string(e.what()));
         std::cerr << "Exception: " << e.what() << std::endl;
     }
 }
@@ -1644,8 +1765,10 @@ bool pullConfig(const std::string& host, const std::string& port,const::string& 
         return true;
 
     } catch (const beast::system_error& se) {
+        logger->log_error("System error: "+std::string(se.what()));
         std::cerr << "System error: " << se.what() << std::endl;
     } catch (const std::exception& e) {
+        logger->log_error("Exception: "+std::string(e.what()));
         std::cerr << "Exception: " << e.what() << std::endl;
     }
 }
@@ -1783,7 +1906,11 @@ std::tuple<std::string,size_t> pullManifestAndBlob(const std::string& host, cons
         //     }
         // } else {
         //     // 计算manifest的hash
-        ManifestSha = Fromfile(output_file_tmp)->Encoded();
+        auto digest = Fromfile(output_file_tmp);
+        ManifestSha = digest ? digest->Encoded() : "";
+        if (ManifestSha.empty()) {
+            throw std::runtime_error("Failed to calculate manifest digest");
+        }
         MediaTypeImageManifest = manifest.MediaType;
         std::string output_file = output_folder + ManifestSha;
 
@@ -1824,8 +1951,10 @@ std::tuple<std::string,size_t> pullManifestAndBlob(const std::string& host, cons
         return std::make_tuple("sha256:"+ManifestSha,manifestLen);
 
     } catch (const beast::system_error& se) {
+        logger->log_error("System error: "+std::string(se.what()));
         std::cerr << "System error: " << se.what() << std::endl;
     } catch (const std::exception& e) {
+        logger->log_error("Pull Manifest Exception: "+std::string(e.what()));
         std::cerr << "Pull Manifest Exception: " << e.what() << std::endl;
     }
 }
@@ -1848,11 +1977,14 @@ void getCookieFromAuthFile(){
                     loginAuth.cookie = cookie;
                 }
             }
+            logger->log_error("No cookie found in JSON file.");
             std::cerr << "No cookie found in JSON file.\n";
         } catch (const std::exception& e) {
+            logger->log_error("Error parsing JSON: " + std::string(e.what()));
             std::cerr << "Error parsing JSON: " << e.what() << "\n";
         }
     } else {
+        logger->log_error("Failed to open file for loading cookie.");
         std::cerr << "Failed to open file for loading cookie.\n";
     }
 }
@@ -1872,17 +2004,29 @@ void saveLoginInfo(const std::string& username, const std::string& password, con
     std::ofstream ofs(authPath);
     if (ofs) {
         ofs << json::serialize(credentials);
+        logger->log_info("Credentials saved to auth.json");
         std::cout << "Credentials saved to auth.json\n";
     } else {
+        logger->log_error("Failed to save credentials");
         std::cerr << "Failed to save credentials\n";
     }
 }
 
+/**
+ * @brief 从auth.json文件加载指定IP地址的登录凭证
+ * @param ipAddr 要加载登录信息的IP地址
+ * @details
+ * - 读取oci_images/auth.json文件
+ * - 解析JSON内容查找匹配ipAddr的条目
+ * - 将找到的用户名和密码存储到全局userinfo结构体中
+ * - 如果文件不存在或格式错误会输出错误信息
+ */
 void loadLoginInfo(std::string ipAddr) {
     std::string authPath = "oci_images/auth.json";
 
     std::ifstream ifs(authPath);
     if (!ifs) {
+        logger->log_error("Failed to open auth.json for reading");
         std::cerr << "Failed to open auth.json for reading\n";
         return;
     }
@@ -1903,6 +2047,7 @@ void loadLoginInfo(std::string ipAddr) {
             userinfo.username=usr.username;
             userinfo.password=usr.password;
         } else {
+            logger->log_error("auth.json does not contain required fields");
             std::cerr << "auth.json does not contain required fields\n";
         }
         // // 提取字段
@@ -1915,11 +2060,24 @@ void loadLoginInfo(std::string ipAddr) {
         //     std::cerr << "auth.json does not contain required fields\n";
         // }
     } catch (const std::exception& e) {
+        logger->log_error("Error reading auth.json: "+std::string(e.what()));
         std::cerr << "Error reading auth.json: " << e.what() << "\n";
     }
 }
 
 
+/**
+ * @brief 获取镜像标签列表
+ * @param host 主机地址
+ * @param port 端口号
+ * @param projectName 项目名称
+ * @param imagetName 镜像名称
+ * @return 标签字符串列表
+ * @details
+ * - 发送GET请求到/v2/{project}/{image}/tags/list
+ * - 解析返回的JSON数据
+ * - 提取tags数组
+ */
 std::vector<std::string> getTagList(const std::string& host, const std::string& port,const::string& projectName,const::string& imagetName){
     try{
         std::string target="/v2/"+projectName+"/"+imagetName+"/tags/list";
@@ -1958,6 +2116,7 @@ std::vector<std::string> getTagList(const std::string& host, const std::string& 
         // }
 
         if (res.result() != beast::http::status::ok) {
+            logger->log_error("GetTagsList request failed with status: "+std::to_string(res.result_int())+" "+std::string(res.reason()));
             std::cerr << "GetTagsList request failed with status: " << res.result_int() << " " << res.reason() << std::endl;
             return {};
         }
@@ -1985,6 +2144,7 @@ std::vector<std::string> getTagList(const std::string& host, const std::string& 
 
         return tags;
     }catch(const std::exception& e){
+        logger->log_error(std::string(e.what()));
         std::cerr << "Error: " << e.what() << std::endl;
         return {};
     }

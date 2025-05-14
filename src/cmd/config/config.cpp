@@ -12,6 +12,7 @@
 #include "utils/cli/cli/common.h"
 #include "image/buildah/buildah.h"
 #include "storage/storage/storage.h"
+#include "utils/logger/ProcessSafeLogger.h"
 // #include "command.h"
 
 /**
@@ -241,11 +242,16 @@ void updateConfig(std::shared_ptr<Builder> builder, Command& c, configOptions* i
  */
 void configCmd(Command& cmd, std::vector<std::string> args, configOptions* iopts) {
     try {
+        logger->set_module("config");
+        logger->log_info("Starting config command execution");
+        
         // 1. 检查是否提供了有效的容器ID参数
         if (args.empty()) {
+            logger->log_error("Container ID must be specified");
             throw myerror("container ID must be specified");
         }
         if (args.size() > 1) {
+            logger->log_warning("Too many arguments specified, only first will be used");
             throw myerror("too many arguments specified");
         }
         std::string name = args[0];
@@ -253,12 +259,14 @@ void configCmd(Command& cmd, std::vector<std::string> args, configOptions* iopts
         // 2. 获取存储对象（store）
         auto store = getStore(&cmd);
         if (!store) {
+            logger->log_error("Failed to get store");
             throw myerror("failed to get store");
         }
 
         // 3. 创建Builder对象
         auto builder = openBuilder(store, name);
         if (!builder) {
+            logger->log_error("Failed to create builder for container: " + name);
             throw myerror("reading build container failed: " + name);
         }
 
@@ -268,8 +276,10 @@ void configCmd(Command& cmd, std::vector<std::string> args, configOptions* iopts
         // 5. 保存镜像配置
         builder->Save(name);
         delete iopts;
+        logger->log_info("Config command completed successfully");
     } catch (const myerror& e) {
         // 输出错误信息并终止执行
+        logger->log_error(std::string(e.what()));
         std::cerr << "Error: " << e.what() << std::endl;
         return;
     }

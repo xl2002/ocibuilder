@@ -17,7 +17,7 @@
 #include <cstring>
 #include <iostream>
 #include "utils/common/go/file.h"
-#include "utils/logger/logrus/exported.h"
+#include "utils/logger/ProcessSafeLogger.h"
 #include <boost/compute/detail/getenv.hpp>
 #include <pthread.h>
 // #define PATH_MAX 4096
@@ -88,12 +88,12 @@ bool ReloadConfigurationFileIfNeeded(const std::string& configFile, StoreOptions
  * @param options 要设置默认值的存储选项引用
  */
 void setDefaults(StoreOptions& options) {
-    if (options.run_root.empty()) {
-        options.run_root = defaultRunRoot;
-    }
-    if (options.graph_root.empty()) {
-        options.graph_root = defaultGraphRoot;
-    }
+        if (options.run_root.empty()) {
+            options.run_root = defaultRunRoot;
+        }
+        if (options.graph_root.empty()) {
+            options.graph_root = defaultGraphRoot;
+        }
 }
 /**
  * @brief 加载默认存储选项
@@ -106,12 +106,12 @@ void loadDefaultStoreOptions() {
         setDefaults(defaultStoreOptions);
 
         // 获取环境变量中的配置文件路径
-        // std::string path = boost::compute::detail::getenv(storageConfEnv.c_str());
         const char* env_path = boost::compute::detail::getenv(storageConfEnv.c_str());
-        std::string path = env_path ? std::string(env_path) : "";  // 检查 nullptr
+        std::string path = env_path ? std::string(env_path) : "";
         if (!path.empty()) {
             defaultOverrideConfigFile = path;
             if (!ReloadConfigurationFileIfNeeded(defaultOverrideConfigFile, &defaultStoreOptions)) {
+                logger->log_error("重新加载配置文件失败: " + defaultOverrideConfigFile);
                 throw myerror("重新加载配置文件失败: " + defaultOverrideConfigFile);
             }
             setDefaults(defaultStoreOptions);
@@ -121,12 +121,12 @@ void loadDefaultStoreOptions() {
         // 获取 XDG_CONFIG_HOME 环境变量
         auto xdg=boost::compute::detail::getenv("XDG_CONFIG_HOME");
         path=xdg?std::string(xdg):"";
-        // path = boost::compute::detail::getenv("XDG_CONFIG_HOME");
         if (!path.empty()) {
             std::string homeConfigFile = path + "/containers/storage.conf";
             if (boost::filesystem::exists(homeConfigFile)) {
                 defaultOverrideConfigFile = homeConfigFile;
             } else {
+                logger->log_warning("XDG配置文件不存在: " + homeConfigFile);
                 if (!boost::filesystem::exists(homeConfigFile)) {
                     throw myerror("无法访问配置文件: " + homeConfigFile);
                 }
@@ -137,35 +137,26 @@ void loadDefaultStoreOptions() {
         if (boost::filesystem::exists(defaultOverrideConfigFile)) {
             defaultConfigFile = defaultOverrideConfigFile;
             if (!ReloadConfigurationFileIfNeeded(defaultOverrideConfigFile, &defaultStoreOptions)) {
+                logger->log_error("重新加载覆盖配置文件失败: " + defaultOverrideConfigFile);
                 throw myerror("重新加载配置文件失败: " + defaultOverrideConfigFile);
             }
             setDefaults(defaultStoreOptions);
-            // Warningf("Attempting to use %s, %s", defaultConfigFile, strerror(errno));
             return;
         }
 
         // 默认配置文件路径
-        // if (boost::filesystem::exists(defaultConfigFile)) {
-        //     if (!ReloadConfigurationFileIfNeeded(defaultConfigFile, &defaultStoreOptions)) {
-        //         throw myerror("重新加载配置文件失败: " + defaultConfigFile);
-        //     }
-        //     setDefaults(defaultStoreOptions);
-        //     Warningf("Attempting to use %s, %s", defaultConfigFile, strerror(errno));
-        //     return;
-        // }
-        
-        // 处理警告
-
-        // std::cerr << "尝试使用 " << defaultConfigFile << ", 错误信息: " << std::strerror(errno) << std::endl;
         if (!ReloadConfigurationFileIfNeeded(defaultConfigFile, &defaultStoreOptions)) {
             if(boost::filesystem::exists(defaultConfigFile)) {
+                logger->log_error("重新加载默认配置文件失败: " + defaultConfigFile);
                 throw myerror("重新加载配置文件失败: " + defaultConfigFile);
             }
+            //logger->log_warning("默认配置文件不存在: " + defaultConfigFile);
         }
         setDefaults(defaultStoreOptions);
 
     } catch (const myerror& e) {
         // 捕获并处理 myerror 异常，提供额外的错误信息
+        logger->log_error("加载默认存储选项失败: "+std::string(e.what()));
         std::cerr << "加载默认存储选项时发生错误: " << e.what() << std::endl;
         throw; // 重新抛出异常，以便上层函数处理
     }
@@ -192,6 +183,7 @@ std::string expandEnvPath(const std::string& path, int rootlessUID) {
         if (!envValue.empty()) {
             expandedPath.replace(pos, end - pos, envValue);
         } else {
+            logger->log_warning("环境变量 "+envVar+" 未定义");
             std::cerr << "环境变量 " << envVar << " 未定义。" << std::endl;
             // 继续搜索下一个环境变量
         }
@@ -200,7 +192,6 @@ std::string expandEnvPath(const std::string& path, int rootlessUID) {
 
     try {
         // 解析符号链接
-        std::cout<<boost::filesystem::current_path().string()<<std::endl;
         expandedPath = boost::filesystem::canonical(expandedPath).string();
     } catch (const boost::filesystem::filesystem_error&) {
         // 如果解析符号链接失败，返回绝对路径
@@ -437,6 +428,7 @@ bool MkdirAll(const std::string& path) {
     try {
         return boost::filesystem::create_directory(p) || boost::filesystem::is_directory(p);
     } catch (const boost::filesystem::filesystem_error& e) {
+        logger->log_error("创建目录失败: "+std::string(e.what()));
         std::cerr << "创建目录失败: " << e.what() << std::endl;
         return false;
     }

@@ -9,6 +9,7 @@
 #include <algorithm>
 #include "utils/logger/logrus/exported.h"
 #include "image/image_types/docker/image.h"
+#include "utils/logger/ProcessSafeLogger.h"
 
 void StageExecutor::Delete(){
     if(builder!=nullptr){
@@ -154,6 +155,7 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,bool> StageExecutor:
         try{
             step->Resolve(node);//得修改from的处理逻辑
         }catch(const myerror& e){
+            logger->log_error("resolving step "+std::to_string(i)+": "+std::string(e.what()));
             throw myerror("resolving step "+std::to_string(i)+": "+std::string(e.what()));
         }
 
@@ -235,6 +237,7 @@ std::shared_ptr<Builder> StageExecutor::prepare(
             // std::atoi 返回 0 表示转换失败
             if (std::atoi(asImageName.c_str()) == 0 && asImageName != "0") {
                 throw std::invalid_argument("Invalid integer conversion");
+                logger->log_warning("Invalid integer conversion");
             }
         } catch (const std::invalid_argument&) {
             // 转换失败，执行下面的逻辑
@@ -278,7 +281,7 @@ std::shared_ptr<Builder> StageExecutor::prepare(
     builderOptions->MaxPullRetries=this->executor->maxPullPushRetries;
     builderOptions->PullRetryDelay=this->executor->retryPullPushDelay;
     builderOptions->OciDecryptConfig=this->executor->ociDecryptConfig;
-    builderOptions->Logger=this->executor->logger;
+    //builderOptions->Logger=this->executor->logger;
     builderOptions->ProcessLabel=this->executor->processLabel;
     builderOptions->MountLabel=this->executor->mountLabel;
     builderOptions->PreserveBaseImageAnns=preserveBaseImageAnnotations;
@@ -547,6 +550,7 @@ std::pair<std::string,std::shared_ptr<Canonical_interface>> StageExecutor::commi
     try{
         std::tie(imgID,std::ignore,manifestDigest)=this->builder->Commit(imageRef,options);
     }catch(const myerror& e){
+        logger->log_error("Failed to commit changes: " + std::string(e.what()));
         throw;
     }
     std::shared_ptr<Canonical_interface> ref;
@@ -556,6 +560,7 @@ std::pair<std::string,std::shared_ptr<Canonical_interface>> StageExecutor::commi
             try{
                 ref=WithDigest(dref,manifestDigest);
             }catch(const myerror& e){
+                logger->log_error("computing canonical reference for new image "+imgID+":"+std::string(e.what()));
                 throw myerror("computing canonical reference for new image "+imgID+":"+std::string(e.what()));
             }
         }

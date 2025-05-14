@@ -7,6 +7,7 @@
 
 #include "utils/common/go/file.h"
 #include "utils/common/error.h"
+#include "utils/logger/ProcessSafeLogger.h"
 #include <boost/filesystem.hpp>
 #include <random>
 #include <string>
@@ -51,7 +52,7 @@ bool fileExists(const std::string& path) {
     struct stat buffer;
     // 使用stat函数检查文件是否存在，如果stat返回0，则文件存在
     // 否则，文件不存在
-    return (stat(path.c_str(), &buffer) == 0);
+    return (stat(path.c_str(), &buffer) == 0);;
 }
 
 /**
@@ -66,6 +67,7 @@ bool isDirectory(const std::string& path) {
     // 使用stat函数检查文件是否存在，如果stat返回0，则文件存在
     // 并且检查文件是否是一个目录
     if (stat(path.c_str(), &buffer) != 0) {
+        logger->log_info("isDirectory: stat failed for path - " + path);
         return false;
     }
     // st_mode 是 stat 结构体中的一个成员变量，记录了文件的类型
@@ -84,6 +86,7 @@ bool isRegularFile(const std::string& path) {
     struct stat buffer;
     // 使用stat函数检查文件是否存在，如果stat返回0，则文件存在
     if (stat(path.c_str(), &buffer) != 0) {
+        logger->log_info("isRegularFile: stat failed for path - " + path);
         return false;
     }
     // st_mode 是 stat 结构体中的一个成员变量，记录了文件的类型
@@ -114,16 +117,22 @@ void WriteFile(const std::string& iidfile, const std::string& imageID) {
         // 创建文件并写入内容
         std::ofstream file(iidfile, std::ios::out | std::ios::trunc);
         if (!file.is_open()) {
+            logger->log_error("WriteFile: failed to open file - " + iidfile);
             throw std::runtime_error("failed to open file: " + iidfile);
         }
 
         // 写入 "sha256:" + imageID
         file << "sha256:" << imageID;
+        if (!file) {
+            logger->log_error("WriteFile: failed to write to file - " + iidfile);
+            throw std::runtime_error("failed to write to file: " + iidfile);
+        }
         file.close();
 
         // 返回成功的 imageID 和 ref
         // return std::make_tuple(imageID, ref, nullptr);
     } catch (...) {
+        logger->log_error("WriteFile: exception occurred while writing to file - " + iidfile);
         throw;
         // 如果写入失败，返回捕获的异常
         // return std::make_tuple(imageID, ref, std::current_exception());
@@ -138,10 +147,12 @@ void WriteFile(const std::string& iidfile, const std::string& imageID) {
 bool isDirectoryWritable(const fs::path& dirPath) {
     try {
         if (!fs::exists(dirPath)) {
+            logger->log_error("isDirectoryWritable: directory does not exist - " + dirPath.string());
             std::cerr << "Directory does not exist: " << dirPath << std::endl;
             return false;
         }
         if (!fs::is_directory(dirPath)) {
+            logger->log_error("isDirectoryWritable: path is not a directory - " + dirPath.string());
             std::cerr << "Path is not a directory: " << dirPath << std::endl;
             return false;
         }
@@ -156,6 +167,7 @@ bool isDirectoryWritable(const fs::path& dirPath) {
             return false; // 不可写
         }
     } catch (const fs::filesystem_error& e) {
+        logger->log_error("isDirectoryWritable: filesystem error - " + std::string(e.what()));
         std::cerr << "Error checking directory: " << e.what() << std::endl;
         return false;
     }
@@ -445,6 +457,7 @@ bool isDirectoryEmpty(const boost::filesystem::path& dirPath) {
             throw std::runtime_error("The path does not exist or is not a directory.");
         }
     } catch (const boost::filesystem::filesystem_error& e) {
+        logger->log_error("Error: "+std::string(e.what()));
         std::cerr << "Error: " << e.what() << std::endl;
         return false; // 如果出错，返回 false
     }
@@ -485,11 +498,14 @@ std::string MkdirTemp(std::string dir, std::string pattern) {
     // 创建目录
     try {
         if (boost::filesystem::create_directories(tempDirPath)) {
+            logger->log_info("Directory created: "+tempDirPath.string());
             std::cout << "Directory created: " << tempDirPath.string() << std::endl;
         } else {
+            logger->log_error( "Failed to create directory: "+tempDirPath.string());
             std::cerr << "Failed to create directory: " << tempDirPath.string() << std::endl;
         }
     } catch (const boost::filesystem::filesystem_error& e) {
+        logger->log_error( "Error creating directory: "+std::string(e.what()));
         std::cerr << "Error creating directory: " << e.what() << std::endl;
         throw;
     }
@@ -509,6 +525,7 @@ void Copy_file(const fs::path& src, const fs::path& dest) {
     try {
         // 检查源文件是否存在
         if (!fs::exists(src) || !fs::is_regular_file(src)) {
+            logger->log_error("Copy_file: source file does not exist or is not regular - " + src.string());
             throw std::runtime_error("Source file does not exist or is not a regular file: " + src.string());
         }
 
@@ -519,10 +536,16 @@ void Copy_file(const fs::path& src, const fs::path& dest) {
 
         // 使用 Boost.Filesystem 的文件复制功能
         fs::copy_file(src, dest, fs::copy_option::overwrite_if_exists);
+        if (!fs::exists(dest) || !fs::is_regular_file(dest)) {
+            logger->log_error("Copy_file: failed to copy file - " + src.string() + " to " + dest.string());
+            throw std::runtime_error("Failed to copy file: " + src.string() + " to " + dest.string());
+        }
         // std::cout << "File copied successfully from " << src.string() << " to " << dest.string() << std::endl;
     } catch (const fs::filesystem_error& ex) {
+        logger->log_error("Copy_file: filesystem error - " + std::string(ex.what()));
         std::cerr << "Filesystem error: " << ex.what() << std::endl;
     } catch (const std::exception& ex) {
+        logger->log_error("Copy_file: error - " + std::string(ex.what()));
         std::cerr << "Error: " << ex.what() << std::endl;
     }
 }

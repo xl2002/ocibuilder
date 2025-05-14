@@ -12,6 +12,7 @@
 #include "utils/cli/cli/common.h"
 #include <boost/format.hpp>
 #include "storage/storage/storage.h"
+#include "utils/logger/ProcessSafeLogger.h"
 /**
  * @brief 初始化 images 命令的内容
  * 
@@ -95,7 +96,7 @@ void formatImages(const std::vector<storage::Image>& images) {
         std::string repository = image.Names[0].substr(0, pos);
         std::string tag = image.Names.empty() || image.Names[0].find(':') == std::string::npos ? "latest" : image.Names[0].substr(pos + 1);
 
-        std::string imageID = image.ID;
+        std::string imageID = image.ID.substr(0,12);
         std::string created = formatTime(image.image_config->created);
         std::string size = formatSize(
             std::accumulate(
@@ -116,6 +117,9 @@ void formatImages(const std::vector<storage::Image>& images) {
  * 
  */
 void imagesCmd(Command& cmd, vector<string> args,imagesOptions*iopts){
+    logger->set_module("images");
+    logger->log_info("Start executing images command");
+    
     //1. 加载本地镜像库
     auto store = getStore(&cmd);
     auto imagestore = store->image_store;
@@ -125,17 +129,16 @@ void imagesCmd(Command& cmd, vector<string> args,imagesOptions*iopts){
     if(args.empty()){
         images = imagestore->Images();
     }else{
-        //images.push_back(*store->Image(args[0]));
-            // 先检查是否返回nullptr
-    auto img = store->Image(args[0]);
-    if (img == nullptr) {
-        // 处理错误情况，例如抛出异常、返回错误码或记录日志
-        throw std::runtime_error("Image not found: " + args[0]);
-        // 或者: return ErrorCode::ImageNotFound;
-    }
-    images.push_back(*img);  // 确认非空后再解引用
+        auto img = store->Image(args[0]);
+        if (img == nullptr) {
+            std::string errorMsg = "Image not found: " + args[0];
+            logger->log_error(errorMsg);
+            throw std::runtime_error(errorMsg);
+        }
+        images.push_back(*img);  // 确认非空后再解引用
     }
     //3. 格式化打印所有镜像信息
     formatImages(images);
+    logger->log_info("Images command completed successfully");
     delete iopts;
 }

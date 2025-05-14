@@ -10,6 +10,7 @@
  */
 #include "cmd/rmi/rmi.h"
 #include "utils/cli/cli/common.h"
+#include "utils/logger/ProcessSafeLogger.h"
 /**
  * @brief 初始化 rmi 命令的内容
  * 
@@ -41,18 +42,27 @@ void init_rmi(){
  * 
  */
 void rmiCmd(Command& cmd, vector<string> args){
+    logger->set_module("rmi");
+    logger->log_info("Start removing images");
+    
     //1. 加载镜像仓库
     std::shared_ptr<Store> store;
     store =getStore(&cmd);
     auto images=store->image_store;
+    logger->log_info("Image store loaded successfully");
 
     //如果没有输入imageid或者name
     if(args.size()==0){
+        logger->log_warning("No image name or ID specified");
         cout<<"image name or ID must be specified"<<endl;
+        return;
     }
      //2. 删除指定镜像
     for (const auto& arg : args) {
+        logger->log_info("Removing image: " + arg);
         images->Delete(arg);
+        logger->log_info("Successfully removed image: " + arg);
     }
+    logger->log_info("All specified images removed");
 
 }

@@ -10,6 +10,7 @@
  */
 #include "utils/cli/cli/common.h"
 #include "image/types/define/types.h"
+#include "utils/logger/ProcessSafeLogger.h"
 #include <cstdlib>
 #include <stdlib.h>
 #include <algorithm>
@@ -70,6 +71,7 @@ string ParseBool(string str){
  */
 shared_ptr<Store> getStore(Command* cmd){
     auto needToShutdownStore =false;
+    logger->log_info("Start creating store object");
     // if (!setXDGRuntimeDir()) {
     //     cerr << "Failed to set XDG runtime directory" << endl;
     //     return nullptr;
@@ -93,8 +95,11 @@ shared_ptr<Store> getStore(Command* cmd){
 
     shared_ptr<Store> store = GetStore(options);
     if (store) {
+        logger->log_info("Store created successfully");
         storageTransport transport;
         transport.SetStore(store);
+    } else {
+        logger->log_error("Failed to create store");
     }
     needToShutdownStore = true;
     return store;
@@ -115,6 +120,7 @@ string GetFormat(string format){
         return Dockerv2ImageManifest;
     }
     else{
+        logger->log_error("Unrecognized image type: " + format);
         throw myerror("unrecognized image type "+format);
     }
 }
@@ -241,6 +247,7 @@ std::string Abspath(const std::string& path) {
     try {
         // 使用 Boost 文件系统库获取绝对路径
         if(path.empty()) {
+            logger->log_error("Path is empty in Abspath function");
             throw myerror("Path is empty.");
         }
         if(path == ".") {
@@ -250,6 +257,7 @@ std::string Abspath(const std::string& path) {
             boost::filesystem::path absolutePath = boost::filesystem::absolute(boostPath);
             // 检查路径是否存在
             if (!boost::filesystem::exists(absolutePath)) {
+                logger->log_error("Path does not exist: " + path);
                 throw myerror("Path does not exist.");
             }
 
@@ -257,10 +265,10 @@ std::string Abspath(const std::string& path) {
             return absolutePath.string();
         }
     } catch (const boost::filesystem::filesystem_error& e) {
-        // 捕获 Boost 文件系统库相关的异常
+        logger->log_error("Failed to obtain absolute path: " + std::string(e.what()));
         throw myerror("Failed to obtain the absolute path: " + std::string(e.what()));
     } catch (const std::exception& e) {
-        // 捕获其他异常
+        logger->log_error("Unexpected error in Abspath: " + std::string(e.what()));
         throw myerror("An error occurred: " + std::string(e.what()));
     } catch (...) {
         // 捕获未知异常
@@ -322,6 +330,7 @@ void tmpl(std::ostream& out, const std::string& text,Command& data){
             // Flagstext+=+"\t\t\t"+flag->usage_help+'\n';
         }
     } catch (const std::exception& e) {
+        logger->log_error("Template rendering failed: " + std::string(e.what()));
         throw myerror("Failed to execute template: " + std::string(e.what()));
     }
 }

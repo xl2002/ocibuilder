@@ -1,4 +1,5 @@
 #include "security/auth.h"
+#include "utils/logger/ProcessSafeLogger.h"
 /**
  * @brief CheckAuthFile 该函数用来判断给定的文件路径是否可以访问
  * @param pathOption 该参数是要检查的文件路径
@@ -11,6 +12,7 @@ void CheckAuthFile(pushOptions* iopts){
     }
     struct stat buffer;
     if(stat(iopts->authfile.c_str(),&buffer)!=0){
+        logger->log_error("credential file is not accessible:"+std::make_error_code(std::errc::no_such_file_or_directory).message());
         throw myerror("credential file is not accessible:"+std::make_error_code(std::errc::no_such_file_or_directory).message());
     }
 }

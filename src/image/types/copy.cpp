@@ -5,6 +5,7 @@
 #include "utils/common/go/string.h"
 #include "storage/storage/images.h"
 #include "image/image_types/v1/annotations.h"
+#include "utils/logger/ProcessSafeLogger.h"
 /**
  * @brief // Image将图像从srcRef复制到destRef，使用policyContext来验证源图像的可接受性。 
  *  它返回写入新镜像副本的清单。
@@ -15,14 +16,23 @@
  * @param copyOptions 
  */
 std::vector<uint8_t> Image(std::shared_ptr<PolicyContext>policyContext,std::shared_ptr<ImageReference_interface> destRef,std::shared_ptr<ImageReference_interface> srcRef,std::shared_ptr<ImageReference_interface> registry,std::shared_ptr<copy::Options> copyOptions){
+    logger->log_info("Starting image copy process");
     // 1. 建立镜像够简单的缓存目录
     // publicDest, err := destRef.NewImageDestination(ctx, options.DestinationCtx)
     // destRef为storageReference类型，dest为storageImageDestination类型
     auto dest=destRef->NewImageDestination(copyOptions->destinationCtx);
+    if(!dest) {
+        logger->log_error("Failed to create image destination");
+        return std::vector<uint8_t>();
+    }
     // 2. 构建copy层，并构建整个镜像的config和manifest，但是manifest的layer未压缩
     // publicRawSource, err := srcRef.NewImageSource(ctx, options.SourceCtx)
     // srcRef为containerImageRef类型，rawSource为containerImageSource类型
     auto rawSource=srcRef->NewImageSource(copyOptions->sourceCtx,copyOptions->check);
+    if(!rawSource) {
+        logger->log_error("Failed to create image source");
+        return std::vector<uint8_t>();
+    }
     // 3. 将缓存中的镜像传输到镜像库，并且就行gzip压缩
     // single, err := c.copySingleImage(ctx, c.unparsedToplevel, nil, copySingleImageOptions{requireCompressionFormatMatch: requireCompressionFormatMatch})
     auto c=std::make_shared<copier>();
@@ -35,14 +45,20 @@ std::vector<uint8_t> Image(std::shared_ptr<PolicyContext>policyContext,std::shar
     auto copySingleImageoptions=std::make_shared<copySingleImageOptions>();
     copySingleImageoptions->requireCompressionFormatMatch=true;
     auto single=c->copySingleImage(c->unparsedToplevel,nullptr,copySingleImageoptions);
+    if(!single) {
+        logger->log_error("Failed to copy single image");
+        return std::vector<uint8_t>();
+    }
     // 4. 更新镜像库的index.json
     auto containerimage=std::dynamic_pointer_cast<containerImageSource>(rawSource);
     if(containerimage==nullptr){
+        logger->log_error("containerimage is nullptr");
         std::cerr<<"containerimage is nullptr"<<std::endl;
         return std::vector<uint8_t>();
     }
     std::string indexpath=containerimage->store->GetImageStoragePath()+"/index.json";
     if(!boost::filesystem::exists(indexpath)){
+        logger->log_error("index.json does not exist at path: " + indexpath);
         std::cout<<"index.json is not exist"<<std::endl;
         return std::vector<uint8_t>();
     }
@@ -102,6 +118,7 @@ std::vector<uint8_t> Image(std::shared_ptr<PolicyContext>policyContext,std::shar
  * @return std::shared_ptr<copySingleImageResult> 
  */
 std::shared_ptr<copySingleImageResult> copier::copySingleImage(std::shared_ptr<UnparsedImage> unparsedImage,std::shared_ptr<Digest> targetInstance,std::shared_ptr<copySingleImageOptions> opts){
+    logger->log_info("Starting single image copy process");
     // 1. 构建imagecopier结构，注意类的成员变量已不同
     std::shared_ptr<imageCopier> ic = std::make_shared<imageCopier>();
     ic->src = rawSource;
@@ -116,6 +133,7 @@ std::shared_ptr<copySingleImageResult> copier::copySingleImage(std::shared_ptr<U
     // compressionAlgos, err := ic.copyLayers(ctx)
     std::shared_ptr<Algorithm> compressionAlgo = ic->copyLayers();
     if (!compressionAlgo) {
+        logger->log_error("Failed to copy layers");
         return nullptr;
     }
     // 3. 更新manifest和config（按理来说config不会变化），并将manifest的layer存储到oci库
@@ -124,12 +142,15 @@ std::shared_ptr<copySingleImageResult> copier::copySingleImage(std::shared_ptr<U
     // auto config= pendingImage->config;
     //复制config到库
     if(pendingImage->SaveConfig()){
+        logger->log_info("save config success");
         std::cout<<"save config success"<<std::endl;
     }
 
     //更新manifest
     auto blobsinfo_gzip=ic->manifestUpdates->InformationOnly->LayerInfos;//获得压缩层的信息
     if(blobsinfo_gzip.size()!=manifest->Layers.size()){
+        logger->log_error("Manifest layer count mismatch: expected " + std::to_string(manifest->Layers.size()) + 
+                         ", got " + std::to_string(blobsinfo_gzip.size()));
         std::cerr<<"manifest num is not match"<<std::endl;
         return nullptr;
     }
@@ -145,6 +166,7 @@ std::shared_ptr<copySingleImageResult> copier::copySingleImage(std::shared_ptr<U
     std::string manifestbytes=marshal<OCI1>(*manifest);//manifest为指针，不能直接解析
     auto manifestdigest=pendingImage->UploadManifest(manifestbytes);//保存manifest到库
     if(manifestdigest==nullptr){
+        logger->log_error("Failed to upload manifest");
         std::cerr<<"upload manifest failed"<<std::endl;
     }
     // 4. 返回copySingleImageResult
@@ -218,12 +240,14 @@ std::tuple<std::shared_ptr<BlobInfo>,std::shared_ptr<Digest>> imageCopier::copyL
     // auto copyimage=this->c;
     auto copysource=std::dynamic_pointer_cast<containerImageSource>(this->src);
     if(copysource==nullptr){
+        logger->log_error("copysource is nullptr");
         std::cout<<"copysource is nullptr"<<std::endl;
         return std::make_tuple(nullptr,nullptr);
     }
     std::string tmppath=copysource->path;
     boost::filesystem::path layerpath(tmppath+"/"+srcInfo->Digest->Encoded());
     if(!boost::filesystem::exists(layerpath)){
+        logger->log_error("Layer path does not exist: " + layerpath.string());
         std::cout<<"layerpath is not exist"<<std::endl;
     }
     boost::filesystem::ifstream layerfile(layerpath,std::ios::binary);
@@ -240,6 +264,7 @@ std::tuple<std::shared_ptr<BlobInfo>,std::shared_ptr<Digest>> imageCopier::copyL
     std::string storagelayerpath=copysource->store->GetImageStoragePath()+"/blobs/sha256/blobs";
     boost::filesystem::ofstream bloblayer(storagelayerpath,std::ios::binary|std::ios::trunc);
     if(!bloblayer){
+        logger->log_error("Failed to open blob file: " + storagelayerpath);
         std::cerr<<"Failed to open file: " << storagelayerpath << std::endl;
         return std::make_tuple(nullptr,nullptr);
     }
@@ -254,6 +279,7 @@ std::tuple<std::shared_ptr<BlobInfo>,std::shared_ptr<Digest>> imageCopier::copyL
     }
     // auto digest=FromString(gzipblob);
     auto size=gzipblob.size();
+    logger->log_info("success copying image layer: "+BlobDigest->String());
     std::cout<<"success copying image layer: "<<BlobDigest->String()<<std::endl;
     // 4. 将压缩后的镜像层传输到镜像库
     auto blobinfo=std::make_shared<BlobInfo>();

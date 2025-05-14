@@ -19,6 +19,7 @@
 namespace fs = boost::filesystem;
 void createTar(const std::string& tarFilePath, const fs::path& directory);
 void add_file_to_archive(struct archive* a, const fs::path& file_path, const fs::path& base_path);
+bool extractTarGz(const std::string& tarGzPath, const std::string& destDir,const std::string& expectedTarHash);
 class tarFilterer
 {
     public:

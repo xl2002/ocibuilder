@@ -1,5 +1,5 @@
 #include "image/types/define/build.h"
-
+#include "utils/logger/ProcessSafeLogger.h"
 
 /**
  * @brief 将Isolation枚举为字符串
@@ -36,6 +36,7 @@ string Compression::String(){
     }else if(value==Zstd){
         return tarExt+".zst";
     }else{
+        logger->log_error("unrecognized isolation type "+value);
         std::cerr<<"unrecognized isolation type "<<value<<std::endl;
         return "";
     }
@@ -57,6 +58,7 @@ string NetworkConfigurationPolicy::String(){
     }else if(value==NetworkEnabled){
         return "NetworkEnabled";
     }else{
+        logger->log_error("unknown NetworkConfigurationPolicy "+value);
         std::cerr<<"unknown NetworkConfigurationPolicy "<<value<<std::endl;
         return "";
     }

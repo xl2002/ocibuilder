@@ -3,6 +3,7 @@
 #include <thread>
 #include <chrono>
 #include <iostream>
+#include "utils/logger/ProcessSafeLogger.h"
 /**
  * @brief 执行操作并在失败时进行重试
  * 
@@ -44,6 +45,7 @@ void IfNecessary(std::function<void()> operation, std::shared_ptr<Retry::Options
     }catch(const std::exception& e){
         for(;attempt<options->MaxRetry;attempt++){
             double delayInSeconds = std::chrono::duration_cast<std::chrono::seconds>(options->Delay).count();
+            logger->log_warning("failed,retryong in "+std::to_string(delayInSeconds*std::pow(2,attempt))+" seconds "+"("+std::to_string(attempt+1)+"/"+std::to_string(options->MaxRetry)+")");
             std::cout<<"failed,retryong in "<<delayInSeconds*std::pow(2,attempt)<<" seconds "<<"("<<attempt+1<<"/"<<options->MaxRetry<<")"<<std::endl;
             std::this_thread::sleep_for(options->Delay*std::pow(2,attempt));
             try{

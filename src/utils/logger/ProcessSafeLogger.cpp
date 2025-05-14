@@ -46,6 +46,7 @@ void ProcessSafeLogger::init_logging() {
     boost::shared_ptr< sinks::synchronous_sink< sinks::text_file_backend > > sink =
         logging::add_file_log(
             logging::keywords::file_name = file_pattern,
+            logging::keywords::open_mode = std::ios_base::app, // 关键修改：追加模式
             logging::keywords::rotation_size = 10 * 1024 * 1024, // 单文件最大 10MB
             logging::keywords::time_based_rotation = sinks::file::rotation_at_time_point(0, 0, 0), // 每天 00:00
             logging::keywords::auto_flush = true

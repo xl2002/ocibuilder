@@ -8,6 +8,7 @@
 // #include <fileapi.h>
 #include <pthread.h>
 #include <boost/filesystem.hpp>
+#include "utils/logger/ProcessSafeLogger.h"
 /**
  *        保存在authfile中
  * @param file  需要被复制的文件
@@ -24,6 +25,7 @@ bool MirrorToTempFileIfPathIsDescriptor(std::string file ,std::string &authfile)
     {
         std::ifstream infile(file,std::ios::binary);
         if(!infile.is_open()){
+            logger->log_error("Unable to open file: "+file);
             throw myerror("Unable to open file: " + file);
         }
         infile.close();
@@ -50,6 +52,7 @@ std::string DiscoverContainerfile(std::string path){
     struct stat target;
     std::string foundCtrFile;
     if(stat(path.c_str(),&target)!=0){
+        logger->log_error("discovering Containerfile: " + std::string(strerror(errno)));
         throw myerror("discovering Containerfile: " + std::string(strerror(errno)));
     }
     if((target.st_mode& S_IFDIR)!=0){
@@ -57,6 +60,7 @@ std::string DiscoverContainerfile(std::string path){
         if (!fileExists(ctrfile)) {
             ctrfile = joinPath(path, "Dockerfile");
             if (!fileExists(ctrfile)) {
+                logger->log_error("cannot find Containerfile or Dockerfile in context directory");
                 throw myerror("cannot find Containerfile or Dockerfile in context directory");
             }
         }
@@ -64,11 +68,13 @@ std::string DiscoverContainerfile(std::string path){
         if (isRegularFile(ctrfile)) {
             foundCtrFile = ctrfile;
         } else {
+            logger->log_error("assumed Containerfile " + ctrfile + " is not a file");
             throw myerror("assumed Containerfile " + ctrfile + " is not a file");
         }
     } else if ((target.st_mode & S_IFREG) != 0) {
         foundCtrFile = path;
     } else {
+        logger->log_error("path is neither a regular file nor a directory");
         throw myerror("path is neither a regular file nor a directory");
     }
     return foundCtrFile;
@@ -90,6 +96,7 @@ std::string resolveSymlinks(const std::string& path) {
         
         return absolutePath.string();
     } catch (const boost::filesystem::filesystem_error& e) {
+        logger->log_error("Error resolving symlinks: " + std::string(e.what()));
         throw std::runtime_error("Error resolving symlinks: " + std::string(e.what()));
     }
 }
@@ -123,6 +130,7 @@ std::shared_ptr<ImageReference_interface> VerifyTagName(std::string imagespec){
     if(ref==nullptr){
         ref=ParseImageName(DefaultTransport+imagespec);
         if(ref==nullptr){
+            logger->log_error("failed to parse image name: "+imagespec);
             throw myerror("failed to parse image name: "+imagespec);
         }
     }

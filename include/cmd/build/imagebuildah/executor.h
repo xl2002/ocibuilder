@@ -51,7 +51,7 @@ class Executor {
     std::vector<named> cacheTo;
     std::chrono::duration<int> cacheTTL;
     std::string containerSuffix;
-    std::shared_ptr<Logger> logger=std::make_shared<Logger>();
+    //std::shared_ptr<Logger> logger=std::make_shared<Logger>();
     std::map<std::string, std::shared_ptr<StageExecutor>> stages;
     std::shared_ptr<Store> store=std::make_shared<Store>();
     std::string contextDir;

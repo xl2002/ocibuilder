@@ -241,7 +241,7 @@ void buildCmd(Command& cmd, vector<string> args,BuildOptions* iopts){
     try {
         // cout<<"hello buildah-build!"<<endl;
         logger->set_module("build");
-        logger->log_info("hello buildah-build!");
+        logger->log_info("Build command started");
         // 打开日志文件
         if(cmd.Flag_find("logfile")->changed){
             iopts->logwriter->open(iopts->Logfile,std::ios::out | std::ios::trunc);
@@ -279,6 +279,7 @@ void buildCmd(Command& cmd, vector<string> args,BuildOptions* iopts){
             // 构建Dockerfile
             id= BuildDockerfiles(stores, budopt, ret_containerfiles,ref);
             if (!budopt->Manifest.empty()) {
+                logger->log_warning("manifest list id = " + id + ", ref = " + ref->String());
                 throw myerror("manifest list id = " + id + ", ref = " + ref->String());
                 // std::cerr << "manifest list id = " << id << ", ref = " << ref << std::endl;
             }
