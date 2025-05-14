@@ -712,6 +712,7 @@ bool Flagset::Set(string name, string value){
     }
     // Flag& flag=f;
     flag->value->Set(value);
+    logger->set_module("flag");
     logger->log_info("flag: "+std::string(flag->name)+"\tvalue: "+flag->value->String());
     cout<<"flag: "<<flag->name<<"\tvalue: "<<flag->value->String()<<endl;
     if(!flag->changed){

@@ -40,6 +40,7 @@ void init_tag(){
  * @details 通过镜像存储库的 `newtag` 方法实现名称添加，若失败则输出错误并退出。
  */
 void tagCmd(Command& cmd, vector<string> args){
+    logger->set_module("tag");
     logger->log_info("Start tag command for image: " + args[0]);
     //1. 加载镜像仓库
     auto store=getStore(&cmd);
