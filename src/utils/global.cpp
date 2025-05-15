@@ -6,13 +6,13 @@
 
 #include "utils/init/init_global.h"
 #include "utils/cli/cobra/command.h"
-#include "utils/logger/logrus/entry.h"
-#include "utils/logger/logrus/exported.h"
+// #include "utils/logger/logrus/entry.h"
+// #include "utils/logger/logrus/exported.h"
 #include "utils/parse/dockerfileparse.h"
 #include "utils/common/regexp.h"
 #include "utils/parse/line_parsers.h"
 #include "utils/common/go/file.h"
-#include "utils/logger/logrus/alt_exit.h"
+// #include "utils/logger/logrus/alt_exit.h"
 #include "utils/parse/buildkitparser.h"
 #include "utils/parse/parse.h"
 
@@ -21,19 +21,19 @@
 Flagset* CommandLine;
 
 /// @brief 全局缓冲池接口指针
-std::shared_ptr<BufferPool_interface> globalBufferPool;
+// std::shared_ptr<BufferPool_interface> globalBufferPool;
 
-/// @brief logrus包名
-std::string logrusPackage;
-/// @brief 最小调用深度
-int minimumCallerDepth;
-/// @brief 最大调用深度 
-int maximumCallerDepth;
-/// @brief 已知logrus帧数
-int knownLogrusFrames;
+// /// @brief logrus包名
+// std::string logrusPackage;
+// /// @brief 最小调用深度
+// int minimumCallerDepth;
+// /// @brief 最大调用深度 
+// int maximumCallerDepth;
+// /// @brief 已知logrus帧数
+// int knownLogrusFrames;
 
 /// @brief 标准日志记录器
-std::shared_ptr<Logger> Std;
+// std::shared_ptr<Logger> Std;
 
 
 /// @brief 转义命令token正则表达式
@@ -83,7 +83,7 @@ bool precompile;
 char Separator;
 // 定义 handlers 为一个存储函数的 vector
 /// @brief 处理函数vector
-std::vector<std::function<void()>> handlers;
+// std::vector<std::function<void()>> handlers;
 
 /// @brief 空白字符正则表达式
 std::regex reWhitespace;
@@ -127,14 +127,14 @@ std::string BuildahCacheDir;
 void init_utils(){
     CommandLine=NewFlagSet("buildah");
 
-    globalBufferPool = std::make_shared<SimpleBufferPool>();
+    // globalBufferPool = std::make_shared<SimpleBufferPool>();
 
 
-    logrusPackage="";
-    minimumCallerDepth=1;
-    maximumCallerDepth=25;
-    knownLogrusFrames=4;
-    Std=New();
+    // logrusPackage="";
+    // minimumCallerDepth=1;
+    // maximumCallerDepth=25;
+    // knownLogrusFrames=4;
+    // Std=New();
 
 
     tokenEscapeCommand=Delayed(R"(^#[ \t]*escape[ \t]*=[ \t]*(.).*$)");

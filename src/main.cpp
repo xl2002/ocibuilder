@@ -45,6 +45,7 @@ int main(int argc, char const *argv[]){
         e.logerror();
         exit(1);
     }
+    Delete();
     // rootcmd.Run();
     return 0;
 }
