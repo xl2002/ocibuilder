@@ -268,12 +268,12 @@ class NameSpaceResults{
 class BuildOptions:public BudResults,public LayerResults,public FromAndBudResults,public UserNSResults,public NameSpaceResults{
 public:
     /// logwriter 日志输出流指针，默认为nullptr
-    std::ofstream*       logwriter=nullptr;
+    std::shared_ptr<ofstream>       logwriter=nullptr;
     /// BuildOptions 构造函数，初始化BuildOptions对象
     BuildOptions():BudResults(),LayerResults(),FromAndBudResults(),UserNSResults(){};
 };
 
 
-void GenBuildOptions(Command* cmd, vector<string> inputArgs,BuildOptions* iopts, shared_ptr<define_BuildOptions> budopt, vector<string>& ret_containerfiles,vector<string>& removeAll);
+void GenBuildOptions(std::shared_ptr <Command> cmd, vector<string> inputArgs,std::shared_ptr <BuildOptions> iopts, shared_ptr<define_BuildOptions> budopt, vector<string>& ret_containerfiles,vector<string>& removeAll);
 
 #endif // CLI_BUILD_H

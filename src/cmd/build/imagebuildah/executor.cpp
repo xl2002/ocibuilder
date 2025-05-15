@@ -53,7 +53,7 @@ newExecutor(
     if(options->Quiet){
         writer=nullptr;
     }
-    std::ostream* rusageLogFile=nullptr;
+    std::shared_ptr<ostream> rusageLogFile=nullptr;
     if(options->LogRusage && !options->Quiet){
 
     }
@@ -175,10 +175,10 @@ std::tuple<string,std::shared_ptr<Canonical_interface>> Executor::Build(std::sha
     std::vector<std::string> cleanupImages;
     std::map<int, std::shared_ptr<StageExecutor>> cleanupStages;
 
-    auto Stdout = out;
-    if (quiet) {
-        out = new std::ostringstream(); // 类似于io.Discard
-    }
+    // auto Stdout = out;
+    // if (quiet) {
+    //     out = new std::ostringstream(); // 类似于io.Discard
+    // }
 
     // 清理函数，用于清理阶段容器、镜像等资源
     auto cleanup = [this, &cleanupStages, &cleanupImages,&imageID]() {
@@ -486,7 +486,7 @@ std::tuple<string,std::shared_ptr<Canonical_interface>> Executor::Build(std::sha
         }
     }else{
         try{
-            *Stdout<<imageID<<std::endl;
+            std::cout<<imageID<<std::endl;
         }catch(const myerror& e){
             logger->log_error("Failed to write image ID to stdout: " + string(e.what()));
             throw myerror("failed to write image ID to stdout : "+string(e.what()));
@@ -598,7 +598,8 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,bool,std::string> Ex
             }
             std::string suffix=" ";
             auto message = prefix + format + suffix;
-            *stageExecutor->executor->out<< message << vectorToString(args)<<std::endl;
+            // *stageExecutor->executor->out<< message << vectorToString(args)<<std::endl;
+            std::cout<< message << vectorToString(args)<<std::endl;
             // std::printf(message.c_str(), args);
         };
     }

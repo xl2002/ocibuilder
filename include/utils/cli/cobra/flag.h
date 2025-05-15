@@ -33,9 +33,8 @@ class Flag{
   public:
     string  name;                   ///<在命令行中显示的名称
     // string  shorthand;           ///<单字母缩写标志
-    string  usage_help;             ///<帮助信息
-    Value_interface*  value=nullptr;          ///<用来保存标签从参数列表中分析得到值
-    // shared_ptr<Value_interface> value;
+    string  usage_help;             ///<帮助信息      
+    shared_ptr<Value_interface> value=nullptr;///<用来保存标签从参数列表中分析得到值
     string  default_value;          ///<标签的默认值
     string  NoOptDefVal;            ///< 默认值（作为文本）；如果该标志位于命令行上且没有任何选项
     map<string,vector<string>> Annotations; ///< 由 bash 自动完成代码使用
@@ -45,8 +44,7 @@ class Flag{
     string  shorthand_deprecated;         ///<如果不推荐使用此标志的简写，则此字符串是新的或现在要使用的字符串
     // set<string> values;                ///<设定值
     Flag()=default;
-    Flag(string name,string usage,Value_interface* v,string values);
-    ~Flag();
+    Flag(string name,string usage,shared_ptr<Value_interface> v,string values);
 };
 /**
  * @brief Flagset 表示一组已定义的标志。
@@ -59,18 +57,18 @@ class Flagset{
     bool    parsed=false;                     ///<是否已经进行解析
     bool    SortedFlags=false;                ///<标志是否被排序（按照名称排序）
     bool    interspersed=false;               ///<允许散布选项/非选项参数
-    map<string,Flag*> actual_flags;           ///<真实的标志集，以标志名为索引
-    vector<Flag*>    order_actual_flags;      ///<有序的真实标志集
-    vector<Flag*>    sorted_actual_flags;     ///<已排序的真实标志集
-    map<string,Flag*> formal_flags;           ///<正式的标志集（类似进行标准化后的）
-    vector<Flag*>    order_formal_flags;      ///<有序的正式标志集
-    vector<Flag*>    sorted_formal_flags;     ///<已排序的正式标志集
-    ostream*    output=nullptr;               ///<用于输出
+    map<string,shared_ptr<Flag>> actual_flags;           ///<真实的标志集，以标志名为索引
+    vector<shared_ptr<Flag>>    order_actual_flags;      ///<有序的真实标志集
+    vector<shared_ptr<Flag>>    sorted_actual_flags;     ///<已排序的真实标志集
+    map<string,shared_ptr<Flag>> formal_flags;           ///<正式的标志集（类似进行标准化后的）
+    vector<shared_ptr<Flag>>    order_formal_flags;      ///<有序的正式标志集
+    vector<shared_ptr<Flag>>    sorted_formal_flags;     ///<已排序的正式标志集
+    std::shared_ptr<ostream>    output=nullptr;               ///<用于输出
     vector<string> args;                      ///<标志后的参数
     
     Flagset()=default;                      ///<构造函数
-    ~Flagset();
-    Flag* Addvar(Value_interface* value,string name,string usage);
+    // ~Flagset();
+    shared_ptr<Flag> Addvar(shared_ptr<Value_interface> value,string name,string usage);
     void StringVar(string &option_name, string name,string value, string usage);
     void StringArrayVar(vector<string>& option_name, string name ,vector<string> value , string usage);
     void String(string name, string value, string usage);
@@ -82,14 +80,14 @@ class Flagset{
     void Int(string name, int value, string usage);
     void StringSliceVar(vector<string>& option_name, string name ,vector<string> value , string usage);
     void StringSlice(string name ,vector<string> value , string usage);
-    void AddFlagSet(Flagset* flags);
+    void AddFlagSet(std::shared_ptr<Flagset> flags);
     // void NormalizeFunc();
     void SetInterspersed(bool interspersed);
     void SetAnnotation(string name,string key,vector<string> value);
-    void AddFlag(Flag* newflag);
+    void AddFlag(shared_ptr<Flag> newflag);
     // void Visitflag(Flag& flag,vector<string>& names);
-    void VisitAll(const function<void(Flag*)>&fn);
-    Flag* Lookup(const string name);
+    void VisitAll(const function<void(shared_ptr<Flag>)>&fn);
+    shared_ptr<Flag> Lookup(const string name);
     bool Changed(string name );
     void MarkHidden(string name);
     string getFlagType(string name,string ftype);
@@ -107,7 +105,7 @@ class Flagset{
     bool HasFlags();
 };
 
-vector<Flag*> sortFlags(map<string,Flag*> flags);
+vector<shared_ptr<Flag>> sortFlags(map<string,shared_ptr<Flag>> flags);
 
 
 #endif

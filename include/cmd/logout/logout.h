@@ -30,6 +30,6 @@ class logoutOptions
 };
 
 void init_logout();     
-void logoutCmd(Command& cmd, vector<string> args, logoutOptions* iopts);      
+void logoutCmd(std::shared_ptr<Command> cmd, vector<string> args, std::shared_ptr<logoutOptions> iopts);      
 
 #endif

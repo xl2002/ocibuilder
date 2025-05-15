@@ -20,52 +20,52 @@
  * @param v 标签的值
  * @param values 标签的默认值
  */
-Flag::Flag(string name,string usage,Value_interface* v,string values):name(name),usage_help(usage),value(v),default_value(values) {}
+Flag::Flag(string name,string usage,shared_ptr<Value_interface> v,string values):name(name),usage_help(usage),value(v),default_value(values) {}
 // Flag::Flag(string name,string usage,Value_interface* v,string values):name(name),usage_help(usage),value(std::make_shared<Value_interface>(v)),default_value(values) {}
 /**
  * @brief 销毁Flag::Flag对象
  * 
  */
-Flag::~Flag(){
-    if(value){
-        // cout << "Deleting value pointer: " << value << endl;
-        delete value;
-        value=nullptr;
-    }
-}
+// Flag::~Flag(){
+//     if(value){
+//         // cout << "Deleting value pointer: " << value << endl;
+//         delete value;
+//         value=nullptr;
+//     }
+// }
 /**
  * @brief 销毁Flagset::Flagset对象
  * 
  */
-Flagset::~Flagset(){
-    // 释放 actual_flags 中的 Flag 对象
-    // for (auto& pair : actual_flags) {
+// Flagset::~Flagset(){
+//     // 释放 actual_flags 中的 Flag 对象
+//     // for (auto& pair : actual_flags) {
+//     //     delete pair.second;
+//     // }
+//     // 释放 order_actual_flags 中的 Flag 对象
+//     // for (Flag* flag : order_actual_flags) {
+//     //     delete flag;
+//     // }
+    // // 释放 sorted_actual_flags 中的 Flag 对象
+    // for (Flag* flag : sorted_actual_flags) {
+    //     delete flag;
+    // }
+    // // 释放 formal_flags 中的 Flag 对象
+    // for (auto& pair : formal_flags) {
     //     delete pair.second;
     // }
-    // 释放 order_actual_flags 中的 Flag 对象
-    // for (Flag* flag : order_actual_flags) {
-    //     delete flag;
-    // }
-    // 释放 sorted_actual_flags 中的 Flag 对象
-    for (Flag* flag : sorted_actual_flags) {
-        delete flag;
-    }
-    // 释放 formal_flags 中的 Flag 对象
-    for (auto& pair : formal_flags) {
-        delete pair.second;
-    }
-    // 释放 order_formal_flags 中的 Flag 对象
-    // for (Flag* flag : order_formal_flags) {
-    //     if(flag)
-    //     delete flag;
-    // }
-    // 释放 sorted_formal_flags 中的 Flag 对象
-    for (Flag* flag : sorted_formal_flags) {
-        delete flag;
-    }
-    // 不需要释放 output 指针，因为它不是由 Flagset 类分配的内存
-    output = nullptr;
-}
+    // // 释放 order_formal_flags 中的 Flag 对象
+    // // for (Flag* flag : order_formal_flags) {
+    // //     if(flag)
+    // //     delete flag;
+    // // }
+//     // 释放 sorted_formal_flags 中的 Flag 对象
+//     for (Flag* flag : sorted_formal_flags) {
+//         delete flag;
+//     }
+//     // 不需要释放 output 指针，因为它不是由 Flagset 类分配的内存
+//     output = nullptr;
+// }
 /**
  * @brief 将标签添加到标签集中
  * 
@@ -74,8 +74,8 @@ Flagset::~Flagset(){
  * @param usage 标签的用途
  * @return Flag* 返回标签的指针
  */
-Flag* Flagset::Addvar(Value_interface* value,string name,string usage){
-    Flag* flag=new Flag{name,usage,value,value->String()};
+shared_ptr<Flag> Flagset::Addvar(shared_ptr<Value_interface> value,string name,string usage){
+    auto flag=std::make_shared<Flag>(name,usage,value,value->String());
     AddFlag(flag);
     // ret_flag=*flag;
     return flag;
@@ -90,8 +90,8 @@ Flag* Flagset::Addvar(Value_interface* value,string name,string usage){
  * @param usage 标签用途介绍
  */
 void Flagset::StringVar(string &option_name, string name,string value, string usage){
-    StringValue* pvalue=newStringValue(value,option_name);
-    Flag* flag=Addvar(pvalue,name,usage);
+    auto pvalue=newStringValue(value,option_name);
+    auto flag=Addvar(pvalue,name,usage);
     return ;
 }
 
@@ -104,8 +104,8 @@ void Flagset::StringVar(string &option_name, string name,string value, string us
  * @param usage 标签用途介绍
  */
 void Flagset::StringArrayVar(vector<string>& option_name, string name ,vector<string> value , string usage){
-    StringArrayValue* pvalue=newStringArrayValue(value,option_name);
-    Flag* flag=Addvar(pvalue,name,usage);
+    auto pvalue=newStringArrayValue(value,option_name);
+    auto flag=Addvar(pvalue,name,usage);
 }
 
 /**
@@ -131,8 +131,8 @@ void Flagset::String(string name, string value, string usage){
  * @param usage 标签用途介绍
  */
 void Flagset::BoolVar(bool& option_name, string name, bool value, string usage){
-    BoolValue* pvalue=newBoolValue(value,option_name);
-    Flag* flag=Addvar(pvalue,name,usage);
+    auto pvalue=newBoolValue(value,option_name);
+    auto flag=Addvar(pvalue,name,usage);
     flag->NoOptDefVal="true";
 }
 /**
@@ -155,8 +155,8 @@ void Flagset::BoolP(string name,bool value, string usage){
  * @param usage 标签用途
  */
 void Flagset::IntVar(int& option_name, string name, int value, string usage){
-    IntValue* pvalue=newIntValue(value,option_name);
-    Flag* flag=Addvar(pvalue,name,usage);
+    auto pvalue=newIntValue(value,option_name);
+    auto flag=Addvar(pvalue,name,usage);
 }
 /**
  * @brief 创建值为int64_t的标签
@@ -175,8 +175,8 @@ void Flagset::IntVar(int& option_name, string name, int value, string usage){
  * @param usage 标签用途说明
  */
 void Flagset::Int64Var(int64_t& option_name, string name, int value, string usage){
-    int64Value* pvalue=newInt64Value(value,option_name);
-    Flag* flag=Addvar(pvalue,name,usage);
+    auto pvalue=newInt64Value(value,option_name);
+    auto flag=Addvar(pvalue,name,usage);
 }
 /**
  * @brief 创建值为uint64_t的标签
@@ -187,8 +187,8 @@ void Flagset::Int64Var(int64_t& option_name, string name, int value, string usag
  * @param usage 
  */
 void Flagset::Uint64Var(uint64_t& option_name, string name, int value, string usage){
-    uint64Value* pvalue=newUint64Value(value,option_name);
-    Flag* flag=Addvar(pvalue,name,usage);
+    auto pvalue=newUint64Value(value,option_name);
+    auto flag=Addvar(pvalue,name,usage);
 }
 /**
  * @brief 创建值为int的标签，没有提供存储位置
@@ -212,8 +212,8 @@ void Flagset::Int(string name, int value, string usage){
  * @param usage 标签用途
  */
 void Flagset::StringSliceVar(vector<string>& option_name, string name ,vector<string> value , string usage){
-    stringSliceValue* pvalue=newStringSliceValue(value,option_name);
-    Flag* flag=Addvar(pvalue,name,usage);
+    auto pvalue=newStringSliceValue(value,option_name);
+    auto flag=Addvar(pvalue,name,usage);
 }
 /**
  * @brief 字符串值保存的位置
@@ -255,10 +255,9 @@ void Flagset::SetAnnotation(string name,string key,vector<string> value){
  * 
  * @param newflagset 需要添加的标签集
  */
-void Flagset::AddFlagSet(Flagset* newflagset){
+void Flagset::AddFlagSet(std::shared_ptr<Flagset> newflagset){
     if(newflagset==nullptr){
         return;
-        // cerr<<" new flag is nulpptr"<<endl;
     }
     // Flagset* fs=this;
     // function<void(Flag*)>fn =[this](Flag* f){
@@ -266,7 +265,7 @@ void Flagset::AddFlagSet(Flagset* newflagset){
     //     this->AddFlag(f);
     // };
     // newflagset->VisitAll(fn)
-    newflagset->VisitAll([this](Flag* f){
+    newflagset->VisitAll([this](shared_ptr<Flag> f){
         this->Lookup(f->name);
         this->AddFlag(f);
     });
@@ -276,7 +275,7 @@ void Flagset::AddFlagSet(Flagset* newflagset){
  * 
  * @param newflag 被添加的标签
  */
-void Flagset::AddFlag(Flag* newflag){
+void Flagset::AddFlag(shared_ptr<Flag> newflag){
     string name= newflag->name;
     auto it =formal_flags.find(name);
     if(it!=formal_flags.end()){
@@ -285,7 +284,6 @@ void Flagset::AddFlag(Flag* newflag){
     }
     // if(formal_flags)
     formal_flags[name]=newflag;
-    // Flag* newf=new Flag();
     // *newf=*newflag;
     order_formal_flags.emplace_back(newflag);
 }
@@ -295,9 +293,8 @@ void Flagset::AddFlag(Flag* newflag){
  * 
  * @param fn 可调用对象
  */
-void Flagset::VisitAll(const function<void(Flag*)>& fn){
+void Flagset::VisitAll(const function<void(shared_ptr<Flag>)>& fn){
     if(formal_flags.size()==0){
-        // cerr<<"the new flagsets is null"<<endl;
         return;
     }
     // if(SortedFlags){
@@ -305,7 +302,7 @@ void Flagset::VisitAll(const function<void(Flag*)>& fn){
     //         sorted_formal_flags=sortFlags(formal_flags);
     //     }
     // }
-    vector<Flag*>newflags;
+    vector<shared_ptr<Flag>>newflags;
     if(SortedFlags){
         if(formal_flags.size()!=sorted_formal_flags.size()){
             sorted_formal_flags=sortFlags(formal_flags);
@@ -336,7 +333,7 @@ void Flagset::VisitAll(const function<void(Flag*)>& fn){
 //         return nullptr;
 //     }
 // }
-Flag* Flagset::Lookup(const string name) {
+shared_ptr<Flag> Flagset::Lookup(const string name) {
     if (formal_flags.count(name) > 0) { // 如果容器中存在该键
         return formal_flags[name]; // 这里会返回该键对应的值，不会插入新元素
     } else {
@@ -363,7 +360,7 @@ bool Flagset:: Changed(string name ) {
  * @param name 标签名
  */
 void Flagset::MarkHidden(string name){
-    Flag* flag=Lookup(name);
+    auto flag=Lookup(name);
     if(flag==nullptr){
         logger->log_error("flag "+name+" does not exit");
         throw myerror("flag "+name+" does not exit");
@@ -380,7 +377,7 @@ void Flagset::MarkHidden(string name){
  * @return string 
  */
 string Flagset::getFlagType(string name,const string ftype){
-    Flag* flag=Lookup(name);
+    auto flag=Lookup(name);
     if(flag==nullptr){
         logger->log_error("flag accessed but not defined: "+name);
         throw myerror("flag accessed but not defined: "+name);
@@ -542,12 +539,12 @@ vector<string> Flagset::Args(){
  * @param flags 被排序的标签集
  * @return vector<Flag*> 已排序的标签集
  */
-vector<Flag*> sortFlags(map<string,Flag*> flags){
-    vector<pair<string,Flag*>> vec_flags(flags.begin(),flags.end());
-    sort(vec_flags.begin(),vec_flags.end(),[](pair<string,Flag*>&s1,pair<string,Flag*>&s2){
+vector<shared_ptr<Flag>> sortFlags(map<string,shared_ptr<Flag>> flags){
+    vector<pair<string,shared_ptr<Flag>>> vec_flags(flags.begin(),flags.end());
+    sort(vec_flags.begin(),vec_flags.end(),[](pair<string,shared_ptr<Flag>>&s1,pair<string,shared_ptr<Flag>>&s2){
         return s1.first<s2.first;
     });
-    vector<Flag*> ret_flags;
+    vector<shared_ptr<Flag>> ret_flags;
     for (auto f:vec_flags){
         ret_flags.emplace_back(f.second);
     }
@@ -649,7 +646,7 @@ vector<string> Flagset::parseLongArg(string arg, vector<string> args) {
     vector<string> split = SplitN(name, "=", 2);
     name = split[0];
 
-    Flag* flag;
+    std::shared_ptr<Flag> flag=nullptr;
     if (formal_flags.find(name) == formal_flags.end()) {
         logger->log_error("unknown flag: --" + name);
         throw myerror("unknown flag: --" + name);
@@ -701,7 +698,7 @@ vector<string> Flagset::parseLongArg(string arg, vector<string> args) {
  */
 bool Flagset::Set(string name, string value){
     // string name =this->name;
-    Flag* flag;
+    shared_ptr<Flag> flag=nullptr;
     if(formal_flags.find(name)==formal_flags.end()){
         logger->log_error("no such flag "+name);
         throw myerror("no such flag "+name);
@@ -717,10 +714,6 @@ bool Flagset::Set(string name, string value){
     cout<<"flag: "<<flag->name<<"\tvalue: "<<flag->value->String()<<endl;
     if(!flag->changed){
         flag->changed=true;
-        // if(actual_flags.size()==0){
-        //     actual_flags=new map<string,Flag*>();
-        // }
-        // actual_flags[name]=flag;
         actual_flags[flag->name]=flag;
         order_actual_flags.emplace_back(flag);
     }

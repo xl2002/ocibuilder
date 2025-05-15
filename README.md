@@ -22,6 +22,8 @@ COPY ./app /usr/src/app
 ./main.exe build --tag busybox-image:latest .
 #推送镜像，localhost:5000为网络地址和端口，busybox-image:latest为镜像名
 ./main.exe push localhost:5000/busybox-image:latest
+# 内存泄漏检测
+valgrind --leak-check=full --log-file=./output/valgrind_output.txt ./output/ociBuild build --tag image:latest .
 ```
 
 chatgpt提示工程

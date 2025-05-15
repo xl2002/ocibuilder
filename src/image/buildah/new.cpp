@@ -51,7 +51,7 @@ std::shared_ptr<Builder> newBuilder(std::shared_ptr<Store> store,std::shared_ptr
         pullOptions->RetryDelay=options->PullRetryDelay;
         pullOptions->OciDecryptConfig=options->OciDecryptConfig;
         pullOptions->SignaturePolicyPath=options->SignaturePolicyPath;
-        pullOptions->Writer=options->ReportWriter;
+        // pullOptions->Writer=options->ReportWriter;
         pullOptions->DestinationLookupReferenceFunc=cacheLookupReferenceFunc(options->BlobDirectory,std::make_shared<LayerCompression>(layerCompression::PreserveOriginal));
         auto maxRetries=(uint32_t)(options->MaxPullRetries);
         pullOptions->MaxRetries=std::make_shared<uint32_t>(maxRetries);

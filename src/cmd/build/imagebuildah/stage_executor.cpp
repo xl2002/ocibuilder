@@ -7,7 +7,7 @@
 #include "utils/common/go/string.h"
 #include "image/buildah/commit.h"
 #include <algorithm>
-#include "utils/logger/logrus/exported.h"
+// #include "utils/logger/logrus/exported.h"
 #include "image/image_types/docker/image.h"
 #include "utils/logger/ProcessSafeLogger.h"
 
@@ -99,25 +99,25 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,bool> StageExecutor:
     auto logCachePulled=[&](std::string cacheKey, std::shared_ptr<named> remote){
         if(!this->executor->quiet){
             auto cachePullMessage = "--> Cache pulled from remote";
-            *this->executor->out << cachePullMessage <<" "<<remote->String() << ":" << cacheKey << std::endl;
+            std::cout << cachePullMessage <<" "<<remote->String() << ":" << cacheKey << std::endl;
         }
     };
 
     auto logCachePush=[&](std::string cacheKey){
         if(!this->executor->quiet){
             auto cachePushMessage = "--> Pushing cache";
-            *this->executor->out << cachePushMessage;
+            std::cout << cachePushMessage;
             for (auto &cache : this->executor->cacheTo) {
-                *this->executor->out << "[" << cache.String() << "]" ;
+                std::cout << "[" << cache.String() << "]" ;
             }
-            *this->executor->out << ":" << cacheKey << std::endl;
+            std::cout << ":" << cacheKey << std::endl;
         }
     };
 
     auto logCacheHit=[&](std::string cacheID){
         if(!this->executor->quiet){
             auto cacheHitMessage =  "--> Using cache";
-            *this->executor->out << cacheHitMessage << " " << cacheID << std::endl;
+            std::cout << cacheHitMessage << " " << cacheID << std::endl;
         }
     };
 
@@ -126,7 +126,7 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,bool> StageExecutor:
             imgID=imgID.substr(0,12);
         }
         if(this->executor->iidfile==""){
-            *this->executor->out << "--> " << imgID << std::endl;
+            std::cout << "--> " << imgID << std::endl;
         }
     };
 
@@ -528,7 +528,7 @@ std::pair<std::string,std::shared_ptr<Canonical_interface>> StageExecutor::commi
     options->Compression=this->executor->compression;
     options->outputimage=output;
     options->SignaturePolicyPath=this->executor->signaturePolicyPath;
-    options->ReportWriter=writer;
+    // options->ReportWriter=writer;
     options->PreferredManifestType=this->executor->outputFormat;
     options->SystemContext=this->executor->systemContext;
     options->Squash=squash;

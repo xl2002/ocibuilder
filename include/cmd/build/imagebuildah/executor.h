@@ -30,7 +30,7 @@
 #include "cmd/build/imagebuilder/builder.h"
 #include "image/types/types.h"
 #include "image/transports/alltransports.h"
-#include "utils/logger/logrus/logger.h"
+// #include "utils/logger/logrus/logger.h"
 #include <list>
 #include <boost/optional.hpp>
 #include <boost/thread/thread.hpp> // 使用 boost::thread
@@ -67,13 +67,13 @@ class Executor {
     std::string outputFormat;
     std::vector<std::string> additionalTags;
     std::function<void(string format,vector<string>args)> log; // can be nullptr
-    std::istream* in=nullptr;
-    std::ostream* out=nullptr;
-    std::ostream* err=nullptr;
+    std::shared_ptr<istream> in=nullptr;
+    std::shared_ptr<ostream> out=nullptr;
+    std::shared_ptr<ostream> err=nullptr;
     std::string signaturePolicyPath;
     OptionalBool skipUnusedStages;
     std::shared_ptr<SystemContext> systemContext=std::make_shared<::SystemContext>();
-    std::ostream* reportWriter=nullptr;
+    std::shared_ptr<ostream> reportWriter=nullptr;
     std::shared_ptr<Isolation> isolation=std::make_shared<::Isolation>();
     std::vector<NamespaceOption> namespaceOptions;
     std::shared_ptr<NetworkConfigurationPolicy> configureNetwork=std::make_shared<::NetworkConfigurationPolicy>();
@@ -122,7 +122,7 @@ class Executor {
     std::mutex stagesLock;
     std::shared_ptr<Weighted> stagesSemaphore=std::make_shared<::Weighted>();
     bool logRusage=false;
-    std::ostream* rusageLogFile=nullptr;
+    std::shared_ptr<ostream> rusageLogFile=nullptr;
     std::mutex imageInfoMutex;
     std::map<std::string, imageTypeAndHistoryAndDiffIDs> imageInfoCache;
     std::string fromOverride;

@@ -14,6 +14,7 @@
 // #include <errors.h>
 #include <numeric>
 #include <tuple>
+#include <memory>
 // #include <ios>
 #include <functional>
 // #include "utils/cli/cobra/flag.h"
@@ -26,7 +27,7 @@
  * 例如'go run ...'，'run' 是命令。需要将用法和描述定义为命令的一部分
  * 以确保可用性。
  */
-class Command{
+class Command: public std::enable_shared_from_this<Command> {
     public:
         /**
          * @brief commandCalledAs 是用于调用此命令的名称或别名值。
@@ -50,17 +51,17 @@ class Command{
         string version;                 ///<命令版本
         vector<string> args;            ///<args 是从标志解析的实际参数。
 
-        vector<Command*> Son_command;   ///<该程序支持的子命令
-        Command* parent_Command=nullptr;        ///<parent 是该命令的父命令。
-        Command* helpCommand=nullptr;           ///<helpCommand 是使用“help”的命令。
-        Flagset* flags=nullptr;                  ///<flags 是全套完整标志。
-        Flagset* persistent_flags=nullptr;       ///<persistent_flags 包含持久标志。
-        Flagset* local_flags=nullptr;            ///<local_flags 包含本地标志。
-        Flagset* inherited_flags=nullptr;        ///<inherited_flags 包含继承的标志。
-        Flagset* parent_persistent_flags=nullptr;///<Parent_persistent_flags 是 cmd 父级的所有持久标志。
+        vector<std::shared_ptr<Command>> Son_command;   ///<该程序支持的子命令
+        std::shared_ptr<Command> parent_Command=nullptr;        ///<parent 是该命令的父命令。
+        std::shared_ptr<Command> helpCommand=nullptr;           ///<helpCommand 是使用“help”的命令。
+        std::shared_ptr<Flagset> flags=nullptr;                  ///<flags 是全套完整标志。
+        std::shared_ptr<Flagset> persistent_flags=nullptr;       ///<persistent_flags 包含持久标志。
+        std::shared_ptr<Flagset> local_flags=nullptr;            ///<local_flags 包含本地标志。
+        std::shared_ptr<Flagset>inherited_flags=nullptr;        ///<inherited_flags 包含继承的标志。
+        std::shared_ptr<Flagset> parent_persistent_flags=nullptr;///<Parent_persistent_flags 是 cmd 父级的所有持久标志。
         CommandcalledAs commandcallas;           ///<commandcallas 是用于调用此命令的名称或别名值。
-        std::function<bool(Command&,vector<string>&)>Args; ///<检查命令的参数
-        void (*helpFunc)(Command& cmd, vector<string> strs)=nullptr; ///<help 函数
+        std::function<bool(std::shared_ptr<Command>,vector<string>&)>Args; ///<检查命令的参数
+        void (*helpFunc)(std::shared_ptr<Command> cmd, vector<string> strs)=nullptr; ///<help 函数
         bool TraverseChildren=false;            ///<TraverseChildren 在执行子命令之前解析所有父级上的标志。
         bool Hidden=false;                      ///<Hidden定义此命令是否隐藏并且不应显示在可用命令列表中。
         bool DisableFlagParsing=false;          ///<禁用标志解析​​，如果true，所有标志都将作为参数传递给命令。
@@ -83,15 +84,15 @@ class Command{
          * @{
          * 
          */
-        function <void(Command& , vector<string>)> PersistentPreRun=nullptr;    ///<PersistentPreRun：该命令的子命令将继承并执行。
-        function <void(Command& , vector<string>)> PreRun=nullptr;              ///<PreRun：该命令的子命令不会继承。
-        function <void(Command& , vector<string>)> Run=nullptr;                 ///<Run：通常是实际功函数。大多数命令只会实现这个。
-        function <void(Command& , vector<string>)> PostRun=nullptr;             ///<PostRun：在运行命令之后运行。
-        function <void(Command& , vector<string>)> PersistentPostRun=nullptr;   ///<PersistentPostRun：此命令的子命令将在 PostRun 之后继承并执行。
-        // void (*PreRun)(Command& cmd, vector<string> args)=nullptr;              ///<PreRun：该命令的子命令不会继承。
-        // void (*Run)(Command& cmd, vector<string> args)=nullptr;                 ///<Run：通常是实际功函数。大多数命令只会实现这个。
-        // void (*PostRun)(Command& cmd, vector<string> args)=nullptr;             ///<PostRun：在运行命令之后运行。
-        // void (*PersistentPostRun)(Command& cmd, vector<string> args)=nullptr;   ///<PersistentPostRun：此命令的子命令将在 PostRun 之后继承并执行。
+        function <void(std::shared_ptr<Command> , vector<string>)> PersistentPreRun=nullptr;    ///<PersistentPreRun：该命令的子命令将继承并执行。
+        function <void(std::shared_ptr<Command> , vector<string>)> PreRun=nullptr;              ///<PreRun：该命令的子命令不会继承。
+        function <void(std::shared_ptr<Command> , vector<string>)> Run=nullptr;                 ///<Run：通常是实际功函数。大多数命令只会实现这个。
+        function <void(std::shared_ptr<Command> , vector<string>)> PostRun=nullptr;             ///<PostRun：在运行命令之后运行。
+        function <void(std::shared_ptr<Command> , vector<string>)> PersistentPostRun=nullptr;   ///<PersistentPostRun：此命令的子命令将在 PostRun 之后继承并执行。
+        // void (*PreRun)(std::shared_ptr<Command> cmd, vector<string> args)=nullptr;              ///<PreRun：该命令的子命令不会继承。
+        // void (*Run)(std::shared_ptr<Command> cmd, vector<string> args)=nullptr;                 ///<Run：通常是实际功函数。大多数命令只会实现这个。
+        // void (*PostRun)(std::shared_ptr<Command> cmd, vector<string> args)=nullptr;             ///<PostRun：在运行命令之后运行。
+        // void (*PersistentPostRun)(std::shared_ptr<Command> cmd, vector<string> args)=nullptr;   ///<PersistentPostRun：此命令的子命令将在 PostRun 之后继承并执行。
         /**
          * @}
          * 
@@ -100,31 +101,31 @@ class Command{
         
         Command()=default; ///<默认的构造函数
         Command(string& name,string& Short,string& Long,string& example);  
-        ~Command();
+        // ~Command();
         void Execute(int argc, char const *argv[]);
         void ExecuteC(int argc, char const *argv[]);
         void execute(vector<string> args);
-        Flagset* Flags(); 
+        std::shared_ptr<Flagset> Flags(); 
         string  Name();
-        Flagset* PersistentFlags(); 
-        void AddCommand(initializer_list<Command*>cmdlist); 
-        void RemoveCommand(initializer_list<Command*>cmdlist);
+        std::shared_ptr<Flagset> PersistentFlags(); 
+        void AddCommand(initializer_list<std::shared_ptr<Command>>cmdlist); 
+        void RemoveCommand(initializer_list<std::shared_ptr<Command>>cmdlist);
         string CommandPath();
         void SetUsageTemplate(string&);
         void Help();
-        void (*Helpfunc())(Command& cmd, vector<string> str);
+        void (*Helpfunc())(std::shared_ptr<Command> cmd, vector<string> str);
         bool HasParent();
         std::string HelpTemplate();
-        Command* Root();
-        Command* Parent();
+        std::shared_ptr<Command> Root();
+        std::shared_ptr<Command> Parent();
         bool HasSubCommands();
         void InitDefaultHelpCmd();
         void InitDefaultCompletionCmd();
         void InitDefaultHelpFlag();
         void InitDefaultVersionFlag();
-        void Traverse(vector<string>args,Command& ret_cmd,vector<string>&ret_args);
-        Command* Find(vector<string>args,vector<string>&ret_args);
-        Command* findNext(string next);
+        void Traverse(vector<string>args,std::shared_ptr<Command> ret_cmd,vector<string>&ret_args);
+        std::shared_ptr<Command> Find(vector<string>args,vector<string>&ret_args);
+        std::shared_ptr<Command> findNext(string next);
         vector<string> argsMinusFirstX(vector<string>args,string x);
         void ParseFlags(vector<string> args);
         bool Runnable();
@@ -134,20 +135,20 @@ class Command{
         bool ValidateFlagGroups();
         void mergePersistentFlags();
         void updateParentsPflags();
-        void VisitParents(const function<void(Command*)>& fn);
-        Flag* Flag_find(string name);
-        Flag* persistentFlag_find(string name);
+        void VisitParents(const function<void(std::shared_ptr<Command>)>& fn);
+        std::shared_ptr<Flag> Flag_find(string name);
+        std::shared_ptr<Flag> persistentFlag_find(string name);
         bool HasPersistentFlags();
         
 };      
 
-extern Flagset* CommandLine;
+extern std::shared_ptr<Flagset> CommandLine;
 
-Flagset* NewFlagSet(const string& name);
-void help_func(Command& cmd, vector<string> a);
-bool hasNoOptDefVal( string name, Flagset* flags);
-vector<string> stripFlags(vector<string> args,Command& cmd);
-Command* innerfind(Command* cmd,vector<string>&args,vector<string>& ret_args);
+std::shared_ptr<Flagset> NewFlagSet(const string& name);
+void help_func(std::shared_ptr<Command> cmd, vector<string> a);
+bool hasNoOptDefVal( string name, std::shared_ptr<Flagset> flags);
+vector<string> stripFlags(vector<string> args,std::shared_ptr<Command> cmd);
+std::shared_ptr<Command> innerfind(std::shared_ptr<Command> cmd,vector<string>&args,vector<string>& ret_args);
 bool commandNameMatches(string s, string t);
-void legacyArgs(Command*cmd,vector<string>args);
+void legacyArgs(std::shared_ptr<Command>cmd,vector<string>args);
 #endif

@@ -4,7 +4,7 @@
 #include "utils/cli/cli/common.h"
 #include "utils/logger/ProcessSafeLogger.h"
 #include "utils/parse/parse.h"
-#include "utils/logger/logrus/logger.h"
+// #include "utils/logger/logrus/logger.h"
 #include <fstream>
 #include "utils/common/go/string.h"
 #include <sstream>

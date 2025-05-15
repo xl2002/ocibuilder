@@ -30,7 +30,7 @@ class saveOptions
 };
 
 void init_save();
-void saveCmd(Command& cmd, vector<string> args, saveOptions*iopts);
+void saveCmd(std::shared_ptr<Command> cmd, vector<string> args, std::shared_ptr<saveOptions> iopts);
 bool convertOciConfigToDockerLayerConfig(const std::string &ociConfigPath, const std::string &dockerConfigPath, const std::string &configDigest);
-//void pushCmdLocal(Command& cmd, vector<string> args, pushOptions* iopts);
+//void pushCmdLocal(std::shared_ptr<Command> cmd, vector<string> args, pushOptions* iopts);
 #endif

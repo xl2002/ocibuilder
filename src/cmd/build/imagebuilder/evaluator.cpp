@@ -38,7 +38,6 @@ void Step::Resolve(std::shared_ptr<Node> ast) {
     Heredocs = ast->Heredocs;
     std::string cmd = ast->Value;
     auto upperCasedCmd=toUpper(cmd);
-    // std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::toupper);
 
     // 检查平台是否支持命令
     if (platformSupports(toLower(cmd))!="") {

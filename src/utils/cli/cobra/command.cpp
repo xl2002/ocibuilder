@@ -30,26 +30,32 @@ Command::Command(string& name,string& Short,string& Long, string& example):
  * @brief 销毁Command::Command对象
  * <p>主要是对自定义的对象指针进行销毁，注意销毁的顺序，避免重复释放资源
  */
-Command::~Command(){
-    for (Command* cmd : Son_command) {
-        delete cmd;
-    }
-    // 释放动态分配的 Flagset 对象
-    // delete flags;
-    // delete persistent_flags;
-    delete local_flags;
-    delete inherited_flags;
-    delete parent_persistent_flags;
+// Command::~Command(){
+//     // for (Command* cmd : Son_command) {
+//     //     if(cmd!=nullptr)
+//     //     {
+//     //         delete cmd;
+//     //         cmd=nullptr;
+//     //     }
+//     // }
+    // // delete parent_Command;
+    // // delete helpCommand;
+    // // 释放动态分配的 Flagset 对象
+    // // delete flags;
+    // // delete persistent_flags;
+    // delete local_flags;
+    // delete inherited_flags;
+    // delete parent_persistent_flags;
 
-    // 将指针设为 nullptr
-    // parent_Command = nullptr;
-    // helpCommand = nullptr;
-    // flags = nullptr;
+    // // 将指针设为 nullptr
+    // // parent_Command = nullptr;
+    // // helpCommand = nullptr;
+    // // flags = nullptr;
     // persistent_flags = nullptr;
-    // local_flags = nullptr;
-    // inherited_flags = nullptr;
-    // parent_persistent_flags = nullptr;
-}
+//     local_flags = nullptr;
+//     inherited_flags = nullptr;
+//     parent_persistent_flags = nullptr;
+// }
 /**
  * @brief CommandLine 是默认的命令行标志集。
  * 
@@ -61,7 +67,7 @@ Command::~Command(){
  * 
  * @return Flagset* 标志集的指针
  */
-Flagset* Command::Flags(){
+std::shared_ptr<Flagset> Command::Flags(){
     if(flags==nullptr){
         flags=NewFlagSet(Name());
         // flags->name=this->name;
@@ -74,8 +80,8 @@ Flagset* Command::Flags(){
  * 
  * @return Flagset& 返回命令中持久化标志集的引用
  */
-Flagset* NewFlagSet(const string& name){
-    Flagset* ret_flag=new Flagset();
+std::shared_ptr<Flagset> NewFlagSet(const string& name){
+    auto ret_flag=std::make_shared<Flagset>();
     ret_flag->name=name;
     ret_flag->interspersed=true;
     ret_flag->SortedFlags=true;
@@ -86,7 +92,7 @@ Flagset* NewFlagSet(const string& name){
  * <p>如果Command对象的持续化标志集为空，则新建一个空的Flagset
  * @return Flagset* 返回的新建的Flagset指针
  */
-Flagset* Command::PersistentFlags(){
+std::shared_ptr<Flagset> Command::PersistentFlags(){
     if(persistent_flags==nullptr){
         persistent_flags=NewFlagSet(Name());
         // persistent_flags->name=this->name;
@@ -129,14 +135,16 @@ void Command::ExecuteC(int argc, char const *argv[]){
         }
     }
     vector<string> flags;
-    Command* cmd=new Command();///<用来分析子命令，例如build
+    // Command* cmd=new Command();///<用来分析子命令，例如build
+    auto cmd=std::make_shared<Command>();
     try
     {
         if(TraverseChildren){
             // Traverse(args,cmd,flags);
             // flags=f;cmd=c;
         }else{
-            cmd=Find(args,flags);
+            std::shared_ptr<Command>tmpc(Find(args,flags));
+            cmd=tmpc;
             // flags=f;cmd=c;
         }
     }
@@ -163,27 +171,27 @@ void Command::ExecuteC(int argc, char const *argv[]){
         std::string err_msg=e.what();
         if(err_msg=="help requested"){
             logger->log_info("Help requested for command: " + cmd->Name());
-            cmd->Helpfunc()(*cmd,args);
+            cmd->Helpfunc()(cmd,args);
         }else{
             logger->log_error("Command execution failed: " + string(e.what()));
             throw ;
         }
     }
-    
-    
+    // delete cmd;
+    // cmd=nullptr;
 }
 /**
  * @brief 向Command对象中添加子Command对象
  * <p>函数接受同时添加多个子Command对象
  * @param cmdlist Command对象指针列表
  */
-void Command::AddCommand(initializer_list<Command*>cmdlist){
+void Command::AddCommand(initializer_list<std::shared_ptr<Command>>cmdlist){
     for (auto x : cmdlist) {
-        if (x == this) {
+        if (x.get() == this) {
             // throw std::runtime_error("Command can't be a child of itself");
             cerr<<"Command can't be a child of itself"<<endl;
         }
-        x->parent_Command=this;
+        x->parent_Command=shared_from_this();
         // x.parent = this;
 
         // Update max lengths
@@ -213,10 +221,10 @@ void Command::AddCommand(initializer_list<Command*>cmdlist){
  * @brief 在Command对象中删除cmdlist中的子命令
  * @param cmdlist 需要删除的命令指针列表
  */
-void Command::RemoveCommand(initializer_list<Command*>cmdlist){
+void Command::RemoveCommand(initializer_list<std::shared_ptr<Command>>cmdlist){
     // vector<Command> remainingCommands;
     for(auto cmd: cmdlist){
-        auto it=remove_if(Son_command.begin(),Son_command.end(),[cmd](Command* command){
+        auto it=remove_if(Son_command.begin(),Son_command.end(),[cmd](std::shared_ptr<Command> command){
             if(command==cmd){
                 command->parent_Command=nullptr;
                 return true;
@@ -267,7 +275,7 @@ void Command::SetUsageTemplate(string& str){
  * 
  */
 void Command::Help(){
-    Helpfunc()(*this,vector<string>{});
+    Helpfunc()(shared_from_this(),vector<string>{});
 }
 /**
  * @brief 一个help函数，用来第一help命令的行为
@@ -275,12 +283,12 @@ void Command::Help(){
  * @param cmd 执行help命令的对象
  * @param a 参数列表
  */
-void help_func(Command& cmd, vector<string> a){
-    cmd.mergePersistentFlags();
+void help_func(std::shared_ptr<Command> cmd, vector<string> a){
+    cmd->mergePersistentFlags();
     // The help should be sent to stdout
     //err := tmpl(c.OutOrStdout(), c.HelpTemplate(), c)
     try{
-        tmpl(std::cout,cmd.HelpTemplate(),cmd);
+        tmpl(std::cout,cmd->HelpTemplate(),cmd);
     }catch(const myerror& e){
         logger->log_error("help error: "+std::string(e.what()));
         std::cerr<<"help error: "<<e.what()<<std::endl;
@@ -290,7 +298,7 @@ void help_func(Command& cmd, vector<string> a){
  * @brief Helpfunc函数返回一个函数指针
  * HelpFunc 返回 SetHelpFunc 为此命令设置的函数或父级，或者返回具有默认帮助行为的函数。
  */
-void (* Command::Helpfunc())(Command& cmd, vector<string> str){
+void (* Command::Helpfunc())(std::shared_ptr<Command> cmd, vector<string> str){
     if(helpFunc!=nullptr){
         return helpFunc;
     }
@@ -327,18 +335,18 @@ std::string Command::HelpTemplate(){
  * 
  * @return Command* 根命令的指针 
  */
-Command* Command::Root(){
+std::shared_ptr<Command> Command::Root(){
     if(HasParent()){
         return Parent()->Root();
     }
-    return this;
+    return shared_from_this();
 }
 /**
  * @brief Parent返回Command对象的父命令
  * 
  * @return Command* 父命令指针
  */
-Command* Command::Parent(){
+std::shared_ptr<Command> Command::Parent(){
     return parent_Command;
 }
 /**
@@ -364,11 +372,11 @@ void Command::InitDefaultHelpCmd(){
         string Long="Help provides help for any command in the application.\
                     Simply type "+ Name() +"help [path to command] for full details.";
         string example="";
-        Command* helpcmd=new Command(name,Short,Long,example);
-        helpcmd->Run=[](Command& cmd, vector<string> args){
-            Command* new_cmd;
+        auto helpcmd=std::make_shared<Command>(name,Short,Long,example);
+        helpcmd->Run=[](std::shared_ptr<Command> cmd, vector<string> args){
+            std::shared_ptr<Command> new_cmd=nullptr;
             vector<string> new_args;
-            new_cmd=cmd.Root()->Find(args,new_args);
+            new_cmd=cmd->Root()->Find(args,new_args);
             new_cmd->InitDefaultHelpFlag();
             new_cmd->InitDefaultVersionFlag();
         };
@@ -443,7 +451,7 @@ void Command::InitDefaultVersionFlag(){
  * @param ret_cmd 用来保存Command对象
  * @param ret_args 保存查找解析的参数
  */
-void Command::Traverse(vector<string>args,Command& ret_cmd,vector<string>&ret_args){
+void Command::Traverse(vector<string>args,std::shared_ptr<Command> ret_cmd,vector<string>&ret_args){
 
 }
 /**
@@ -454,8 +462,8 @@ void Command::Traverse(vector<string>args,Command& ret_cmd,vector<string>&ret_ar
  * @return true 
  * @return false 
  */
-bool hasNoOptDefVal( string name, Flagset* flags){
-    Flag* f=flags->Lookup(name);
+bool hasNoOptDefVal( string name, std::shared_ptr<Flagset> flags){
+    auto f=flags->Lookup(name);
     if(f==nullptr){
         return false;
     }
@@ -474,12 +482,12 @@ bool hasNoOptDefVal( string name, Flagset* flags){
  * @param cmd 运行的命令
  * @return vector<string> 
  */
-vector<string> stripFlags(vector<string> args,Command* cmd){
+vector<string> stripFlags(vector<string> args,std::shared_ptr<Command> cmd){
     if(args.size()==0){
         return args;
     }
     cmd->mergePersistentFlags();
-    Flagset* flags=cmd->Flags();
+    auto flags=cmd->Flags();
     vector<string> commands;
     auto it =args.begin();
     while(it!=args.end()){
@@ -512,7 +520,7 @@ vector<string> stripFlags(vector<string> args,Command* cmd){
  * @param ret_args 返回参数
  * @return Command* 解析参数后，保存到Command
  */
-Command* innerfind(Command* cmd,vector<string>&args,vector<string>& ret_args){
+std::shared_ptr<Command> innerfind(std::shared_ptr<Command> cmd,vector<string>&args,vector<string>& ret_args){
     vector<string>argsWOflags=stripFlags(args,cmd);
     if(argsWOflags.size()==0){
         // ret_cmd=*cmd;
@@ -521,7 +529,7 @@ Command* innerfind(Command* cmd,vector<string>&args,vector<string>& ret_args){
         // return make_tuple(cmd,args);
     }
     string nextSubCmd = argsWOflags[0];
-    Command* next_cmd=cmd->findNext(nextSubCmd);
+    auto next_cmd=cmd->findNext(nextSubCmd);
     if(next_cmd){
         vector<string>next_args =cmd->argsMinusFirstX(args, nextSubCmd);
         return innerfind(next_cmd,next_args,ret_args);
@@ -543,7 +551,7 @@ vector<string> Command::argsMinusFirstX(vector<string>args,string x){
         return args;
     }
     mergePersistentFlags();
-    Flagset* flags= Flags();
+    auto flags= Flags();
     for (auto pos=0;pos<args.size();pos++){
         string& s=args[pos];
         if(s=="--"){
@@ -572,7 +580,7 @@ vector<string> Command::argsMinusFirstX(vector<string>args,string x){
  * <p> - 子命令将始终接受任意参数
  * @param cmd 
  */
-void legacyArgs(Command*cmd,vector<string>args){
+void legacyArgs(std::shared_ptr<Command>cmd,vector<string>args){
     if(!cmd->HasSubCommands()){
         return;
     }
@@ -594,10 +602,10 @@ void legacyArgs(Command*cmd,vector<string>args){
  * 
  * @note 此函数会处理命令标志并验证参数有效性
  */
-Command* Command::Find(vector<string>args,vector<string>&ret_args){
+std::shared_ptr<Command> Command::Find(vector<string>args,vector<string>&ret_args){
     // Command commandFound;
     // vector<string> new_args;
-    Command*commandFound= innerfind(this,args,ret_args);
+    auto commandFound= innerfind(shared_from_this(),args,ret_args);
     // return make_tuple(a,commandFound,);
     if(commandFound->Args==nullptr){
         vector<string> a=stripFlags(ret_args,commandFound);
@@ -637,7 +645,7 @@ bool commandNameMatches(string s, string t){
  * 
  * @note 此函数仅进行名称匹配，不处理参数解析
  */
-Command* Command::findNext(string next){
+std::shared_ptr<Command> Command::findNext(string next){
     // vector<Command*> matches;
     for (auto cmd:this->Son_command){
         if(commandNameMatches(cmd->Name(),next)){
@@ -702,11 +710,11 @@ void Command::execute(vector<string> args){
     }
     
 
-    for(auto p=this;p!=nullptr;p=p->Parent()){
+    for(auto p=shared_from_this();p!=nullptr;p=p->Parent()){
         if(p->PersistentPreRun!=nullptr){
             try
             {
-                p->PersistentPreRun(*this,argWoFlags);
+                p->PersistentPreRun(shared_from_this(),argWoFlags);
             }
             catch(const myerror& e)
             {
@@ -717,7 +725,7 @@ void Command::execute(vector<string> args){
     if(PreRun!=nullptr){
         try
         {
-            PreRun(*this,argWoFlags);
+            PreRun(shared_from_this(),argWoFlags);
         }
         catch(const myerror& e)
         {
@@ -744,7 +752,7 @@ void Command::execute(vector<string> args){
     if(Run!=nullptr){
     try
     {
-        Run(*this,argWoFlags);
+        Run(shared_from_this(),argWoFlags);
     }
     catch(const myerror& e)
     {
@@ -755,18 +763,18 @@ void Command::execute(vector<string> args){
     if(PostRun!=nullptr){
         try
         {
-            PostRun(*this,argWoFlags);
+            PostRun(shared_from_this(),argWoFlags);
         }
         catch(const myerror& e)
         {
             throw;
         }
     }
-    for (auto p=this;p!=nullptr;p=p->Parent()){
+    for (auto p=shared_from_this();p!=nullptr;p=p->Parent()){
         if(p->PersistentPostRun!=nullptr){
             try
             {
-                p->PersistentPostRun(*this,argWoFlags);
+                p->PersistentPostRun(shared_from_this(),argWoFlags);
             }
             catch(const myerror& e)
             {
@@ -817,7 +825,7 @@ bool Command::ValidateRequiredFlags(){
     auto flags=Flags();
     vector<string> missingFlagNames;
     
-    function<void(Flag*)> fn=[&missingFlagNames](Flag* f){
+    function<void(std::shared_ptr<Flag>)> fn=[&missingFlagNames](std::shared_ptr<Flag> f){
 
     };
     flags->VisitAll(fn);
@@ -878,7 +886,7 @@ void Command::updateParentsPflags(){
     }
     Root()->PersistentFlags()->AddFlagSet(CommandLine);
     // Root()->PersistentFlags()->AddFlagSet(CommandLine);
-    VisitParents([this](Command* parent){
+    VisitParents([this](std::shared_ptr<Command> parent){
         this->parent_persistent_flags->AddFlagSet(parent->PersistentFlags());
     });
 }
@@ -887,7 +895,7 @@ void Command::updateParentsPflags(){
  * 
  * @param fn 上级传递的函数对象
  */
-void Command::VisitParents(const function<void(Command*)>& fn){
+void Command::VisitParents(const function<void(std::shared_ptr<Command>)>& fn){
     if (HasParent()){
         fn(Parent());
         Parent()->VisitParents(fn);
@@ -905,9 +913,9 @@ void Command::VisitParents(const function<void(Command*)>& fn){
  * 
  * @note 返回的标志指针生命周期由所属标志集管理
  */
-Flag* Command::Flag_find(string name){
-    Flagset* flags=Flags();
-    Flag* flag=flags->Lookup(name);
+std::shared_ptr<Flag> Command::Flag_find(string name){
+    auto flags=Flags();
+    auto flag=flags->Lookup(name);
     if(flag==nullptr){
         flag=persistentFlag_find(name);
     }
@@ -925,8 +933,8 @@ Flag* Command::Flag_find(string name){
  * 
  * @note 此函数会触发父标志集更新(updateParentsPflags)
  */
-Flag* Command::persistentFlag_find(string name){
-    Flag* flag;
+std::shared_ptr<Flag> Command::persistentFlag_find(string name){
+    std::shared_ptr<Flag> flag=nullptr;
     if(HasPersistentFlags()){
         flag=PersistentFlags()->Lookup(name);
     }

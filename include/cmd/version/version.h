@@ -57,5 +57,5 @@ class versionInfo{
     }
 };
 void init_version();
-void versionCmd(versionOptions* iopts);
+void versionCmd(std::shared_ptr<versionOptions> iopts);
 #endif

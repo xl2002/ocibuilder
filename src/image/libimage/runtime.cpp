@@ -1,5 +1,5 @@
 #include "image/libimage/runtime.h"
-#include "utils/logger/logrus/exported.h"
+// #include "utils/logger/logrus/exported.h"
 #include "config/new.h"
 #include "image/transports/alltransports.h"
 #include "image/image_types/docker/docker_transport.h"

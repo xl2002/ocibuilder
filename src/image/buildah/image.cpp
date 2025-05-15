@@ -428,8 +428,6 @@ std::tuple<std::shared_ptr<v1::Image>,std::shared_ptr<Manifest>> containerImageR
     oimage.created=now;
     oimage.rootFS.type=TypeLayers;
     oimage.author=BuildAuthor;
-    // oimage.config.env.push_back("PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin");
-    // oimage.config.cmd.push_back("sh");
     if(oimage.platform.OS==""){
         oimage.platform.OS="linux";
         logger->log_info("Using default platform OS: linux");

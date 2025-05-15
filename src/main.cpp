@@ -37,7 +37,7 @@ int main(int argc, char const *argv[]){
     try
     {
         // 3. 执行rootcmd
-        rootcmd.Execute(argc, argv);
+        rootcmd->Execute(argc, argv);
     }
     catch(const myerror& e)
     {
@@ -45,7 +45,6 @@ int main(int argc, char const *argv[]){
         e.logerror();
         exit(1);
     }
-    Delete();
-    // rootcmd.Run();
+    // rootcmd->Run();
     return 0;
 }

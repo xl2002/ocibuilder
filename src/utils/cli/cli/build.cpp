@@ -34,7 +34,7 @@ vector<string> getContainerfiles(vector<string> files);
  *
  *@throws myerror 如果发生错误。
  */
-void GenBuildOptions(Command* cmd, vector<string> inputArgs,BuildOptions* iopts, shared_ptr<define_BuildOptions> options, vector<string>& ret_containerfiles,vector<string>& removeAll){
+void GenBuildOptions(std::shared_ptr <Command> cmd, vector<string> inputArgs,std::shared_ptr <BuildOptions> iopts, shared_ptr<define_BuildOptions> options, vector<string>& ret_containerfiles,vector<string>& removeAll){
     string output;
     vector<string> tags;
     bool cleanTmpFile=false;
@@ -104,13 +104,13 @@ void GenBuildOptions(Command* cmd, vector<string> inputArgs,BuildOptions* iopts,
             contextDir=getDirectory(containerfile);
         }
         contextDir = resolveSymlinks(contextDir);
-        std::istream* stdinStream=nullptr;
-        if (iopts->Stdin) {
-            stdinStream = &std::cin;
-        }
-        std::ostream* stdoutStream = &std::cout;
-        std::ostream* stderrStream = &std::cerr;
-        std::ostream* reporterStream = &std::cerr;
+        // std::shared_ptr<std::istream> stdinStream=nullptr;
+        // if (iopts->Stdin) {
+        //     stdinStream = std::make_shared<std::istream>(std::cin);
+        // }
+        // std::ostream* stdoutStream = &std::cout;
+        // std::ostream* stderrStream = &std::cerr;
+        // std::ostream* reporterStream = &std::cerr;
         if(iopts->logwriter!=nullptr){}
         auto systemContext= SystemContextFromOptions(cmd);
         auto isolation= IsolationOption(iopts->Isolation);
@@ -195,7 +195,7 @@ void GenBuildOptions(Command* cmd, vector<string> inputArgs,BuildOptions* iopts,
         options->ContextDirectory=contextDir;
         options->Devices=iopts->Devices;
         options->DropCapabilities=iopts->CapDrop;
-        options->Err=stderrStream;
+        // options->Err=stderrStream;
         options->Excludes=excludes;
         options->ForceRmIntermediateCtrs=iopts->ForceRm;
         options->From=iopts->From;
@@ -203,7 +203,7 @@ void GenBuildOptions(Command* cmd, vector<string> inputArgs,BuildOptions* iopts,
         options->IDMappingoptions=idmappingoptions;
         options->IIDFile=iopts->Iidfile;
         options->IgnoreFile=iopts->IgnoreFile;
-        options->In=stdinStream;
+        // options->In=stdinStream;
         options->Isolation=isolation;
         options->Jobs=make_shared<int>(iopts->Jobs); // iopts->Jobs;
         options->Labels=iopts->Label;
@@ -220,7 +220,7 @@ void GenBuildOptions(Command* cmd, vector<string> inputArgs,BuildOptions* iopts,
         options->OSFeatures=iopts->OSFeatures;
         options->OSVersion=iopts->OSVersion;
         options->OciDecryptConfig=decryptConfig;
-        options->Out=stdoutStream;
+        // options->Out=stdoutStream;
         options->Output=output;
         options->OutputFormat=format;
         options->PlatformsList=platforms;
@@ -228,7 +228,7 @@ void GenBuildOptions(Command* cmd, vector<string> inputArgs,BuildOptions* iopts,
         options->PullPolicy=std::make_shared<PullPolicy>(pullPolicy);
         options->Quiet=iopts->Quiet;
         options->RemoveIntermediateCtrs=iopts->Rm;
-        options->ReportWriter=reporterStream;
+        // options->ReportWriter=reporterStream;
         // options->Runtime=iopts->Runtime;
         options->RuntimeArgs=runtimeFlags;
         options->RusageLogFile=iopts->RusageLogFile;

@@ -69,7 +69,7 @@ string ParseBool(string str){
  * @param cmd 命令
  * @return shared_ptr<Store> store 对象
  */
-shared_ptr<Store> getStore(Command* cmd){
+shared_ptr<Store> getStore(std::shared_ptr <Command> cmd){
     auto needToShutdownStore =false;
     logger->log_info("Start creating store object");
     // if (!setXDGRuntimeDir()) {
@@ -83,11 +83,11 @@ shared_ptr<Store> getStore(Command* cmd){
     // if (cmd->Flag_find("root")->changed || cmd->Flag_find("runroot")->changed) {    
     // }
 
-    if (cmd->Flag_find("storage-driver")->changed) {
-    }
+    // if (cmd->Flag_find("storage-driver")->changed) {
+    // }
 
-    if (cmd->Flag_find("storage-opt")->changed) {
-    }
+    // if (cmd->Flag_find("storage-opt")->changed) {
+    // }
 
     ///<这段代码与上面处理用户命名空间原理相同，只不过是处理CMD下面的子命令如何使用
 
@@ -307,20 +307,20 @@ string UsageTemplate(){
  * @param data 命令数据对象
  * @throws myerror 如果模板渲染失败
  */
-void tmpl(std::ostream& out, const std::string& text,Command& data){
+void tmpl(std::ostream& out, const std::string& text,std::shared_ptr<Command> data){
     try {
         // 模拟帮助命令数据
         // HelpData data = {"help", "Displays this help message"};
         // // 模拟模板文本
         // std::string text = "Command: %1%\nDescription: %2%";
-        // std::string description =data.Short+'\n'+data.Long;
-        std::string Usage =data.parent_Command->name+' '+data.name+' '+"[flags]";
-        std::string Aliases=data.Name();
-        std::string Examples=data.example;
-        auto flags=data.flags->order_formal_flags;
+        // std::string description =data->Short+'\n'+data->Long;
+        std::string Usage =data->parent_Command->name+' '+data->name+' '+"[flags]";
+        std::string Aliases=data->Name();
+        std::string Examples=data->example;
+        auto flags=data->flags->order_formal_flags;
 
         boost::format fmt(text);
-        fmt % data.Long % Usage % Aliases % Examples;
+        fmt % data->Long % Usage % Aliases % Examples;
         out << fmt.str();
         std::string Flagstext;
         for(auto flag:flags){

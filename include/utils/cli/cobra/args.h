@@ -21,7 +21,7 @@ using std::vector;
 using std::function;
 using std::cerr;
 
-function<bool(Command&,vector<string>&)> MaximumNArgs(int);
-function<bool(Command&,vector<string>&)> MinimumNArgs(int n);
+function<bool(std::shared_ptr<Command>,vector<string>&)> MaximumNArgs(int);
+function<bool(std::shared_ptr<Command>,vector<string>&)> MinimumNArgs(int n);
 
 #endif

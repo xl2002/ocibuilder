@@ -67,7 +67,7 @@ std::shared_ptr<copy::Options> getCopyOptions(
         destinationCtx = destinationSystemContext;
     }
     std::shared_ptr<copy::Options> options = std::make_shared<copy::Options>();
-    options->reportWriter=reportWriter;
+    // options->reportWriter=reportWriter;
     options->sourceCtx=sourceCtx;
     options->destinationCtx=destinationCtx;
     options->forceManifestMIMEType=manifestType;

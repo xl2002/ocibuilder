@@ -17,22 +17,22 @@
  * 
  */
 void init_login(){
-    LoginOptions* options=new LoginOptions();
+    auto options=std::make_shared <LoginOptions>();
     string name{"login"};
     string Short{"Login to a container registry"};
     string Long{"Login to a container registry on a specified server."};
     string example{"ocibuilder login quay.io"};
-    Command* loginCommand=new Command(name,Short,Long,example);
+    auto loginCommand=std::make_shared <Command>(name,Short,Long,example);
     string Template=UsageTemplate();
     loginCommand->SetUsageTemplate(Template);
-    Flagset* flags=loginCommand->Flags();
+    auto flags=loginCommand->Flags();
     flags->StringVar(options->username,"username","","username for the registry");
     flags->StringVar(options->password,"password","","password for the registry");
     flags->BoolVar(options->getLogin,"get-login",false,"get the login command for the registry");
-    loginCommand->Run=[=](Command& cmd, vector<string> args){
+    loginCommand->Run=[=](std::shared_ptr<Command> cmd, vector<string> args){
         loginCmd(cmd,args,options);
     };
-    rootcmd.AddCommand({loginCommand});
+    rootcmd->AddCommand({loginCommand});
     // return imagesCommand;
 }
 
@@ -40,11 +40,11 @@ void init_login(){
  * @brief login 命令Run操作的
  * 
  */
-void loginCmd(Command& cmd, vector<string> args,LoginOptions* iopts){
+void loginCmd(std::shared_ptr<Command> cmd, vector<string> args,std::shared_ptr<LoginOptions> iopts){
     logger->set_module("login");
     logger->log_info("Start login command execution");
     
-    auto tmp=cmd.flags->actual_flags;
+    auto tmp=cmd->flags->actual_flags;
     std::string username=tmp["username"]->value->String();
     std::string password=tmp["password"]->value->String();
     std::string ipAddress = args[args.size()-1];
@@ -112,5 +112,5 @@ void loginCmd(Command& cmd, vector<string> args,LoginOptions* iopts){
     // saveLoginInfo(username,password, ipAddress);
 
 
-    delete iopts;
+    // delete iopts;
 }

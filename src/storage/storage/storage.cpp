@@ -1206,6 +1206,11 @@ std::shared_ptr<storage::Image> ImageStore::lookup(const std::string& id){
 void ImageStore::newtag(std::string name,std::string newname){
     //1. 通过name查找镜像
     auto des=this->lookup(name);
+    if(des==nullptr){
+        logger->log_error("no such image: "+name);
+        std::cerr<<"no such image: "+name << std::endl;
+        return;
+    }
     //2. 添加新的tag记录到images
     auto Newtag=std::make_shared<storage::Image>(*des);//复制一份
     auto des2=this->lookup(newname);
