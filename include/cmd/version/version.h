@@ -24,7 +24,6 @@ using std::vector;
 class versionOptions
 {
     public:
-    /* data */
     bool    json=false;           ///< json 标志
 };
 class versionInfo{

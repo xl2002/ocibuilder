@@ -24,7 +24,6 @@ using std::vector;
 class configOptions
 {
     public:
-    /* data */
     bool    addHistory=false;   ///<向镜像中添加历史记录信息
     vector<string>  annotation; ///<更改镜像的annotation
     string  arch        ;       ///<更改镜像的 arch

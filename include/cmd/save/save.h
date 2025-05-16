@@ -22,8 +22,7 @@ using std::vector;
  */
 class saveOptions
 {
-    public://TODO: 三条参数？
-    /* data */
+    public://TODO: 三条参数
     //std::string authfile;  // 认证文件路径（可选）
     std::string output;    // 输出文件路径（必选）
     std::string image;     // 镜像名称（必选）

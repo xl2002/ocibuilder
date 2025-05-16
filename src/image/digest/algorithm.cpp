@@ -29,7 +29,7 @@ std::shared_ptr<Digest> Algorithm_sha256::FromBytes(std::vector<uint8_t> p){
     return digester->Digest();
 }
 /**
- * @brief 新建一个Hash_256，参考sha256_init(SHA256_CTX *ctx)，需要初始化
+ * @brief 新建一个Hash_256
  * 
  * @return std::shared_ptr<Hash_256> 
  */

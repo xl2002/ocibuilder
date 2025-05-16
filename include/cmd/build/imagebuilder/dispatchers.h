@@ -19,7 +19,7 @@ extern std::map<std::string, std::string> builtinBuildArgs;
 
 
 void env(
-    Image_Builder* b,
+    std::shared_ptr<Image_Builder> b,
     std::vector<std::string>args,
     std::map<std::string,bool>attributes,
     std::vector<std::string>flagArgs,
@@ -27,7 +27,7 @@ void env(
     std::vector<Heredoc>heredocs);
 
 void from(
-    Image_Builder* b,
+    std::shared_ptr<Image_Builder> b,
     std::vector<std::string>args,
     std::map<std::string,bool>attributes,
     std::vector<std::string>flagArgs,
@@ -35,7 +35,7 @@ void from(
     std::vector<Heredoc>heredocs);
 
 void label(
-    Image_Builder* b,
+    std::shared_ptr<Image_Builder> b,
     std::vector<std::string>args,
     std::map<std::string,bool>attributes,
     std::vector<std::string>flagArgs,
@@ -43,7 +43,7 @@ void label(
     std::vector<Heredoc>heredocs);
 
 void dispatchCopy(
-    Image_Builder* b,
+    std::shared_ptr<Image_Builder> b,
     std::vector<std::string>args,
     std::map<std::string,bool>attributes,
     std::vector<std::string>flagArgs,
@@ -51,7 +51,7 @@ void dispatchCopy(
     std::vector<Heredoc>heredocs);
 
 void expose(
-    Image_Builder* b,
+    std::shared_ptr<Image_Builder> b,
     std::vector<std::string>args,
     std::map<std::string,bool>attributes,
     std::vector<std::string>flagArgs,
@@ -59,7 +59,7 @@ void expose(
     std::vector<Heredoc>heredocs);
 
 void entrypoint(
-    Image_Builder* b,
+    std::shared_ptr<Image_Builder> b,
     std::vector<std::string>args,
     std::map<std::string,bool>attributes,
     std::vector<std::string>flagArgs,
@@ -67,7 +67,7 @@ void entrypoint(
     std::vector<Heredoc>heredocs);
 
 void Volume(
-    Image_Builder* b,
+    std::shared_ptr<Image_Builder> b,
     std::vector<std::string>args,
     std::map<std::string,bool>attributes,
     std::vector<std::string>flagArgs,
@@ -75,7 +75,7 @@ void Volume(
     std::vector<Heredoc>heredocs);
 
 void workdir(
-    Image_Builder* b,
+    std::shared_ptr<Image_Builder> b,
     std::vector<std::string>args,
     std::map<std::string,bool>attributes,
     std::vector<std::string>flagArgs,

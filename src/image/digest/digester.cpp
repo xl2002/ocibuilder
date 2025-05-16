@@ -42,15 +42,6 @@ std::shared_ptr<::Digest> digester::Digest(){
  *          实现参考OpenSSL SHA256接口和sha256_test.cpp中的示例。
  */
 std::vector<uint8_t> Hash_256::Hash_num(const std::vector<uint8_t>& data){
-    // const BYTE* byteData = reinterpret_cast<const BYTE*>(data.data());
-    // BYTE buf[SHA256_BLOCK_SIZE];
-    // SHA256_CTX ctx;
-    // sha256_init(&ctx);
-    // sha256_update(&ctx, byteData, strlen(reinterpret_cast<const char*>(byteData)));
-    // sha256_final(&ctx, buf);
-    // std::vector<uint8_t> hashResult(buf, buf + sizeof(buf));
-    // 初始化 SHA256_CTX
-    // 创建 SHA256 上下文
     SHA256_CTX sha256;
     SHA256_Init(&sha256);
 

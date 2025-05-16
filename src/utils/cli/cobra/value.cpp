@@ -40,7 +40,7 @@ string StringValue::Type(){
  * 
  * @param value StringValue类型的值
  * @param option_name 值保存的位置
- * @return StringValue* 
+ * @return std::shared_ptr<StringValue> 
  */
 std::shared_ptr<StringValue> newStringValue(string value, string &option_name){
     option_name=value;
@@ -172,7 +172,7 @@ bool BoolValue::IsBoolFlag(){
  * 
  * @param value 
  * @param option_name 
- * @return BoolValue* 
+ * @return std::shared_ptr<BoolValue> 
  */
 std::shared_ptr<BoolValue> newBoolValue(bool value,bool& option_name){
     option_name=value;
@@ -209,12 +209,11 @@ string IntValue::Type(){
  * 
  * @param value IntValue类型的值
  * @param option_name 值存储的位置
- * @return IntValue* 
+ * @return std::shared_ptr<IntValue> 
  */
 std::shared_ptr<IntValue> newIntValue(int value,int& option_name){
     option_name= value;
     auto new_val=std::make_shared<IntValue>(&option_name);
-    // IntValue* new_val=new IntValue(&option_name);
     return new_val;
 }
 /**
@@ -252,12 +251,11 @@ string int64Value:: Type(){
  * 
  * @param value 
  * @param option_name 
- * @return int64Value* 
+ * @return std::shared_ptr<int64Value> 
  */
 std::shared_ptr<int64Value> newInt64Value(int64_t value,int64_t& option_name){
     option_name= value;
     auto new_val=std::make_shared<int64Value>(&option_name);
-    // int64Value* new_val=new int64Value(&option_name);
     return new_val;
 }
 /**
@@ -295,7 +293,7 @@ string uint64Value:: Type(){
  * 
  * @param value 
  * @param option_name 
- * @return uint64Value*
+ * @return std::shared_ptr<uint64Value>
  */
 std::shared_ptr<uint64Value> newUint64Value(uint64_t value,uint64_t& option_name){
     option_name= value;
@@ -373,7 +371,7 @@ vector<string> stringSliceValue::GetSlice(){
  * 
  * @param value stringSliceValue的值
  * @param option_name 值存储的位置
- * @return stringSliceValue* 
+ * @return std::shared_ptr<stringSliceValue> 
  */
 std::shared_ptr<stringSliceValue> newStringSliceValue(vector<string> value,vector<string>& option_name){
     option_name=value;

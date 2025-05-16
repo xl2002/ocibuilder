@@ -25,9 +25,6 @@ class Builder {
     public:
     std::shared_ptr<Store> store=std::make_shared<Store>();
 
-    // Logger is the logrus logger to write log messages with
-    // Logger* logger; // std::shared_ptr<int> to Logger
-
     // Args 定义用户在构建时可以传递给构建器的变量。
     std::map<std::string, std::string> Args;
 

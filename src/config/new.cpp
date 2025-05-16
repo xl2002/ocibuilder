@@ -122,7 +122,7 @@ std::shared_ptr<Config> newLocked(std::shared_ptr<Options> options) {
     options->additionalConfigs.insert(options->additionalConfigs.end(), modules.begin(), modules.end());
 
     // _OVERRIDE 变量必须始终获胜。这是我们需要遵守的约定（用于 Podman CI）
-    const char* envPath = boost::compute::detail::getenv(containersConfOverrideEnv.c_str());
+    auto envPath = boost::compute::detail::getenv(containersConfOverrideEnv.c_str());
     if (envPath && std::string(envPath) != "") {
         std::ifstream file(envPath);
         if (!file.good()) {
@@ -170,7 +170,7 @@ std::tuple<std::vector<std::string>, boost::system::error_code> systemConfigs() 
     boost::system::error_code finalErr;
 
     // 获取环境变量
-    const char* envPath = boost::compute::detail::getenv("containersConfEnv");
+    auto envPath = boost::compute::detail::getenv("containersConfEnv");
     if (envPath != nullptr) {
         // 检查路径是否存在
         if (!fileExists(envPath)) {
@@ -280,7 +280,7 @@ std::tuple<std::string, boost::system::error_code> userConfigPath() {
     boost::system::error_code ec;
 
     // 获取环境变量 XDG_CONFIG_HOME
-    const char* configHome = boost::compute::detail::getenv("XDG_CONFIG_HOME");
+    auto configHome = boost::compute::detail::getenv("XDG_CONFIG_HOME");
     if (configHome != nullptr && boost::nowide::utf::strlen(configHome) > 0) {
         // 如果 XDG_CONFIG_HOME 设置了，则使用它
         configPath = (boost::filesystem::path(configHome) / "_configPath").string();

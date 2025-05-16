@@ -9,7 +9,7 @@
 // Sets the environment variable foo to bar, also makes interpolation
 // in the dockerfile available from the next statement on via ${foo}.
 void env(
-    Image_Builder* b,
+    std::shared_ptr<Image_Builder> b,
     std::vector<std::string>args,
     std::map<std::string,bool>attributes,
     std::vector<std::string>flagArgs,
@@ -38,7 +38,7 @@ void env(
 //
 // This sets the image the dockerfile will build on top of.
 void from(
-    Image_Builder* b,
+    std::shared_ptr<Image_Builder> b,
     std::vector<std::string>args,
     std::map<std::string,bool>attributes,
     std::vector<std::string>flagArgs,
@@ -132,7 +132,7 @@ void from(
 //
 // Sets the Label variable foo to bar,
 void label(
-    Image_Builder* b,
+    std::shared_ptr<Image_Builder> b,
     std::vector<std::string>args,
     std::map<std::string,bool>attributes,
     std::vector<std::string>flagArgs,
@@ -165,7 +165,7 @@ void label(
 //
 // Same as 'ADD' but without the tar and remote url handling.
 void dispatchCopy(
-    Image_Builder* b,
+    std::shared_ptr<Image_Builder> b,
     std::vector<std::string>args,
     std::map<std::string,bool>attributes,
     std::vector<std::string>flagArgs,
@@ -226,7 +226,7 @@ void dispatchCopy(
 // Expose ports for links and port mappings. This all ends up in
 // b.RunConfig.ExposedPorts for runconfig.
 void expose(
-    Image_Builder* b,
+    std::shared_ptr<Image_Builder> b,
     std::vector<std::string>args,
     std::map<std::string,bool>attributes,
     std::vector<std::string>flagArgs,
@@ -265,7 +265,7 @@ void expose(
 // Handles command processing similar to CMD and RUN, only b.RunConfig.Entrypoint
 // is initialized at NewBuilder time instead of through argument parsing.
 void entrypoint(
-    Image_Builder* b,
+    std::shared_ptr<Image_Builder> b,
     std::vector<std::string>args,
     std::map<std::string,bool>attributes,
     std::vector<std::string>flagArgs,
@@ -298,7 +298,7 @@ void entrypoint(
 //
 // Expose the volume /foo for use. Will also accept the JSON array form.
 void Volume(
-    Image_Builder* b,
+    std::shared_ptr<Image_Builder> b,
     std::vector<std::string>args,
     std::map<std::string,bool>attributes,
     std::vector<std::string>flagArgs,
@@ -323,7 +323,7 @@ void Volume(
     }
 }
 void workdir(
-    Image_Builder* b,
+    std::shared_ptr<Image_Builder> b,
     std::vector<std::string>args,
     std::map<std::string,bool>attributes,
     std::vector<std::string>flagArgs,

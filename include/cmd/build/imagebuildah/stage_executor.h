@@ -22,7 +22,7 @@ class Executor;
 // class Copy;
 // class Run;
 // class Executor_Interface;
-class StageExecutor:public Executor_Interface {
+class StageExecutor:public Executor_Interface,public std::enable_shared_from_this<StageExecutor> {
 public:
     // 成员变量
     // std::shared_ptr<void> ctx; // 假设context类型的实现，以void指针代替。可以换为合适的C++ context类型或自定义实现

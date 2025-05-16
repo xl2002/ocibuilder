@@ -23,7 +23,6 @@ using std::vector;
 class pushOptions
 {
     public:
-    /* data */
     string  format;         ///<
     std::string authfile;
 };

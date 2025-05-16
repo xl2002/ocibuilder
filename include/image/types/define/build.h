@@ -317,7 +317,7 @@ class define_BuildOptions{
 	//处理 RUN 指令时。如果某项功能同时出现在两个列表中，则它
 	//将被丢弃。
 	vector<string> DropCapabilities  ;
-	// CommonBuildOpts 是*必需的*。
+	// CommonBuildOpts 是必需的。
 	shared_ptr<CommonBuildOptions> CommonBuildOpts = std::make_shared<CommonBuildOptions>() ;
 	// CPPFlags 是传递给 C 预处理器 (cpp) 的附加参数。
 	vector<string> CPPFlags ;

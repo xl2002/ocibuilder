@@ -134,7 +134,7 @@ string GetFormat(string format){
  * @return bool 是否使用分层存储
  */
 bool UseLayers(){
-    const char* layersEnv=boost::compute::detail::getenv("BUILDAH_LAYERS");
+    auto layersEnv=boost::compute::detail::getenv("BUILDAH_LAYERS");
     if (!layersEnv) {
         return false;
     }

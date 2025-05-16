@@ -1027,7 +1027,7 @@ std::shared_ptr<rwContainerStore_interface> newContainerStore(const std::string&
  * @param s 要加载的存储对象指针
  * @throws myerror 加载失败抛出异常
  */
-void load(Store* s) {
+void load(std::shared_ptr<Store> s) {
     try {
         // Lambda 捕获 store 指针
         auto func = [s]() -> std::shared_ptr<Driver> {
@@ -1111,7 +1111,7 @@ void load(Store* s) {
  */
 void Store::load() {
     try {
-        ::load(this);
+        ::load(shared_from_this());
     } catch (const myerror& e) {
         throw; // 重新抛出 myerror 类型的异常
     }

@@ -23,7 +23,6 @@ using std::vector;
 class pullOptions
 {
     public:
-    /* data */
     bool    allTags=false;          ///<
     string  os;                     ///<
     string  arch;                   ///<

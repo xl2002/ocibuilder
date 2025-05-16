@@ -24,7 +24,6 @@ using std::vector;
 class logoutOptions
 {
     public:
-    /* data */
     bool    all=false;        ///<
 
 };

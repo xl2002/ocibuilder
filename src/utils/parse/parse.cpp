@@ -69,7 +69,6 @@ PullPolicy PullPolicyFromOptions(std::shared_ptr <Command> c){
  */
 shared_ptr< SystemContext> SystemContextFromOptions(std::shared_ptr <Command> c){
     auto flags=c->Flags();
-    // SystemContext* ctx=new SystemContext();
     auto ctx=make_shared<SystemContext>();
     // auto findFlagFunc=Command::Flag_find;
     try

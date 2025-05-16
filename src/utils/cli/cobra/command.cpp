@@ -26,46 +26,11 @@ Command::Command(string& name,string& Short,string& Long, string& example):
                 name(name),Short(Short),Long(Long),example(example) {
 
 }
-/**
- * @brief 销毁Command::Command对象
- * <p>主要是对自定义的对象指针进行销毁，注意销毁的顺序，避免重复释放资源
- */
-// Command::~Command(){
-//     // for (Command* cmd : Son_command) {
-//     //     if(cmd!=nullptr)
-//     //     {
-//     //         delete cmd;
-//     //         cmd=nullptr;
-//     //     }
-//     // }
-    // // delete parent_Command;
-    // // delete helpCommand;
-    // // 释放动态分配的 Flagset 对象
-    // // delete flags;
-    // // delete persistent_flags;
-    // delete local_flags;
-    // delete inherited_flags;
-    // delete parent_persistent_flags;
-
-    // // 将指针设为 nullptr
-    // // parent_Command = nullptr;
-    // // helpCommand = nullptr;
-    // // flags = nullptr;
-    // persistent_flags = nullptr;
-//     local_flags = nullptr;
-//     inherited_flags = nullptr;
-//     parent_persistent_flags = nullptr;
-// }
-/**
- * @brief CommandLine 是默认的命令行标志集。
- * 
- */
-// Flagset* CommandLine=NewFlagSet("buildah");
 
 /**
  * @brief 返回命令的标志集
  * 
- * @return Flagset* 标志集的指针
+ * @return std::shared_ptr<Flagset> 标志集的指针
  */
 std::shared_ptr<Flagset> Command::Flags(){
     if(flags==nullptr){
@@ -90,7 +55,7 @@ std::shared_ptr<Flagset> NewFlagSet(const string& name){
 /**
  * @brief 返回Command对象的持续化标志集
  * <p>如果Command对象的持续化标志集为空，则新建一个空的Flagset
- * @return Flagset* 返回的新建的Flagset指针
+ * @return std::shared_ptr<Flagset> 返回的新建的Flagset指针
  */
 std::shared_ptr<Flagset> Command::PersistentFlags(){
     if(persistent_flags==nullptr){
@@ -135,7 +100,7 @@ void Command::ExecuteC(int argc, char const *argv[]){
         }
     }
     vector<string> flags;
-    // Command* cmd=new Command();///<用来分析子命令，例如build
+    // std::shared_ptr<Command> cmd=new Command();///<用来分析子命令，例如build
     auto cmd=std::make_shared<Command>();
     try
     {
@@ -333,7 +298,7 @@ std::string Command::HelpTemplate(){
 /**
  * @brief Root函数返回Command对象命令树的根命令
  * 
- * @return Command* 根命令的指针 
+ * @return std::shared_ptr<Command> 根命令的指针 
  */
 std::shared_ptr<Command> Command::Root(){
     if(HasParent()){
@@ -344,7 +309,7 @@ std::shared_ptr<Command> Command::Root(){
 /**
  * @brief Parent返回Command对象的父命令
  * 
- * @return Command* 父命令指针
+ * @return std::shared_ptr<Command> 父命令指针
  */
 std::shared_ptr<Command> Command::Parent(){
     return parent_Command;
@@ -518,7 +483,7 @@ vector<string> stripFlags(vector<string> args,std::shared_ptr<Command> cmd){
  * @param cmd 使用参数的命令
  * @param args 源参数
  * @param ret_args 返回参数
- * @return Command* 解析参数后，保存到Command
+ * @return std::shared_ptr<Command> 解析参数后，保存到Command
  */
 std::shared_ptr<Command> innerfind(std::shared_ptr<Command> cmd,vector<string>&args,vector<string>& ret_args){
     vector<string>argsWOflags=stripFlags(args,cmd);
@@ -598,7 +563,7 @@ void legacyArgs(std::shared_ptr<Command>cmd,vector<string>args){
  * 
  * @param args 输入参数列表
  * @param ret_args [out] 查找解析后的参数
- * @return Command* 查找到的Command对象指针，如果没有找到则返回nullptr
+ * @return std::shared_ptr<Command> 查找到的Command对象指针，如果没有找到则返回nullptr
  * 
  * @note 此函数会处理命令标志并验证参数有效性
  */
@@ -641,12 +606,12 @@ bool commandNameMatches(string s, string t){
  * 如果找到匹配命令，则设置其commandcallas.name并返回指针。
  * 
  * @param next 要查找的子命令名称
- * @return Command* 找到的子命令指针，未找到则返回nullptr
+ * @return std::shared_ptr<Command> 找到的子命令指针，未找到则返回nullptr
  * 
  * @note 此函数仅进行名称匹配，不处理参数解析
  */
 std::shared_ptr<Command> Command::findNext(string next){
-    // vector<Command*> matches;
+    // vector<std::shared_ptr<Command>> matches;
     for (auto cmd:this->Son_command){
         if(commandNameMatches(cmd->Name(),next)){
             cmd->commandcallas.name=next;
@@ -909,7 +874,7 @@ void Command::VisitParents(const function<void(std::shared_ptr<Command>)>& fn){
  * 2. 如果未找到，则在持久化标志集中查找
  * 
  * @param name 要查找的标志名称
- * @return Flag* 找到的标志指针，未找到则返回nullptr
+ * @return std::shared_ptr<Flag> 找到的标志指针，未找到则返回nullptr
  * 
  * @note 返回的标志指针生命周期由所属标志集管理
  */
@@ -929,7 +894,7 @@ std::shared_ptr<Flag> Command::Flag_find(string name){
  * 2. 在父命令的持久标志集中查找
  * 
  * @param name 要查找的标志名称
- * @return Flag* 找到的标志指针，未找到则返回nullptr
+ * @return std::shared_ptr<Flag> 找到的标志指针，未找到则返回nullptr
  * 
  * @note 此函数会触发父标志集更新(updateParentsPflags)
  */

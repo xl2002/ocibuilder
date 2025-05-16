@@ -21,58 +21,14 @@
  * @param values 标签的默认值
  */
 Flag::Flag(string name,string usage,shared_ptr<Value_interface> v,string values):name(name),usage_help(usage),value(v),default_value(values) {}
-// Flag::Flag(string name,string usage,Value_interface* v,string values):name(name),usage_help(usage),value(std::make_shared<Value_interface>(v)),default_value(values) {}
-/**
- * @brief 销毁Flag::Flag对象
- * 
- */
-// Flag::~Flag(){
-//     if(value){
-//         // cout << "Deleting value pointer: " << value << endl;
-//         delete value;
-//         value=nullptr;
-//     }
-// }
-/**
- * @brief 销毁Flagset::Flagset对象
- * 
- */
-// Flagset::~Flagset(){
-//     // 释放 actual_flags 中的 Flag 对象
-//     // for (auto& pair : actual_flags) {
-//     //     delete pair.second;
-//     // }
-//     // 释放 order_actual_flags 中的 Flag 对象
-//     // for (Flag* flag : order_actual_flags) {
-//     //     delete flag;
-//     // }
-    // // 释放 sorted_actual_flags 中的 Flag 对象
-    // for (Flag* flag : sorted_actual_flags) {
-    //     delete flag;
-    // }
-    // // 释放 formal_flags 中的 Flag 对象
-    // for (auto& pair : formal_flags) {
-    //     delete pair.second;
-    // }
-    // // 释放 order_formal_flags 中的 Flag 对象
-    // // for (Flag* flag : order_formal_flags) {
-    // //     if(flag)
-    // //     delete flag;
-    // // }
-//     // 释放 sorted_formal_flags 中的 Flag 对象
-//     for (Flag* flag : sorted_formal_flags) {
-//         delete flag;
-//     }
-//     // 不需要释放 output 指针，因为它不是由 Flagset 类分配的内存
-//     output = nullptr;
-// }
+
 /**
  * @brief 将标签添加到标签集中
  * 
  * @param value 标签的值
  * @param name 标签的名
  * @param usage 标签的用途
- * @return Flag* 返回标签的指针
+ * @return std::shared_ptr<Flag> 返回标签的指针
  */
 shared_ptr<Flag> Flagset::Addvar(shared_ptr<Value_interface> value,string name,string usage){
     auto flag=std::make_shared<Flag>(name,usage,value,value->String());
@@ -117,8 +73,6 @@ void Flagset::StringArrayVar(vector<string>& option_name, string name ,vector<st
  */
 void Flagset::String(string name, string value, string usage){
     string* option_name=new string();
-    // StringValue* pvalue=newStringValue(value,option_name);
-    // Flag* flag=Addvar(pvalue,name,usage);
     StringVar(*option_name,name,value,usage);
 }
 
@@ -199,8 +153,6 @@ void Flagset::Uint64Var(uint64_t& option_name, string name, int value, string us
  */
 void Flagset::Int(string name, int value, string usage){
     int* option_name=new int();
-    // IntValue* pvalue=newIntValue(value,option_name);
-    // Flag* flag=Addvar(pvalue,name,usage);
     IntVar(*option_name,name,value,usage);
 }
 /**
@@ -259,12 +211,6 @@ void Flagset::AddFlagSet(std::shared_ptr<Flagset> newflagset){
     if(newflagset==nullptr){
         return;
     }
-    // Flagset* fs=this;
-    // function<void(Flag*)>fn =[this](Flag* f){
-    //     this->Lookup(f->name);
-    //     this->AddFlag(f);
-    // };
-    // newflagset->VisitAll(fn)
     newflagset->VisitAll([this](shared_ptr<Flag> f){
         this->Lookup(f->name);
         this->AddFlag(f);
@@ -322,9 +268,9 @@ void Flagset::VisitAll(const function<void(shared_ptr<Flag>)>& fn){
  * @brief Lookup 返回指定标志的 Flag 结构，如果不存在则返回 nullptr。
  * 
  * @param name 标签名
- * @return Flag* 标签名对应的标签
+ * @return std::shared_ptr<Flag> 标签名对应的标签
  */
-// Flag* Flagset::Lookup(const string name){
+// std::shared_ptr<Flag> Flagset::Lookup(const string name){
 //     std::string n=name;
 //     auto it= formal_flags.find(n);
 //     if(it!=formal_flags.end()){
@@ -537,7 +483,7 @@ vector<string> Flagset::Args(){
  * @brief sortFlags 将标志作为按字典排序顺序的切片返回。
  * 
  * @param flags 被排序的标签集
- * @return vector<Flag*> 已排序的标签集
+ * @return vector<std::shared_ptr<Flag>> 已排序的标签集
  */
 vector<shared_ptr<Flag>> sortFlags(map<string,shared_ptr<Flag>> flags){
     vector<pair<string,shared_ptr<Flag>>> vec_flags(flags.begin(),flags.end());

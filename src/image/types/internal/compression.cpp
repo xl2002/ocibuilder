@@ -85,57 +85,6 @@ void gzip_compress(std::istream& inputStream, std::ostream& outputStream) {
         std::cerr << "Error during compression: " << e.what() << std::endl;
     }
 }
-//直接利用zlib库压缩
-// void gzip_compress(std::istream& inputStream, std::ostream& outputStream) {
-//     // const int level = Z_BEST_SPEED;          // 对应 level 9
-//     const int level = Z_DEFAULT_COMPRESSION;          // 对应 level 9
-//     const int windowBits = 15 + 16;                // 15: default deflate, +16: GZIP 格式
-//     const int memLevel = 8;                        // buildah 默认
-//     const int strategy = Z_DEFAULT_STRATEGY;
-//     const uLong mtime = 2288912640UL;              // 2042-07-14 01:04:00 UTC
-
-//     z_stream zs;
-//     std::memset(&zs, 0, sizeof(zs));
-
-//     // 初始化 deflate，开启 gzip 模式
-//     int ret = deflateInit2(&zs, level, Z_DEFLATED, windowBits, memLevel, strategy);
-//     if (ret != Z_OK) throw std::runtime_error("deflateInit2 failed");
-
-//     // 设置 gzip 头时间戳
-//     gz_header header;
-//     std::memset(&header, 0, sizeof(header));
-//     header.time = mtime;
-//     header.xflags = 0; // 设置为 best compression
-//     header.os = 255;     // OS = 0 (FAT/Windows) 与 buildah 一致
-//     deflateSetHeader(&zs, &header);
-
-//     const size_t bufSize = 16384;
-//     std::vector<char> inBuffer(bufSize);
-//     std::vector<char> outBuffer(bufSize);
-
-//     zs.avail_in = 0;
-
-//     while (inputStream.good()) {
-//         inputStream.read(inBuffer.data(), bufSize);
-//         zs.next_in = reinterpret_cast<Bytef*>(inBuffer.data());
-//         zs.avail_in = static_cast<uInt>(inputStream.gcount());
-
-//         int flush = inputStream.eof() ? Z_FINISH : Z_NO_FLUSH;
-
-//         do {
-//             zs.next_out = reinterpret_cast<Bytef*>(outBuffer.data());
-//             zs.avail_out = bufSize;
-
-//             ret = deflate(&zs, flush);
-//             if (ret == Z_STREAM_ERROR) throw std::runtime_error("deflate failed");
-
-//             size_t have = bufSize - zs.avail_out;
-//             outputStream.write(outBuffer.data(), have);
-//         } while (zs.avail_out == 0);
-//     }
-
-//     deflateEnd(&zs);
-// }
 /**
  * @brief 将输入流中的 gzip 数据解压缩并输出到输出流
  * @param inputStream 输入流，提供 gzip 格式数据

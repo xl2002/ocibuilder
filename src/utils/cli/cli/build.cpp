@@ -108,9 +108,6 @@ void GenBuildOptions(std::shared_ptr <Command> cmd, vector<string> inputArgs,std
         // if (iopts->Stdin) {
         //     stdinStream = std::make_shared<std::istream>(std::cin);
         // }
-        // std::ostream* stdoutStream = &std::cout;
-        // std::ostream* stderrStream = &std::cerr;
-        // std::ostream* reporterStream = &std::cerr;
         if(iopts->logwriter!=nullptr){}
         auto systemContext= SystemContextFromOptions(cmd);
         auto isolation= IsolationOption(iopts->Isolation);

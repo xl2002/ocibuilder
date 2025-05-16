@@ -24,7 +24,6 @@ using std::vector;
 class LoginOptions
 {
     public:
-    /* data */
     string  username;
     string  password;
     bool    getLogin=false;

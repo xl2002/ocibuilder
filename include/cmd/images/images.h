@@ -24,7 +24,6 @@ using std::vector;
 class imagesOptions
 {
     public:
-    /* data */
     bool    all=false;        ///<是否输出镜像的所有信息
 };
 

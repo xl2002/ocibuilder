@@ -182,7 +182,7 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,bool> StageExecutor:
             this->didExecute=true;
             try{
                 // auto stage_p=std::make_shared<StageExecutor>(*this);
-                ib->Run(step,this,noRunsRemaining);//将镜像层内容复制到overlay
+                ib->Run(step,shared_from_this(),noRunsRemaining);//将镜像层内容复制到overlay
             }catch(const myerror& e){
                 throw myerror("building at STEP \""+step->Message+"\": "+std::string(e.what()));
             }
@@ -638,7 +638,6 @@ void StageExecutor::performCopy(std::vector<std::string> excludes,std::vector<Co
     for (size_t i = 0; i < copies.size(); ++i){
         Copy copy=copies[i];
         std::vector<string> sources;
-        // var idMappingOptions *define.IDMappingOptions
         std::shared_ptr<IDMappingOptions> idMappingOptions = std::make_shared<IDMappingOptions>();
         std::vector<string> copyExcludes;
         bool stripSetuid = false;

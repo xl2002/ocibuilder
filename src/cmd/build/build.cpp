@@ -16,7 +16,7 @@
  * <p>根据BuildOptions结构体中的标志名，创建并初始化每个flag
  * 
  * @param br br为BuildOptions的对象，存储build命令的flag
- * @return Flagset* 返回一个标志集指针，注意是动态分配，不就随着函数的结束而销毁
+ * @return std::shared_ptr<Flagset> 返回一个标志集指针，注意是动态分配，不就随着函数的结束而销毁
  */
 std::shared_ptr<Flagset> Getbuildflags(std::shared_ptr<BudResults> br){
     //动态分配分配一个Flagset指针，用于存储初始化中的flag，并作为返回值
@@ -151,7 +151,7 @@ std::shared_ptr<Flagset> GetFromAndBudFlags(std::shared_ptr<FromAndBudResults> f
  * @brief 获取命名空间标志对象
  * 
  * @param ur 命名空间结果
- * @return Flagset* 命名空间标志对象
+ * @return std::shared_ptr<Flagset> 命名空间标志对象
  *
  * @details
  * - group-add: 添加其他组到主容器进程
@@ -175,7 +175,7 @@ std::shared_ptr<Flagset> GetUserNSFlags(std::shared_ptr<UserNSResults> ur){
  * @brief 获取命名空间标志对象
  * 
  * @param nr 命名空间结果
- * @return Flagset* 命名空间标志对象
+ * @return std::shared_ptr<Flagset> 命名空间标志对象
  * 
  * - Cgroup: cgroup 命名空间
  * - IPC: IPC 命名空间
