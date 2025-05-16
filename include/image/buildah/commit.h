@@ -26,7 +26,7 @@ class CommitOptions {
     std::vector<std::string> AdditionalTags;
 
     // ReportWriter 是一个 io.Writer，将用于记录新图片的写入日志
-    std::ostream* ReportWriter=nullptr;
+    std::shared_ptr<ostream> ReportWriter=nullptr;
 
     // HistoryTimestamp 是创建图片历史项目时使用的时间戳
     std::shared_ptr<std::chrono::system_clock::time_point> HistoryTimestamp=std::make_shared<std::chrono::system_clock::time_point>();

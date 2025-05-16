@@ -64,7 +64,7 @@ newExecutor(
     exec->cacheTo=options->CacheTo;
     exec->cacheTTL=options->CacheTTL;
     exec->containerSuffix=options->ContainerSuffix;
-    exec->stages=std::map<std::string, std::shared_ptr<StageExecutor>>();
+    // exec->stages=std::map<std::string, std::shared_ptr<StageExecutor>>();
     exec->store=stores;
     exec->contextDir=options->ContextDirectory;
     exec->excludes=excludes;
@@ -654,7 +654,6 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,bool,std::string> Ex
         std::lock_guard<std::mutex> lock(this->stagesLock);
         cleanupStages[stage.Position] = stageExecutor;
     }
-
     return std::make_tuple(imageID, ref, onlyBaseImage, "");
 }
 
@@ -664,7 +663,7 @@ std::shared_ptr<StageExecutor> Executor::startStage(
     std::string output
 ){
     auto stageExec=std::make_shared<StageExecutor>();
-    stageExec->executor = std::shared_ptr<Executor>(this); // this;
+    stageExec->executor = shared_from_this(); // this;
     stageExec->log=log;
     stageExec->index=stage->Position;
     stageExec->stages=stages;
@@ -673,11 +672,11 @@ std::shared_ptr<StageExecutor> Executor::startStage(
     stageExec->volumeCacheInfo=std::map<std::string, struct stat>();
     stageExec->output=output;
     stageExec->stage=stage;
-    this->stages[stage->Name]=stageExec;
-    auto idx=to_string(stage->Position);
-    if(idx!=stage->Name){
-        this->stages[idx]=stageExec;
-    }
+    // this->stages[stage->Name]=stageExec;
+    // auto idx=to_string(stage->Position);
+    // if(idx!=stage->Name){
+    //     this->stages[idx]=stageExec;
+    // }
     return stageExec;
 
 }

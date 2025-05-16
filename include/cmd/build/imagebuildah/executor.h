@@ -45,14 +45,14 @@ class StageExecutor;
 class stageDependencyInfo;
 class Stages;
 class Stage;
-class Executor {
+class Executor: public std::enable_shared_from_this<Executor>{
     public:
     std::vector<named> cacheFrom;
     std::vector<named> cacheTo;
     std::chrono::duration<int> cacheTTL;
     std::string containerSuffix;
     //std::shared_ptr<Logger> logger=std::make_shared<Logger>();
-    std::map<std::string, std::shared_ptr<StageExecutor>> stages;
+    // std::map<std::string, std::shared_ptr<StageExecutor>> stages;
     std::shared_ptr<Store> store=std::make_shared<Store>();
     std::string contextDir;
     std::shared_ptr<PullPolicy> pullPolicy=std::make_shared<::PullPolicy>();

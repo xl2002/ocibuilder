@@ -24,7 +24,8 @@ std::shared_ptr<Flagset> Getbuildflags(std::shared_ptr<BudResults> br){
     //调用flag初始化函数
     flags->BoolVar(br->check, "check", false, "check Indicates whether to generate a verification file for the image file");
     flags->BoolVar(br->allplatform,"all-platforms",false,"attempt to build for all base image platforms");
-    flags->String("arch","amd64","set the ARCH of the image to the provided value instead of the architecture of the host");
+    // flags->String("arch","amd64","set the ARCH of the image to the provided value instead of the architecture of the host");
+    flags->StringVar(br->arch,"arch","amd64","set the ARCH of the image to the provided value instead of the architecture of the host");
     flags->StringArrayVar(br->annotation,"annotation",vector<string>(),"set metadata for an image (default [])");
     flags->StringArrayVar(br->tag,"tag",vector<string>(),"tagged `name` to apply to the built image");
     flags->StringVar(br->osversion,"os-version","","set required OS `version` for the target image instead of the value from the base image");
@@ -129,11 +130,16 @@ std::shared_ptr<Flagset> GetFromAndBudFlags(std::shared_ptr<FromAndBudResults> f
 	flags->StringVar(fr->MemorySwap, "memory-swap", "", "swap limit equal to memory plus swap: '-1' to enable unlimited swap");
 	flags->IntVar(fr->Retry, "retry", 3, "number of times to retry in case of failure when performing push/pull");
 	flags->StringVar(fr->RetryDelay, "retry-delay", defaultContainerConfig->Engine->RetryDelay, "delay between retries in case of push/pull failures");
-	flags->String("arch", "amd64", "set the ARCH of the image to the provided value instead of the architecture of the host");
-	flags->String("os", "linux", "prefer `OS` instead of the running OS when pulling images");
-	flags->StringSlice("platform", vector<string>{"linux/arm"}, "set the `OS/ARCH[/VARIANT]` of the image to the provided value instead of the current operating system and architecture of the host (for example \"linux/arm\")");
-	flags->String("variant", "", "override the `variant` of the specified image");
-	flags->StringArrayVar(fr->SecurityOpt, "security-opt", vector<string>(), "security options (default [])");
+	// flags->String("arch", "amd64", "set the ARCH of the image to the provided value instead of the architecture of the host");
+	// flags->String("os", "linux", "prefer `OS` instead of the running OS when pulling images");
+	// flags->StringSlice("platform", vector<string>{"linux/arm"}, "set the `OS/ARCH[/VARIANT]` of the image to the provided value instead of the current operating system and architecture of the host (for example \"linux/arm\")");
+	// flags->String("variant", "", "override the `variant` of the specified image");
+	flags->StringVar(fr->arch,"arch", "amd64", "set the ARCH of the image to the provided value instead of the architecture of the host");
+	flags->StringVar(fr->os,"os", "linux", "prefer `OS` instead of the running OS when pulling images");
+	flags->StringArrayVar(fr->platform,"platform", vector<string>{"linux/arm"}, "set the `OS/ARCH[/VARIANT]` of the image to the provided value instead of the current operating system and architecture of the host (for example \"linux/arm\")");
+	flags->StringVar(fr->os,"variant", "", "override the `variant` of the specified image");
+	
+    flags->StringArrayVar(fr->SecurityOpt, "security-opt", vector<string>(), "security options (default [])");
 	flags->StringVar(fr->ShmSize, "shm-size", defaultContainerConfig->Containers->ShmSize, "size of '/dev/shm'. The format is `<number><unit>`.");
 	flags->StringSliceVar(fr->Ulimit, "ulimit", defaultContainerConfig->Containers->DefaultUlimits->Get(), "ulimit options");
 	flags->StringArrayVar(fr->Volumes, "volume",vector<string>(), "bind mount a volume into the container");

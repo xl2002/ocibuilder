@@ -71,9 +71,6 @@ std::shared_ptr <Command> init_rootcmd(){
     return Appcmd;
 }
 
-
-
-
 void before(std::shared_ptr<Command> cmd){
 
 }

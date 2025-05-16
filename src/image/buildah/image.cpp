@@ -308,7 +308,8 @@ std::shared_ptr<ImageSource_interface> containerImageRef::NewImageSource(std::sh
             }
         }
         boost::filesystem::rename(tarfilepath, finalBlobName);
-        logger->log_info("Successfully created blob: " + tardigest);
+        std::cout<<"Successfully created tar blob: "+tardigest<<std::endl;
+        logger->log_info("Successfully created tar blob: " + tardigest);
     } catch (const boost::filesystem::filesystem_error& e) {
         std::cerr << "Error renaming file: " << e.what() << std::endl;
         logger->log_error("Blob creation failed for layer: " + layer + " error: " + e.what());
@@ -348,10 +349,10 @@ std::shared_ptr<ImageSource_interface> containerImageRef::NewImageSource(std::sh
     // }
     //删除原有的layer记录
     // layerstore->layers.insert(layerstore->layers.end(),Layers.begin(),Layers.end());
-            if(!layerstore->savelayer()){//更新overlay中的layer.json
-                logger->log_error("Failed to save layer store data for image: " + this->name);
-                std::cerr<<"save layer error"<<std::endl;
-                logger->log_error("Layer store update failed - image: " + this->name + " layers: " + std::to_string(layers.size()));
+    if(!layerstore->savelayer()){//更新overlay中的layer.json
+        logger->log_error("Failed to save layer store data for image: " + this->name);
+        std::cerr<<"save layer error"<<std::endl;
+        logger->log_error("Layer store update failed - image: " + this->name + " layers: " + std::to_string(layers.size()));
     }
     // 7. 将新构建的oci config反序列化为byte，记住marshal函数返回string，需要转化为vector<uint8_t>,函数在
     // std::vector<uint8_t> stringToVector(const std::string& str)

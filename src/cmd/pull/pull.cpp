@@ -37,8 +37,8 @@ void init_pull(){
     flags->SetInterspersed(false);
     //初始化每个flag的内容
     flags->BoolVar(options->allTags,"all-tags",false,"pull all tags for the specified image");
-    flags->String("os","linux","set the OS of the image (e.g., linux, windows) (default unset)");
-    flags->String("arch","amd64","set the architecture of the image (e.g., amd64, arm, ppc64le) (default unset)");
+    flags->StringVar(options->os,"os","linux","set the OS of the image (e.g., linux, windows) (default unset)");
+    flags->StringVar(options->arch,"arch","amd64","set the architecture of the image (e.g., amd64, arm, ppc64le) (default unset)");
     flags->StringVar(options->format, "format", std::string(), "manifest type (oci, v2s1, or v2s2) to use in the destination (default is manifest type of source, with fallbacks)");
     pullCommand->Run=[=](std::shared_ptr<Command> cmd, vector<string> args){
         pullCmd(cmd,args,options);
