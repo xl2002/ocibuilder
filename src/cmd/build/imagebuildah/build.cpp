@@ -4,7 +4,7 @@
 #include "utils/cli/cli/common.h"
 #include "utils/logger/ProcessSafeLogger.h"
 #include "utils/parse/parse.h"
-#include "utils/logger/logrus/logger.h"
+// #include "utils/logger/logrus/logger.h"
 #include <fstream>
 #include "utils/common/go/string.h"
 #include <sstream>
@@ -47,19 +47,6 @@ string BuildDockerfiles(shared_ptr<Store> stores, shared_ptr<define_BuildOptions
         logger->log_error("Cannot use iidfile with multiple platforms");
         throw myerror ("building multiple images, but iidfile %q can only be used to store one image ID "+ options->IIDFile);
     }
-    
-    // auto logger = Logger::New();
-    // if (options->Err != nullptr)
-    // {
-    //     logger->SetOutput(options->Err);//基础类结构-改define_BuildOptions
-    // }
-    // else
-    // {
-    //     //logger->SetOutput(os.Stderr);
-    //     //os库，未执行
-    // }
-    // auto level = logger->GetLevel();
-    // logger->SetLevel(level);
     struct DockerfileInfo {
         std::shared_ptr<std::fstream> file;
         std::string filename;
@@ -253,7 +240,7 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>> buildDockerfilesOnc
     for(auto it=dockerfilecontents.begin()+1;it!=dockerfilecontents.end();++it){
         
     }
-    std::shared_ptr<Executor> exec;
+    std::shared_ptr<Executor> exec=nullptr;
     try{
         exec=newExecutor(logPrefix,stores,options,mainNode,containerFiles);
     }catch(const myerror& e){
@@ -278,6 +265,9 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>> buildDockerfilesOnc
     if(options->Target!=""){
 
     }
-    return exec->Build(stages);
+    auto ret=exec->Build(stages);
+    // exec->stages.clear();
+    exec.reset();
+    return ret;
     // return std::make_tuple("",canonical());
 }

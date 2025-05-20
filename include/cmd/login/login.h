@@ -24,7 +24,6 @@ using std::vector;
 class LoginOptions
 {
     public:
-    /* data */
     string  username;
     string  password;
     bool    getLogin=false;
@@ -60,5 +59,5 @@ class Auth{
 };
 
 void init_login();      
-void loginCmd(Command& cmd, vector<string> args,LoginOptions* iopts);      
+void loginCmd(std::shared_ptr<Command> cmd, vector<string> args,std::shared_ptr<LoginOptions> iopts);      
 #endif

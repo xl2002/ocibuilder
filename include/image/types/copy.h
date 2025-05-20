@@ -38,7 +38,7 @@ namespace copy{
         std::vector<byte> signSigstorePrivateKeyPassphrase;   // 使用sigstore私钥文件签名时的密码
         std::shared_ptr<Named_interface> signIdentity=nullptr;                         // 签名时的标识
 
-        std::ostream* reportWriter=nullptr;                           // 报告输出流
+        std::shared_ptr<ostream> reportWriter=nullptr;                           // 报告输出流
         std::shared_ptr<SystemContext> sourceCtx=std::make_shared<SystemContext>();                             // 源上下文
         std::shared_ptr<SystemContext> destinationCtx=std::make_shared<SystemContext>();                        // 目标上下文
         std::chrono::duration<int64_t> progressInterval;      // 进度报告间隔时间

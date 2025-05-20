@@ -24,10 +24,9 @@ using std::vector;
 class imagesOptions
 {
     public:
-    /* data */
     bool    all=false;        ///<是否输出镜像的所有信息
 };
 
 void init_images();     
-void imagesCmd(Command& cmd, vector<string> args,imagesOptions*iopts);     
+void imagesCmd(std::shared_ptr<Command> cmd, vector<string> args,std::shared_ptr<imagesOptions>iopts);     
 #endif

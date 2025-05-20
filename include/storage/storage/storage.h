@@ -61,21 +61,6 @@ class Store_interface{
     virtual void DeleteContainer(std::string id)=0;
     virtual void load()=0;
     virtual std::shared_ptr<storage::Image> Image(std::string id)=0;
-    // virtual string GraphRoot()=0;
-    // virtual string ImageStore()=0;
-	// virtual bool ransientStore()=0;
-	// virtual string GraphDriverName()=0;
-	// virtual vector<string> GraphOptions()=0;
-	// virtual map<string,string> PullOptions()=0;
-	// virtual vector<IDMap> UIDMap()=0;
-	// virtual vector<IDMap> GIDMap()=0;
-    // //GraphDriver 获取并返回所使用的 graph Driver 对象的句柄
-	// virtual std::shared_ptr<Driver> GraphDriver()=0;
-    //CreateLayer 在底层存储驱动中创建一个新层，
-	//可选地具有指定的 ID（如果没有则分配一个）
-	//指定），以指定层（或无层）作为其父层，
-	//并带有可选名称。  （可写标志被忽略。）
-    // virtual std::shared_ptr<Layer> CreateLayer(string id,string parent,vector<string>names,string mountLabel,bool writeable,LayerOptions* options)=0;
     virtual std::shared_ptr<Container> CreateContainer(
         const std::string& id, const std::vector<std::string>& names, const std::string& image, 
         const std::string& layer, const std::string& metadata,const std::shared_ptr<ContainerOptions> options)=0;
@@ -556,7 +541,7 @@ public:
 //     class Image;
 // }
 class rwLayerStore_interface;
-class Store :public Store_interface{
+class Store :public Store_interface,public std::enable_shared_from_this<Store> {
     public:
     std::string run_root;
     std::string graph_driver_name;

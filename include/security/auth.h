@@ -5,6 +5,6 @@
 #include "cmd/push/push.h"
 #include "utils/common/error.h"
 #include <sys/stat.h>
-void CheckAuthFile(pushOptions* iopts);
+void CheckAuthFile(std::shared_ptr<pushOptions> iopts);
 
 #endif // AUTH_AUTH_H

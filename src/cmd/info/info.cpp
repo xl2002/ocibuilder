@@ -27,13 +27,13 @@ void init_info(){
     string Short{"Display Buildah system information"};
     string Long{"Display information about the host and current storage statistics which are useful when reporting issues."};
     string example{"ocibuilder info"};
-    Command* infoCommand=new Command(name,Short,Long,example);
+    auto infoCommand=std::make_shared <Command>(name,Short,Long,example);
     string Template=UsageTemplate();
     infoCommand->SetUsageTemplate(Template);
-    infoCommand->Run=[=](Command& cmd, vector<string> args){
+    infoCommand->Run=[=](std::shared_ptr<Command> cmd, vector<string> args){
         infoCmd(cmd);
     };
-    rootcmd.AddCommand({infoCommand});
+    rootcmd->AddCommand({infoCommand});
 }
 /**
  * @brief 获取主机信息
@@ -156,11 +156,11 @@ std::vector<InfoData> Information(std::shared_ptr<Store> store){
  * @brief info 命令Run操作的
  * 
  */
-void infoCmd(Command& cmd){
+void infoCmd(std::shared_ptr<Command> cmd){
     logger->set_module("info");
     logger->log_info("Starting info command execution");
     //1. 获取镜像库
-    std::shared_ptr<Store> store = getStore(&cmd);
+    std::shared_ptr<Store> store = getStore(cmd);
     if(!store) {
         logger->log_error("Failed to get store instance");
         return;

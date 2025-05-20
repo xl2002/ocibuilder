@@ -20,15 +20,15 @@ void init_rmi(){
     string Short{"Remove one or more images from local storage"};
     string Long{"Removes one or more locally stored images."};
     string example{"ocibuilder rmi imageID"};
-    Command* rmiCommand=new Command(name,Short,Long,example);
+    auto  rmiCommand=std::make_shared <Command>(name,Short,Long,example);
     string Template=UsageTemplate();
     rmiCommand->SetUsageTemplate(Template);
-    Flagset* flags=rmiCommand->Flags();
+    auto flags=rmiCommand->Flags();
     flags->SetInterspersed(false);
-    rmiCommand->Run=[=](Command& cmd, vector<string> args){
+    rmiCommand->Run=[=](std::shared_ptr<Command> cmd, vector<string> args){
         rmiCmd(cmd,args);
     };
-    rootcmd.AddCommand({rmiCommand});
+    rootcmd->AddCommand({rmiCommand});
 }
 
 // bool isHexChar(char ch) {
@@ -41,13 +41,13 @@ void init_rmi(){
  * @brief rmi 命令Run操作的
  * 
  */
-void rmiCmd(Command& cmd, vector<string> args){
+void rmiCmd(std::shared_ptr<Command> cmd, vector<string> args){
     logger->set_module("rmi");
     logger->log_info("Start removing images");
     
     //1. 加载镜像仓库
     std::shared_ptr<Store> store;
-    store =getStore(&cmd);
+    store =getStore(cmd);
     auto images=store->image_store;
     logger->log_info("Image store loaded successfully");
 

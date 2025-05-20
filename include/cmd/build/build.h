@@ -33,12 +33,12 @@
 // #include "creat.h"
 // using namespace std;
 
-Flagset* Getbuildflags(BudResults* br);
-Flagset* GetLayerFlags(LayerResults* lr);
-Flagset* GetFromAndBudFlags(FromAndBudResults* fr);
-Flagset* GetUserNSFlags(UserNSResults* ur);
+std::shared_ptr<Flagset> Getbuildflags(std::shared_ptr<BudResults> br);
+std::shared_ptr<Flagset> GetLayerFlags(std::shared_ptr<LayerResults> lr);
+std::shared_ptr<Flagset> GetFromAndBudFlags(std::shared_ptr<FromAndBudResults> fr);
+std::shared_ptr<Flagset> GetUserNSFlags(std::shared_ptr<UserNSResults> ur);
 void init_buildcmd();
-void buildCmd(Command& cmd, vector<string> args,BuildOptions* iopts);
+void buildCmd(std::shared_ptr<Command> cmd, vector<string> args,std::shared_ptr<BuildOptions> iopts);
 // string UsageTemplate();
 
 void RemoveAll(const std::string& path);

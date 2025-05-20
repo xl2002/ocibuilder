@@ -30,7 +30,7 @@ using std::vector;
 using std::string;
 vector<string> SplitN(const string& str, const string& delimiter, size_t max_splits);
 string ParseBool(string str);
-shared_ptr<Store> getStore(Command* cmd);
+shared_ptr<Store> getStore(std::shared_ptr <Command> cmd);
 string GetFormat(string format);
 bool UseLayers();
 std::string JoinPath(const std::string& path1, const std::string& path2);
@@ -38,5 +38,5 @@ shared_ptr<DecryptConfig> DecryptConfigs(vector<string>decryptionKeys);
 std::vector<std::string> LookupEnvVarReferences(const std::vector<std::string>& specs);
 std::string Abspath(const std::string& path);
 string UsageTemplate();
-void tmpl(std::ostream& out, const std::string& text,Command& data);
+void tmpl(std::ostream& out, const std::string& text,std::shared_ptr<Command> data);
 #endif

@@ -16,7 +16,7 @@
 #include "image/types/define/build.h"
 #include "image/types/signature/policy_config.h"
 #include "image/buildah/image.h"
-#include "utils/logger/logrus/logger.h"
+// #include "utils/logger/logrus/logger.h"
 #include "image/buildah/add.h"
 // class v1::Image;
 class Store;
@@ -24,9 +24,6 @@ class Container;
 class Builder {
     public:
     std::shared_ptr<Store> store=std::make_shared<Store>();
-
-    // Logger is the logrus logger to write log messages with
-    // Logger* logger; // std::shared_ptr<int> to Logger
 
     // Args 定义用户在构建时可以传递给构建器的变量。
     std::map<std::string, std::string> Args;
@@ -304,13 +301,13 @@ class BuilderOptions {
     // GroupAdd 是需要添加的组
     std::vector<std::string> GroupAdd;
     // Logger 是 logrus 的 logger 实例
-    std::shared_ptr<::Logger> Logger=std::make_shared<::Logger>();  // 假设使用std::shared_ptr
+    // std::shared_ptr<::Logger> Logger=std::make_shared<::Logger>();  // 假设使用std::shared_ptr
     // Mount 信号表明容器应立即挂载
     bool Mount=false;
     // SignaturePolicyPath 指定用于签名验证的策略路径
     std::string SignaturePolicyPath;
     // ReportWriter 是用于记录镜像拉取日志的 io.Writer
-    std::ostream* ReportWriter;
+    std::shared_ptr<ostream> ReportWriter=nullptr;
     // SystemContext 保存认证和授权信息
     std::shared_ptr<::SystemContext> SystemContext=std::make_shared<::SystemContext>();
     // DefaultMountsFilePath 是默认挂载文件路径

@@ -15,7 +15,7 @@ public:
     std::string Chown;                        // 设置新添加内容的所有权
     std::string Checksum;                     // 预期的内容哈希值（算法:摘要）
     bool PreserveOwnership = false;           // 如果 Chown 未设置，则保留现有的所有权
-    std::ostream* Hasher = nullptr;           // 数据哈希输出流（内容将传递给此流）
+    std::shared_ptr<ostream> Hasher = nullptr;           // 数据哈希输出流（内容将传递给此流）
     std::vector<std::string> Excludes;        // .containerignore 文件的内容
     std::string IgnoreFile;                   // .containerignore 文件的路径
     std::string ContextDir;                   // 要复制内容的基本目录

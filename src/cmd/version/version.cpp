@@ -21,21 +21,21 @@
  * @details 创建 version 命令对象，设置命令名称、描述、示例及 JSON 输出选项
  */
 void init_version(){
-    versionOptions* options=new versionOptions();
+    auto options=std::make_shared <versionOptions>();
     string name{"version"};
     string Short{"Display the ocibuilder version information"};
     string Long{"Displays ocibuilder version information."};
     string example{"ocibuilder version [--json]"}; 
-    Command* versionCommand=new Command{name,Short,Long,example};
+    auto versionCommand=std::make_shared <Command>(name,Short,Long,example);
     string Template=UsageTemplate();
     versionCommand->SetUsageTemplate(Template);
 
-    Flagset* flags=versionCommand->Flags();
+    auto flags=versionCommand->Flags();
     flags->BoolVar(options->json,"json",false,"Display the version information in JSON format");
-    versionCommand->Run=[=](Command& cmd, vector<string> args){
+    versionCommand->Run=[=](std::shared_ptr<Command> cmd, vector<string> args){
         versionCmd(options);
     };
-    rootcmd.AddCommand({versionCommand});
+    rootcmd->AddCommand({versionCommand});
     // return imagesCommand;
 }
 /**
@@ -71,7 +71,7 @@ std::string OSAndArch(){
  * @param iopts 版本命令选项，包含是否以 JSON 格式输出的标志
  * @details 根据参数决定以普通文本或 JSON 格式输出版本信息（包括编译器版本、构建时间等）
  */
-void versionCmd(versionOptions* iopts){
+void versionCmd(std::shared_ptr<versionOptions> iopts){
     logger->log_info("Start version command");
     //1. 构建versionInfo对象，
     auto v=std::make_shared<versionInfo>();
@@ -97,7 +97,7 @@ void versionCmd(versionOptions* iopts){
         std::cout<<std::left<<std::setw(20)<<"Os/Arch:"<<v->OsArch<<std::endl;
         std::cout<<std::left<<std::setw(20)<<"BuildPlatform:"<<v->BuildPlatform<<std::endl;
     }
-    delete iopts;
+    // delete iopts;
     logger->log_info("Version command completed successfully");
     return;
 }

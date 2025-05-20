@@ -33,21 +33,21 @@
  */
 void init_push()
 {
-    auto opts = new pushOptions();
+    auto opts = std::make_shared <pushOptions>();
     string name{"push"};
     string Short{"Push an image to a specified destination"};
     string Long{"Pushes an image to a specified location."};
     string example{"ocibuilder pull imagename\n  ocibuilder pull docker-daemon:imagename:imagetag\n  ocibuilder pull myregistry/myrepository/imagename:imagetag"};
-    Command *pushCommand = new Command{name, Short, Long, example};
+    auto pushCommand = std::make_shared <Command>(name, Short, Long, example);
     string Template = UsageTemplate();
     pushCommand->SetUsageTemplate(Template);
 
-    Flagset *flags = pushCommand->Flags();
+    auto flags = pushCommand->Flags();
     // flags.StringVar();
     flags->SetInterspersed(false);
     flags->StringVar(opts->format, "format", std::string(), "manifest type (oci, v2s1, or v2s2) to use in the destination (default is manifest type of source, with fallbacks)");
     flags->StringVar(opts->authfile, "authfile", std::string(), "path of the authentication file. Use REGISTRY_AUTH_FILE environment variable to override");
-    pushCommand->Run = [=](Command &cmd, vector<string> args)
+    pushCommand->Run = [=](std::shared_ptr<Command>cmd, vector<string> args)
     {
         // 有可能有format参数
         if (args.size() == 1 || args.size() == 3)
@@ -59,7 +59,7 @@ void init_push()
         else
             std::cerr << "the number of arguments is not right!!" << std::endl;
     };
-    rootcmd.AddCommand({pushCommand});
+    rootcmd->AddCommand({pushCommand});
     // return imagesCommand;
 }
 
@@ -78,7 +78,7 @@ void init_push()
  * @warning 需确保网络连通性和仓库写入权限
  * @return 无返回值，失败时直接终止进程
  */
-void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
+void pushCmd(std::shared_ptr<Command>cmd, vector<string> args, std::shared_ptr<pushOptions> iopts)
 {
     logger->set_module("push");
     logger->log_info("Starting remote image push operation");
@@ -92,7 +92,7 @@ void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
     // 判断使用哪种格式
     bool v1_format = false;
 
-    auto tmp = cmd.flags->actual_flags;
+    auto tmp = cmd->flags->actual_flags;
     if (tmp.find("format") != tmp.end())
     {
         v1_format = true;
@@ -119,7 +119,7 @@ void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
     src = args[0];
     auto compress = compression::Gzip;
     // 读取本地镜像的数据
-    auto store = getStore(&cmd);
+    auto store = getStore(cmd);
 
     // 分析镜像名
     std::string urlpath, withinTransport;
@@ -251,7 +251,7 @@ void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
     if (!allBlobsUploaded) {
         logger->log_error("Failed to push some blobs, aborting manifest upload");
         std::cerr << "Failed to push some blobs, aborting manifest upload" << std::endl;
-        delete iopts;
+        // delete iopts;
         return;
     }
 
@@ -270,7 +270,7 @@ void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
         std::pair<std::string, std::string> initResult = initUpload(url->host, url->port, url->imageName, url->projectName);
         if (initResult.first.empty() || initResult.second.empty()) {
             std::cerr << "Failed to initialize upload for config" << std::endl;
-            delete iopts;
+            // delete iopts;
             return;
         }
         uid = initResult.first;
@@ -289,7 +289,7 @@ void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
         // 上传完成后再次检查config是否存在
         if (!ifBlobExists(url->host, url->port, url->imageName, shaId1, url->projectName)) {
             std::cerr << "Config upload verification failed: " << shaId1 << " not found in repository" << std::endl;
-            delete iopts;
+            // delete iopts;
             return;
         }
     }
@@ -332,7 +332,7 @@ void pushCmd(Command &cmd, vector<string> args, pushOptions *iopts)
     //     // 上传数据
     //     uploadManifest(url->host, url->port, manifestPath, 0, total_size, url->imageName, url->version, manifestType, url->projectName);
     // }
-    delete iopts;
+    // delete iopts;
     logger->log_info("Remote image push completed successfully");
     std::cout << "Push success!!" << std::endl;
 }
@@ -375,7 +375,7 @@ std::string extractAndConvertPath(const std::string &param)
  *             - 生成/更新目标 index.json
  * @note 适用于离线环境镜像迁移
  */
-void pushCmdLocal(Command &cmd, vector<string> args, pushOptions * iopts)
+void pushCmdLocal(std::shared_ptr<Command>cmd, vector<string> args, std::shared_ptr<pushOptions> iopts)
 {
     logger->set_module("push-local");
     logger->log_info("Starting local image push operation");
@@ -387,7 +387,7 @@ void pushCmdLocal(Command &cmd, vector<string> args, pushOptions * iopts)
     destPath = args[1];
 
     // 读取本地镜像的数据
-    auto store = getStore(&cmd);
+    auto store = getStore(cmd);
     // 获得index.json
     std::string indexPath = store.get()->image_store_dir + "/index.json";
 
@@ -532,7 +532,7 @@ void pushCmdLocal(Command &cmd, vector<string> args, pushOptions * iopts)
         }
         images->Save();
     }
-    delete iopts;
+    // delete iopts;
     logger->log_info("Local image push completed successfully");
     std::cout << "Push local dir success!!" << std::endl;
 }

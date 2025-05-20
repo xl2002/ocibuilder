@@ -33,16 +33,16 @@
  * @return void
  */
 void init_configcmd(){
-    configOptions* options=new configOptions();
+    auto options=std::make_shared<configOptions>();
     string name{"config"};
     string Short{"Update image configuration settings"};
     string Long{"Modifies the configuration values which will be saved to the image."};
     string example{"ocibuilder config --author='Jane Austen' --workingdir='/etc/mycontainers' containerID\n  ocibuilder config --entrypoint '[ \"/entrypoint.sh\", \"dev\" ]' containerID\n  ocibuilder config --env foo=bar --env PATH=$PATH containerID"};
     
-    Command* configCommand=new Command(name,Short,Long,example);
+    auto configCommand=std::make_shared<Command>(name,Short,Long,example);
     string Template=UsageTemplate();
     configCommand->SetUsageTemplate(Template);
-    Flagset* flags=configCommand->Flags();
+    auto flags=configCommand->Flags();
     flags->SetInterspersed(false);
     //初始化每个flag的内容
     flags->BoolVar(options->addHistory,"add-history",false,"add an entry for this operation to the image's history.  Use BUILDAH_HISTORY environment variable to override. (default false)");
@@ -55,10 +55,10 @@ void init_configcmd(){
     flags->StringArrayVar(options->label,"label",vector<string>(), "set a label for the target image (e.g., label=value) (default [])");
     flags->StringVar(options->os,"os","","set the OS of the image (e.g., linux, windows) (default unset)");
     
-    configCommand->Run=[=](Command& cmd, vector<string> args){
+    configCommand->Run=[=](std::shared_ptr<Command> cmd, vector<string> args){
         configCmd(cmd,args,options);
     };
-    rootcmd.AddCommand({configCommand});
+    rootcmd->AddCommand({configCommand});
     // return configCommand;
 }
 /**
@@ -176,27 +176,27 @@ void updateEntrypoint(std::shared_ptr<Builder> builder, const std::string& entry
  * @param c 
  * @param iopts 
  */
-void updateConfig(std::shared_ptr<Builder> builder, Command& c, configOptions* iopts) {
+void updateConfig(std::shared_ptr<Builder> builder, std::shared_ptr<Command> c, std::shared_ptr<configOptions> iopts) {
     try {
         // 根据 iopts 中的配置更新 builder 中的镜像配置
 
         // 更新 author
-        if (c.flags->Changed("author")) {
+        if (c->flags->Changed("author")) {
             builder->SetMaintainer(iopts->author);
         }
 
         // 更新 architecture
-        if (c.flags->Changed("arch")) {
+        if (c->flags->Changed("arch")) {
             builder->SetArchitecture(iopts->arch);
         }
 
         // 更新 os
-        if (c.flags->Changed("os")) {
+        if (c->flags->Changed("os")) {
             builder->SetOS(iopts->os);
         }
 
         // 更新 env
-        if (c.flags->Changed("env")) {
+        if (c->flags->Changed("env")) {
             for (const auto& envSpec : iopts->env) {
                 auto env = split(envSpec, '='); // 假设您有一个 split 函数可以分割字符串
                 if (env.size() > 1) {
@@ -209,7 +209,7 @@ void updateConfig(std::shared_ptr<Builder> builder, Command& c, configOptions* i
         }
 
         // 更新 label
-        if (c.flags->Changed("label")) {
+        if (c->flags->Changed("label")) {
             for (const auto& labelSpec : iopts->label) {
                 auto label = split(labelSpec, '='); // 假设您有一个 split 函数
                 if (label.size() > 1) {
@@ -222,7 +222,7 @@ void updateConfig(std::shared_ptr<Builder> builder, Command& c, configOptions* i
         }
 
         // 更新 entrypoint
-        if (c.flags->Changed("entrypoint")) {
+        if (c->flags->Changed("entrypoint")) {
             updateEntrypoint(builder, iopts->entrypoint);
         }
 
@@ -240,7 +240,7 @@ void updateConfig(std::shared_ptr<Builder> builder, Command& c, configOptions* i
  * @brief config命令Run操作的
  * 
  */
-void configCmd(Command& cmd, std::vector<std::string> args, configOptions* iopts) {
+void configCmd(std::shared_ptr<Command> cmd, std::vector<std::string> args, std::shared_ptr<configOptions> iopts) {
     try {
         logger->set_module("config");
         logger->log_info("Starting config command execution");
@@ -257,7 +257,7 @@ void configCmd(Command& cmd, std::vector<std::string> args, configOptions* iopts
         std::string name = args[0];
 
         // 2. 获取存储对象（store）
-        auto store = getStore(&cmd);
+        auto store = getStore(cmd);
         if (!store) {
             logger->log_error("Failed to get store");
             throw myerror("failed to get store");
@@ -275,7 +275,7 @@ void configCmd(Command& cmd, std::vector<std::string> args, configOptions* iopts
 
         // 5. 保存镜像配置
         builder->Save(name);
-        delete iopts;
+        // delete iopts;
         logger->log_info("Config command completed successfully");
     } catch (const myerror& e) {
         // 输出错误信息并终止执行

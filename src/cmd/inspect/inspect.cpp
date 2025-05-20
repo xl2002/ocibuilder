@@ -27,25 +27,25 @@ void init_inspect(){
     string Short{"Inspect the configuration of a container or image"};
     string Long{"Inspects a build container's or built image's configuration."};
     string example{"ocibuilder inspect imageName/imageID"};
-    Command* inspectCommand=new Command(name,Short,Long,example);
+    auto inspectCommand=std::make_shared <Command>(name,Short,Long,example);
     string Template=UsageTemplate();
     inspectCommand->SetUsageTemplate(Template);
-    inspectCommand->Run=[=](Command& cmd, vector<string> args){
+    inspectCommand->Run=[=](std::shared_ptr<Command> cmd, vector<string> args){
         inspectCmd(cmd,args);
     };
-    rootcmd.AddCommand({inspectCommand});
+    rootcmd->AddCommand({inspectCommand});
 }
 
 /**
  * @brief inspect返回镜像的信息
  * 
  */
-std::shared_ptr<Store> getStore(Command* cmd);
-void inspectCmd(Command& cmd, vector<string> args){
+std::shared_ptr<Store> getStore(std::shared_ptr <Command> cmd);
+void inspectCmd(std::shared_ptr<Command> cmd, vector<string> args){
     logger->set_module("inspect");
     logger->log_info("Start inspect command execution");
     //1. 加载镜像仓库
-    std::shared_ptr<Store> store = getStore(&cmd);
+    std::shared_ptr<Store> store = getStore(cmd);
     if (!store) {
         logger->log_error("Failed to load image store");
         return;

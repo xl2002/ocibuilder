@@ -25,15 +25,15 @@ extern std::string TypeCache;
 extern std::string BuildahCacheDir;
 
 
-PullPolicy PullPolicyFromOptions(Command* c);
-shared_ptr<SystemContext> SystemContextFromOptions(Command* c);
+PullPolicy PullPolicyFromOptions(std::shared_ptr <Command> c);
+shared_ptr<SystemContext> SystemContextFromOptions(std::shared_ptr <Command> c);
 std::string GetTempDir();
 shared_ptr<Isolation> IsolationOption(string isolation);
-shared_ptr<CommonBuildOptions> CommonbuildOptions(Command* cmd);
+shared_ptr<CommonBuildOptions> CommonbuildOptions(std::shared_ptr <Command> cmd);
 void parseSecurityOpts(vector<string> securityOpts,shared_ptr<CommonBuildOptions> commonOpts);
-shared_ptr<NamespaceOptions> Namespaceoptions(Command* cmd,std::shared_ptr<NetworkConfigurationPolicy> networkPolicy);
-shared_ptr<NamespaceOptions> idmappingOptions(Command* cmd,shared_ptr<Isolation> isolation,shared_ptr<IDMappingOptions>idmapOptions);
-std::vector<platforms> PlatformsFromOptions(Command* cmd);
+shared_ptr<NamespaceOptions> Namespaceoptions(std::shared_ptr <Command> cmd,std::shared_ptr<NetworkConfigurationPolicy> networkPolicy);
+shared_ptr<NamespaceOptions> idmappingOptions(std::shared_ptr <Command> cmd,shared_ptr<Isolation> isolation,shared_ptr<IDMappingOptions>idmapOptions);
+std::vector<platforms> PlatformsFromOptions(std::shared_ptr <Command> cmd);
 void Volumes( std::vector<std::string> volumes);
 std::tuple<std::vector<std::string>, std::string> ContainerIgnoreFile(
     const std::string& contextDir, const std::string& path, const std::vector<std::string>& containerFiles);

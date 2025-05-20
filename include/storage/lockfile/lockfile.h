@@ -30,10 +30,7 @@ typedef std::shared_ptr<boost::filesystem::fstream> fileHandle;
  */
 class lockFile {
 public:
-    lockFile() = default;
-    // The following fields are only set when constructing *LockFile, and must never be modified afterwards.
-    // They are safe to access without any other locking.
-    // 构造函数
+    lockFile() = default;// 构造函数
     lockFile(const std::string& file, bool ro, LockType lockType)
         : file(file), ro(ro), lockType(lockType), counter(0), locked(false), fd(nullptr) {
         // 初始化其他成员变量

@@ -18,20 +18,20 @@
  * 
  */
 void init_images(){
-    imagesOptions* options=new imagesOptions();
+    auto options=std::make_shared <imagesOptions>();
     string name{"images"};
     string Short{"List images in local storage"};
     string Long{"Lists locally stored images."};
     string example{"ocibuilder images --all\n  ocibuilder images [imageName]\n  ocibuilder images --format '{{.ID}} {{.Name}} {{.Size}} {{.CreatedAtRaw}}'"};
-    Command* imagesCommand=new Command{name,Short,Long,example};
+    auto  imagesCommand=std::make_shared <Command>(name,Short,Long,example);
     string Template=UsageTemplate();
     imagesCommand->SetUsageTemplate(Template);
-    Flagset* flags=imagesCommand->Flags();
+    auto flags=imagesCommand->Flags();
     flags->BoolVar(options->all,"all",false,"show all images, including intermediate images from a build");
-    imagesCommand->Run=[=](Command& cmd, vector<string> args){
+    imagesCommand->Run=[=](std::shared_ptr<Command> cmd, vector<string> args){
         imagesCmd(cmd,args,options);
     };
-    rootcmd.AddCommand({imagesCommand});
+    rootcmd->AddCommand({imagesCommand});
     // return imagesCommand;
 }
 std::string formatSize(int64_t sizeInBytes) {
@@ -116,12 +116,12 @@ void formatImages(const std::vector<storage::Image>& images) {
  * @brief images 命令Run操作的
  * 
  */
-void imagesCmd(Command& cmd, vector<string> args,imagesOptions*iopts){
+void imagesCmd(std::shared_ptr<Command> cmd, vector<string> args,std::shared_ptr<imagesOptions> iopts){
     logger->set_module("images");
     logger->log_info("Start executing images command");
     
     //1. 加载本地镜像库
-    auto store = getStore(&cmd);
+    auto store = getStore(cmd);
     auto imagestore = store->image_store;
 
     //2. 获得所有镜像信息
@@ -140,5 +140,5 @@ void imagesCmd(Command& cmd, vector<string> args,imagesOptions*iopts){
     //3. 格式化打印所有镜像信息
     formatImages(images);
     logger->log_info("Images command completed successfully");
-    delete iopts;
+    // delete iopts;
 }

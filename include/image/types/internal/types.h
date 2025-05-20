@@ -57,7 +57,7 @@ class bpCompressionStepData{
 	std::map<std::string, std::string>uploadedAnnotations;
 	string srcCompressorName;
 	string uploadedCompressorName;
-	std::vector<std::istream*>closers;
+	// std::vector<std::shared_ptr<istream>>closers;
 	bpCompressionStepData()=default;
 };
 // std::shared_ptr<Algorithm> NewAlgorithm(string name);

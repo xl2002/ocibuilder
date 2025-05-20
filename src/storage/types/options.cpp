@@ -38,7 +38,7 @@ std::mutex storesLock;
  * @param configFile 配置文件路径
  * @param storeOptions 存储选项指针，用于接收加载的配置
  */
-void ReloadConfigurationFile(const std::string& configFile, StoreOptions* storeOptions) {
+void ReloadConfigurationFile(const std::string& configFile, std::shared_ptr<StoreOptions> storeOptions) {
     // 实现加载配置文件的逻辑
     // 这部分需要根据实际情况来实现
 }
@@ -49,7 +49,7 @@ void ReloadConfigurationFile(const std::string& configFile, StoreOptions* storeO
  * @param storeOptions 存储选项指针，用于接收加载的配置
  * @return bool 如果配置文件已重新加载返回true，否则返回false
  */
-bool ReloadConfigurationFileIfNeeded(const std::string& configFile, StoreOptions* storeOptions) {
+bool ReloadConfigurationFileIfNeeded(const std::string& configFile, StoreOptions& storeOptions) {
     std::lock_guard<std::mutex> lock(prevReloadConfig.mutex);
 
     boost::filesystem::file_status fs;
@@ -64,7 +64,7 @@ bool ReloadConfigurationFileIfNeeded(const std::string& configFile, StoreOptions
     auto mtime = boost::filesystem::last_write_time(configFile);
 
     if (prevReloadConfig.storeOptions && prevReloadConfig.mod == mtime && prevReloadConfig.configFile == configFile) {
-        *storeOptions = *prevReloadConfig.storeOptions;
+        storeOptions = *prevReloadConfig.storeOptions;
         return true;
     }
     // try {
@@ -77,7 +77,7 @@ bool ReloadConfigurationFileIfNeeded(const std::string& configFile, StoreOptions
     //     throw myerror("重新加载配置文件失败: " + std::string(e.what()));
     // }
 
-    prevReloadConfig.storeOptions = std::make_shared<StoreOptions>(*storeOptions);
+    prevReloadConfig.storeOptions = std::make_shared<StoreOptions>(storeOptions);
     prevReloadConfig.mod = mtime;
     prevReloadConfig.configFile = configFile;
     return true;
@@ -106,11 +106,11 @@ void loadDefaultStoreOptions() {
         setDefaults(defaultStoreOptions);
 
         // 获取环境变量中的配置文件路径
-        const char* env_path = boost::compute::detail::getenv(storageConfEnv.c_str());
+        auto env_path = boost::compute::detail::getenv(storageConfEnv.c_str());
         std::string path = env_path ? std::string(env_path) : "";
         if (!path.empty()) {
             defaultOverrideConfigFile = path;
-            if (!ReloadConfigurationFileIfNeeded(defaultOverrideConfigFile, &defaultStoreOptions)) {
+            if (!ReloadConfigurationFileIfNeeded(defaultOverrideConfigFile, defaultStoreOptions)) {
                 logger->log_error("重新加载配置文件失败: " + defaultOverrideConfigFile);
                 throw myerror("重新加载配置文件失败: " + defaultOverrideConfigFile);
             }
@@ -136,7 +136,7 @@ void loadDefaultStoreOptions() {
         // 检查覆盖的配置文件是否存在
         if (boost::filesystem::exists(defaultOverrideConfigFile)) {
             defaultConfigFile = defaultOverrideConfigFile;
-            if (!ReloadConfigurationFileIfNeeded(defaultOverrideConfigFile, &defaultStoreOptions)) {
+            if (!ReloadConfigurationFileIfNeeded(defaultOverrideConfigFile, defaultStoreOptions)) {
                 logger->log_error("重新加载覆盖配置文件失败: " + defaultOverrideConfigFile);
                 throw myerror("重新加载配置文件失败: " + defaultOverrideConfigFile);
             }
@@ -145,7 +145,7 @@ void loadDefaultStoreOptions() {
         }
 
         // 默认配置文件路径
-        if (!ReloadConfigurationFileIfNeeded(defaultConfigFile, &defaultStoreOptions)) {
+        if (!ReloadConfigurationFileIfNeeded(defaultConfigFile, defaultStoreOptions)) {
             if(boost::filesystem::exists(defaultConfigFile)) {
                 logger->log_error("重新加载默认配置文件失败: " + defaultConfigFile);
                 throw myerror("重新加载配置文件失败: " + defaultConfigFile);
@@ -209,7 +209,7 @@ std::string expandEnvPath(const std::string& path, int rootlessUID) {
  * @return std::string 环境变量值，如果未设置则返回空字符串
  */
 std::string getEnv(const std::string& name) {
-    const char* value = boost::compute::detail::getenv(name.c_str());
+    auto value = boost::compute::detail::getenv(name.c_str());
     return value ? std::string(value) : std::string();
 }
 /**
@@ -299,7 +299,7 @@ std::string DefaultConfigFile() {
         }
 
         // 获取环境变量中的配置文件路径
-        const char* envPath = boost::compute::detail::getenv(storageConfEnv.c_str());
+        auto envPath = boost::compute::detail::getenv(storageConfEnv.c_str());
         if (envPath != nullptr) {
             return std::string(envPath);
         }
@@ -313,7 +313,7 @@ std::string DefaultConfigFile() {
         }
 
         // 获取 XDG_CONFIG_HOME 环境变量
-        const char* configHome = boost::compute::detail::getenv("XDG_CONFIG_HOME");
+        auto configHome = boost::compute::detail::getenv("XDG_CONFIG_HOME");
         if (configHome != nullptr) {
             return (boost::filesystem::path(configHome) / "containers" / "storage.conf").string();
         }

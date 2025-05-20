@@ -35,9 +35,3 @@ void init(int argc, char const *argv[]){
     
     initialize_cmd();
 }
-void Delete(){
-    if(CommandLine!=nullptr){
-        delete CommandLine;
-        CommandLine=nullptr;
-    }
-}

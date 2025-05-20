@@ -20,14 +20,14 @@ const string logLevel="log-level";
  * 
  * @return Command 返回rootcmd结构
  */
-Command init_rootcmd(){
-    Command Appcmd;
-    Appcmd.name="ocibuilder";
-    Appcmd.Long="A tool that facilitates building OCI images";
-    Appcmd.version="image-spec 1.0.0";
-    Appcmd.Run=[](Command& cmd, vector<string> args){cmd.Help();};
-    Appcmd.PersistentPreRun=[](Command& cmd, vector<string> args){before(cmd);};
-    Appcmd.PersistentPostRun=[](Command& cmd, vector<string> args){after(cmd);};
+std::shared_ptr <Command> init_rootcmd(){
+    auto Appcmd=std::make_shared<Command>();
+    Appcmd->name="ocibuilder";
+    Appcmd->Long="A tool that facilitates building OCI images";
+    Appcmd->version="image-spec 1.0.0";
+    Appcmd->Run=[](std::shared_ptr<Command> cmd, vector<string> args){cmd->Help();};
+    Appcmd->PersistentPreRun=[](std::shared_ptr<Command> cmd, vector<string> args){before(cmd);};
+    Appcmd->PersistentPostRun=[](std::shared_ptr<Command> cmd, vector<string> args){after(cmd);};
     ///初始化运行环境
     StoreOptions storageOptions;
     try{
@@ -48,7 +48,7 @@ Command init_rootcmd(){
     }
     defaultContainerConfig->CheckCgroupsAndAdjustConfig();
 
-    Flagset* persistentflags=Appcmd.PersistentFlags();
+    auto persistentflags=Appcmd->PersistentFlags();
     persistentflags->StringVar(globalFlagOptions.Root,"root",storageOptions.graph_root,"storage root dir");
     persistentflags->StringVar(globalFlagOptions.RegistriesConf,"registries-conf","","path to registries.conf file (not usually used)");
     persistentflags->StringVar(globalFlagOptions.RegistriesConfDir,"registries-conf-dir", "", "path to registries.conf.d directory (not usually used)");
@@ -71,12 +71,9 @@ Command init_rootcmd(){
     return Appcmd;
 }
 
-
-
-
-void before(Command& cmd){
+void before(std::shared_ptr<Command> cmd){
 
 }
-void after(Command& cmd){
+void after(std::shared_ptr<Command> cmd){
 
 }

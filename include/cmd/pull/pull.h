@@ -23,12 +23,11 @@ using std::vector;
 class pullOptions
 {
     public:
-    /* data */
     bool    allTags=false;          ///<
     string  os;                     ///<
     string  arch;                   ///<
     string  format;                 ///<oci, v2s1, or v2s2
 };
-void pullCmd(Command& cmd, vector<string> args,pullOptions* iopts);
+void pullCmd(std::shared_ptr<Command> cmd, vector<string> args,std::shared_ptr<pullOptions> iopts);
 void init_pull();
 #endif

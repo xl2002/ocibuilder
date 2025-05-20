@@ -18,7 +18,7 @@
 
 // 全局变量定义
 /// @brief 命令行标志集合指针
-Flagset* CommandLine;
+std::shared_ptr<Flagset> CommandLine;
 
 /// @brief 全局缓冲池接口指针
 // std::shared_ptr<BufferPool_interface> globalBufferPool;

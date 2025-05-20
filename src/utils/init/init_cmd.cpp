@@ -15,7 +15,7 @@
 #include "cmd/logout/logout.h"
 #include "cmd/save/save.h"
 std::once_flag flag_cmd;
-Command rootcmd; 
+std::shared_ptr<Command> rootcmd; 
 /**
  * @brief 初始化所有命令行命令
  * @details 执行流程：

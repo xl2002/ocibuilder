@@ -22,15 +22,13 @@ using std::vector;
  */
 class saveOptions
 {
-    public://TODO: 三条参数？
-    /* data */
+    public://TODO: 三条参数
     //std::string authfile;  // 认证文件路径（可选）
     std::string output;    // 输出文件路径（必选）
     std::string image;     // 镜像名称（必选）
 };
 
 void init_save();
-void saveCmd(Command& cmd, vector<string> args, saveOptions*iopts);
+void saveCmd(std::shared_ptr<Command> cmd, vector<string> args, std::shared_ptr<saveOptions> iopts);
 bool convertOciConfigToDockerLayerConfig(const std::string &ociConfigPath, const std::string &dockerConfigPath, const std::string &configDigest);
-//void pushCmdLocal(Command& cmd, vector<string> args, pushOptions* iopts);
 #endif

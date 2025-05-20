@@ -96,7 +96,7 @@ bool MkdirAll(const std::string& path);
 std::wstring s2ws(const std::string& s);
 bool DirectoryExists(const std::string& path);
 
-bool ReloadConfigurationFileIfNeeded(const std::string& configFile, StoreOptions* storeOptions);
+bool ReloadConfigurationFileIfNeeded(const std::string& configFile, StoreOptions& storeOptions);
 ///<ReloadConfigurationFileIfNeeded这个函数负责一些初始化变量的赋值
 std::shared_ptr<Store> GetStore(StoreOptions options);
 

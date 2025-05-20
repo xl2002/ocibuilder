@@ -7,7 +7,7 @@
 #include "utils/common/go/string.h"
 #include "image/buildah/commit.h"
 #include <algorithm>
-#include "utils/logger/logrus/exported.h"
+// #include "utils/logger/logrus/exported.h"
 #include "image/image_types/docker/image.h"
 #include "utils/logger/ProcessSafeLogger.h"
 
@@ -30,26 +30,27 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,bool> StageExecutor:
 
     std::shared_ptr<Rusage> resourceUsage;
     auto ib=stage->image_builder;
-    auto checkForLayers=executor->layers && executor->useCache;
+    auto execPtr=this->executor.lock();
+    auto checkForLayers=execPtr->layers && execPtr->useCache;
     auto moreStages=index< this->stages->Stages.size()-1;
     auto lastStage=!moreStages;
     // auto onlyBaseImage=false;builder
-    auto imageIsUsedLater=moreStages && (SetHas(this->executor->baseMap,stage->Name) || SetHas(this->executor->baseMap,std::to_string(stage->Position)));
-    auto rootfsIsUsedLater=moreStages && (SetHas(this->executor->rootfsMap,stage->Name) || SetHas(this->executor->rootfsMap,std::to_string(stage->Position)));
+    auto imageIsUsedLater=moreStages && (SetHas(execPtr->baseMap,stage->Name) || SetHas(execPtr->baseMap,std::to_string(stage->Position)));
+    auto rootfsIsUsedLater=moreStages && (SetHas(execPtr->rootfsMap,stage->Name) || SetHas(execPtr->rootfsMap,std::to_string(stage->Position)));
     
     auto s=std::make_shared<Stages>();
     std::vector<Stage> st(stages->Stages.begin(),stages->Stages.begin()+index);
     s->Stages=st;
-    auto ret=this->executor->waitForStage(base,s);
+    auto ret=execPtr->waitForStage(base,s);
     if(ret.first && ret.second!="") {
         return std::make_tuple("",nullptr,false);
     }
 
-    auto pullPolicy=this->executor->pullPolicy;
-    std::unique_lock<std::mutex> lock(this->executor->stagesLock);
+    auto pullPolicy=execPtr->pullPolicy;
+    std::unique_lock<std::mutex> lock(execPtr->stagesLock);
     bool preserveBaseImageAnnotationsAtStageStart=false;
-    auto it = this->executor->imageMap.find(base);
-    if(it!=this->executor->imageMap.end()){
+    auto it = execPtr->imageMap.find(base);
+    if(it!=execPtr->imageMap.end()){
         base=it->second;
         pullPolicy->value=Pull_Policy::PullNever;
         preserveBaseImageAnnotationsAtStageStart=true;
@@ -62,8 +63,8 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,bool> StageExecutor:
             if(usage.second){
                 throw myerror(errorToString(usage.second));
             }
-            if(this->executor->rusageLogFile!=nullptr){
-                *this->executor->rusageLogFile<<FormatDiff(usage.first.Subtract(*resourceUsage));
+            if(execPtr->rusageLogFile!=nullptr){
+                std::cout<<FormatDiff(usage.first.Subtract(*resourceUsage));
             }
             resourceUsage=std::make_shared<Rusage>(usage.first);
         }
@@ -91,33 +92,33 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,bool> StageExecutor:
         if(output!=""){
             commitMessage=commitMessage+" "+output;
         }
-        if(this->executor->quiet){
+        if(execPtr->quiet){
             log(commitMessage,std::vector<std::string>());
         }
     };
 
     auto logCachePulled=[&](std::string cacheKey, std::shared_ptr<named> remote){
-        if(!this->executor->quiet){
+        if(!execPtr->quiet){
             auto cachePullMessage = "--> Cache pulled from remote";
-            *this->executor->out << cachePullMessage <<" "<<remote->String() << ":" << cacheKey << std::endl;
+            std::cout << cachePullMessage <<" "<<remote->String() << ":" << cacheKey << std::endl;
         }
     };
 
     auto logCachePush=[&](std::string cacheKey){
-        if(!this->executor->quiet){
+        if(!execPtr->quiet){
             auto cachePushMessage = "--> Pushing cache";
-            *this->executor->out << cachePushMessage;
-            for (auto &cache : this->executor->cacheTo) {
-                *this->executor->out << "[" << cache.String() << "]" ;
+            std::cout << cachePushMessage;
+            for (auto &cache : execPtr->cacheTo) {
+                std::cout << "[" << cache.String() << "]" ;
             }
-            *this->executor->out << ":" << cacheKey << std::endl;
+            std::cout << ":" << cacheKey << std::endl;
         }
     };
 
     auto logCacheHit=[&](std::string cacheID){
-        if(!this->executor->quiet){
+        if(!execPtr->quiet){
             auto cacheHitMessage =  "--> Using cache";
-            *this->executor->out << cacheHitMessage << " " << cacheID << std::endl;
+            std::cout << cacheHitMessage << " " << cacheID << std::endl;
         }
     };
 
@@ -125,13 +126,13 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,bool> StageExecutor:
         if(imgID.size()>12){
             imgID=imgID.substr(0,12);
         }
-        if(this->executor->iidfile==""){
-            *this->executor->out << "--> " << imgID << std::endl;
+        if(execPtr->iidfile==""){
+            std::cout << "--> " << imgID << std::endl;
         }
     };
 
     auto buildOutputOption=std::make_shared<BuildOutputOption>();
-    auto canGenerateBuildOutput=this->executor->buildOutput !="" && lastStage;
+    auto canGenerateBuildOutput=execPtr->buildOutput !="" && lastStage;
 
     if(canGenerateBuildOutput){
 
@@ -159,7 +160,7 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,bool> StageExecutor:
             throw myerror("resolving step "+std::to_string(i)+": "+std::string(e.what()));
         }
 
-        if(!this->executor->quiet){
+        if(!execPtr->quiet){
             auto logMsg=step->Original;
             if(step->Heredocs.size()>0){
 
@@ -177,11 +178,11 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,bool> StageExecutor:
         //     n->Children.insert(n->Children.end(),node->Children.begin()+i+1,node->Children.end());
         //     noRunsRemaining=!ib->RequiresStart(n);
         // }
-        if(!this->executor->layers){
+        if(!execPtr->layers){
             this->didExecute=true;
             try{
                 // auto stage_p=std::make_shared<StageExecutor>(*this);
-                ib->Run(step,this,noRunsRemaining);//将镜像层内容复制到overlay
+                ib->Run(step,shared_from_this(),noRunsRemaining);//将镜像层内容复制到overlay
             }catch(const myerror& e){
                 throw myerror("building at STEP \""+step->Message+"\": "+std::string(e.what()));
             }
@@ -189,15 +190,15 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,bool> StageExecutor:
             if(moreInstructions){
                  // 获取当前时间
                 auto timestamp = std::chrono::system_clock::now();
-                if(this->executor->timestamp!=nullptr){
-                    timestamp=*this->executor->timestamp;
+                if(execPtr->timestamp!=nullptr){
+                    timestamp=*execPtr->timestamp;
                 }
                 this->builder->AddPrependedEmptyLayer(std::make_shared<std::chrono::system_clock::time_point>(timestamp),getCreatedBy(node,addedContentSummary),"","");
                 continue;
             }else{
                 if(lastStage || imageIsUsedLater){
                     logcommit(this->output,i);
-                    auto c=this->commit(this->getCreatedBy(node,addedContentSummary),false,this->output,this->executor->squash,lastStage&& lastInstruction);
+                    auto c=this->commit(this->getCreatedBy(node,addedContentSummary),false,this->output,execPtr->squash,lastStage&& lastInstruction);
                     imgID=c.first;
                     ref=c.second;
                     logImageID(imgID);
@@ -227,6 +228,7 @@ std::shared_ptr<Builder> StageExecutor::prepare(
     auto stage=this->stage;
     auto ib=stage->image_builder;
     auto node =stage->Node;
+    auto execPtr=this->executor.lock();
     if(from==""){
 
     }
@@ -246,50 +248,50 @@ std::shared_ptr<Builder> StageExecutor::prepare(
     }
     if(initializeIBConfig&&rebase){
         // Debugf("FROM %s\n",displayFrom.c_str());
-        // if(!this->executor->quiet){
+        // if(!execPtr->quiet){
         //     this->log("FROM ",std::vector<std::string>({displayFrom}));
         // }
     }
-    auto builderSystemContext=this->executor->systemContext;
+    auto builderSystemContext=execPtr->systemContext;
     if(stage->image_builder->Platform!=""){
 
     }
     auto builderOptions=std::make_shared<BuilderOptions>();
     builderOptions->Args=ib->Args;
     builderOptions->FromImage=from;
-    builderOptions->GroupAdd=this->executor->groupAdd;
+    builderOptions->GroupAdd=execPtr->groupAdd;
     builderOptions->PullPolicy=pullPolicy;
-    builderOptions->ContainerSuffix=this->executor->containerSuffix;
-    builderOptions->Registry=this->executor->registry;
-    builderOptions->BlobDirectory=this->executor->blobDirectory;
-    builderOptions->SignaturePolicyPath=this->executor->signaturePolicyPath;
-    builderOptions->ReportWriter=this->executor->reportWriter;
+    builderOptions->ContainerSuffix=execPtr->containerSuffix;
+    builderOptions->Registry=execPtr->registry;
+    builderOptions->BlobDirectory=execPtr->blobDirectory;
+    builderOptions->SignaturePolicyPath=execPtr->signaturePolicyPath;
+    builderOptions->ReportWriter=execPtr->reportWriter;
     builderOptions->SystemContext=builderSystemContext;
-    builderOptions->Isolation=this->executor->isolation;
-    builderOptions->NamespaceOptions->val=this->executor->namespaceOptions;
-    builderOptions->ConfigureNetwork=this->executor->configureNetwork;
-    builderOptions->CNIPluginPath=this->executor->cniPluginPath;
-    builderOptions->CNIConfigDir=this->executor->cniConfigDir;
-    builderOptions->NetworkInterface=this->executor->networkInterface;
-    builderOptions->IDMappingOptions=this->executor->idmappingOptions;
-    builderOptions->CommonBuildOpts=this->executor->commonBuildOptions;
-    builderOptions->DefaultMountsFilePath=this->executor->defaultMountsFilePath;
-    builderOptions->Format=this->executor->outputFormat;
-    builderOptions->Capabilities=this->executor->capabilities;
-    builderOptions->Devices=this->executor->devices;
-    builderOptions->DeviceSpecs=this->executor->deviceSpecs;
-    builderOptions->MaxPullRetries=this->executor->maxPullPushRetries;
-    builderOptions->PullRetryDelay=this->executor->retryPullPushDelay;
-    builderOptions->OciDecryptConfig=this->executor->ociDecryptConfig;
-    //builderOptions->Logger=this->executor->logger;
-    builderOptions->ProcessLabel=this->executor->processLabel;
-    builderOptions->MountLabel=this->executor->mountLabel;
+    builderOptions->Isolation=execPtr->isolation;
+    builderOptions->NamespaceOptions->val=execPtr->namespaceOptions;
+    builderOptions->ConfigureNetwork=execPtr->configureNetwork;
+    builderOptions->CNIPluginPath=execPtr->cniPluginPath;
+    builderOptions->CNIConfigDir=execPtr->cniConfigDir;
+    builderOptions->NetworkInterface=execPtr->networkInterface;
+    builderOptions->IDMappingOptions=execPtr->idmappingOptions;
+    builderOptions->CommonBuildOpts=execPtr->commonBuildOptions;
+    builderOptions->DefaultMountsFilePath=execPtr->defaultMountsFilePath;
+    builderOptions->Format=execPtr->outputFormat;
+    builderOptions->Capabilities=execPtr->capabilities;
+    builderOptions->Devices=execPtr->devices;
+    builderOptions->DeviceSpecs=execPtr->deviceSpecs;
+    builderOptions->MaxPullRetries=execPtr->maxPullPushRetries;
+    builderOptions->PullRetryDelay=execPtr->retryPullPushDelay;
+    builderOptions->OciDecryptConfig=execPtr->ociDecryptConfig;
+    //builderOptions->Logger=execPtr->logger;
+    builderOptions->ProcessLabel=execPtr->processLabel;
+    builderOptions->MountLabel=execPtr->mountLabel;
     builderOptions->PreserveBaseImageAnns=preserveBaseImageAnnotations;
-    builderOptions->CDIConfigDir=this->executor->cdiConfigDir;
-    std::shared_ptr<Builder> builder =NewBuilder(this->executor->store,builderOptions);
-    if(this->executor->mountLabel==""&&this->executor->processLabel==""){
-        this->executor->mountLabel=builder->MountLabel;
-        this->executor->processLabel=builder->ProcessLabel;
+    builderOptions->CDIConfigDir=execPtr->cdiConfigDir;
+    std::shared_ptr<Builder> builder =NewBuilder(execPtr->store,builderOptions);
+    if(execPtr->mountLabel==""&&execPtr->processLabel==""){
+        execPtr->mountLabel=builder->MountLabel;
+        execPtr->processLabel=builder->ProcessLabel;
     }
     if(initializeIBConfig){
         auto volumes=std::map<std::string, std::string>();
@@ -419,7 +421,9 @@ std::string StageExecutor::getCreatedBy(std::shared_ptr<Node> node,std::string a
         }
         return "/bin/sh -c #(nop) " + upperValue + " " + addedContentSummary + " in " + destination->Value;
     } else {
-        return "/bin/sh -c #(nop) " + node->Original;
+        auto str=node->Original;
+        str.erase(std::remove(str.begin(), str.end(), '"'), str.end());
+        return "/bin/sh -c #(nop) " + str;
     }
 
 }
@@ -431,10 +435,11 @@ std::pair<std::string,std::shared_ptr<Canonical_interface>> StageExecutor::commi
     bool finalInstruction
 ){
     auto ib=this->stage->image_builder;
+    auto execPtr=this->executor.lock();
     std::shared_ptr<ImageReference_interface> imageRef;
     if(output!=""){
         try{
-            auto imageRef2=this->executor->resolveNameToImageRef(output);
+            auto imageRef2=execPtr->resolveNameToImageRef(output);
             imageRef=imageRef2;
         }catch(const myerror& e){
             throw;
@@ -449,16 +454,16 @@ std::pair<std::string,std::shared_ptr<Canonical_interface>> StageExecutor::commi
     }
     this->builder->SetHostname(config->Hostname);
     this->builder->SetDomainname(config->Domainname);
-    if(this->executor->architecture!=""){
-        this->builder->SetArchitecture(this->executor->architecture);
+    if(execPtr->architecture!=""){
+        this->builder->SetArchitecture(execPtr->architecture);
     }
-    if(this->executor->os!=""){
-        this->builder->SetOS(this->executor->os);
+    if(execPtr->os!=""){
+        this->builder->SetOS(execPtr->os);
     }
-    if(this->executor->osVersion!=""){
-        this->builder->SetOSVersion(this->executor->osVersion);
+    if(execPtr->osVersion!=""){
+        this->builder->SetOSVersion(execPtr->osVersion);
     }
-    for(auto& osFeatureSpec:this->executor->osFeatures){
+    for(auto& osFeatureSpec:execPtr->osFeatures){
         
     }
     this->builder->SetUser(config->User);
@@ -471,7 +476,7 @@ std::pair<std::string,std::shared_ptr<Canonical_interface>> StageExecutor::commi
         std::tie(key,val,std::ignore)=Cut(envSpec,'=');
         this->builder->SetEnv(key,val);
     }
-    for(auto& envSpec:this->executor->unsetEnvs){
+    for(auto& envSpec:execPtr->unsetEnvs){
         
     }
     this->builder->SetCmd(config->Cmd);
@@ -494,7 +499,7 @@ std::pair<std::string,std::shared_ptr<Canonical_interface>> StageExecutor::commi
     }
     this->builder->ClearLabels();
     if(output==""){
-        for(auto l:this->executor->layerLabels){
+        for(auto l:execPtr->layerLabels){
             std::string key,val;
             std::tie(key,val,std::ignore)=Cut(l,'=');
             this->builder->SetLabel(key,val);
@@ -503,13 +508,13 @@ std::pair<std::string,std::shared_ptr<Canonical_interface>> StageExecutor::commi
     for(auto& v:config->Labels){
         this->builder->SetLabel(v.first,v.second);
     }
-    // if(this->executor->commonBuildOptions->IdentityLabel==OptionalBool::OptionalBoolUndefined || this->executor->commonBuildOptions->IdentityLabel==OptionalBool::OptionalBoolTrue){
+    // if(execPtr->commonBuildOptions->IdentityLabel==OptionalBool::OptionalBoolUndefined || execPtr->commonBuildOptions->IdentityLabel==OptionalBool::OptionalBoolTrue){
     //     this->builder->SetLabel(BuilderIdentityAnnotation,version);
     // }
-    for(auto& l:this->executor->unsetLabels){
+    for(auto& l:execPtr->unsetLabels){
         
     }
-    for(auto& annotationSpec:this->executor->annotations){
+    for(auto& annotationSpec:execPtr->annotations){
         std::string key,val;
         std::tie(key,val,std::ignore)=Cut(annotationSpec,'=');
         this->builder->SetAnnotation(key,val);
@@ -520,30 +525,30 @@ std::pair<std::string,std::shared_ptr<Canonical_interface>> StageExecutor::commi
     }else{
         // std::cout<< "COMMIT "+logName<<std::endl;
     }
-    auto writer=this->executor->reportWriter;
-    if(this->executor->layers ||!this->executor->useCache){
+    auto writer=execPtr->reportWriter;
+    if(execPtr->layers ||!execPtr->useCache){
         writer=nullptr;
     }
     auto options=std::make_shared<CommitOptions>();
-    options->Compression=this->executor->compression;
+    options->Compression=execPtr->compression;
     options->outputimage=output;
-    options->SignaturePolicyPath=this->executor->signaturePolicyPath;
-    options->ReportWriter=writer;
-    options->PreferredManifestType=this->executor->outputFormat;
-    options->SystemContext=this->executor->systemContext;
+    options->SignaturePolicyPath=execPtr->signaturePolicyPath;
+    // options->ReportWriter=writer;
+    options->PreferredManifestType=execPtr->outputFormat;
+    options->SystemContext=execPtr->systemContext;
     options->Squash=squash;
-    options->OmitHistory=this->executor->commonBuildOptions->OmitHistory;
+    options->OmitHistory=execPtr->commonBuildOptions->OmitHistory;
     options->EmptyLayer=emptyLayer;
-    options->BlobDirectory=this->executor->blobDirectory;
-    options->SignBy=this->executor->signBy;
-    options->MaxRetries=this->executor->maxPullPushRetries;
-    options->RetryDelay=this->executor->retryPullPushDelay;
-    options->HistoryTimestamp=this->executor->timestamp;
-    options->Manifest=this->executor->manifest;
-    options->check=this->executor->check;
+    options->BlobDirectory=execPtr->blobDirectory;
+    options->SignBy=execPtr->signBy;
+    options->MaxRetries=execPtr->maxPullPushRetries;
+    options->RetryDelay=execPtr->retryPullPushDelay;
+    options->HistoryTimestamp=execPtr->timestamp;
+    options->Manifest=execPtr->manifest;
+    options->check=execPtr->check;
     if(finalInstruction){
-        options->ConfidentialWorkloadOptions=this->executor->confidentialWorkload;
-        options->SBOMScanOptions=this->executor->sbomScanOptions;
+        options->ConfidentialWorkloadOptions=execPtr->confidentialWorkload;
+        options->SBOMScanOptions=execPtr->sbomScanOptions;
     }
     std::string imgID;
     std::shared_ptr<Digest>manifestDigest;
@@ -629,16 +634,16 @@ void StageExecutor::RUN(std::shared_ptr<Run> run) {
 void StageExecutor::performCopy(std::vector<std::string> excludes,std::vector<Copy> copies){
 // volumeCacheInvalidate不写
     std::vector<Copy> copiesExtend;
+    auto execPtr=this->executor.lock();
     for (size_t i = 0; i < copies.size(); ++i){
         Copy copy=copies[i];
         std::vector<string> sources;
-        // var idMappingOptions *define.IDMappingOptions
         std::shared_ptr<IDMappingOptions> idMappingOptions = std::make_shared<IDMappingOptions>();
         std::vector<string> copyExcludes;
         bool stripSetuid = false;
         bool stripSetgid = false;
         bool preserveOwnership = false;
-        std::string contextDir=this->executor->contextDir;
+        std::string contextDir=execPtr->contextDir;
         
         //这里调试判断为false，直接跳过
         if(copy.Files.size()>0){
@@ -663,8 +668,8 @@ void StageExecutor::performCopy(std::vector<std::string> excludes,std::vector<Co
         if (copy.From.size()>0 && copy.Files.size()==0){
 
         }else{
-            // 将 this->executor->excludes 的所有元素追加到 copyExcludes 中
-            copyExcludes.insert(copyExcludes.end(), this->executor->excludes.begin(), this->executor->excludes.end());
+            // 将 execPtr->excludes 的所有元素追加到 copyExcludes 中
+            copyExcludes.insert(copyExcludes.end(), execPtr->excludes.begin(), execPtr->excludes.end());
             // 将 excludes 的所有元素追加到 copyExcludes 中
             copyExcludes.insert(copyExcludes.end(), excludes.begin(), excludes.end());
             stripSetuid = true;
@@ -685,7 +690,7 @@ void StageExecutor::performCopy(std::vector<std::string> excludes,std::vector<Co
         options->PreserveOwnership=preserveOwnership;
         options->ContextDir=contextDir;
         options->Excludes=copyExcludes;
-        options->IgnoreFile=this->executor->ignoreFile;
+        options->IgnoreFile=execPtr->ignoreFile;
         options->IDMappingOptions=idMappingOptions;
         options->StripSetuidBit=stripSetuid;
         options->StripSetgidBit=stripSetgid;

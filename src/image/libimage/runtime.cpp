@@ -1,5 +1,5 @@
 #include "image/libimage/runtime.h"
-#include "utils/logger/logrus/exported.h"
+// #include "utils/logger/logrus/exported.h"
 #include "config/new.h"
 #include "image/transports/alltransports.h"
 #include "image/image_types/docker/docker_transport.h"
@@ -367,7 +367,7 @@ std::shared_ptr<LibImage::Image> Runtime::lookupImageInLocalStorage(std::string 
     // }
     img=this->store->Image(name);
     if(img==nullptr){
-        throw myerror("image "+name +"don't in store");
+        throw myerror("image: "+name +" don't in store");
     }
     ref=Transport->ParseStoreReference(this->store,img->ID);
     if(ref==nullptr) {

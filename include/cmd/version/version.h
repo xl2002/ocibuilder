@@ -24,7 +24,6 @@ using std::vector;
 class versionOptions
 {
     public:
-    /* data */
     bool    json=false;           ///< json 标志
 };
 class versionInfo{
@@ -57,5 +56,5 @@ class versionInfo{
     }
 };
 void init_version();
-void versionCmd(versionOptions* iopts);
+void versionCmd(std::shared_ptr<versionOptions> iopts);
 #endif

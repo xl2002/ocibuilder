@@ -156,7 +156,7 @@ std::string LookPath(const std::string& file) {
         }
 
         // 查找 PATH 环境变量
-        const char* pathEnv = std::getenv("PATH");
+        auto pathEnv = std::getenv("PATH");
         if (pathEnv == nullptr) {
             throw myerror("未设置 PATH 环境变量");
         }

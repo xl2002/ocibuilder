@@ -21,14 +21,14 @@ void init_tag(){
     string Short{"Add an additional name to a local image"};
     string Long{"Adds one or more additional names to locally-stored image."};
     string example{"ocibuilder tag imageName firstNewName\n  ocibuilder tag imageName firstNewName SecondNewName"};
-    Command* tagCommand=new Command(name,Short,Long,example);
+    auto tagCommand=std::make_shared <Command>(name,Short,Long,example);
     string Template=UsageTemplate();
     tagCommand->SetUsageTemplate(Template);
     tagCommand->Args=MinimumNArgs(2);
-    tagCommand->Run=[=](Command& cmd, vector<string> args){
+    tagCommand->Run=[=](std::shared_ptr<Command> cmd, vector<string> args){
         tagCmd(cmd,args);
     };
-    rootcmd.AddCommand({tagCommand});
+    rootcmd->AddCommand({tagCommand});
 }
 
 /**
@@ -39,11 +39,11 @@ void init_tag(){
  *             - args[1]: 要添加的新名称
  * @details 通过镜像存储库的 `newtag` 方法实现名称添加，若失败则输出错误并退出。
  */
-void tagCmd(Command& cmd, vector<string> args){
+void tagCmd(std::shared_ptr<Command> cmd, vector<string> args){
     logger->set_module("tag");
     logger->log_info("Start tag command for image: " + args[0]);
     //1. 加载镜像仓库
-    auto store=getStore(&cmd);
+    auto store=getStore(cmd);
     //2. 添加新的名称，通过imagestore->newtag(name,newname)实现
 
     auto images=store->image_store;

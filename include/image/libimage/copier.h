@@ -93,7 +93,7 @@ class CopyOptions {
     bool RemoveSignatures = false;
 
     // 用于显示复制信息的输出流
-    std::ostream* Writer = nullptr;
+    std::shared_ptr<ostream> Writer = nullptr;
 
     // ----- platform -----------------------------------------------------
 

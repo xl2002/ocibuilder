@@ -17,21 +17,21 @@
  * 
  */
 void init_logout(){
-    logoutOptions* options=new logoutOptions();
+    auto  options=std::make_shared <logoutOptions>();
     string name{"logout"};
     string Short{"Logout of a container registry"};
     string Long{"Remove the cached username and password for the registry."};
     string example{"ocibuilder logout quay.io"};
-    Command* logoutCommand=new Command(name,Short,Long,example);
+    auto logoutCommand=std::make_shared <Command>(name,Short,Long,example);
     string Template=UsageTemplate();
     logoutCommand->SetUsageTemplate(Template);
-    Flagset* flags=logoutCommand->Flags();
+    auto flags=logoutCommand->Flags();
     flags->SetInterspersed(false);
     flags->BoolVar(options->all,"all",false,"remove all cached credentials");
-    logoutCommand->Run=[=](Command& cmd, vector<string> args){
+    logoutCommand->Run=[=](std::shared_ptr<Command> cmd, vector<string> args){
         logoutCmd(cmd,args,options);
     };
-    rootcmd.AddCommand({logoutCommand});
+    rootcmd->AddCommand({logoutCommand});
     // return imagesCommand;
 }
 
@@ -39,10 +39,10 @@ void init_logout(){
  * @brief logout 命令Run操作的
  * 
  */
-void logoutCmd(Command& cmd, vector<string> args, logoutOptions* iopts){
+void logoutCmd(std::shared_ptr<Command> cmd, vector<string> args, std::shared_ptr<logoutOptions> iopts){
     logger->set_module("logout");
     logger->log_info("Start processing logout command");
-    auto tmp=cmd.flags->actual_flags;
+    auto tmp=cmd->flags->actual_flags;
     std::string authPath = "oci_images/auth.json";
     // 把auth文件清空
     if (tmp.find("all") != tmp.end()) {
@@ -98,5 +98,5 @@ void logoutCmd(Command& cmd, vector<string> args, logoutOptions* iopts){
         logger->log_error("Failed to save credentials to auth file");
         std::cerr << "Failed to save credentials\n";
     }
-    delete iopts;
+    // delete iopts;
 }

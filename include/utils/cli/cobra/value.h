@@ -13,6 +13,7 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <memory>
 #include <cstdint>
 #include <algorithm>
 using std::string;
@@ -34,7 +35,7 @@ class Value_interface {
  */
 class StringArrayValue:public Value_interface{
     public:
-    vector<string>* value=new vector<string>();
+    vector<string>* value=nullptr;
     bool changed=false;
     StringArrayValue(vector<string>* newvalue):value(newvalue),changed(false){};
     string String() override;
@@ -50,7 +51,7 @@ class StringArrayValue:public Value_interface{
  */
 class StringValue: public Value_interface{
     public:
-    string* value=new string();
+    string* value=nullptr;
     StringValue(string* s):value(s){};
     string String() override;
     void Set(string value) override;
@@ -62,7 +63,7 @@ class StringValue: public Value_interface{
  */
 class BoolValue:public Value_interface{
     public:
-    bool* value=new bool();
+    bool* value=nullptr;
     BoolValue(bool* newval):value(newval){};
     string String() override;
     void Set(string value) override;
@@ -75,7 +76,7 @@ class BoolValue:public Value_interface{
  */
 class IntValue:public Value_interface{
     public:
-    int* value=new int();
+    int* value=nullptr;
     IntValue(int* new_val):value(new_val){};
     string String() override;
     void Set(string value) override;
@@ -87,7 +88,7 @@ class IntValue:public Value_interface{
  */
 class int64Value:public Value_interface{
     public:
-    int64_t* value=new int64_t();
+    int64_t* value=nullptr;
     int64Value(int64_t* new_val):value(new_val){};
     string String() override;
     void Set(string value) override;
@@ -99,7 +100,7 @@ class int64Value:public Value_interface{
  */
 class uint64Value:public Value_interface{
     public:
-    uint64_t* value=new uint64_t();
+    uint64_t* value=nullptr;
     uint64Value(uint64_t* new_val):value(new_val){};
     string String() override;
     void Set(string value) override;
@@ -111,7 +112,7 @@ class uint64Value:public Value_interface{
  */
 class stringSliceValue:public Value_interface{
     public:
-    vector<string>* value=new vector<string>();
+    vector<string>* value=nullptr;
     bool changed=false;
     stringSliceValue(vector<string>* new_val):value(new_val),changed(false){};
     string String() override;
@@ -122,12 +123,12 @@ class stringSliceValue:public Value_interface{
     vector<string> GetSlice();
 };
 
-StringValue* newStringValue(string value, string &option_name);
-StringArrayValue* newStringArrayValue(vector<string> value,vector<string>& option_name);
-BoolValue* newBoolValue(bool value,bool& option_name);
-IntValue* newIntValue(int value,int& option_name);
-int64Value* newInt64Value(int64_t value,int64_t& option_name);
-uint64Value* newUint64Value(uint64_t value,uint64_t& option_name);
-stringSliceValue* newStringSliceValue(vector<string> value,vector<string>& option_name);
+std::shared_ptr<StringValue> newStringValue(string value, string &option_name);
+std::shared_ptr<StringArrayValue> newStringArrayValue(vector<string> value,vector<string>& option_name);
+std::shared_ptr<BoolValue> newBoolValue(bool value,bool& option_name);
+std::shared_ptr<IntValue> newIntValue(int value,int& option_name);
+std::shared_ptr<int64Value> newInt64Value(int64_t value,int64_t& option_name);
+std::shared_ptr<uint64Value> newUint64Value(uint64_t value,uint64_t& option_name);
+std::shared_ptr<stringSliceValue> newStringSliceValue(vector<string> value,vector<string>& option_name);
 
 #endif

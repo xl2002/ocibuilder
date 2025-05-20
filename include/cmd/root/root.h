@@ -37,15 +37,15 @@ class globalFlags{
  * @brief 全局变量
  * 
  */
-extern Command rootcmd;                         ///<声明全局根命令
+extern std::shared_ptr <Command> rootcmd;                         ///<声明全局根命令
 extern std::shared_ptr<Config> defaultContainerConfig;    ///<声明全局镜像config
 extern int exitcode;                            ///<声明全局程序结束标志
 extern globalFlags globalFlagOptions;           ///<声明全局标签选项
 
 
 
-Command init_rootcmd();
-void before(Command& cmd);
-void after(Command& cmd);
+std::shared_ptr <Command> init_rootcmd();
+void before(std::shared_ptr<Command> cmd);
+void after(std::shared_ptr<Command> cmd);
 
 #endif

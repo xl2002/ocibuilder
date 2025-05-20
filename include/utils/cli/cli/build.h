@@ -79,6 +79,7 @@ class BudResults{
     vector<string>      annotation;  ///<向镜像添加annotation
     vector<string>      tag;         ///<镜像的标签
     vector<string>      envs;        ///<镜像的环境变量
+    string              arch;
     string              osversion;           ///<镜像支持的操作系统
     string              Authfile;            ///<验证文件路径
     vector<string>      BuildArg;            ///<向构建器提供的参数
@@ -196,6 +197,10 @@ class FromAndBudResults{
     string              MemorySwap; ///< 内存交换空间限制
     int                 Retry=0; ///< 重试次数
     string              RetryDelay; ///< 重试延迟
+    string              arch;
+    string              os;
+    string              variant;
+    vector<string>      platform;
     vector<string>      SecurityOpt; ///< 安全选项列表
     string              ShmSize; ///< 共享内存大小
     vector<string>      Ulimit; ///< 用户限制列表
@@ -268,12 +273,12 @@ class NameSpaceResults{
 class BuildOptions:public BudResults,public LayerResults,public FromAndBudResults,public UserNSResults,public NameSpaceResults{
 public:
     /// logwriter 日志输出流指针，默认为nullptr
-    std::ofstream*       logwriter=nullptr;
+    std::shared_ptr<ofstream>       logwriter=nullptr;
     /// BuildOptions 构造函数，初始化BuildOptions对象
     BuildOptions():BudResults(),LayerResults(),FromAndBudResults(),UserNSResults(){};
 };
 
 
-void GenBuildOptions(Command* cmd, vector<string> inputArgs,BuildOptions* iopts, shared_ptr<define_BuildOptions> budopt, vector<string>& ret_containerfiles,vector<string>& removeAll);
+void GenBuildOptions(std::shared_ptr <Command> cmd, vector<string> inputArgs,std::shared_ptr <BuildOptions> iopts, shared_ptr<define_BuildOptions> budopt, vector<string>& ret_containerfiles,vector<string>& removeAll);
 
 #endif // CLI_BUILD_H

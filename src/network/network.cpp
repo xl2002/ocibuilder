@@ -531,6 +531,7 @@ bool ifSupportV2(const std::string& host,const std::string& port){
         logger->log_error(std::string(e.what()));
         std::cerr << "Error: " << e.what() << std::endl;
     }
+    return false;
 }
 
 // acore的认证方式采用用户名+密码

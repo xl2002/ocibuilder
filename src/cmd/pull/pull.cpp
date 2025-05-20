@@ -25,25 +25,25 @@
  *       - `ocibuilder pull docker-daemon:imagename:imagetag`
  */
 void init_pull(){
-    pullOptions* options=new pullOptions();
+    auto  options=std::make_shared <pullOptions>();
     string name{"pull"};
     string Short{"Pull an image from the specified location"};
     string Long{"Pulls an image from a registry and stores it locally.\n\tAn image can be pulled using its tag or digest. If a tag is not\n\tspecified, the image with the 'latest' tag (if it exists) is pulled."};
     string example{"ocibuilder pull imagename\n  ocibuilder pull docker-daemon:imagename:imagetag\n  ocibuilder pull myregistry/myrepository/imagename:imagetag"};
-    Command* pullCommand=new Command{name,Short,Long,example};
+    auto pullCommand=std::make_shared<Command>(name,Short,Long,example);
     string Template=UsageTemplate();
     pullCommand->SetUsageTemplate(Template);
-    Flagset* flags=pullCommand->Flags();
+    auto flags=pullCommand->Flags();
     flags->SetInterspersed(false);
     //初始化每个flag的内容
     flags->BoolVar(options->allTags,"all-tags",false,"pull all tags for the specified image");
-    flags->String("os","linux","set the OS of the image (e.g., linux, windows) (default unset)");
-    flags->String("arch","amd64","set the architecture of the image (e.g., amd64, arm, ppc64le) (default unset)");
+    flags->StringVar(options->os,"os","linux","set the OS of the image (e.g., linux, windows) (default unset)");
+    flags->StringVar(options->arch,"arch","amd64","set the architecture of the image (e.g., amd64, arm, ppc64le) (default unset)");
     flags->StringVar(options->format, "format", std::string(), "manifest type (oci, v2s1, or v2s2) to use in the destination (default is manifest type of source, with fallbacks)");
-    pullCommand->Run=[=](Command& cmd, vector<string> args){
+    pullCommand->Run=[=](std::shared_ptr<Command> cmd, vector<string> args){
         pullCmd(cmd,args,options);
     };
-    rootcmd.AddCommand({pullCommand});
+    rootcmd->AddCommand({pullCommand});
     // return imagesCommand;
 }
 
@@ -61,7 +61,7 @@ void init_pull(){
  *       - 镜像不存在时输出错误信息并退出
  *       - 文件操作失败时终止流程
  */
-void pullCmd(Command& cmd, vector<string> args,pullOptions* iopts){
+void pullCmd(std::shared_ptr<Command> cmd, vector<string> args,std::shared_ptr<pullOptions> iopts){
     logger->set_module("pull");
     std::string src;
     if(args.size()==0){
@@ -71,8 +71,8 @@ void pullCmd(Command& cmd, vector<string> args,pullOptions* iopts){
     } else{
         src=args[0];
     }
-    auto store=getStore(&cmd);
-    auto tmp=cmd.flags->actual_flags;
+    auto store=getStore(cmd);
+    auto tmp=cmd->flags->actual_flags;
     std::string allTagFlag="false";
     std::string os="linux";
     std::string arch="amd64";
@@ -472,5 +472,5 @@ void pullCmd(Command& cmd, vector<string> args,pullOptions* iopts){
         }
     }
     logger->log_info("Pull operation completed successfully");
-    delete iopts;
+    // delete iopts;
 }

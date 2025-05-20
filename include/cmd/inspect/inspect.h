@@ -17,6 +17,6 @@
 using std::string;
 using std::vector;
 
-void inspectCmd(Command& cmd, vector<string> args);      
+void inspectCmd(std::shared_ptr<Command> cmd, vector<string> args);      
 void init_inspect();    
 #endif

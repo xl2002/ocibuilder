@@ -26,25 +26,25 @@
  */
 void init_save()
 {
-    auto opts = new saveOptions();
+    auto opts = std::make_shared <saveOptions>();
     string name{"save"};
     string Short{"Save an image to a specified destination"};
     string Long{"Saves an image to a specified location."};
     string example{"ocibuilder save image1:latest --output D:/test/image1:imagetest:latest"};
-    Command *saveCommand = new Command{name, Short, Long, example};
+    auto saveCommand = std::make_shared <Command>(name, Short, Long, example);
     string Template = UsageTemplate();
     saveCommand->SetUsageTemplate(Template);
 
-    Flagset *flags = saveCommand->Flags();
+    auto flags = saveCommand->Flags();
     // flags.StringVar();
     flags->SetInterspersed(false);//TODO: 对三条参数的解析
     //flags->StringVar(opts->format, "format", std::string(), "manifest type (oci, v2s1, or v2s2) to use in the destination (default is manifest type of source, with fallbacks)");
     //flags->StringVar(opts->authfile, "authfile", std::string(), "path of the authentication file. Use REGISTRY_AUTH_FILE environment variable to override");
     flags->StringVar(opts->output, "output", std::string(), "path to save the image tar file (required)");
-    saveCommand->Run = [=](Command &cmd, vector<string> args)
+    saveCommand->Run = [=](std::shared_ptr<Command>cmd, vector<string> args)
     {
          // 检查必选参数
-         if (args.size()< 3) {
+        if (args.size()< 3) {
             std::cerr << "the number of arguments is not right!!" << std::endl;
             return;
         }
@@ -61,7 +61,7 @@ void init_save()
         saveCmd(cmd, args, opts);
 
     };
-    rootcmd.AddCommand({saveCommand});
+    rootcmd->AddCommand({saveCommand});
     // return imagesCommand;
 }
 /**
@@ -197,7 +197,7 @@ bool convertOciConfigToDockerLayerConfig(const std::string &ociConfigPath, const
  * - 转换层文件格式
  * - 创建最终 tar 归档
  */
-void saveCmd(Command &cmd, vector<string> args, saveOptions * iopts)
+void saveCmd(std::shared_ptr<Command>cmd, vector<string> args, std::shared_ptr<saveOptions> iopts)
 {
     logger->set_module("save");
     logger->log_info("Starting to save image: " + args[0] + " to " + iopts->output);
@@ -211,7 +211,7 @@ void saveCmd(Command &cmd, vector<string> args, saveOptions * iopts)
     destPath = iopts->output;//args[1];
 
     // 读取本地镜像的数据
-    auto store = getStore(&cmd);
+    auto store = getStore(cmd);
     // 获得index.json
     std::string indexPath = store.get()->image_store_dir + "/index.json";
 
@@ -351,7 +351,7 @@ void saveCmd(Command &cmd, vector<string> args, saveOptions * iopts)
     // 删除压缩缓存
     fs::remove_all(destSpec);
     //if(!fs::exists(destSpec))cout << "Error delete!"<<endl;
-    delete iopts;
+    // delete iopts;
     logger->log_info("Successfully saved image to: " + iopts->output);
     std::cout << "Save to local dir success!!" << std::endl;
 }

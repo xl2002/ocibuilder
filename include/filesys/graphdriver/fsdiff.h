@@ -41,9 +41,6 @@ public:
     // std::shared_ptr<LayerIDMapUpdater_interface> layerIDMapUpdater=nullptr; // 使用 shared_ptr 类型
 };
 
-// // NewNaiveDiffDriver 函数实现
-// std::shared_ptr<NaiveDiffDriver> NewNaiveDiffDriver(ProtoDriver_interface* driver, LayerIDMapUpdater_interface* updater) {
-//     return std::make_shared<NaiveDiffDriver>(driver, updater);
-// }
+
 
 #endif

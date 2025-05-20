@@ -48,7 +48,7 @@ std::shared_ptr<SystemContext> getSystemContext(
  */
 std::shared_ptr<copy::Options> getCopyOptions(
     std::shared_ptr<Store_interface> store,
-    std::ostream* reportWriter,
+    std::shared_ptr<ostream> reportWriter,
     std::shared_ptr<SystemContext> sourceSystemContext,
     std::shared_ptr<SystemContext> destinationSystemContext,
     std::string manifestType,
@@ -67,7 +67,7 @@ std::shared_ptr<copy::Options> getCopyOptions(
         destinationCtx = destinationSystemContext;
     }
     std::shared_ptr<copy::Options> options = std::make_shared<copy::Options>();
-    options->reportWriter=reportWriter;
+    // options->reportWriter=reportWriter;
     options->sourceCtx=sourceCtx;
     options->destinationCtx=destinationCtx;
     options->forceManifestMIMEType=manifestType;

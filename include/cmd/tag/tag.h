@@ -18,6 +18,6 @@
 using std::string;
 using std::vector;
 
-void tagCmd(Command& cmd, vector<string> args);
+void tagCmd(std::shared_ptr<Command> cmd, vector<string> args);
 void init_tag();
 #endif

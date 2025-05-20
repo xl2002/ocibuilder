@@ -4,7 +4,7 @@
 #include "utils/common/go/file.h"
 #include "cmd/build/imagebuilder/builder.h"
 #include "utils/common/error.h"
-#include "utils/logger/logrus/exported.h"
+// #include "utils/logger/logrus/exported.h"
 #include "utils/logger/ProcessSafeLogger.h"
 #include <boost/filesystem.hpp>
 #include "config/defaut.h"
@@ -16,8 +16,8 @@
  * @return PullPolicy pull 策略
  * @throws myerror 如果标志之间存在冲突，将抛出错误信息
  */
-PullPolicy PullPolicyFromOptions(Command* c){
-    Flagset* flags=c->Flags();
+PullPolicy PullPolicyFromOptions(std::shared_ptr <Command> c){
+    auto flags=c->Flags();
     int pullFlagsCount=0;
     if(c->Flag_find("pull")->changed){
         pullFlagsCount++;
@@ -67,9 +67,8 @@ PullPolicy PullPolicyFromOptions(Command* c){
  * @return shared_ptr<SystemContext> SystemContext对象
  * @throws myerror 如果标志之间存在冲突，将抛出错误信息
  */
-shared_ptr< SystemContext> SystemContextFromOptions(Command* c){
-    Flagset* flags=c->Flags();
-    // SystemContext* ctx=new SystemContext();
+shared_ptr< SystemContext> SystemContextFromOptions(std::shared_ptr <Command> c){
+    auto flags=c->Flags();
     auto ctx=make_shared<SystemContext>();
     // auto findFlagFunc=Command::Flag_find;
     try
@@ -193,7 +192,7 @@ shared_ptr<Isolation> IsolationOption(string isolation){
  * @param cmd 命令指针
  * @return shared_ptr<CommonBuildOptions> CommonBuildOptions对象
  */
-shared_ptr<CommonBuildOptions> CommonbuildOptions(Command* cmd){
+shared_ptr<CommonBuildOptions> CommonbuildOptions(std::shared_ptr <Command> cmd){
     auto flags=cmd->Flags();
     int64_t memoryLimit=0;
     int64_t memorySwap=0;
@@ -307,7 +306,7 @@ void parseSecurityOpts(vector<string> securityOpts,shared_ptr<CommonBuildOptions
  * @param networkPolicy NetworkConfigurationPolicy的引用
  * @return NamespaceOptions智能指针
  */
-shared_ptr<NamespaceOptions> Namespaceoptions(Command* cmd,std::shared_ptr<NetworkConfigurationPolicy> networkPolicy){
+shared_ptr<NamespaceOptions> Namespaceoptions(std::shared_ptr <Command> cmd,std::shared_ptr<NetworkConfigurationPolicy> networkPolicy){
     auto flags=cmd->Flags();
     auto options=make_shared<NamespaceOptions>();
     auto policy=NetworkDefault;
@@ -358,7 +357,7 @@ std::vector<std::array<uint32_t, 3>> parseIDMap(const std::vector<std::string>& 
  *
  * @throws None
  */
-shared_ptr<NamespaceOptions> idmappingOptions(Command* cmd,shared_ptr<Isolation> isolation,shared_ptr<IDMappingOptions> idmapOptions)
+shared_ptr<NamespaceOptions> idmappingOptions(std::shared_ptr <Command> cmd,shared_ptr<Isolation> isolation,shared_ptr<IDMappingOptions> idmapOptions)
 {
     // Get the flags and persistent flags from the command
     auto flags=cmd->Flags();
@@ -457,7 +456,7 @@ shared_ptr<NamespaceOptions> idmappingOptions(Command* cmd,shared_ptr<Isolation>
  * @return std::vector<platforms> 平台列表
  * @throws myerror 如果标志之间存在冲突，将抛出错误信息
  */
-std::vector<platforms> PlatformsFromOptions(Command* cmd){
+std::vector<platforms> PlatformsFromOptions(std::shared_ptr <Command> cmd){
     std::string os,arch,variant;
     if(cmd->Flag_find("os")->changed){
         os=cmd->Flags()->GetString("os");

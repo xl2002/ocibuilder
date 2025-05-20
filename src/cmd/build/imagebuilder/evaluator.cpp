@@ -16,29 +16,10 @@ std::shared_ptr<Node> ParseDockerfile(std::vector<byte> r) {
         throw;
     }
 }
-
-// std::map<std::string,bool> replaceEnvAllowed{
-//     {"env",true},
-//     {"arg",true},
-//     {"volume",true},
-//     {"label",true},
-//     {"add",true},
-//     {"workdir",true},
-//     {"expose",true},
-//     {"user",true},
-//     {"stopsignal",true},
-//     {"copy",true},
-// };
-
-// std::map<std::string,bool> allowWordExpansion{
-//     {"expose",true}
-// 
-// };
 void Step::Resolve(std::shared_ptr<Node> ast) {
     Heredocs = ast->Heredocs;
     std::string cmd = ast->Value;
     auto upperCasedCmd=toUpper(cmd);
-    // std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::toupper);
 
     // 检查平台是否支持命令
     if (platformSupports(toLower(cmd))!="") {

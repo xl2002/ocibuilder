@@ -16,15 +16,16 @@
  * <p>根据BuildOptions结构体中的标志名，创建并初始化每个flag
  * 
  * @param br br为BuildOptions的对象，存储build命令的flag
- * @return Flagset* 返回一个标志集指针，注意是动态分配，不就随着函数的结束而销毁
+ * @return std::shared_ptr<Flagset> 返回一个标志集指针，注意是动态分配，不就随着函数的结束而销毁
  */
-Flagset* Getbuildflags(BudResults* br){
+std::shared_ptr<Flagset> Getbuildflags(std::shared_ptr<BudResults> br){
     //动态分配分配一个Flagset指针，用于存储初始化中的flag，并作为返回值
-    Flagset* flags=new Flagset();
+    auto flags=std::make_shared<Flagset>();
     //调用flag初始化函数
     flags->BoolVar(br->check, "check", false, "check Indicates whether to generate a verification file for the image file");
     flags->BoolVar(br->allplatform,"all-platforms",false,"attempt to build for all base image platforms");
-    flags->String("arch","amd64","set the ARCH of the image to the provided value instead of the architecture of the host");
+    // flags->String("arch","amd64","set the ARCH of the image to the provided value instead of the architecture of the host");
+    flags->StringVar(br->arch,"arch","amd64","set the ARCH of the image to the provided value instead of the architecture of the host");
     flags->StringArrayVar(br->annotation,"annotation",vector<string>(),"set metadata for an image (default [])");
     flags->StringArrayVar(br->tag,"tag",vector<string>(),"tagged `name` to apply to the built image");
     flags->StringVar(br->osversion,"os-version","","set required OS `version` for the target image instead of the value from the base image");
@@ -94,16 +95,16 @@ Flagset* Getbuildflags(BudResults* br){
  * @param lr 
  * @return Flagset 
  */
-Flagset* GetLayerFlags(LayerResults* lr){
-    Flagset* flags=new Flagset();
+std::shared_ptr<Flagset> GetLayerFlags(std::shared_ptr<LayerResults> lr){
+    auto flags=std::make_shared<Flagset>();
 	flags->BoolVar(lr->ForceRm, "force-rm", false, "always remove intermediate containers after a build, even if the build is unsuccessful.");
 	flags->BoolVar(lr->Layers, "layers", true, "use intermediate layers during build. Use BUILDAH_LAYERS environment variable to override.");
     return flags;
 }
 
-Flagset* GetFromAndBudFlags(FromAndBudResults* fr){
+std::shared_ptr<Flagset> GetFromAndBudFlags(std::shared_ptr<FromAndBudResults> fr){
 
-    Flagset* flags=new Flagset();
+    auto flags=std::make_shared<Flagset>();
     auto defaultContainerConfig=Config_defaut();
     flags->StringSliceVar(fr->AddHost, "add-host", vector<string>(), "add a custom host-to-IP mapping (`host:ip`) (default [])");
 	flags->StringVar(fr->BlobCache, "blob-cache", "", "assume image blobs in the specified directory will be available for pushing");
@@ -129,11 +130,16 @@ Flagset* GetFromAndBudFlags(FromAndBudResults* fr){
 	flags->StringVar(fr->MemorySwap, "memory-swap", "", "swap limit equal to memory plus swap: '-1' to enable unlimited swap");
 	flags->IntVar(fr->Retry, "retry", 3, "number of times to retry in case of failure when performing push/pull");
 	flags->StringVar(fr->RetryDelay, "retry-delay", defaultContainerConfig->Engine->RetryDelay, "delay between retries in case of push/pull failures");
-	flags->String("arch", "amd64", "set the ARCH of the image to the provided value instead of the architecture of the host");
-	flags->String("os", "linux", "prefer `OS` instead of the running OS when pulling images");
-	flags->StringSlice("platform", vector<string>{"linux/arm"}, "set the `OS/ARCH[/VARIANT]` of the image to the provided value instead of the current operating system and architecture of the host (for example \"linux/arm\")");
-	flags->String("variant", "", "override the `variant` of the specified image");
-	flags->StringArrayVar(fr->SecurityOpt, "security-opt", vector<string>(), "security options (default [])");
+	// flags->String("arch", "amd64", "set the ARCH of the image to the provided value instead of the architecture of the host");
+	// flags->String("os", "linux", "prefer `OS` instead of the running OS when pulling images");
+	// flags->StringSlice("platform", vector<string>{"linux/arm"}, "set the `OS/ARCH[/VARIANT]` of the image to the provided value instead of the current operating system and architecture of the host (for example \"linux/arm\")");
+	// flags->String("variant", "", "override the `variant` of the specified image");
+	flags->StringVar(fr->arch,"arch", "amd64", "set the ARCH of the image to the provided value instead of the architecture of the host");
+	flags->StringVar(fr->os,"os", "linux", "prefer `OS` instead of the running OS when pulling images");
+	flags->StringArrayVar(fr->platform,"platform", vector<string>{"linux/arm"}, "set the `OS/ARCH[/VARIANT]` of the image to the provided value instead of the current operating system and architecture of the host (for example \"linux/arm\")");
+	flags->StringVar(fr->os,"variant", "", "override the `variant` of the specified image");
+	
+    flags->StringArrayVar(fr->SecurityOpt, "security-opt", vector<string>(), "security options (default [])");
 	flags->StringVar(fr->ShmSize, "shm-size", defaultContainerConfig->Containers->ShmSize, "size of '/dev/shm'. The format is `<number><unit>`.");
 	flags->StringSliceVar(fr->Ulimit, "ulimit", defaultContainerConfig->Containers->DefaultUlimits->Get(), "ulimit options");
 	flags->StringArrayVar(fr->Volumes, "volume",vector<string>(), "bind mount a volume into the container");
@@ -145,7 +151,7 @@ Flagset* GetFromAndBudFlags(FromAndBudResults* fr){
  * @brief 获取命名空间标志对象
  * 
  * @param ur 命名空间结果
- * @return Flagset* 命名空间标志对象
+ * @return std::shared_ptr<Flagset> 命名空间标志对象
  *
  * @details
  * - group-add: 添加其他组到主容器进程
@@ -155,8 +161,8 @@ Flagset* GetFromAndBudFlags(FromAndBudResults* fr){
  * - userns-uid-map-user: 从 /etc/subuid 中选择 UID 映射
  * - userns-gid-map-group: 从 /etc/subgid 中选择 GID 映射
  */
-Flagset* GetUserNSFlags(UserNSResults* ur){
-    Flagset* flags=new Flagset();
+std::shared_ptr<Flagset> GetUserNSFlags(std::shared_ptr<UserNSResults> ur){
+    auto flags=std::make_shared<Flagset>();
     flags->StringSliceVar(ur->GroupAdd, "group-add", vector<string>(), "add additional groups to the primary container process. 'keep-groups' allows container processes to use supplementary groups.");
     flags->StringVar(ur->UserNS, "userns", "", "'container', `path` of user namespace to join, or 'host'");
     flags->StringSliceVar(ur->UserNSUIDMap, "userns-uid-map", vector<string>(), "`containerUID:hostUID:length` UID mapping to use in user namespace");
@@ -169,7 +175,7 @@ Flagset* GetUserNSFlags(UserNSResults* ur){
  * @brief 获取命名空间标志对象
  * 
  * @param nr 命名空间结果
- * @return Flagset* 命名空间标志对象
+ * @return std::shared_ptr<Flagset> 命名空间标志对象
  * 
  * - Cgroup: cgroup 命名空间
  * - IPC: IPC 命名空间
@@ -179,8 +185,8 @@ Flagset* GetUserNSFlags(UserNSResults* ur){
  * - PID: 进程 命名空间
  * - UTS: 主机 命名空间
  */
-Flagset* GetNameSpaceFlags(NameSpaceResults* nr){
-    Flagset* flags=new Flagset();
+std::shared_ptr<Flagset> GetNameSpaceFlags(std::shared_ptr<NameSpaceResults> nr){
+    auto flags=std::make_shared<Flagset>();
     flags->StringVar(nr->Cgroup, "cgroupns", "", "'private', or 'host'"); // cgroup 命名空间
     flags->StringVar(nr->IPC, "ipc", "", "'private', `path` of IPC namespace to join, or 'host'"); // IPC 命名空间
     flags->StringVar(nr->Network, "network", "", "'private', 'none', 'ns:path' of network namespace to join, or 'host'"); // 网络 命名空间
@@ -203,29 +209,29 @@ void init_buildcmd(){
     string build_Short="Build an image using instructions in a Containerfile";
     string build_Long={"Builds an OCI image using instructions in one or more Containerfiles.\n\tIf no arguments are specified, ocibuilder will use the current working directory\n\tas the build context and look for a Containerfile. The build fails if no\n\tContainerfile nor Dockerfile is present."};
     string build_example={"ocibuilder build\n  ocibuilder bud -f Containerfile.simple.\n  ocibuilder bud --volume /home/test:/myvol:ro,Z -t imageName.\n  ocibuilder bud -f Containerfile.simple -f Containerfile.notsosimple."};
-    Command* build_Command=new Command(build_name,build_Short,build_Long,build_example);
+    auto build_Command=std::make_shared<Command>(build_name,build_Short,build_Long,build_example);
     //定义使用模板
     string Template=UsageTemplate();
     build_Command->SetUsageTemplate(Template);
     build_Command->Args=MaximumNArgs(1);
 
-    Flagset* flags=build_Command->Flags();
+    auto flags=build_Command->Flags();
     flags->SetInterspersed(false);
-    BuildOptions* br=new BuildOptions();
-    Flagset* buildflags=Getbuildflags(br);
-    Flagset* layerFlags=GetLayerFlags(br);
-    Flagset* fromAndBudFlags=GetFromAndBudFlags(br);
-    Flagset* usernsFlags=GetUserNSFlags(br);
-    Flagset* namespaceFlags=GetNameSpaceFlags(br);
+    auto br=std::make_shared<BuildOptions>();
+    auto buildflags=Getbuildflags(br);
+    auto layerFlags=GetLayerFlags(br);
+    auto fromAndBudFlags=GetFromAndBudFlags(br);
+    auto usernsFlags=GetUserNSFlags(br);
+    auto namespaceFlags=GetNameSpaceFlags(br);
     flags->AddFlagSet(buildflags);
     flags->AddFlagSet(layerFlags);
     flags->AddFlagSet(fromAndBudFlags);
     flags->AddFlagSet(usernsFlags);
     flags->AddFlagSet(namespaceFlags);
-    build_Command->Run=[=](Command& cmd, vector<string> args){
+    build_Command->Run=[=](std::shared_ptr<Command> cmd, vector<string> args){
         buildCmd(cmd,args,br);
     };
-    rootcmd.AddCommand({build_Command});
+    rootcmd->AddCommand({build_Command});
     // cout<<"hello buildah-build!"<<endl;
     // build_Command.Run();
     // return build_Command;
@@ -237,13 +243,13 @@ void init_buildcmd(){
  * @param cmd 用来运行的命令
  * @param args 运行的参数
  */
-void buildCmd(Command& cmd, vector<string> args,BuildOptions* iopts){
+void buildCmd(std::shared_ptr<Command> cmd, vector<string> args,std::shared_ptr<BuildOptions> iopts){
     try {
         // cout<<"hello buildah-build!"<<endl;
         logger->set_module("build");
         logger->log_info("Build command started");
         // 打开日志文件
-        if(cmd.Flag_find("logfile")->changed){
+        if(cmd->Flag_find("logfile")->changed){
             iopts->logwriter->open(iopts->Logfile,std::ios::out | std::ios::trunc);
             if(!iopts->logwriter){
                 throw myerror("Failed to open log file: " + iopts->Logfile);
@@ -255,7 +261,7 @@ void buildCmd(Command& cmd, vector<string> args,BuildOptions* iopts){
         vector<string> ret_containerfiles;
         vector<string> removeAll;
         // 生成构建选项
-        GenBuildOptions(&cmd,args,iopts,budopt,ret_containerfiles,removeAll);
+        GenBuildOptions(cmd,args,iopts,budopt,ret_containerfiles,removeAll);
         // 定义删除临时文件的lambda函数
         auto remove_temp_files = [&removeAll]() {
             for (const auto& f : removeAll) {
@@ -267,7 +273,7 @@ void buildCmd(Command& cmd, vector<string> args,BuildOptions* iopts){
         // 获取存储对象
         std::shared_ptr<Store> stores;
         try {
-            stores =getStore(&cmd);
+            stores =getStore(cmd);
         } catch (const myerror& e) {
             remove_temp_files();
             throw;
@@ -289,7 +295,7 @@ void buildCmd(Command& cmd, vector<string> args,BuildOptions* iopts){
         }
 
         remove_temp_files();
-        delete iopts;
+        // delete iopts;
     } catch (const myerror& e) {
         throw;
     }

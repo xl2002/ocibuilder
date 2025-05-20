@@ -264,11 +264,11 @@ class define_BuildOptions{
 	//为零）默认情况下。
 	std::function<void(string format,vector<string>args)> Log;
 	// In 连接到标准输入以获取 RUN 指令。
-	std::istream* In=nullptr;
+	std::shared_ptr<istream> In=nullptr;
 	// Out 是发送非错误日志消息的地方。
-	std::ostream* Out=nullptr ;
+	std::shared_ptr<ostream> Out=nullptr ;
 	// Err 是应该发送错误日志消息的地方。
-	std::ostream* Err=nullptr ;
+	std::shared_ptr<ostream> Err=nullptr ;
 	// SignaturePolicyPath 指定签名的覆盖位置
 	//用于验证新图像的策略
 	//正在写入。  除非在特定情况下，否则不应有任何值
@@ -282,7 +282,7 @@ class define_BuildOptions{
 	//ReportWriter 是一个 io.Writer，用于报告
 	//（可能的）拉动源图像和
 	//写入新图像。
-	std::ostream* ReportWriter=nullptr;
+	std::shared_ptr<ostream> ReportWriter=nullptr;
 	//OutputFormat 是输出图像清单的格式
 	//配置数据。
 	//接受的值为 buildah.OCIv1ImageManifest 和 buildah.Dockerv2ImageManifest。
@@ -317,7 +317,7 @@ class define_BuildOptions{
 	//处理 RUN 指令时。如果某项功能同时出现在两个列表中，则它
 	//将被丢弃。
 	vector<string> DropCapabilities  ;
-	// CommonBuildOpts 是*必需的*。
+	// CommonBuildOpts 是必需的。
 	shared_ptr<CommonBuildOptions> CommonBuildOpts = std::make_shared<CommonBuildOptions>() ;
 	// CPPFlags 是传递给 C 预处理器 (cpp) 的附加参数。
 	vector<string> CPPFlags ;

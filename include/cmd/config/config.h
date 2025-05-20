@@ -24,7 +24,6 @@ using std::vector;
 class configOptions
 {
     public:
-    /* data */
     bool    addHistory=false;   ///<向镜像中添加历史记录信息
     vector<string>  annotation; ///<更改镜像的annotation
     string  arch        ;       ///<更改镜像的 arch
@@ -35,7 +34,7 @@ class configOptions
     vector<string> label;       ///<更改镜像的 label
     string  os          ;       ///<更改镜像的 os
 };
-void configCmd(Command& cmd, vector<string> args,configOptions* iopts);   
+void configCmd(std::shared_ptr<Command> cmd, vector<string> args,std::shared_ptr<configOptions> iopts);   
 void init_configcmd(); 
 
 #endif
