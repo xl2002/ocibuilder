@@ -47,7 +47,7 @@ void ProcessSafeLogger::init_logging() {
         logging::add_file_log(
             logging::keywords::file_name = file_pattern,
             logging::keywords::open_mode = std::ios_base::app, // 关键修改：追加模式
-            logging::keywords::rotation_size = 10 * 1024 * 1024, // 单文件最大 10MB
+            // logging::keywords::rotation_size = 10 * 1024 * 1024, // 单文件最大 10MB
             logging::keywords::time_based_rotation = sinks::file::rotation_at_time_point(0, 0, 0), // 每天 00:00
             logging::keywords::auto_flush = true
         );
@@ -66,8 +66,8 @@ void ProcessSafeLogger::init_logging() {
     sink->locked_backend()->set_file_collector(
         sinks::file::make_collector(
             logging::keywords::target = log_dir_,
-            logging::keywords::max_size = 100 * 1024 * 1024, // 所有文件总共最多 100MB
-            logging::keywords::min_free_space = 50 * 1024 * 1024, // 保留 50MB 可用空间
+            // logging::keywords::max_size = 100 * 1024 * 1024, // 所有文件总共最多 100MB
+            // logging::keywords::min_free_space = 50 * 1024 * 1024, // 保留 50MB 可用空间
             logging::keywords::max_files = 7                   // 最多保留 7 个文件（按天轮换）
         )
     );
