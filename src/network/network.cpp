@@ -211,6 +211,7 @@ std::shared_ptr<URL> dockerClient::resolveRequestURL(std::string path){
         if (!isIPAddress(host)) {
             host = resolve_dns(host);  // 使用DNS解析将主机解析为IP地址
             if (host.empty()) {
+                logger->log_error( "DNS resolution failed for host: "+host);
                 std::cerr << "DNS resolution failed for host: " << host << std::endl;
                 return url;
             }
@@ -500,6 +501,7 @@ bool ifSupportV2(const std::string& host,const std::string& port){
 
         // 发送请求
         beast::http::write(stream, req);
+        logger->log_info("HTTP request sent.");
         std::cout << "HTTP request sent." << std::endl;
 
         // 接收响应
@@ -515,6 +517,8 @@ bool ifSupportV2(const std::string& host,const std::string& port){
                 loginAuth.harborToken = token;
             }
         }
+        unsigned status_code = static_cast<unsigned>(res.result_int());
+        logger->log_info("checking if support v2,Response status code: " + std::to_string(status_code));
         // 检查响应状态码
         if (res.result() == beast::http::status::ok) {
             return true;
@@ -614,6 +618,8 @@ bool ifBlobExists(const std::string& host,const std::string& port,const std::str
 
 
         // 根据状态码判断 blob 是否存在
+        unsigned status_code = static_cast<unsigned>(res.result_int());
+        logger->log_info("checking if blob exist,Response status code: " + std::to_string(status_code)+" shaID: "+shaId);
         if (res.result() == beast::http::status::ok) {
             return true;
         }
@@ -681,7 +687,8 @@ bool ifManifestExists(const std::string& host,const std::string& port,const std:
         beast::http::read(stream, buffer, parser);
         auto res = parser.get();
 
-
+        unsigned status_code = static_cast<unsigned>(res.result_int());
+        logger->log_info("checking if manifest exist,Response status code: " + std::to_string(status_code)+"target: "+target);
         // 根据状态码判断 blob 是否存在
         if (res.result() == beast::http::status::ok) {
             return true;
@@ -742,6 +749,8 @@ std::pair<std::string, std::string> initUpload(const std::string& host, const st
         parser.skip(true);
         beast::http::read(stream, buffer, parser);
         auto res = parser.get();
+        unsigned status_code = static_cast<unsigned>(res.result_int());
+        logger->log_info("initing upload,Response status code: " + std::to_string(status_code));
 
         if (res.result() != beast::http::status::accepted) {
             throw std::runtime_error("Failed to initiate upload");
@@ -881,6 +890,8 @@ std::pair<std::string, std::string> uploadBlobChunk(const std::string& host, con
         parser.skip(true);
         beast::http::read(stream, buffer, parser);
         auto res = parser.get();
+        unsigned status_code = static_cast<unsigned>(res.result_int());
+        logger->log_info("upload blob chunk,Response status code: " + std::to_string(status_code));
 
         if (res.result() != beast::http::status::accepted) {
             throw std::runtime_error("Failed to upload blob chunk");
@@ -1138,6 +1149,8 @@ void uploadManifest(const std::string& host, const std::string& port, const std:
         parser.skip(true);
         beast::http::read(stream, buffer, parser);
         auto res = parser.get();
+        unsigned status_code = static_cast<unsigned>(res.result_int());
+        logger->log_info("uploading manifest,Response status code: " + std::to_string(status_code));
 
         if (res.result() != beast::http::status::ok && res.result() != beast::http::status::created) {
             throw std::runtime_error("Failed to upload manifest");
@@ -1313,6 +1326,8 @@ std::string loginGetToken(std::string host, std::string port, std::string user, 
     beast::flat_buffer buffer2;
     http::response<http::string_body> res2;
     http::read(stream2, buffer2, res2);
+    unsigned status_code = static_cast<unsigned>(res2.result_int());
+    logger->log_info("get token ,Response status code: " + std::to_string(status_code));
 
     // 需要从接收到的响应中读取token
     if (res2.result() == http::status::ok) {
@@ -1482,7 +1497,10 @@ bool login(const std::string& host, const std::string& port, const std::string& 
         beast::flat_buffer buffer;
         http::response<http::dynamic_body> res;
         http::read(stream, buffer, res);
+        unsigned status_code = static_cast<unsigned>(res.result_int());
+        logger->log_info("login,Response status code: " + std::to_string(status_code));
         if (res.result() == http::status::ok) {
+            logger->log_info("Login success!!");
             std::cout << "Login success!!" << std::endl;
             return true;
         }
@@ -1515,6 +1533,7 @@ void pullBlob(const std::string& host, const std::string& port,const::string& pr
         // 确保文件夹存在
         if (!fs::exists(output_folder)) {
             fs::create_directory(output_folder);
+            logger->log_info("Created directory: " + output_folder );
             std::cout << "Created directory: " << output_folder << std::endl;
         }
 
@@ -1653,6 +1672,7 @@ bool pullConfig(const std::string& host, const std::string& port,const::string& 
         // 确保文件夹存在
         if (!fs::exists(output_folder)) {
             fs::create_directory(output_folder);
+            logger->log_info("Created directory: " + output_folder );
             std::cout << "Created directory: " << output_folder << std::endl;
         }
 
@@ -1718,6 +1738,7 @@ bool pullConfig(const std::string& host, const std::string& port,const::string& 
 
         // 检查响应状态
         if (res.result() != beast::http::status::ok) {
+            logger->log_error("HTTP request failed with status: "+std::to_string(res.result_int())+" "+ std::string(res.reason()));
             std::cerr << "HTTP request failed with status: " << res.result_int() << " " << res.reason() << std::endl;
             return false;
         }
@@ -1729,6 +1750,7 @@ bool pullConfig(const std::string& host, const std::string& port,const::string& 
         auto config = unmarshal<v1::Image>(res.body());
         //如果os和arch不符合则退出 
         if(config.platform.OS != os || config.platform.Architecture != arch){
+            logger->log_warning("os or arch not match!");
             std::cout<<"os or arch not match!"<<"\n";
             return false;
         }
@@ -1736,30 +1758,36 @@ bool pullConfig(const std::string& host, const std::string& port,const::string& 
         // 输出响应体到文件
         std::ofstream ofs(output_tmp, std::ios::binary); // 打开文件为二进制模式
         if (!ofs) {
+            logger->log_error( "Failed to open file for writing: "+output_tmp);
             std::cerr << "Failed to open file for writing: " << output_tmp << std::endl;
             return false;
         }
 
         ofs << res.body(); // 将响应体写入文件
         ofs.close();
+        logger->log_info("Blob saved to: "+output_tmp);
         std::cout << "Blob saved to: " << output_tmp << std::endl;
         //校验
         if(isCorrect(shaId,output_tmp)){
             // 写blob
             std::ofstream ofs1(output_file, std::ios::binary); // 打开文件为二进制模式
             if (!ofs1) {
+                logger->log_error( "Failed to open file for writing: " + output_file);
                 std::cerr << "Failed to open file for writing: " << output_file << std::endl;
                 return false;
             }
 
             ofs1 << res.body(); // 将响应体写入文件
             ofs1.close();
+            logger->log_info("Blob saved to: "+output_file);
             std::cout << "Blob saved to: " << output_file << std::endl;
         }
 
         if(std::remove(output_tmp.c_str())==0){
+            logger->log_info("tmp manifest deleted successfully: "+output_tmp);
             std::cout << "tmp manifest deleted successfully: " << output_tmp << std::endl;
         }else{
+            logger->log_error( "Failed to delete file: " + output_tmp);
             std::cerr << "Failed to delete file: " << output_tmp << std::endl;
         }
 
@@ -1841,6 +1869,7 @@ std::tuple<std::string,size_t> pullManifestAndBlob(const std::string& host, cons
 
         // 发送请求
         beast::http::write(stream, req);
+        logger->log_info("HTTP request sent.");
         std::cout << "HTTP request sent." << std::endl;
 
         // 接收响应
@@ -1861,6 +1890,7 @@ std::tuple<std::string,size_t> pullManifestAndBlob(const std::string& host, cons
 
         // 检查响应状态
         if (res.result() != beast::http::status::ok) {
+            logger->log_error("HTTP request failed with status: "+std::to_string(res.result_int())+" "+ std::string(res.reason()));
             std::cerr << "HTTP request failed with status: " << res.result_int() << " " << res.reason() << std::endl;
             return {};
         }
@@ -1881,6 +1911,7 @@ std::tuple<std::string,size_t> pullManifestAndBlob(const std::string& host, cons
         // std::ofstream ofs(output_file);
         std::ofstream ofs(output_file_tmp, std::ios::binary); // 打开文件为二进制模式
         if (!ofs) {
+            logger->log_info("Failed to open file for writing: "+output_file_tmp);
             std::cerr << "Failed to open file for writing: " << output_file_tmp << std::endl;
             return {};
         }
@@ -1939,6 +1970,7 @@ std::tuple<std::string,size_t> pullManifestAndBlob(const std::string& host, cons
             manifestLen = std::stoul(content_length);
             // std::cout << "Content-Length: " << content_length << std::endl;
         } else {
+            logger->log_info( "No Content-Length field found in response.");
             std::cout << "No Content-Length field found in response." << std::endl;
         }
 
