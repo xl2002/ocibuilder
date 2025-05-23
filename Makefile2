@@ -94,7 +94,7 @@ SRC		:= src
 OCI		:= oci_images
 
 ifeq ($(OS),Windows_NT)
-MAIN	:= ociBuild
+MAIN	:= ociBuild.exe
 SOURCEDIRS	:= $(SRC) $(shell dir /s /b /ad $(SRC))
 INCLUDEDIRS	:= $(INCLUDE)
 LIBDIRS		:= $(LIB)
