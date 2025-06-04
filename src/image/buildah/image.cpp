@@ -428,7 +428,7 @@ std::tuple<std::shared_ptr<v1::Image>,std::shared_ptr<Manifest>> containerImageR
     //调整config和manifest
     oimage.created=now;
     oimage.rootFS.type=TypeLayers;
-    oimage.author=BuildAuthor;
+    // oimage.author=BuildAuthor;
     if(oimage.platform.OS==""){
         oimage.platform.OS="linux";
         logger->log_info("Using default platform OS: linux");

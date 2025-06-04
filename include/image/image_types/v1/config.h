@@ -19,68 +19,65 @@ class ImageConfig {
     public:
     // User defines the username or UID which the process in the container should run as.
     std::string user;
-
     // ExposedPorts a set of ports to expose from a container running this image.
     std::map<std::string, boost::json::object> exposedPorts;
-
     // Env is a list of environment variables to be used in a container.
     std::vector<std::string> env;
-
     // Entrypoint defines a list of arguments to use as the command to execute when the container starts.
     std::vector<std::string> entrypoint;
-
     // Cmd defines the default arguments to the entrypoint of the container.
     std::vector<std::string> cmd;
-
     // Volumes is a set of directories describing where the process is likely to write data specific to a container instance.
     // std::map<std::string, std::string> volumes;
     std::map<std::string, boost::json::object> volumes;
     // WorkingDir sets the current working directory of the entrypoint process in the container.
     std::string workingDir;
-
     // Labels contains arbitrary metadata for the container.
     std::map<std::string, std::string> labels;
-
     // StopSignal contains the system call signal that will be sent to the container to exit.
     std::string stopSignal;
-
-    // ArgsEscaped
-    //
-    // Deprecated: This field is present only for legacy compatibility with
-    // Docker and should not be used by new image builders. It is used by Docker
-    // for Windows images to indicate that the `Entrypoint` or `Cmd` or both,
-    // contains only a single element array, that is a pre-escaped, and combined
-    // into a single string `CommandLine`. If `true`, the value in `Entrypoint` or
-    // `Cmd` should be used as-is to avoid double escaping.
+    // Image is the name of the image used to create the container.
+    std::string Image;
+    // OnBuild is a list of instructions that should be executed when the image is used as a base for another build.
+    std::vector<std::string> OnBuild;
+    // Shell is a list of commands to run when the container starts.
+    std::vector<std::string> Shell;
+    // ArgsEscaped indicates whether or not the command arguments are shell-escaped.
     bool argsEscaped=false;
+
     friend void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const ImageConfig& image) {
         jv=boost::json::object{
-            // {"user",image.user},
+            {"User",image.user},
             {"Env",boost::json::value_from(image.env)},
-            // {"Cmd",boost::json::value_from(image.cmd)},
+            {"Cmd",boost::json::value_from(image.cmd)},
+            // {"Image",image.Image},
             {"Volumes",boost::json::value_from(image.volumes)},
             {"WorkingDir",image.workingDir},
             {"Entrypoint",boost::json::value_from(image.entrypoint)},
             {"ExposedPorts",boost::json::value_from(image.exposedPorts)},
-            {"Labels",boost::json::value_from(image.labels)}
-            // {"stopSignal",image.stopSignal},
-            // {"argsEscaped",image.argsEscaped}
+            {"Labels",boost::json::value_from(image.labels)},
+            {"StopSignal",image.stopSignal},
+            // {"OnBuild",boost::json::value_from(image.OnBuild)},
+            {"Shell",boost::json::value_from(image.Shell)},
+            // {"ArgsEscaped",image.argsEscaped}
         };
     }
     friend ImageConfig tag_invoke(boost::json::value_to_tag<ImageConfig>, const boost::json::value& jv) {
         const auto& obj = jv.as_object();
         ImageConfig image;
-        // image.user=obj.at("user").as_string();
+        image.user=obj.at("User").as_string().c_str();
         image.env=boost::json::value_to<std::vector<std::string>>(obj.at("Env"));
-        // image.cmd=boost::json::value_to<std::vector<std::string>>(obj.at("Cmd"));
-        // image.volumes=boost::json::value_to<std::map<std::string, std::string>>(obj.at("Volumes"));
+        image.cmd=boost::json::value_to<std::vector<std::string>>(obj.at("Cmd"));
+        // image.Image=obj.at("Image").as_string().c_str();
         image.volumes=boost::json::value_to<std::map<std::string, boost::json::object>>(obj.at("Volumes"));
         image.workingDir=obj.at("WorkingDir").as_string().c_str();
         image.entrypoint=boost::json::value_to<std::vector<std::string>>(obj.at("Entrypoint"));
         image.exposedPorts=boost::json::value_to<std::map<std::string, boost::json::object>>(obj.at("ExposedPorts"));
         image.labels=boost::json::value_to<std::map<std::string, std::string>>(obj.at("Labels"));
-        // image.stopSignal=obj.at("stopSignal").as_string();
-        // image.argsEscaped=obj.at("argsEscaped").as_bool();
+        image.stopSignal=obj.at("StopSignal").as_string().c_str();
+        // image.OnBuild=boost::json::value_to<std::vector<std::string>>(obj.at("OnBuild"));
+        image.Shell=boost::json::value_to<std::vector<std::string>>(obj.at("Shell"));
+        // image.argsEscaped=obj.at("ArgsEscaped").as_bool();
         return image;
     }
 
@@ -127,8 +124,8 @@ class History {
             {"created",timePointToISOString(image.created)},
             {"created_by",image.createdBy},
             {"author",image.author},
-            {"comment",image.comment}
-            // {"empty_layer",image.emptyLayer}
+            {"comment",image.comment},
+            {"empty_layer",image.emptyLayer}
         };
     }
     friend History tag_invoke(boost::json::value_to_tag<History>, const boost::json::value& jv) {
@@ -138,7 +135,7 @@ class History {
         image.createdBy=obj.at("created_by").as_string().c_str();
         image.author=obj.at("author").as_string().c_str();
         image.comment=obj.at("comment").as_string().c_str();
-        // image.emptyLayer=obj.at("empty_layer").as_bool();
+        image.emptyLayer=obj.at("empty_layer").as_bool();
         return image;
     }
 };
@@ -161,7 +158,7 @@ namespace v1 {
         friend void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const Image& image) {
             jv=boost::json::object{
                 {"created",timePointToISOString(image.created)},
-                // {"author",image.author},
+                {"author",image.author},
                 {"architecture",boost::json::value_from(image.platform.Architecture)},
                 {"os",boost::json::value_from(image.platform.OS)},
                 {"config",boost::json::value_from(image.config)},
@@ -179,7 +176,7 @@ namespace v1 {
             auto obj=jv.as_object();
             Image image;
             image.created=parseISOStringToTimePoint(obj.at("created").as_string().c_str());
-            // image.author=obj.at("author").as_string().c_str();
+            image.author=obj.at("author").as_string().c_str();
             image.platform.Architecture=obj.at("architecture").as_string().c_str();
             image.platform.OS=obj.at("os").as_string().c_str();
             image.config=boost::json::value_to<ImageConfig>(obj.at("config"));
