@@ -11,18 +11,19 @@ echo "Platform: $platform"
 # 定义要测试的构建命令列表（用数组保存）
 commands=(
   './output/ociBuild build --tag image:latest .'
-  './output/ociBuild build --check --file Dockerfile.prod --tag image1:latest .'
-  './output/ociBuild build --check --file Dockerfile.p1 --tag image2:latest .'
-  './output/ociBuild build --annotation "version=3.0" --annotation "author=NWPU" --arch amd64 --os linux --file Dockerfile --tag busybox-image:latest .'
-  './output/ociBuild build --annotation "version=3.0" --annotation "author=NWPU" --arch amd64 --os linux --file Dockerfile12 --tag busybox-image:latest ./dockerFiledir'
-  './output/ociBuild build --annotation "version=1.0" --annotation "author=NWPU" --arch x86_64 --os windows7 --file Dockerfile.prod --tag busybox-image:latest .'
-  './output/ociBuild build --tag image1:latest .'
-  './output/ociBuild build --tag image1:latest .'
-  './output/ociBuild build --tag image2:latest .'
-  './output/ociBuild build --tag image3:latest .'
+  './output/ociBuild build --tag image:latest .'
+  './output/ociBuild build --annotation "version=3.0" --annotation "author=NWPU" --tag image1:latest .'
+  './output/ociBuild build --arch amd64 --tag image2:latest .'
+  './output/ociBuild build --file Dockerfile.p1 --tag image3:latest .'
+  './output/ociBuild build --os windows7 --tag image4:latest .'
+  './output/ociBuild build --help'
+  './output/ociBuild build --annotation "version=3.0" --annotation "author=NWPU" --arch amd64 --file Dockerfile.p1 --os windows7 --tag image5:latest .'
   './output/ociBuild build --check --tag image1:latest .'
 )
 
+# 输出文件夹
+mkdir -p ./output/results
+log_file="./output/results/build_log.txt"
 # 循环执行每条命令
 i=1
 for cmd in "${commands[@]}"; do
@@ -36,9 +37,15 @@ for cmd in "${commands[@]}"; do
     else
         start=$(date +%s.%N)
     fi
+    # 执行命令, 第一次写入为覆盖
+    if [ "$i" -eq 1 ]; then
+        : > "${log_file}"
+    else
+        echo "" >> "${log_file}"
+    fi
     # 执行命令
-    eval "$cmd"
-    # eval "$cmd" >> "build_log_$i.txt" 2>&1
+    echo "[$i] Executing: $cmd" >> "${log_file}"
+    eval "$cmd" >> "${log_file}" 2>&1
     status=$?
 
     # 记录结束时间

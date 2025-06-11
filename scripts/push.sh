@@ -8,16 +8,22 @@ esac
 echo "Platform: $platform"
 
 # 定义要测试的构建命令列表（用数组保存）
+ip_addr='192.168.253.128:5000'
 commands=(
-    './output/ociBuild push 192.168.1.102:80/library/image1:latest'
+    "./output/ociBuild push ${ip_addr}/library/image123:latest"
 # 指定格式
-    './output/ociBuild push --format v1 192.168.1.102:80/library/image0401:latest'
+    "./output/ociBuild push --format v1 ${ip_addr}/library/image123:latest"
 # 推送镜像到本地目录
-    './output/ociBuild push image1:latest oci:./test/image1:imagetest:latest'
+    './output/ociBuild push image1:latest oci:./test/imagetest:image123:latest'
+
+    './output/ociBuild push --help'
 )
 # 准备阶段
-./output/ociBuild build --tag image1:latest .
-./output/ociBuild login --username admin --password Harbor12345 192.168.1.102:80
+./output/ociBuild build --tag image123:latest .
+# 输出文件夹
+mkdir -p ./output/results
+log_file="./output/results/push_log.txt"
+# ./output/ociBuild login --username admin --password Harbor12345 192.168.1.102:80
 # ./output/ociBuild push image1:latest oci:./test/image:imagetest:latest
 # 循环执行每条命令
 i=1
@@ -32,9 +38,15 @@ for cmd in "${commands[@]}"; do
         start=$(date +%s.%N)
     fi
 
+    # 执行命令, 第一次写入为覆盖
+    if [ "$i" -eq 1 ]; then
+        : > "${log_file}"
+    else
+        echo "" >> "${log_file}"
+    fi
     # 执行命令
-    eval "$cmd"
-    # eval "$cmd" >> "build_log_$i.txt" 2>&1
+    echo "[$i] Executing: $cmd" >> "${log_file}"
+    eval "$cmd" >> "${log_file}" 2>&1
     status=$?
 
     # 记录结束时间
@@ -58,6 +70,10 @@ for cmd in "${commands[@]}"; do
     fi
     ((i++))
 done
+
+echo
+echo "Delete Test Image..."
+./output/ociBuild rmi image123:latest
 
 echo
 echo "All push commands have been tested."

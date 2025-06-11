@@ -53,8 +53,8 @@
 
 ```bash
 # 登录到远端
-./output/ociBuild login --username admin --password Harbor12345 192.168.1.102:80
-./output/ociBuild login --username admin --password 123456 192.168.1.102:5000
+./output/ociBuild login --username admin --password Harbor12345 192.168.253.128:80
+./output/ociBuild login --username admin --password 123456 192.168.253.128:5000
 ```
 
 7. logout
@@ -69,7 +69,7 @@
 
 ```bash
 # 从远端拉取镜像
-./output/ociBuild pull 192.168.1.102:80/library/image1:latest
+./output/ociBuild pull 192.168.253.128:5000/library/imagetest:latest
 ./output/ociBuild pull --format v1 192.168.1.102:5000/library/imagetest1:latest 
 ./output/ociBuild pull --os linux --arch amd64 10.68.1.145:5000/library/busybox-image:latest
 ./output/ociBuild pull --os linux --arch amd64 --all-tags 10.68.1.145:5000/library/busybox-image

@@ -9,11 +9,20 @@ echo "Platform: $platform"
 
 # 定义要测试的构建命令列表（用数组保存）
 commands=(
-  './output/ociBuild config --arch "x86_64" --os "windows7" --author "NWPU" --entrypoint "/bin/bash" --env "DEBIAN_FRONTEND=noninteractive" --env "PATH_A=interactive" --label "version=1.0.0" --label "ociBuildtainer=your_email@example.com" image:latest'
-  './output/ociBuild config --arch "x86_64" --os "windows7" --author "NWPU" --entrypoint "["/bin/bash", "-c"]" --env "DEBIAN_FRONTEND=noninteractive" --env "PATH_A=interactive" --label "version=1.0.0" --label "ociBuildtainer=your_email@example.com" image:latest'
+    './output/ociBuild config --arch "x86_64" image123:latest'
+    './output/ociBuild config --os "windows7" image123:latest'
+    './output/ociBuild config --author "NWPU" image123:latest'
+    './output/ociBuild config --entrypoint "/bin/bash" image123:latest'
+    './output/ociBuild config --env "DEBIAN_FRONTEND=noninteractive" image123:latest'
+    './output/ociBuild config --label "version=1.0.0" image123:latest'
+    './output/ociBuild config --arch "x86_64" --os "windows7" --author "NWPU" --entrypoint "["/bin/bash", "-c"]" --env "DEBIAN_FRONTEND=noninteractive" --env "PATH_A=interactive" --label "version=1.0.0" --label "ociBuildtainer=your_email@example.com" image123:latest'
+    './output/ociBuild config --help'
 )
+# 输出文件夹
+mkdir -p ./output/results
+log_file="./output/results/config_log.txt"
 # 准备一个image:latest镜像
-./output/ociBuild build --tag image:latest .
+./output/ociBuild build --tag image123:latest .
 # 循环执行每条命令
 i=1
 for cmd in "${commands[@]}"; do
@@ -27,9 +36,15 @@ for cmd in "${commands[@]}"; do
         start=$(date +%s.%N)
     fi
 
+    # 执行命令, 第一次写入为覆盖
+    if [ "$i" -eq 1 ]; then
+        : > "${log_file}"
+    else
+        echo "" >> "${log_file}"
+    fi
     # 执行命令
-    eval "$cmd"
-    # eval "$cmd" >> "build_log_$i.txt" 2>&1
+    echo "[$i] Executing: $cmd" >> "${log_file}"
+    eval "$cmd" >> "${log_file}" 2>&1
     status=$?
 
     # 记录结束时间
@@ -53,6 +68,10 @@ for cmd in "${commands[@]}"; do
     fi
     ((i++))
 done
+
+echo
+echo "Delete Test Image..."
+./output/ociBuild rmi image123:latest
 
 echo
 echo "All config commands have been tested."
