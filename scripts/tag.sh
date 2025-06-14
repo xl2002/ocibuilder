@@ -10,9 +10,14 @@ echo "Platform: $platform"
 # 定义要测试的构建命令列表（用数组保存）
 commands=(
     './output/ociBuild tag image:latest 10.68.1.145:5000/library/image2:1.0'
+    './output/ociBuild tag --help'
+    './output/ociBuild images --all'
 )
 # 准备一个image:latest镜像
 ./output/ociBuild build --tag image:latest .
+# 输出文件夹
+mkdir -p ./output/results
+log_file="./output/results/tag_log.txt"
 # 循环执行每条命令
 i=1
 for cmd in "${commands[@]}"; do
@@ -27,7 +32,15 @@ for cmd in "${commands[@]}"; do
     fi
 
     # 执行命令
-    eval "$cmd"
+    # 执行命令, 第一次写入为覆盖
+    if [ "$i" -eq 1 ]; then
+        : > "${log_file}"
+    else
+        echo "" >> "${log_file}"
+    fi
+    # 执行命令
+    echo "[$i] Executing: $cmd" >> "${log_file}"
+    eval "$cmd" >> "${log_file}" 2>&1
     # eval "$cmd" >> "build_log_$i.txt" 2>&1
     status=$?
 

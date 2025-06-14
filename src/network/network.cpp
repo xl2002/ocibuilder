@@ -1639,13 +1639,15 @@ void pullBlob(const std::string& host, const std::string& port,const::string& pr
             std::cerr << "Failed to delete file: " << output_tmp << std::endl;
         }
 
+        std::cout << "finish" << std::endl;
+
 
     } catch (const beast::system_error& se) {
         logger->log_error("System error: "+std::string(se.what()));
         std::cerr << "System error: " << se.what() << std::endl;
     } catch (const std::exception& e) {
-        logger->log_error("Exception: "+std::string(e.what()));
-        std::cerr << "Exception: " << e.what() << std::endl;
+        logger->log_error("pull blob Exception: "+std::string(e.what()));
+        std::cerr << "pull blob Exception: " << e.what() << std::endl;
     }
 }
 
@@ -1797,8 +1799,8 @@ bool pullConfig(const std::string& host, const std::string& port,const::string& 
         logger->log_error("System error: "+std::string(se.what()));
         std::cerr << "System error: " << se.what() << std::endl;
     } catch (const std::exception& e) {
-        logger->log_error("Exception: "+std::string(e.what()));
-        std::cerr << "Exception: " << e.what() << std::endl;
+        logger->log_error("pull config Exception: "+std::string(e.what()));
+        std::cerr << "pull config Exception: " << e.what() << std::endl;
     }
 }
 
@@ -2113,7 +2115,11 @@ void loadLoginInfo(std::string ipAddr) {
  */
 std::vector<std::string> getTagList(const std::string& host, const std::string& port,const::string& projectName,const::string& imagetName){
     try{
-        std::string target="/v2/"+projectName+"/"+imagetName+"/tags/list";
+        std::string target;
+        if (!loginAuth.bearerToken.empty())
+            target="/v2/"+projectName+"/"+imagetName+"/tags/list";
+        else
+            target="/api/v2.0/" + projectName + "/" + imagetName + "/tags";
 
         // IO 上下文
         asio::io_context ioc;
@@ -2165,14 +2171,20 @@ std::vector<std::string> getTagList(const std::string& host, const std::string& 
         std::vector<std::string> tags;
         // 解析响应体中的 JSON 数据
         json::value json_value = json::parse(res.body());
-        json::object json_obj = json_value.as_object();
-
-        // 检查 "tags" 是否存在并提取它们
-        if (json_obj.contains("tags")) {
-            auto tags_array = json_obj["tags"].as_array();
-            for (const auto& tag : tags_array) {
-                tags.push_back(tag.as_string().c_str());
+        if (!loginAuth.bearerToken.empty()) {
+            json::object json_obj = json_value.as_object();
+            // 检查 "tags" 是否存在并提取它们
+            if (json_obj.contains("tags")) {
+                auto tags_array = json_obj["tags"].as_array();
+                for (const auto& tag : tags_array) {
+                    tags.push_back(tag.as_string().c_str());
+                }
             }
+        }
+        else {
+            json::array json_obj = json_value.as_array();
+            for (const auto& item : json_obj)
+                tags.push_back(item.as_string().c_str());
         }
 
         return tags;

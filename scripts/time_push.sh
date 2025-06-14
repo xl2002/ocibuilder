@@ -7,33 +7,35 @@ case "${unameOut}" in
 esac
 echo "Platform: $platform"
 
+harbor_addr="192.168.253.128:80"
+acore_addr="192.168.253.128:5000"
 # 定义要测试的构建命令列表（用数组保存）
 commands=(
   # 天脉仓库推送
-  './output/ociBuild push 192.168.1.102:5000/library/image:1.0'
-  'buildah push --format docker 192.168.1.102:5000/library/image:latest'
-  'docker push 192.168.1.102:5000/library/image:latest'
+  "./output/ociBuild push ${harbor_addr}/library/image:latest"
+#   'buildah push --format docker 192.168.1.102:5000/library/image:latest'
+#   'docker push 192.168.1.102:5000/library/image:latest'
 
   # harbor仓库推送
-  ./output/ociBuild push 192.168.1.102:80/library/image:1.0
-  'buildah push 192.168.1.102:80/library/image:latest'
-  'docker push 192.168.1.102:80/library/image:latest'
+  "./output/ociBuild push ${acore_addr}/library/image:latest"
+#   'buildah push 192.168.1.102:80/library/image:latest'
+#   'docker push 192.168.1.102:80/library/image:latest'
 )
 # 准备阶段
-./output/ociBuild build --tag image1:latest .
+# ./output/ociBuild build --tag image:latest .
 # harbor 仓库登录
-./output/ociBuild login --username admin --password Harbor12345 192.168.1.102:80
-docker login --username admin --password Harbor12345 192.168.1.102:80
-buildah login --username admin --password Harbor12345 --tls-verify=false 192.168.1.102:80
+# ./output/ociBuild login --username admin --password Harbor12345 192.168.1.102:80
+# docker login --username admin --password Harbor12345 192.168.1.102:80
+# buildah login --username admin --password Harbor12345 --tls-verify=false 192.168.1.102:80
 
 # 天脉仓库登录
-./output/ociBuild login --username admin --password 123456 192.168.1.102:5000
-docker login --username admin --password 123456 192.168.1.102:5000
-buildah login --username admin --password 123456 --tls-verify=false 192.168.1.102:5000
+# ./output/ociBuild login --username admin --password 123456 192.168.1.102:5000
+# docker login --username admin --password 123456 192.168.1.102:5000
+# buildah login --username admin --password 123456 --tls-verify=false 192.168.1.102:5000
 
 # 添加tag
-buildah tag image:latest 192.168.1.102:5000/library/image:latest
-buildah tag image:latest 192.168.1.102:80/library/image:latest
+# buildah tag image:latest 192.168.1.102:5000/library/image:latest
+# buildah tag image:latest 192.168.1.102:80/library/image:latest
 # 循环执行每条命令
 i=1
 for cmd in "${commands[@]}"; do
@@ -93,6 +95,10 @@ for cmd in "${commands[@]}"; do
     fi
     ((i++))
 done
+
+echo
+echo "Delete Test Image..."
+./output/ociBuild rmi image:latest
 
 echo
 echo "All push commands have been tested."
