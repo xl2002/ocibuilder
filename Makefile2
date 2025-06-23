@@ -146,7 +146,7 @@ OUTPUTMAINTEST	:= $(call FIXPATH,$(OUTPUTTEST)/$(MAIN))
 SRCTEST		:= ./tests/net_test.cpp
 # LIBSTEST	:= $(LIB)
 LIBSTEST	:= $(LIBS)
-all: $(OUTPUT) $(MAIN)
+all: $(OUTPUT) $(MAIN) strip
 # $(RM) $(call FIXPATH,$(OBJECTS))
 # $(RM) $(call FIXPATH,$(DEPS))
 	@echo Executing 'all' complete!
@@ -171,7 +171,11 @@ test:
 .cpp.o:
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c -MMD $<  -o $@
 
-.PHONY: clean
+.PHONY: clean # strip
+
+strip: $(MAIN)
+	strip $(OUTPUTMAIN)
+	@echo "Executable stripped!"
 
 clean:
 ifeq ($(OS), Windows_NT)
