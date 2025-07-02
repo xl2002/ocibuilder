@@ -29,13 +29,33 @@ std::string GetConfigFilePath() {
         if (pwd) homeDir = pwd->pw_dir;
     }
     if (homeDir) {
-        std::filesystem::path configPath = std::filesystem::path(homeDir) / DefaultConfigFileName;
+        boost::filesystem::path configPath = boost::filesystem::path(homeDir) / DefaultConfigFileName;
         return configPath.string();
     } else {
         throw std::runtime_error("无法获取用户目录");
     }
 }
 #endif
+
+std::string getConfigPath()
+{
+    namespace fs = boost::filesystem;
+    
+    // 先检查当前目录
+    fs::path currentPath = fs::current_path() / DefaultConfigFileName;
+    if (fs::exists(currentPath)) {
+        return currentPath.string();
+    }
+    
+    // 检查用户目录
+    try {
+        fs::path userPath = fs::path(GetConfigFilePath()) / DefaultConfigFileName;
+        return userPath.string();
+    } catch (const std::runtime_error& e) {
+        std::cerr << "警告: " << e.what() << "，将使用当前目录" << std::endl;
+        return currentPath.string();
+    }
+}
 
 const int DefaultMaxFiles = 7;
 class LogConfig {
@@ -60,7 +80,7 @@ int GetMaxFiles() {
     std::string configpath;
     int maxFiles = DefaultMaxFiles;
     try {
-        configpath = GetConfigFilePath();
+        configpath = getConfigPath();
     } catch (const std::runtime_error& e) {
         std::cerr << "无法获取配置文件路径: " << e.what() << std::endl;
         return maxFiles;
