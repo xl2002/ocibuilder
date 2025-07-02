@@ -1,5 +1,88 @@
 #include "utils/logger/ProcessSafeLogger.h"
 #include "storage/types/options.h"
+#include <string>
+#include <boost/filesystem.hpp>
+#include <boost/json.hpp>
+#include "utils/common/json.h"
+
+const std::string DefaultConfigFileName = "config.json";
+#if defined(_WIN32)
+#include <windows.h>
+#include <shlobj.h>
+std::string GetConfigFilePath() {
+    char userPath[MAX_PATH];
+    if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_PROFILE, NULL, 0, userPath))) {
+        boost::filesystem::path configPath = boost::filesystem::path(userPath) / DefaultConfigFileName;
+        return configPath.string();
+    } else {
+        throw std::runtime_error("无法获取用户目录");
+    }
+}
+#else
+#include <unistd.h>
+#include <sys/types.h>
+#include <pwd.h>
+std::string GetConfigFilePath() {
+    const char* homeDir = getenv("HOME");
+    if (!homeDir) {
+        struct passwd* pwd = getpwuid(getuid());
+        if (pwd) homeDir = pwd->pw_dir;
+    }
+    if (homeDir) {
+        std::filesystem::path configPath = std::filesystem::path(homeDir) / DefaultConfigFileName;
+        return configPath.string();
+    } else {
+        throw std::runtime_error("无法获取用户目录");
+    }
+}
+#endif
+
+const int DefaultMaxFiles = 7;
+class LogConfig {
+public:
+    int max_files;
+    LogConfig() : max_files(DefaultMaxFiles) {}
+    friend void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const LogConfig& config) {
+        jv = boost::json::object{
+            {"max_files", config.max_files}
+        };
+    }
+    friend LogConfig tag_invoke(boost::json::value_to_tag<LogConfig>, const boost::json::value& jv) {
+        const auto& obj = jv.as_object();
+        LogConfig config;
+        config.max_files = obj.at("max_files").as_int64();
+        return config;
+    }
+};
+int GetMaxFiles() {
+    namespace fs = boost::filesystem;
+    namespace json = boost::json;
+    std::string configpath;
+    int maxFiles = DefaultMaxFiles;
+    try {
+        configpath = GetConfigFilePath();
+    } catch (const std::runtime_error& e) {
+        std::cerr << "无法获取配置文件路径: " << e.what() << std::endl;
+        return maxFiles;
+    }
+    fs::path configPath(configpath);
+    if (fs::exists(configPath)) {
+        std::ifstream configFile(configPath.string());
+        if (configFile.is_open()) {
+            std::string configContent((std::istreambuf_iterator<char>(configFile)), std::istreambuf_iterator<char>());
+            LogConfig logconfig = unmarshal<LogConfig>(configContent);
+            if(logconfig.max_files > 0) {
+                maxFiles = logconfig.max_files;
+            }
+        } else {
+            std::cerr << "无法打开配置文件: " << configPath.string() << std::endl;
+        }
+    }else{
+        std::cerr << "配置文件不存在: " << configPath.string() << std::endl;
+    }
+    std::cout << "日志文件最大数量: " << maxFiles << std::endl;
+    return maxFiles;
+}
 std::shared_ptr<ProcessSafeLogger> Newlogger(){
     namespace fs = boost::filesystem;
     // std::string path =defaultRunRoot+log_dir;
@@ -68,7 +151,7 @@ void ProcessSafeLogger::init_logging() {
             logging::keywords::target = log_dir_,
             // logging::keywords::max_size = 100 * 1024 * 1024, // 所有文件总共最多 100MB
             // logging::keywords::min_free_space = 50 * 1024 * 1024, // 保留 50MB 可用空间
-            logging::keywords::max_files = 7                   // 最多保留 7 个文件（按天轮换）
+            logging::keywords::max_files = GetMaxFiles()                   // 默认保留 7 个文件（按天轮换）
         )
     );
 
