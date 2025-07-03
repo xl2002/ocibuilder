@@ -72,7 +72,18 @@ public:
     friend LogConfig tag_invoke(boost::json::value_to_tag<LogConfig>, const boost::json::value& jv) {
         const auto& obj = jv.as_object();
         LogConfig config;
-        config.max_files = obj.at("max_files").as_int64();
+        const auto& max_files_val = obj.at("max_files");
+        if (max_files_val.is_int64())
+            config.max_files = obj.at("max_files").as_int64();
+        else if (max_files_val.is_string()) {
+            try {
+                config.max_files = std::stoi(max_files_val.as_string().c_str());
+            } catch (const std::exception& e) {
+                throw std::runtime_error("'max_files' must be a valid integer or integer string");
+            }
+        } else {
+            throw std::runtime_error("'max_files' must be an integer or string");
+        }
         return config;
     }
 };
