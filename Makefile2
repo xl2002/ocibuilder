@@ -8,7 +8,7 @@ CXX = g++
 
 # define any compile-time flags
 CXXFLAGS	:= -std=c++11 -Wall -Wextra -g -O0
-CXXFLAGS += -Wno-nonnull
+# CXXFLAGS += -Wno-nonnull
 # CXXFLAGS	:= -std=c++11 -Wall -Wextra -fsanitize=address -fsanitize=leak -g -O0
 # define library paths in addition to /usr/lib
 #   if I wanted to include libraries not in /usr/lib I'd specify
@@ -131,10 +131,15 @@ OUTPUTMAINTEST	:= $(call FIXPATH,$(OUTPUTTEST)/$(MAIN))
 SRCTEST		:= ./tests/net_test.cpp
 # LIBSTEST	:= $(LIB)
 LIBSTEST	:= $(LIBS)
-all: $(OUTPUT) $(MAIN) 
+all: $(OUTPUT) $(MAIN) strip
 # $(RM) $(call FIXPATH,$(OBJECTS))
 # $(RM) $(call FIXPATH,$(DEPS))
 	@echo Executing 'all' complete!
+
+debug: $(OUTPUT) $(MAIN)
+# $(RM) $(call FIXPATH,$(OBJECTS))
+# $(RM) $(call FIXPATH,$(DEPS))
+	@echo Executing 'debug' complete!
 
 $(OUTPUT):
 	$(MD) $(OUTPUT)

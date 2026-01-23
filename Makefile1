@@ -134,11 +134,15 @@ OUTPUTTEST		:= tests
 OUTPUTMAINTEST	:= $(call FIXPATH,$(OUTPUTTEST)/$(MAIN))
 SRCTEST		:= ./tests/sha356.cpp
 LIBSTEST	:= $(LIB)
-all: dirmk $(OUTPUT) $(MAIN)
+all: dirmk $(OUTPUT) $(MAIN) strip
 # $(RM) $(call FIXPATH,$(OBJECTS))
 # $(RM) $(call FIXPATH,$(DEPS))
 	@echo Executing 'all' complete!
 
+debug: $(OUTPUT) $(MAIN)
+# $(RM) $(call FIXPATH,$(OBJECTS))
+# $(RM) $(call FIXPATH,$(DEPS))
+	@echo Executing 'debug' complete!
 $(OUTPUT):
 	$(MD) $(OUTPUT)
 
@@ -178,6 +182,10 @@ test:
 # 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c -MMD $<  -o $@
 %.o:%.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c -MMD $< -o $(subst $(SRC),$(BUILD),$@)
+
+strip: $(MAIN)
+	strip $(OUTPUTMAIN)
+	@echo "Executable stripped!"
 
 .PHONY: clean
 # clean:

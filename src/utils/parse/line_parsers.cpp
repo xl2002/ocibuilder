@@ -535,14 +535,6 @@ std::tuple<std::shared_ptr<Node>, std::map<std::string, bool>> parseMaybeJSONToL
     if (err == nullptr) {
         return std::make_tuple(node, attrs);
     }
-    try{
-        std::rethrow_exception(err);
-    }
-    catch(const myerror& e){
-        if(std::string(e.what())=="when using JSON array syntax, arrays must be comprised of strings only")
-        LOG_ERROR("parseMaybeJSONToList failed: " + std::string(e.what()));
-        throw;
-    }
     return parseStringsWhitespaceDelimited(rest, d);
 }
 /**
