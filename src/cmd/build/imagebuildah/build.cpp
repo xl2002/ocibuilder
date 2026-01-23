@@ -33,18 +33,18 @@ string BuildDockerfiles(shared_ptr<Store> stores, shared_ptr<define_BuildOptions
     }
     catch(const myerror& e)
     {
-        logger->log_error("validating volumes: "+string(e.what()));
+        LOG_ERROR("validating volumes: "+string(e.what()));
         throw myerror("validating volumes: "+string(e.what()));
     }
     
     if (paths.empty())
     {
-        logger->log_error("No dockerfiles specified");
+        LOG_ERROR("No dockerfiles specified");
         throw myerror("building: no dockerfiles specified");
     }
     if (options->PlatformsList.size() > 1 && options->IIDFile != "")
     {
-        logger->log_error("Cannot use iidfile with multiple platforms");
+        LOG_ERROR("Cannot use iidfile with multiple platforms");
         throw myerror ("building multiple images, but iidfile %q can only be used to store one image ID "+ options->IIDFile);
     }
     struct DockerfileInfo {
@@ -69,6 +69,7 @@ string BuildDockerfiles(shared_ptr<Store> stores, shared_ptr<define_BuildOptions
         try {
             VerifyTagName(tag);
         } catch (const myerror& e) {
+            LOG_ERROR("tag " + tag + " error: " + e.what());
             throw myerror("tag " + tag + " error: " + e.what());
         }
     }
@@ -86,19 +87,22 @@ string BuildDockerfiles(shared_ptr<Store> stores, shared_ptr<define_BuildOptions
                     dfile=joinPath(options->ContextDirectory,dfile);
                 }
                 if(stat(dfile.c_str(),&buf)<0){
-                    logger->log_error("Dockerfile not found: " + dfile);
+                    LOG_ERROR("Dockerfile not found: " + dfile);
                     throw myerror("no such file or directory: "+dfile);
                 }
             }
             if(buf.st_mode & S_IFDIR){
+                LOG_ERROR("file is a directory: " + dfile);
                 throw myerror("file is a directory: "+dfile);
             }
             auto content =fstream(dfile,ios::in|ios::binary);
             if(!content.is_open()){
+                LOG_ERROR("failed to open file: " + dfile);
                 throw myerror("failed to open file: "+dfile);
             }
             if(buf.st_mode & S_IFREG && buf.st_size == 0){
                 content.close();
+                LOG_ERROR("no contents in " + dfile);
                 throw myerror("no contents in "+dfile);
             }
             data=std::make_shared<std::fstream>(dfile,ios::in|ios::binary);
@@ -124,7 +128,7 @@ string BuildDockerfiles(shared_ptr<Store> stores, shared_ptr<define_BuildOptions
         logger->log_info("Setting up job semaphore with " + std::to_string(*options->Jobs) + " jobs");
         if(options->Jobs!=nullptr){
             if(*(options->Jobs)<0){
-                logger->log_error("building: invalid value for jobs.  It must be a positive integer");
+                LOG_ERROR("building: invalid value for jobs.  It must be a positive integer");
                 throw myerror("building: invalid value for jobs.  It must be a positive integer");
             }
             if(*(options->Jobs)>0){
@@ -231,6 +235,7 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>> buildDockerfilesOnc
     }
     catch(const myerror& e)
     {
+        LOG_ERROR("parsing main Dockerfile: "+containerFiles[0]+": "+string(e.what()));
         throw myerror("parsing main Dockerfile: "+containerFiles[0]+": "+string(e.what()));
     }
     // auto children=mainNode->Children;
@@ -244,6 +249,7 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>> buildDockerfilesOnc
     try{
         exec=newExecutor(logPrefix,stores,options,mainNode,containerFiles);
     }catch(const myerror& e){
+        LOG_ERROR("creating build executor: "+std::string(e.what()));
         throw myerror("creating build executor: "+std::string(e.what()));
     }
     auto b=NewBuilder(options->Args);
@@ -251,6 +257,7 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>> buildDockerfilesOnc
     try{
         defaultContainerConfig=Config_defaut();
     }catch(const myerror& e){
+        LOG_ERROR("failed to get container config: "+std::string(e.what()));
         throw myerror("failed to get container config: "+std::string(e.what()));
     }
     auto defaultenv=defaultContainerConfig->GetDefaultEnv();
@@ -260,6 +267,7 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>> buildDockerfilesOnc
     try{
         stages=NewStages(mainNode,b);
     }catch(const myerror& e){
+        LOG_ERROR("reading multiple stages: "+std::string(e.what()));
         throw myerror("reading multiple stages: "+std::string(e.what()));
     }
     if(options->Target!=""){

@@ -82,7 +82,7 @@ std::string resolve_dns(const std::string& host) {
         logger->log_info("Successfully resolved " + host + " to IP: " + ip);
         return ip;
     } catch (const boost::system::system_error& e) {
-        logger->log_error("Failed to resolve DNS for host " + host + ": " + e.what());
+        LOG_ERROR("Failed to resolve DNS for host " + host + ": " + e.what());
         return "";  // 如果解析失败，返回空字符串
     }
 }
@@ -117,7 +117,7 @@ std::shared_ptr<URL> dockerClient::resolveRequestURL(std::string path){
         // 从后向前找到最后两个冒号的位置
         size_t secondColon = remaining.find_last_of(':');
         if (secondColon == std::string::npos) {
-            logger->log_error("Invalid path format: No ':' found");
+            LOG_ERROR("Invalid path format: No ':' found");
             return url;
         }
 
@@ -126,7 +126,7 @@ std::shared_ptr<URL> dockerClient::resolveRequestURL(std::string path){
         pullPath = remaining.substr(0,firstColon);
 
         if(firstColon == secondColon){
-            logger->log_error("Invalid path format");
+            LOG_ERROR("Invalid path format");
             std::cerr << "Invalid path format"<< std::endl;
             return url;
         }else{
@@ -147,9 +147,6 @@ std::shared_ptr<URL> dockerClient::resolveRequestURL(std::string path){
         std::size_t slashPos = path.find('/');
         std::size_t lastSlash = path.find_last_of('/');
 
-        // if (colonPos == std::string::npos || slashPos == std::string::npos || colonPos > slashPos) {
-        //     throw std::invalid_argument("Invalid path format");
-        // }
         //192.168.0.1:5000/lib/xxx:latest?
         std::string host;
         if(colonPos == std::string::npos){
@@ -211,7 +208,7 @@ std::shared_ptr<URL> dockerClient::resolveRequestURL(std::string path){
         if (!isIPAddress(host)) {
             host = resolve_dns(host);  // 使用DNS解析将主机解析为IP地址
             if (host.empty()) {
-                logger->log_error( "DNS resolution failed for host: "+host);
+                LOG_ERROR( "DNS resolution failed for host: "+host);
                 std::cerr << "DNS resolution failed for host: " << host << std::endl;
                 return url;
             }
@@ -309,7 +306,7 @@ std::shared_ptr<URL> resolveLoginURL(std::string path) {
         std::string originalHost = host;
         host = resolve_dns(host);  // 使用DNS解析将主机解析为IP地址
         if (host.empty()) {
-            logger->log_error("DNS resolution failed for host: " + originalHost);
+            LOG_ERROR("DNS resolution failed for host: " + originalHost);
             std::cerr << "DNS resolution failed for host: " << originalHost << std::endl;
             return url;
         }
@@ -528,7 +525,7 @@ bool ifSupportV2(const std::string& host,const std::string& port){
 
 
     } catch (const std::exception& e) {
-        logger->log_error(std::string(e.what()));
+        LOG_ERROR(std::string(e.what()));
         std::cerr << "Error: " << e.what() << std::endl;
     }
     return false;
@@ -625,7 +622,7 @@ bool ifBlobExists(const std::string& host,const std::string& port,const std::str
         }
         stream.socket().shutdown(asio::ip::tcp::socket::shutdown_both);
     } catch (const std::exception& e) {
-        logger->log_error(std::string(e.what()));
+        LOG_ERROR(std::string(e.what()));
         std::cerr << "Blob Exist Error: " << e.what() << "\n";
     }
     return false;
@@ -695,7 +692,7 @@ bool ifManifestExists(const std::string& host,const std::string& port,const std:
         }
         stream.socket().shutdown(asio::ip::tcp::socket::shutdown_both);
     } catch (const std::exception& e) {
-        logger->log_error(std::string(e.what()));
+        LOG_ERROR(std::string(e.what()));
         std::cerr << "Manifest Exist Error: " << e.what() << "\n";
     }
     return false;
@@ -753,6 +750,7 @@ std::pair<std::string, std::string> initUpload(const std::string& host, const st
         logger->log_info("initing upload,Response status code: " + std::to_string(status_code));
 
         if (res.result() != beast::http::status::accepted) {
+            LOG_ERROR("Failed to initiate upload, Response status code: " + std::to_string(status_code));
             throw std::runtime_error("Failed to initiate upload");
         }
 
@@ -781,8 +779,10 @@ std::pair<std::string, std::string> initUpload(const std::string& host, const st
             if (pos != std::string::npos) {
                 state_param = location.substr(pos + 8);
             }
-            else
+            else{
+                LOG_ERROR("Failed to get state from location: " + location);
                 throw std::runtime_error("Failed to get state");
+            }
         }
 
         stream.socket().shutdown(tcp::socket::shutdown_both);
@@ -790,7 +790,7 @@ std::pair<std::string, std::string> initUpload(const std::string& host, const st
         return {uid_param,state_param};
 
     } catch (const std::exception& e) {
-        logger->log_error(std::string(e.what()));
+        LOG_ERROR(std::string(e.what()));
         std::cerr << "Init Upload Error: " << e.what() << "\n";
         return {"", ""};
     }
@@ -831,6 +831,7 @@ std::pair<std::string, std::string> uploadBlobChunk(const std::string& host, con
     try {
         std::ifstream file(file_path, std::ios::binary);
         if (!file) {
+            LOG_ERROR("Failed to open file: " + file_path);
             throw std::runtime_error("Failed to open file: " + file_path);
         }
 
@@ -842,6 +843,7 @@ std::pair<std::string, std::string> uploadBlobChunk(const std::string& host, con
         std::size_t bytes_read = file.gcount();
 
         if (file.gcount() != static_cast<std::streamsize>(chunk_size)) {
+            LOG_ERROR("Failed to read the requested chunk from file: " + file_path);
             throw std::runtime_error("Failed to read the requested chunk from file.");
         }
 
@@ -894,6 +896,7 @@ std::pair<std::string, std::string> uploadBlobChunk(const std::string& host, con
         logger->log_info("upload blob chunk,Response status code: " + std::to_string(status_code));
 
         if (res.result() != beast::http::status::accepted) {
+            LOG_ERROR("Failed to upload blob chunk, Response status code: " + std::to_string(status_code));
             throw std::runtime_error("Failed to upload blob chunk");
         }
 
@@ -926,7 +929,7 @@ std::pair<std::string, std::string> uploadBlobChunk(const std::string& host, con
         stream.socket().shutdown(tcp::socket::shutdown_both);
         return {new_uid, new_state};
     } catch (const std::exception& e) {
-        logger->log_error(std::string(e.what()));
+        LOG_ERROR(std::string(e.what()));
         std::cerr << "Upload Blob Chunk Error: " << e.what() << "\n";
         return {uid, state};
     }
@@ -971,7 +974,7 @@ void getManifest(ptree& node, const std::string& level)
             }
         } 
     } catch(const std::exception& e) {
-        logger->log_error(std::string(e.what()));
+        LOG_ERROR(std::string(e.what()));
         std::cerr << "Error: " << e.what() << std::endl;
     }
 }
@@ -1153,13 +1156,14 @@ void uploadManifest(const std::string& host, const std::string& port, const std:
         logger->log_info("uploading manifest,Response status code: " + std::to_string(status_code));
 
         if (res.result() != beast::http::status::ok && res.result() != beast::http::status::created) {
+            LOG_ERROR("Failed to upload manifest, Response status code: " + std::to_string(status_code));
             throw std::runtime_error("Failed to upload manifest");
         }
         stream.socket().shutdown(tcp::socket::shutdown_both);
         logger->log_info("Successfully uploaded manifest for image: " + imageName + " version: " + version);
         
     } catch (const std::exception& e) {
-        logger->log_error("Upload Manifest Error: " + std::string(e.what()));
+        LOG_ERROR("Upload Manifest Error: " + std::string(e.what()));
     }
 }
 
@@ -1225,11 +1229,12 @@ void finalizeUpload(const std::string& host, const std::string& port, const std:
         beast::http::read(stream, buffer, parser);
         auto res = parser.get();
         if (res.result() != beast::http::status::created) {
+            LOG_ERROR("Failed to finalize upload, Response status code: " + std::to_string(static_cast<unsigned>(res.result_int())));
             throw std::runtime_error("Failed to finalize upload");
         }
         stream.socket().shutdown(tcp::socket::shutdown_both);
     } catch (const std::exception& e) {
-        logger->log_error("Finalize Upload Error: "+std::string(e.what()));
+        LOG_ERROR("Finalize Upload Error: "+std::string(e.what()));
         std::cerr << "Finalize Upload Error: " << e.what() << "\n";
     }
 }
@@ -1260,7 +1265,7 @@ std::string gzDecompressToString(const std::string& compressed) {
     int ret;
     ret = inflateInit2(&strm, MAX_WBITS + 16); // MAX_WBITS+16 is for handling GZIP headers
     if (ret != Z_OK) {
-        logger->log_warning("inflateInit2 failed");
+        LOG_ERROR("inflateInit2 failed");
         throw std::runtime_error("inflateInit2 failed");
     }
 
@@ -1277,7 +1282,7 @@ std::string gzDecompressToString(const std::string& compressed) {
     ret = inflate(&strm, Z_FINISH);
     if (ret != Z_STREAM_END) {
         inflateEnd(&strm);
-        logger->log_warning("Decompression failed");
+        LOG_ERROR("Decompression failed");
         throw std::runtime_error("Decompression failed");
     }
 
@@ -1446,7 +1451,7 @@ std::string login_and_getToken(const std::string& user, const std::string& passw
             }
         }
     } catch (const std::exception& e) {
-        logger->log_error(std::string(e.what()));
+        LOG_ERROR(std::string(e.what()));
         std::cerr << "Error: " << e.what() << std::endl;
     }
     return "";
@@ -1506,7 +1511,7 @@ bool login(const std::string& host, const std::string& port, const std::string& 
         }
 
     } catch (const std::exception& e) {
-        logger->log_error(std::string(e.what()));
+        LOG_ERROR(std::string(e.what()));
         std::cerr << "Error: " << e.what() << std::endl;
     }
     return false;
@@ -1594,7 +1599,7 @@ void pullBlob(const std::string& host, const std::string& port,const::string& pr
 
         // 检查响应状态
         if (res.result() != beast::http::status::ok) {
-            logger->log_error("HTTP request failed with status: "+std::to_string(res.result_int())+" "+ std::string(res.reason()));
+            LOG_ERROR("HTTP request failed with status: "+std::to_string(res.result_int())+" "+ std::string(res.reason()));
             std::cerr << "HTTP request failed with status: " << res.result_int() << " " << res.reason() << std::endl;
             return;
         }
@@ -1606,7 +1611,7 @@ void pullBlob(const std::string& host, const std::string& port,const::string& pr
         // 输出响应体到文件
         std::ofstream ofs(output_tmp, std::ios::binary); // 打开文件为二进制模式
         if (!ofs) {
-            logger->log_error("Failed to open file for writing: "+output_tmp);
+            LOG_ERROR("Failed to open file for writing: "+output_tmp);
             std::cerr << "Failed to open file for writing: " << output_tmp << std::endl;
             return;
         }
@@ -1620,7 +1625,7 @@ void pullBlob(const std::string& host, const std::string& port,const::string& pr
             // 写blob
             std::ofstream ofs1(output_file, std::ios::binary); // 打开文件为二进制模式
             if (!ofs1) {
-                logger->log_error("Failed to open file for writing: "+output_file);
+                LOG_ERROR("Failed to open file for writing: "+output_file);
                 std::cerr << "Failed to open file for writing: " << output_file << std::endl;
                 return;
             }
@@ -1635,7 +1640,7 @@ void pullBlob(const std::string& host, const std::string& port,const::string& pr
             logger->log_info("tmp manifest deleted successfully: "+output_tmp);
             std::cout << "tmp manifest deleted successfully: " << output_tmp << std::endl;
         }else{
-            logger->log_error( "Failed to delete file: "+output_tmp);
+            LOG_ERROR( "Failed to delete file: "+output_tmp);
             std::cerr << "Failed to delete file: " << output_tmp << std::endl;
         }
 
@@ -1643,10 +1648,10 @@ void pullBlob(const std::string& host, const std::string& port,const::string& pr
 
 
     } catch (const beast::system_error& se) {
-        logger->log_error("System error: "+std::string(se.what()));
+        LOG_ERROR("System error: "+std::string(se.what()));
         std::cerr << "System error: " << se.what() << std::endl;
     } catch (const std::exception& e) {
-        logger->log_error("pull blob Exception: "+std::string(e.what()));
+        LOG_ERROR("pull blob Exception: "+std::string(e.what()));
         std::cerr << "pull blob Exception: " << e.what() << std::endl;
     }
 }
@@ -1740,7 +1745,7 @@ bool pullConfig(const std::string& host, const std::string& port,const::string& 
 
         // 检查响应状态
         if (res.result() != beast::http::status::ok) {
-            logger->log_error("HTTP request failed with status: "+std::to_string(res.result_int())+" "+ std::string(res.reason()));
+            LOG_ERROR("HTTP request failed with status: "+std::to_string(res.result_int())+" "+ std::string(res.reason()));
             std::cerr << "HTTP request failed with status: " << res.result_int() << " " << res.reason() << std::endl;
             return false;
         }
@@ -1760,7 +1765,7 @@ bool pullConfig(const std::string& host, const std::string& port,const::string& 
         // 输出响应体到文件
         std::ofstream ofs(output_tmp, std::ios::binary); // 打开文件为二进制模式
         if (!ofs) {
-            logger->log_error( "Failed to open file for writing: "+output_tmp);
+            LOG_ERROR( "Failed to open file for writing: "+output_tmp);
             std::cerr << "Failed to open file for writing: " << output_tmp << std::endl;
             return false;
         }
@@ -1774,7 +1779,7 @@ bool pullConfig(const std::string& host, const std::string& port,const::string& 
             // 写blob
             std::ofstream ofs1(output_file, std::ios::binary); // 打开文件为二进制模式
             if (!ofs1) {
-                logger->log_error( "Failed to open file for writing: " + output_file);
+                LOG_ERROR( "Failed to open file for writing: " + output_file);
                 std::cerr << "Failed to open file for writing: " << output_file << std::endl;
                 return false;
             }
@@ -1789,17 +1794,17 @@ bool pullConfig(const std::string& host, const std::string& port,const::string& 
             logger->log_info("tmp manifest deleted successfully: "+output_tmp);
             std::cout << "tmp manifest deleted successfully: " << output_tmp << std::endl;
         }else{
-            logger->log_error( "Failed to delete file: " + output_tmp);
+            LOG_ERROR( "Failed to delete file: " + output_tmp);
             std::cerr << "Failed to delete file: " << output_tmp << std::endl;
         }
 
         return true;
 
     } catch (const beast::system_error& se) {
-        logger->log_error("System error: "+std::string(se.what()));
+        LOG_ERROR("System error: "+std::string(se.what()));
         std::cerr << "System error: " << se.what() << std::endl;
     } catch (const std::exception& e) {
-        logger->log_error("pull config Exception: "+std::string(e.what()));
+        LOG_ERROR("pull config Exception: "+std::string(e.what()));
         std::cerr << "pull config Exception: " << e.what() << std::endl;
     }
 }
@@ -1892,7 +1897,7 @@ std::tuple<std::string,size_t> pullManifestAndBlob(const std::string& host, cons
 
         // 检查响应状态
         if (res.result() != beast::http::status::ok) {
-            logger->log_error("HTTP request failed with status: "+std::to_string(res.result_int())+" "+ std::string(res.reason()));
+            LOG_ERROR("HTTP request failed with status: "+std::to_string(res.result_int())+" "+ std::string(res.reason()));
             std::cerr << "HTTP request failed with status: " << res.result_int() << " " << res.reason() << std::endl;
             return {};
         }
@@ -1924,25 +1929,11 @@ std::tuple<std::string,size_t> pullManifestAndBlob(const std::string& host, cons
         // std::cout << "Manifest tmp saved to: " << output_file_tmp << std::endl;
 
         std::string ManifestSha;
-        //写manifest, 改为直接写, 不进行格式上的转换
-        // if (v1 == true) {
-        //     std::string new_path = write_manifest_new(output_file_tmp);
-        //     // std::string new_path = write_v1_manifest(output_file_tmp);
-        //     boost::filesystem::path source = new_path;
-        //     std::cout << new_path << std::endl;
-        //     ManifestSha = source.filename().string();
-        //     boost::filesystem::path target = output_folder + source.filename().string();
-
-        //     if (boost::filesystem::exists(source)) {
-        //         boost::filesystem::copy_file(source, target, fs::copy_option::overwrite_if_exists);
-        //     } else {
-        //         throw std::runtime_error("Failed to copy file: " + source.string());
-        //     }
-        // } else {
         //     // 计算manifest的hash
         auto digest = Fromfile(output_file_tmp);
         ManifestSha = digest ? digest->Encoded() : "";
         if (ManifestSha.empty()) {
+            LOG_ERROR("Failed to calculate manifest digest");
             throw std::runtime_error("Failed to calculate manifest digest");
         }
         MediaTypeImageManifest = manifest.MediaType;
@@ -1951,11 +1942,12 @@ std::tuple<std::string,size_t> pullManifestAndBlob(const std::string& host, cons
         if(std::remove(output_file_tmp.c_str())==0){
             // std::cout << "tmp manifest deleted successfully: " << output_file_tmp << std::endl;
         }else{
-            // std::cerr << "Failed to delete file: " << output_file_tmp << std::endl;
+            LOG_ERROR( "Failed to delete temp file: "+output_file_tmp);
             throw std::runtime_error("Failed to delete temp file: " + output_file_tmp);
         }
         std::ofstream ofs1(output_file, std::ios::binary);
         if (!ofs1) {
+            LOG_ERROR("Failed to open file for writing: "+output_file);
             throw std::runtime_error("Failed to open file for writing: " + output_file);
             // std::cerr << "Failed to open file for writing: " << output_file << std::endl;
             return {};
@@ -1986,10 +1978,10 @@ std::tuple<std::string,size_t> pullManifestAndBlob(const std::string& host, cons
         return std::make_tuple("sha256:"+ManifestSha,manifestLen);
 
     } catch (const beast::system_error& se) {
-        logger->log_error("System error: "+std::string(se.what()));
+        LOG_ERROR("System error: "+std::string(se.what()));
         std::cerr << "System error: " << se.what() << std::endl;
     } catch (const std::exception& e) {
-        logger->log_error("Pull Manifest Exception: "+std::string(e.what()));
+        LOG_ERROR("Pull Manifest Exception: "+std::string(e.what()));
         std::cerr << "Pull Manifest Exception: " << e.what() << std::endl;
     }
 }
@@ -2012,14 +2004,14 @@ void getCookieFromAuthFile(){
                     loginAuth.cookie = cookie;
                 }
             }
-            logger->log_error("No cookie found in JSON file.");
+            LOG_ERROR("No cookie found in JSON file.");
             std::cerr << "No cookie found in JSON file.\n";
         } catch (const std::exception& e) {
-            logger->log_error("Error parsing JSON: " + std::string(e.what()));
+            LOG_ERROR("Error parsing JSON: " + std::string(e.what()));
             std::cerr << "Error parsing JSON: " << e.what() << "\n";
         }
     } else {
-        logger->log_error("Failed to open file for loading cookie.");
+        LOG_ERROR("Failed to open file for loading cookie.");
         std::cerr << "Failed to open file for loading cookie.\n";
     }
 }
@@ -2042,7 +2034,7 @@ void saveLoginInfo(const std::string& username, const std::string& password, con
         logger->log_info("Credentials saved to auth.json");
         std::cout << "Credentials saved to auth.json\n";
     } else {
-        logger->log_error("Failed to save credentials");
+        LOG_ERROR("Failed to save credentials");
         std::cerr << "Failed to save credentials\n";
     }
 }
@@ -2061,7 +2053,7 @@ void loadLoginInfo(std::string ipAddr) {
 
     std::ifstream ifs(authPath);
     if (!ifs) {
-        logger->log_error("Failed to open auth.json for reading");
+        LOG_ERROR("Failed to open auth.json for reading");
         std::cerr << "Failed to open auth.json for reading\n";
         return;
     }
@@ -2082,7 +2074,7 @@ void loadLoginInfo(std::string ipAddr) {
             userinfo.username=usr.username;
             userinfo.password=usr.password;
         } else {
-            logger->log_error("auth.json does not contain required fields");
+            LOG_ERROR("auth.json does not contain required fields");
             std::cerr << "auth.json does not contain required fields\n";
         }
         // // 提取字段
@@ -2095,7 +2087,7 @@ void loadLoginInfo(std::string ipAddr) {
         //     std::cerr << "auth.json does not contain required fields\n";
         // }
     } catch (const std::exception& e) {
-        logger->log_error("Error reading auth.json: "+std::string(e.what()));
+        LOG_ERROR("Error reading auth.json: "+std::string(e.what()));
         std::cerr << "Error reading auth.json: " << e.what() << "\n";
     }
 }
@@ -2155,7 +2147,7 @@ std::vector<std::string> getTagList(const std::string& host, const std::string& 
         // }
 
         if (res.result() != beast::http::status::ok) {
-            logger->log_error("GetTagsList request failed with status: "+std::to_string(res.result_int())+" "+std::string(res.reason()));
+            LOG_ERROR("GetTagsList request failed with status: "+std::to_string(res.result_int())+" "+std::string(res.reason()));
             std::cerr << "GetTagsList request failed with status: " << res.result_int() << " " << res.reason() << std::endl;
             return {};
         }
@@ -2189,7 +2181,7 @@ std::vector<std::string> getTagList(const std::string& host, const std::string& 
 
         return tags;
     }catch(const std::exception& e){
-        logger->log_error(std::string(e.what()));
+        LOG_ERROR(std::string(e.what()));
         std::cerr << "Error: " << e.what() << std::endl;
         return {};
     }

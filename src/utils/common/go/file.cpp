@@ -117,14 +117,14 @@ void WriteFile(const std::string& iidfile, const std::string& imageID) {
         // 创建文件并写入内容
         std::ofstream file(iidfile, std::ios::out | std::ios::trunc);
         if (!file.is_open()) {
-            logger->log_error("WriteFile: failed to open file - " + iidfile);
+            LOG_ERROR("failed to open file - " + iidfile);
             throw std::runtime_error("failed to open file: " + iidfile);
         }
 
         // 写入 "sha256:" + imageID
         file << "sha256:" << imageID;
         if (!file) {
-            logger->log_error("WriteFile: failed to write to file - " + iidfile);
+            LOG_ERROR("failed to write to file - " + iidfile);
             throw std::runtime_error("failed to write to file: " + iidfile);
         }
         file.close();
@@ -132,7 +132,7 @@ void WriteFile(const std::string& iidfile, const std::string& imageID) {
         // 返回成功的 imageID 和 ref
         // return std::make_tuple(imageID, ref, nullptr);
     } catch (...) {
-        logger->log_error("WriteFile: exception occurred while writing to file - " + iidfile);
+        LOG_ERROR("exception occurred while writing to file - " + iidfile);
         throw;
         // 如果写入失败，返回捕获的异常
         // return std::make_tuple(imageID, ref, std::current_exception());
@@ -147,13 +147,13 @@ void WriteFile(const std::string& iidfile, const std::string& imageID) {
 bool isDirectoryWritable(const fs::path& dirPath) {
     try {
         if (!fs::exists(dirPath)) {
-            logger->log_error("isDirectoryWritable: directory does not exist - " + dirPath.string());
-            std::cerr << "Directory does not exist: " << dirPath << std::endl;
+            LOG_ERROR("isDirectoryWritable: directory does not exist - " + dirPath.string());
+            // std::cerr << "Directory does not exist: " << dirPath << std::endl;
             return false;
         }
         if (!fs::is_directory(dirPath)) {
-            logger->log_error("isDirectoryWritable: path is not a directory - " + dirPath.string());
-            std::cerr << "Path is not a directory: " << dirPath << std::endl;
+            LOG_ERROR("isDirectoryWritable: path is not a directory - " + dirPath.string());
+            // std::cerr << "Path is not a directory: " << dirPath << std::endl;
             return false;
         }
 
@@ -167,8 +167,8 @@ bool isDirectoryWritable(const fs::path& dirPath) {
             return false; // 不可写
         }
     } catch (const fs::filesystem_error& e) {
-        logger->log_error("isDirectoryWritable: filesystem error - " + std::string(e.what()));
-        std::cerr << "Error checking directory: " << e.what() << std::endl;
+        LOG_ERROR("isDirectoryWritable: filesystem error - " + std::string(e.what()));
+        // std::cerr << "Error checking directory: " << e.what() << std::endl;
         return false;
     }
 }
@@ -179,7 +179,8 @@ bool isDirectoryWritable(const fs::path& dirPath) {
 void makeDirectoryWritable(const fs::path& dirPath) {
     try {
         if (!fs::exists(dirPath)) {
-            std::cerr << "Directory does not exist: " << dirPath << std::endl;
+            LOG_ERROR("makeDirectoryWritable: directory does not exist - " + dirPath.string());
+            // std::cerr << "Directory does not exist: " << dirPath << std::endl;
             return;
         }
 
@@ -188,66 +189,11 @@ void makeDirectoryWritable(const fs::path& dirPath) {
 
         std::cout << "Permissions updated. Directory is now writable." << std::endl;
     } catch (const fs::filesystem_error& e) {
-        std::cerr << "Error changing permissions: " << e.what() << std::endl;
+        LOG_ERROR("makeDirectoryWritable: filesystem error - " + std::string(e.what()));
+        // std::cerr << "Error changing permissions: " << e.what() << std::endl;
     }
 }
-/**
- * @brief 递归复制目录并统计数据传输总大小
- * @param source 源目录路径
- * @param destination 目标目录路径
- * @return int64_t 传输的数据总大小（字节）
- */
-// int64_t Copy_directory(const fs::path& sourcedir, const fs::path& destination) {
-//     // 检查源目录是否存在
-//     std::chrono::duration<double> duration;
-//     std::chrono::high_resolution_clock::time_point start,end;
-//     start = std::chrono::high_resolution_clock::now();
-//     int64_t total_size = 0; // 用于统计传输的数据大小
-//     auto source=fs::absolute(sourcedir);
-//     if (!fs::exists(source) || !fs::is_directory(source)) {
-//         throw std::runtime_error("源目录不存在或不是一个目录: " + source.string());
-//     }
 
-//     // 检查目标路径是否存在，不存在则创建
-//     if (!fs::exists(destination)) {
-//         fs::create_directories(destination);
-//     } else if (!fs::is_directory(destination)) {
-//         throw std::runtime_error("目标路径已存在但不是一个目录: " + destination.string());
-//     }
-
-//     // int64_t copy_count = 0; // 成功复制的文件和目录计数
-
-//     // 遍历源目录中的所有文件和子目录
-//     for (fs::recursive_directory_iterator it(source), end; it != end; ++it) {
-//         const fs::path& current = it->path();
-//         fs::path relative_path = fs::relative(current, source); // 计算相对路径
-//         fs::path target = destination / relative_path;          // 构造目标路径
-
-//         try {
-//             if (fs::is_directory(current)) {
-//                 // 如果是目录，则创建对应目录
-//                 fs::create_directory(target);
-//                 // ++copy_count;
-//             } else if (fs::is_regular_file(current)) {
-//                 // 如果是文件，则复制到目标路径
-//                 // 如果是文件，获取文件大小并复制
-//                 int64_t file_size = fs::file_size(current);
-//                 total_size += file_size; // 累加文件大小
-//                 fs::copy_file(current, target, fs::copy_option::overwrite_if_exists);
-//                 // ++copy_count;
-//             } else {
-//                 // 跳过符号链接或其他类型的文件
-//                 std::cerr << "跳过不支持的文件类型: " << current << std::endl;
-//             }
-//         } catch (const fs::filesystem_error& e) {
-//             std::cerr << "复制失败: " << current << " -> " << target << "\n原因: " << e.what() << std::endl;
-//         }
-//     }
-//     end = std::chrono::high_resolution_clock::now();
-//     duration = end - start;
-//     std::cout<<"copy: "<<sourcedir.string()<<" -> "<<destination.string()<<" duration: "<<duration.count()<<" s"<<std::endl;
-//     return total_size;
-// }
 // 跨平台复制文件
 void Copyfile(const fs::path& source, const fs::path& target, int64_t& total_size) {
     try {
@@ -256,10 +202,12 @@ void Copyfile(const fs::path& source, const fs::path& target, int64_t& total_siz
             total_size += file_size; // 累加文件大小
             fs::copy_file(source, target, fs::copy_option::overwrite_if_exists);
         } else {
-            std::cerr << "跳过不支持的文件类型: " << source << std::endl;
+            LOG_ERROR("Copyfile: skip unsupported file types - " + source.string());
+            // std::cerr << "Skip unsupported file types: " << source << std::endl;
         }
     } catch (const fs::filesystem_error& e) {
-        std::cerr << "复制失败: " << source << " -> " << target << "\n原因: " << e.what() << std::endl;
+        LOG_ERROR("Copyfile: failed to copy file - " + source.string() + " -> " + target.string() + ", reason: " + e.what());
+        // std::cerr << "复制失败: " << source << " -> " << target << "\n原因: " << e.what() << std::endl;
     }
 }
 
@@ -270,14 +218,16 @@ int64_t Copy_directory(const fs::path& sourcedir, const fs::path& destination) {
 
     // 检查源目录是否存在
     if (!fs::exists(source) || !fs::is_directory(source)) {
-        throw std::runtime_error("源目录不存在或不是一个目录: " + source.string());
+        LOG_ERROR("source directory does not exist or is not a directory - " + source.string());
+        throw std::runtime_error("The source directory does not exist or is not a directory: " + source.string());
     }
 
     // 检查目标路径是否存在，不存在则创建
     if (!fs::exists(destination)) {
         fs::create_directories(destination);
     } else if (!fs::is_directory(destination)) {
-        throw std::runtime_error("目标路径已存在但不是一个目录: " + destination.string());
+        LOG_ERROR("destination exists but is not a directory - " + destination.string());
+        throw std::runtime_error("The destination path exists but is not a directory: " + destination.string());
     }
 
     // 用于存储所有文件和目录的路径
@@ -297,7 +247,8 @@ int64_t Copy_directory(const fs::path& sourcedir, const fs::path& destination) {
             // 如果是文件，加入到 files_to_copy
             files_to_copy.push_back(current);
         } else {
-            std::cerr << "跳过不支持的文件类型: " << current << std::endl;
+            LOG_ERROR("Copy_directory: skip unsupported file types - " + current.string());
+            // std::cerr << "Skip unsupported file types: " << current << std::endl;
         }
     }
 
@@ -311,7 +262,8 @@ int64_t Copy_directory(const fs::path& sourcedir, const fs::path& destination) {
                 fs::create_directory(dir);
             }
         } catch (const fs::filesystem_error& e) {
-            std::cerr << "创建目录失败: " << dir << "\n原因: " << e.what() << std::endl;
+            LOG_ERROR("Copy_directory: failed to create directory - " + dir.string() + ", reason: " + e.what());
+            // std::cerr << "创建目录失败: " << dir << "\n原因: " << e.what() << std::endl;
         }
     }
 
@@ -454,11 +406,12 @@ bool isDirectoryEmpty(const boost::filesystem::path& dirPath) {
         if (boost::filesystem::exists(dirPath) && boost::filesystem::is_directory(dirPath)) {
             return boost::filesystem::directory_iterator(dirPath) == boost::filesystem::directory_iterator();
         } else {
+            LOG_ERROR("path does not exist or is not a directory - " + dirPath.string());
             throw std::runtime_error("The path does not exist or is not a directory.");
         }
     } catch (const boost::filesystem::filesystem_error& e) {
-        logger->log_error("Error: "+std::string(e.what()));
-        std::cerr << "Error: " << e.what() << std::endl;
+        LOG_ERROR("Error: "+std::string(e.what()));
+        // std::cerr << "Error: " << e.what() << std::endl;
         return false; // 如果出错，返回 false
     }
 }
@@ -501,12 +454,12 @@ std::string MkdirTemp(std::string dir, std::string pattern) {
             logger->log_info("Directory created: "+tempDirPath.string());
             std::cout << "Directory created: " << tempDirPath.string() << std::endl;
         } else {
-            logger->log_error( "Failed to create directory: "+tempDirPath.string());
-            std::cerr << "Failed to create directory: " << tempDirPath.string() << std::endl;
+            LOG_ERROR( "Failed to create directory: "+tempDirPath.string());
+            // std::cerr << "Failed to create directory: " << tempDirPath.string() << std::endl;
         }
     } catch (const boost::filesystem::filesystem_error& e) {
-        logger->log_error( "Error creating directory: "+std::string(e.what()));
-        std::cerr << "Error creating directory: " << e.what() << std::endl;
+        LOG_ERROR( "Error creating directory: "+std::string(e.what()));
+        // std::cerr << "Error creating directory: " << e.what() << std::endl;
         throw;
     }
 
@@ -525,7 +478,7 @@ void Copy_file(const fs::path& src, const fs::path& dest) {
     try {
         // 检查源文件是否存在
         if (!fs::exists(src) || !fs::is_regular_file(src)) {
-            logger->log_error("Copy_file: source file does not exist or is not regular - " + src.string());
+            LOG_ERROR("Copy_file: source file does not exist or is not regular - " + src.string());
             throw std::runtime_error("Source file does not exist or is not a regular file: " + src.string());
         }
 
@@ -537,16 +490,16 @@ void Copy_file(const fs::path& src, const fs::path& dest) {
         // 使用 Boost.Filesystem 的文件复制功能
         fs::copy_file(src, dest, fs::copy_option::overwrite_if_exists);
         if (!fs::exists(dest) || !fs::is_regular_file(dest)) {
-            logger->log_error("Copy_file: failed to copy file - " + src.string() + " to " + dest.string());
+            LOG_ERROR("failed to copy file - " + src.string() + " to " + dest.string());
             throw std::runtime_error("Failed to copy file: " + src.string() + " to " + dest.string());
         }
         // std::cout << "File copied successfully from " << src.string() << " to " << dest.string() << std::endl;
     } catch (const fs::filesystem_error& ex) {
-        logger->log_error("Copy_file: filesystem error - " + std::string(ex.what()));
-        std::cerr << "Filesystem error: " << ex.what() << std::endl;
+        LOG_ERROR("filesystem error - " + std::string(ex.what()));
+        // std::cerr << "Filesystem error: " << ex.what() << std::endl;
     } catch (const std::exception& ex) {
-        logger->log_error("Copy_file: error - " + std::string(ex.what()));
-        std::cerr << "Error: " << ex.what() << std::endl;
+        LOG_ERROR("error - " + std::string(ex.what()));
+        // std::cerr << "Error: " << ex.what() << std::endl;
     }
 }
 

@@ -1,8 +1,8 @@
 #include "storage/storage/storage_reference.h"
 #include "utils/common/error.h"
 #include "storage/storage/storage.h"
-
 #include "utils/common/go/file.h"
+#include "utils/logger/ProcessSafeLogger.h"
 /**
  * @brief 获取存储传输接口
  * @return std::shared_ptr<ImageTransport_interface> 返回存储传输接口指针
@@ -30,6 +30,7 @@ std::tuple<std::shared_ptr<ImageReference_interface>,std::shared_ptr<storage::Im
         auto img=clone->resolveImage(nullptr);
         return std::make_tuple(clone,img);
     }catch(const myerror &e){
+        LOG_ERROR("myerror caught in ResolveReference: " + std::string(e.what()));
         throw;
     }
     // return std::make_tuple(ref,std::make_shared<storage::Image>());
@@ -48,7 +49,8 @@ std::shared_ptr<storage::Image> storageReference::resolveImage(std::shared_ptr<S
                 loadedImage=image;
                 this->id=image->ID;
             }
-        }catch(const myerror &e){   
+        }catch(const myerror &e){
+            LOG_ERROR("myerror caught in resolveImage: " + std::string(e.what()));
             throw;
         }
     }

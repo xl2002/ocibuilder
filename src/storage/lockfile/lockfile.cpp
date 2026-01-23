@@ -1,4 +1,5 @@
 #include "storage/lockfile/lockfile.h"
+#include "utils/logger/ProcessSafeLogger.h"
 // 全局变量，存储不同路径的 lockFile 对象
 
 std::mutex lockFilesMutex;
@@ -20,6 +21,7 @@ int openHandle(const std::string& path, int mode) {
     
     // If the file descriptor is -1, an error occurred
     if (fd == -1) {
+        LOG_ERROR("Failed to open file: " + path + " Error: " + string(strerror(errno)));
         throw myerror("Failed to open file: " + string(strerror(errno)));
     }
 
@@ -67,30 +69,11 @@ void lockHandle(const std::string& filePath, LockType lType) {
         // 释放锁
         fileLock.unlock();
     } catch (const std::exception& e) {
-        throw myerror("处理文件锁定时发生异常: " + std::string(e.what()));
+        LOG_ERROR("Exception occurred while handling file lock: " + std::string(e.what()));
+        throw myerror("Exception occurred while handling file lock: " + std::string(e.what()));
     }
 }
-// 以下属于unix更适合的底层调用锁定
-/*int openLock(const string& file, bool ro) {
-    int flags = O_CREAT;
-    if (ro) {
-        flags |= O_RDONLY; // 如果是只读模式，则设置只读标志
-    } else {
-        flags |= O_RDWR;   // 否则设置读写标志
-    }
 
-    int fd = openHandle(file, flags);
-    if (fd != -1) {
-        return fd; // 如果成功打开文件，直接返回文件描述符
-    }
-
-    if (errno == ENOENT) { // 如果错误是因为文件或目录不存在
-        MkdirAll(file); // 创建文件路径的所有必要目录
-        return openLock(file, ro); // 递归调用自己以再次尝试打开文件
-    }
-
-    throw myerror("Failed to open lock file: " + string(strerror(errno))); // 使用 myerror 抛出异常，包含错误信息
-}*/
 // openLock 实现boost版本
 
 /**
@@ -131,6 +114,7 @@ fileHandle openLock(const std::string& path, bool ro) {
             fileStream = std::make_shared<fs::fstream>(path, mode);
         }
         if (!fileStream->is_open()) {
+            LOG_ERROR("Failed to open file: " + path);
             throw myerror("Failed to open file: " + path);
         }
         return fileStream;
@@ -142,9 +126,11 @@ fileHandle openLock(const std::string& path, bool ro) {
                 // 递归调用以重新尝试打开文件
                 return openLock(path, ro);
             } catch (const fs::filesystem_error& dirError) {
+                LOG_ERROR("Failed to create directory for lock file: " + std::string(dirError.what()));
                 throw myerror("Creating lock file directory: " + std::string(dirError.what()));
             }
         } else {
+            LOG_ERROR("Failed to open lock file: " + std::string(e.what()));
             throw myerror("Opening lock file: " + std::string(e.what()));
         }
     }
@@ -176,6 +162,7 @@ void lockFile::lock(LockType lType) {
         try {
             fd = openLock(file, ro);
         } catch (const myerror& e) {
+            LOG_ERROR("Failed to open lock file: " + std::string(e.what()));
             throw myerror("Failed to open lock file: " + std::string(e.what()));
         }
 
@@ -184,6 +171,7 @@ void lockFile::lock(LockType lType) {
         try {
             lockHandle(file, lType);
         } catch (const myerror& e) {
+            LOG_ERROR("Failed to lock file: " + std::string(e.what()));
             throw myerror("锁定文件失败: " + std::string(e.what()));
         }
     }
@@ -197,6 +185,7 @@ void lockFile::lock(LockType lType) {
  */
 void lockFile::Lock() {
     if (ro) {
+        LOG_ERROR("Attempted to take write lock on read-only lock file: " + file);
         throw myerror("can't take write lock on read-only lock file");
     } else {
         lock(LockType::WriteLock);
@@ -232,9 +221,7 @@ void lockFile::Unlock(){
  * @return 带时间戳的特征结构体
  */
 lastwrite newLastWriteFromData(const std::vector<uint8_t>& serialized) {
-    // if (serialized.empty()) {
-    //     throw std::invalid_argument("newLastWriteFromData with empty data");
-    // }
+
     lastwrite lw;
     lw.state = serialized;
     return lw;
@@ -245,6 +232,7 @@ lastwrite newLastWriteFromData(const std::vector<uint8_t>& serialized) {
 */
 void lockFile::AssertLocked() {
     if (!locked) {
+        LOG_ERROR("Lock is not held by the expected owner for file: " + file);
         throw myerror("internal error: lock is not held by the expected owner");
     }
 }
@@ -260,7 +248,8 @@ lastwrite lockFile::GetLastWrite() {
         AssertLocked();
     }
     catch (const std::exception& e){
-        throw myerror("锁定文件失败: " + std::string(e.what()));
+        LOG_ERROR("Lock assertion failed for file: " + file + " Error: " + std::string(e.what()));
+        throw myerror("Lock assertion failed for file: " + file + " Error: " + std::string(e.what()));
     }
 
     // 定义读取缓冲区
@@ -270,7 +259,8 @@ lastwrite lockFile::GetLastWrite() {
         // 打开文件流以读取文件内容
         std::ifstream fileStream(file, std::ios::binary);
         if (!fileStream) {
-            throw myerror("无法打开文件: " + file);
+            LOG_ERROR("Failed to open file: " + file);
+            throw myerror("Failed to open file: " + file);
         }
 
         // 从文件读取内容
@@ -280,7 +270,8 @@ lastwrite lockFile::GetLastWrite() {
         // 处理部分读取情况
         contents.resize(bytesRead);  // 只保留实际读取的部分
     } catch (const std::exception& e) {
-        throw myerror("读取文件内容失败: " + std::string(e.what()));
+        LOG_ERROR("Failed to read file contents: " + file + " Error: " + std::string(e.what()));
+        throw myerror("Failed to read file contents: " + file + " Error: " + std::string(e.what()));
     }
 
     // 将数据转换为 lastwrite 类型并返回
@@ -318,23 +309,27 @@ lastwrite lockFile::RecordWrite() {
         // 写入内容到文件
         std::ofstream fileStream(file, std::ios::binary | std::ios::out | std::ios::trunc);
         if (!fileStream) {
-            throw myerror("无法打开文件进行写入: " + file);
+            LOG_ERROR("Failed to open file for writing: " + file);
+            throw myerror("Failed to open file for writing: " + file);
         }
 
         fileStream.write(reinterpret_cast<const char*>(lockContents.data()), lockContents.size());
         if (!fileStream) {
-            throw myerror("写入文件失败: " + file);
+            LOG_ERROR("Failed to write to file: " + file);
+            throw myerror("Failed to write to file: " + file);
         }
 
         // 检查写入的字节数
         std::streamsize bytesWritten = fileStream.tellp();
         if (bytesWritten != lockContents.size()) {
-            throw myerror("写入文件的字节数不匹配: " + file);
+            LOG_ERROR("Mismatch in bytes written to file: " + file);
+            throw myerror("Mismatch in bytes written to file: " + file);
         }
 
         return lw;
     } catch (const std::exception& e) {
-        throw myerror("记录写入失败: " + std::string(e.what()));
+        LOG_ERROR("Failed to record write for file: " + file + " Error: " + std::string(e.what()));
+        throw myerror("Failed to record write for file: " + file + " Error: " + std::string(e.what()));
     }
 }
 
@@ -364,6 +359,7 @@ std::shared_ptr<lockFile> createLockFileForPath(const std::string& path, bool ro
     // 尝试打开锁文件
     fileHandle fileStream = openLock(path, ro);
     if (!fileStream || !fileStream->is_open()) {
+        LOG_ERROR("Failed to open lock file: " + path);
         throw myerror("Failed to open lock file: " + path);
     }
 
@@ -397,6 +393,7 @@ std::shared_ptr<lockFile> getLockfile(const std::string& path, bool ro) {
     try {
         cleanPath = boost::filesystem::absolute(path).string();
     } catch (const std::exception& e) {
+        LOG_ERROR("Failed to ensure absolute path for: " + path + " Error: " + std::string(e.what()));
         throw myerror("ensuring that path " + path + " is an absolute path: " + e.what());
     }
 
@@ -405,9 +402,11 @@ std::shared_ptr<lockFile> getLockfile(const std::string& path, bool ro) {
     if (it != lockFiles.end()) {
         auto lockFile = it->second;
         if (ro && lockFile->IsReadWrite()) {
+            LOG_ERROR("Lock " + cleanPath + " is not a read-only lock");
             throw myerror("lock " + cleanPath + " is not a read-only lock");
         }
         if (!ro && !lockFile->IsReadWrite()) {
+            LOG_ERROR("Lock " + cleanPath + " is not a read-write lock");
             throw myerror("lock " + cleanPath + " is not a read-write lock");
         }
         return lockFile;
@@ -416,6 +415,7 @@ std::shared_ptr<lockFile> getLockfile(const std::string& path, bool ro) {
     // 创建新的 lockFile 对象
     auto lockFile = createLockFileForPath(cleanPath, ro);
     if (!lockFile) {
+        LOG_ERROR("Failed to create lock file for path: " + cleanPath);
         throw myerror("Failed to create lock file for path: " + cleanPath);
     }
 
@@ -458,9 +458,11 @@ void lockFile::AssertLockedForWriting() {
         AssertLocked(); // 确保锁定状态
 
         if (lockType == LockType::ReadLock) {
+            LOG_ERROR("Internal error: lock is not held for writing for file: " + file);
             throw myerror("Internal error: lock is not held for writing");
         }
     } catch (const myerror& e) {
+        LOG_ERROR("Lock assertion for writing failed for file: " + file + " Error: " + std::string(e.what()));
         throw; // 重新抛出 myerror 类型异常
     }
 }

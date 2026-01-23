@@ -26,7 +26,7 @@ std::shared_ptr<Named_interface> ParseNormalizedNamed(std::string s){
     std::string lowerRemoteName = remoteName;
     std::transform(lowerRemoteName.begin(), lowerRemoteName.end(), lowerRemoteName.begin(), ::tolower);
     if (lowerRemoteName != remoteName) {
-        logger->log_error("invalid reference format: repository name must be lowercase");
+        LOG_ERROR("invalid reference format: repository name must be lowercase");
         throw std::invalid_argument("invalid reference format: repository name must be lowercase");
     }
 
@@ -36,19 +36,10 @@ std::shared_ptr<Named_interface> ParseNormalizedNamed(std::string s){
     // std::shared_ptr<Named_interface> ref = Parse(domain + "/" + remainder); // 示例，实际代码中应该调用 Parse 函数
 
     if (!ref) { // 假设 Parse 函数返回 nullptr 表示失败
-        logger->log_error("reference " + (domain + "/" + remainder) + " has no name");
+        LOG_ERROR("reference " + (domain + "/" + remainder) + " has no name");
         throw std::runtime_error("reference " + (domain + "/" + remainder) + " has no name");
     }
-    // auto n=std::make_shared<Named_interface>();
-    // auto m=std::shared_ptr<Named_interface>(ref);
-    // auto named=std::dynamic_pointer_cast<Named_interface>(ref);
     auto named = std::dynamic_pointer_cast<Named_interface>(ref);
-    // if (!named) {
-    //     throw std::runtime_error("reference has no name");
-    // }
-    // return std::shared_ptr<Named_interface>(named);
-    // return ref; // 返回解析后的命名引用
-    // return ref;
     return named; // 返回解析后的命名引用
 }
 
@@ -96,7 +87,7 @@ std::pair<std::string, std::string> splitDockerDomain(const std::string& name) {
  */
 std::shared_ptr<NamedTagged_interface> WithTag(std::shared_ptr<Named_interface> name, const std::string& tag) {
     if (!std::regex_match(tag, *(anchoredTagRegexp->GetRegex()))) {
-        logger->log_error("标签格式无效");
+        LOG_ERROR("标签格式无效");
         throw myerror("标签格式无效");
     }
 
@@ -121,7 +112,7 @@ std::shared_ptr<NamedTagged_interface> WithTag(std::shared_ptr<Named_interface> 
     auto ret=std::make_shared<taggedReference>(repo,tag);
     auto n=std::dynamic_pointer_cast<NamedTagged_interface>(ret);
     if(n==nullptr){
-        logger->log_error("WithTag fail");
+        LOG_ERROR("WithTag fail");
         std::cerr<<"WithTag fail"<<std::endl;
     }
     return n;
@@ -141,6 +132,7 @@ std::shared_ptr<Named_interface> TagNameOnly(const std::shared_ptr<Named_interfa
         try {
             namedTagged = WithTag(ref, defaultTag);
         } catch (const myerror& e) {
+            LOG_ERROR("Error adding default tag: " + std::string(e.what()));
             throw; // 重新抛出异常
         }
         return namedTagged;
@@ -163,27 +155,19 @@ std::shared_ptr<Named_interface> ParseDockerRef(const std::string& ref) {
     try {
         std::shared_ptr<Named_interface> named = ParseNormalizedNamed(ref);
         if (!named) {
-            logger->log_error("解析规范化命名失败");
+            LOG_ERROR("解析规范化命名失败");
             throw myerror("解析规范化命名失败");
         }
 
         if (std::shared_ptr<NamedTagged_interface> tagged = std::dynamic_pointer_cast<NamedTagged_interface>(named)) {
             if (std::shared_ptr<Canonical_interface> canonical = std::dynamic_pointer_cast<Canonical_interface>(tagged)) {
-                // // 引用同时具有标签和摘要，仅返回摘要。
-                // // std::shared_ptr<Named_interface> newNamed = WithName(canonical->Name());
-                // if (!newNamed) {
-                //     throw myerror("创建新名称失败");
-                // }
-                // std::shared_ptr<Canonical_interface> newCanonical = WithDigest(newNamed, canonical->Digests());
-                // if (!newCanonical) {
-                //     throw myerror("创建新摘要失败");
-                // }
-                // return newCanonical;
+                
             }
         }
         return TagNameOnly(named);
     } catch (const myerror& e) {
         // 处理myerror类型的异常
+        LOG_ERROR("Error parsing Docker reference: " + std::string(e.what()));
         throw; // 重新抛出异常
     }
 }

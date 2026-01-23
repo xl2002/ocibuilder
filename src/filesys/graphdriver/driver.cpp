@@ -1,5 +1,6 @@
 #include "filesys/graphdriver/driver.h"
 #include "utils/common/go/file.h"
+#include "utils/logger/ProcessSafeLogger.h"
 using namespace std;
 namespace fs = boost::filesystem; // 用于路径操作
 // const char Separator = '/';
@@ -31,6 +32,7 @@ shared_ptr<Driver> GetDriver(const string& name, const driver_Options& config) {
     // logError("Failed to GetDriver graph " + name + " " + config.Root);
 
     // 抛出myerror类型的错误，表示驱动程序未找到
+    LOG_ERROR("failed to GetDriver graph " + name + " " + config.root + ": " + "ErrNotSupported");
     throw myerror("failed to GetDriver graph " + name + " " + config.root + ": " + "ErrNotSupported");
 }
 /**
@@ -82,6 +84,7 @@ shared_ptr<Driver> getBuiltinDriver(const std::string& name, const std::string& 
     
     std::ostringstream formattedMessage;
     formattedMessage << "failed to built-in GetDriver graph " << name << " " << home << ": " << ErrNotSupported;
+    LOG_ERROR(formattedMessage.str());
     throw myerror(formattedMessage.str());
 
     // return nullptr;
@@ -134,6 +137,7 @@ shared_ptr<Driver> New(const string& name, const driver_Options& config) {
             if (!driver) {
                 // 如果加载失败，记录错误日志并返回错误
                 // logError("[graphdriver] prior storage driver " + name + " failed.");
+                LOG_ERROR("[graphdriver] prior storage driver " + name + " failed.");
                 throw myerror("Failed to load driver: " + name);
             }
 
@@ -143,7 +147,8 @@ shared_ptr<Driver> New(const string& name, const driver_Options& config) {
                 for (const auto& kv : driversMap) {
                     driversSlice.push_back(kv.first);
                 }
-
+                LOG_ERROR(config.root + " contains several valid graphdrivers: " +
+                                join(driversSlice) + "; Please cleanup or explicitly choose storage driver (-s <DRIVER>)");
                 throw myerror(config.root + " contains several valid graphdrivers: " +
                                 "; Please cleanup or explicitly choose storage driver (-s <DRIVER>)");
             }
@@ -174,6 +179,7 @@ shared_ptr<Driver> New(const string& name, const driver_Options& config) {
     }
 
     // 如果没有找到支持的存储驱动，抛出myerror类型的错误
+    LOG_ERROR("no supported storage backend found");
     throw myerror("no supported storage backend found");
     // return nullptr;
 }
@@ -232,9 +238,11 @@ std::tuple<std::string, std::string, bool> Driver::dir2(std::string& id, bool us
         return std::make_tuple(newpath, homedir, false);
 
     } catch (const myerror& e) {
+        LOG_ERROR(std::string(e.what()));
         throw;  // 抛出 myerror 异常
     } catch (const std::exception& e) {
         // 处理其他异常
+        LOG_ERROR("Unexpected error in dir2: " + std::string(e.what()));
         throw myerror("Unexpected error: " + std::string(e.what()));
     }
 }
@@ -257,6 +265,7 @@ std::string getLower(const std::string& parent) {
 
         // 确保父目录存在
         if (!boost::filesystem::exists(parentDir)) {
+            LOG_ERROR("Parent directory does not exist: " + parentDir);
             throw myerror("Parent directory does not exist: " + parentDir);
         }
 
@@ -269,9 +278,11 @@ std::string getLower(const std::string& parent) {
                 std::getline(linkStream, parentLink);
                 linkStream.close();
             } else {
+                LOG_ERROR("Parent link file does not exist: " + parentLinkFile.string());
                 throw myerror("Parent link file does not exist: " + parentLinkFile.string());
             }
         } catch (const std::exception& e) {
+            LOG_ERROR("Error reading parent link file: " + std::string(e.what()));
             throw myerror("Error reading parent link file: " + std::string(e.what()));
         }
 
@@ -297,6 +308,7 @@ std::string getLower(const std::string& parent) {
                 }
             }
         } catch (const std::exception& e) {
+            LOG_ERROR("Error reading lowers file: " + std::string(e.what()));
             throw myerror("Error reading lowers file: " + std::string(e.what()));
         }
 
@@ -311,9 +323,11 @@ std::string getLower(const std::string& parent) {
         return result.str();
     } catch (const myerror& e) {
         // 捕获并重新抛出自定义错误
+        LOG_ERROR(std::string(e.what()));
         throw;
     } catch (const std::exception& e) {
         // 捕获所有标准异常并包装为 myerror
+        LOG_ERROR("An unexpected error occurred in getLower: " + std::string(e.what()));
         throw myerror("An unexpected error occurred in getLower: " + std::string(e.what()));
     }
 }
@@ -363,56 +377,19 @@ void Driver::create(const std::string& id, const std::string& parent, std::share
         // 4. 使用 MkdirAs 创建 dir/diff 子目录，并设置权限
         std::string diffDir = dir + "/diff";
         if (!mkdirAs(diffDir, 0700, rootUID, rootGID, true, false)) {
+            LOG_ERROR("Failed to create 'diff' directory: " + diffDir);
             throw myerror("Failed to create 'diff' directory.");
         }
 
         // 5. 使用 MkdirAs 创建 dir/merged 子目录，并设置权限
         std::string mergedDir = dir + "/merged";
         if (!mkdirAs(mergedDir, 0700, rootUID, rootGID, true, false)) {
+            LOG_ERROR("Failed to create 'merged' directory: " + mergedDir);
             throw myerror("Failed to create 'merged' directory.");
         }
-
-        // // 6. 创建符号链接
-        // std::string lid = generateID();
-        // std::string linkBase = "../" + id + "/diff";
-        // boost::filesystem::path linkPath = homedir + "/link/" + lid;
-        // boost::filesystem::path targetPath = linkBase;
-
-        // try {
-        //     if (boost::filesystem::exists(linkPath)) {
-        //         throw myerror("Symlink already exists.");
-        //     }
-        //     boost::filesystem::create_symlink(targetPath, linkPath); // 使用Boost创建符号链接
-        // }
-        // catch (const boost::filesystem::filesystem_error& e) {
-        //     throw myerror("Failed to create symlink: " + std::string(e.what()));
-        // }
-
-        // // 7. 写入链接 ID 到 link 文件
-        // std::ofstream linkFile(dir + "/link");
-        // if (!linkFile) {
-        //     throw myerror("Failed to open link file for writing.");
-        // }
-        // linkFile << lid; // 写入lid内容
-        // linkFile.close();
-        // 8. 如果有 parent，处理 getLower
-        // if (!parent.empty()) {
-        //     std::string lower;
-        //     try {
-        //         lower = getLower(parent);
-        //         std::ofstream lowerFile(dir + "/lowers");
-        //         if (!lowerFile) {
-        //             throw myerror("Failed to open lowers file for writing.");
-        //         }
-        //         lowerFile << lower; // 写入parent的lower信息
-        //         lowerFile.close();
-        //     }
-        //     catch (const myerror& e) {
-        //         throw myerror("Error in getLower: " + std::string(e.what()));
-        //     }
-        // }
     }
     catch (const std::exception& e) {
+        LOG_ERROR("Failed to create required directories: " + std::string(e.what()));
         throw myerror("Failed to create required directories.");
     }
 }
@@ -434,6 +411,7 @@ void Driver::CreateReadWrite(const std::string& id, const std::string& parent, s
     try {
         // 1. 检查存储选项是否符合条件
         if (opts != nullptr && !opts->StorageOpt.empty() ) {
+            LOG_ERROR("Storage options are not supported except for overlay over xfs with 'pquota' mount option.");
             throw myerror("--storage-opt is supported only for overlay over xfs with 'pquota' mount option");
         }
 
@@ -458,9 +436,11 @@ void Driver::CreateReadWrite(const std::string& id, const std::string& parent, s
 
     } catch (const myerror& e) {
         // 捕获 myerror 异常并输出错误信息
+        LOG_ERROR("Failed to create read-write layer: " + std::string(e.what()));
         throw;  // 重新抛出 myerror 异常
     } catch (const std::exception& e) {
         // 捕获其他标准异常
+        LOG_ERROR("Failed to create read-write layer: " + std::string(e.what()));
         throw myerror("Failed to create read-write layer."); // 将其他异常转换为 myerror 类型异常
     }
 }

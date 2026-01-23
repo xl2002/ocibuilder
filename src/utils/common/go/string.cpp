@@ -6,6 +6,7 @@
 #include "utils/common/go/string.h"
 #include <algorithm>
 #include <sstream>
+#include "utils/logger/ProcessSafeLogger.h"
 /**
  * @brief 检查一个字符串是否以另一个字符串开始
  *
@@ -299,6 +300,7 @@ std::chrono::system_clock::time_point parseISOStringToTimePoint(const std::strin
     std::istringstream dateTimeStream(dateTimePart);
     dateTimeStream >> std::get_time(&tm, "%Y-%m-%dT%H:%M:%S");
     if (dateTimeStream.fail()) {
+        LOG_ERROR("failed to parse date-time part - " + dateTimePart);
         throw std::invalid_argument("Invalid ISO 8601 date-time format: " + isoString);
     }
 

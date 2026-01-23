@@ -118,7 +118,7 @@ void AddcCheck(std::string name,std::vector<std::string> layers,std::string srcp
     for(auto layer:layers){
         std::string overlaypath=srcpath+"/"+layer+"/diff";
     if(!boost::filesystem::exists(overlaypath)){
-        logger->log_error("Overlay path does not exist: " + overlaypath);
+        LOG_ERROR("Overlay path does not exist: " + overlaypath);
         std::cerr<<"overlaypath is not exist"<<std::endl;
         logger->log_info("Skipping non-existent layer: " + layer);
         continue;
@@ -141,7 +141,7 @@ void AddcCheck(std::string name,std::vector<std::string> layers,std::string srcp
     std::string checkjson=marshal<Check>(*checks);
     std::ofstream file(checkpath,std::ios::trunc);
     if(!file.is_open()){
-        logger->log_error("Failed to open check file: " + checkpath);
+        LOG_ERROR("Failed to open check file: " + checkpath);
         std::cerr<<"Failed to open file: "<<checkpath<<std::endl;
         return;
     }
@@ -162,7 +162,7 @@ void AddcCheck(std::string name,std::vector<std::string> layers,std::string srcp
         logger->log_info("Successfully copied check file to: " + target);
     } catch (const boost::filesystem::filesystem_error& e){
         std::cerr<<"Failed to copy file: "<<e.what()<<std::endl;
-        logger->log_error("Copy operation failed - source: " + checkpath + " destination: " + target + " error: " + e.what());
+        LOG_ERROR("Copy operation failed - source: " + checkpath + " destination: " + target + " error: " + e.what());
     }
 }
 /**
@@ -218,9 +218,9 @@ std::shared_ptr<ImageSource_interface> containerImageRef::NewImageSource(std::sh
         auto imagestorePath=this->store->GetImageStoragePath();
         auto Configpath=imagestorePath+"/blobs/sha256/"+this->fromImageID;
     if(!boost::filesystem::exists(Configpath)){
-        logger->log_error("Base Image Manifest doesn't exist at path: " + Configpath);
+        LOG_ERROR("Base Image Manifest doesn't exist at path: " + Configpath);
         std::cerr<<"the base Image Manifest isn't exists!"<<std::endl;
-        logger->log_error("Failed to load base image: " + this->fromImageName);
+        LOG_ERROR("Failed to load base image: " + this->fromImageName);
         return nullptr;
         }
 
@@ -266,9 +266,9 @@ std::shared_ptr<ImageSource_interface> containerImageRef::NewImageSource(std::sh
         // auto  l=std::make_shared<Layer>();//TODO
         auto l=layerstore->lookup(layer);
         if(l==nullptr){
-            logger->log_error("Layer not found in store: " + layer);
+            LOG_ERROR("Layer not found in store: " + layer);
             std::cerr<<"layer not found"<<std::endl;
-            logger->log_error("Missing layer in image build process: " + this->name);
+            LOG_ERROR("Missing layer in image build process: " + this->name);
             continue;
         }
         auto omediaType=MediaTypeImageLayer;//TODO
@@ -302,7 +302,7 @@ std::shared_ptr<ImageSource_interface> containerImageRef::NewImageSource(std::sh
                 logger->log_info("Renamed layer from " + layer + " to " + tardigest);
             }catch(const boost::filesystem::filesystem_error& e){
                 std::cerr << "cannot renaming file: " << e.what() << std::endl;
-                logger->log_error("Rename failed, trying copy - source: " + layer + " dest: " + tardigest + " error: " + e.what());
+                LOG_ERROR("Rename failed, trying copy - source: " + layer + " dest: " + tardigest + " error: " + e.what());
                 Copy_directory(src_path / layer_path, src_path / target_path);
                 boost::filesystem::remove_all(src_path / layer_path);
             }
@@ -312,7 +312,7 @@ std::shared_ptr<ImageSource_interface> containerImageRef::NewImageSource(std::sh
         logger->log_info("Successfully created tar blob: " + tardigest);
     } catch (const boost::filesystem::filesystem_error& e) {
         std::cerr << "Error renaming file: " << e.what() << std::endl;
-        logger->log_error("Blob creation failed for layer: " + layer + " error: " + e.what());
+        LOG_ERROR("Blob creation failed for layer: " + layer + " error: " + e.what());
         }
         l->ID=tardigest;
         l->Names=this->names;
@@ -350,9 +350,9 @@ std::shared_ptr<ImageSource_interface> containerImageRef::NewImageSource(std::sh
     //删除原有的layer记录
     // layerstore->layers.insert(layerstore->layers.end(),Layers.begin(),Layers.end());
     if(!layerstore->savelayer()){//更新overlay中的layer.json
-        logger->log_error("Failed to save layer store data for image: " + this->name);
+        LOG_ERROR("Failed to save layer store data for image: " + this->name);
         std::cerr<<"save layer error"<<std::endl;
-        logger->log_error("Layer store update failed - image: " + this->name + " layers: " + std::to_string(layers.size()));
+        LOG_ERROR("Layer store update failed - image: " + this->name + " layers: " + std::to_string(layers.size()));
     }
     // 7. 将新构建的oci config反序列化为byte，记住marshal函数返回string，需要转化为vector<uint8_t>,函数在
     // std::vector<uint8_t> stringToVector(const std::string& str)
@@ -495,7 +495,7 @@ std::string computeLayerMIMEType(std::string what,std::shared_ptr<Compression> l
         if(layerCompression->value==compression::Gzip){
             omediaType=MediaTypeImageLayerGzip;
         }else{
-            logger->log_error("compressing :"+what+"with unknown compressor(?)");
+            LOG_ERROR("compressing :"+what+"with unknown compressor(?)");
             std::cerr<<"compressing :"+what+"with unknown compressor(?)"<<std::endl;
         }
     }

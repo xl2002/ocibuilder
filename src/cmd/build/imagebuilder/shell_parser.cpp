@@ -12,7 +12,7 @@ std::string ProcessWord(std::string word,std::vector<std::string>env){
     try {
         std::tie(processedWord,std::ignore) = sw->process();
     } catch (const myerror& e) {
-        logger->log_error(std::string(e.what()));
+        LOG_ERROR(std::string(e.what()));
         throw;
     }
     
@@ -29,7 +29,7 @@ std::vector<std::string> ProcessWords(std::string word,std::vector<std::string>e
     try {
         std::tie(std::ignore,words) = sw->process();
     } catch (const myerror& e) {
-        logger->log_error(std::string(e.what()));
+        LOG_ERROR(std::string(e.what()));
         throw;
     }
     
@@ -73,6 +73,7 @@ std::tuple<std::string, std::vector<std::string>> shellWord::processStopOn(int s
             if (ch == '\\') {
                 // '\' 转义
                 if (!scanner.get(ch)) {
+                    LOG_ERROR("unexpected end of statement after escape character");
                     throw std::runtime_error("unexpected end of statement");
                 }
                 words.addRawChar(ch);
@@ -85,7 +86,7 @@ std::tuple<std::string, std::vector<std::string>> shellWord::processStopOn(int s
     }
 
     if (stopChar != EOF) {
-        logger->log_error("unexpected end of statement while looking for matching " + std::string(1, stopChar));
+        LOG_ERROR("unexpected end of statement while looking for matching " + std::string(1, stopChar));
         throw std::runtime_error("unexpected end of statement while looking for matching " + std::string(1, stopChar));
     }
 
@@ -152,6 +153,7 @@ std::string shellWord::processSingleQuote() {
     }
 
     if (scanner.eof()) {
+        LOG_ERROR("unexpected end of statement while looking for matching single-quote");
         throw myerror("unexpected end of statement while looking for matching single-quote");
     }
 
@@ -187,6 +189,7 @@ std::string shellWord::processDoubleQuote() {
     }
 
     if (scanner.eof()) {
+        LOG_ERROR("unexpected end of statement while looking for matching double-quote");
         throw std::runtime_error("unexpected end of statement while looking for matching double-quote");
     }
 
@@ -233,17 +236,17 @@ std::string shellWord::processDollar() {
                         newValue = word;
                     }
                     if (newValue.empty()) {
-                        logger->log_error("Failed to process `" + word + "`: " + name + " is not allowed to be unset");
+                        LOG_ERROR("Failed to process `" + word + "`: " + name + " is not allowed to be unset");
                         throw std::runtime_error("Failed to process `" + word + "`: " + name + " is not allowed to be unset");
                     }
                     return newValue;
 
                 default:
-                    logger->log_error("Unsupported modifier (" + std::string(1, modifier) + ") in substitution: " + word);
+                    LOG_ERROR("Unsupported modifier (" + std::string(1, modifier) + ") in substitution: " + word);
                     throw std::runtime_error("Unsupported modifier (" + std::string(1, modifier) + ") in substitution: " + word);
             }
         }
-        logger->log_error("Missing ':' in substitution: " + word);
+        LOG_ERROR("Missing ':' in substitution: " + word);
         throw std::runtime_error("Missing ':' in substitution: " + word);
     }
 

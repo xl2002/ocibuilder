@@ -1,7 +1,7 @@
 #include "image/buildah/common.h"
 #include "image/types/copy.h"
 #include "image/buildah/retry.h"
-
+#include "utils/logger/ProcessSafeLogger.h"
 
 /**
  * @brief 获取系统上下文配置
@@ -111,6 +111,7 @@ std::vector<byte> retryCopyImage(
             }
             // return err;
         } catch (const std::exception& e) {
+            LOG_ERROR("Error during image copy: " + std::string(e.what()));
             throw;
         }
     };
@@ -121,6 +122,7 @@ std::vector<byte> retryCopyImage(
     try{
         RetryIfNecessary(operation,retryOptions);
     }catch(const std::exception& e){
+        LOG_ERROR("Image copy failed after retries: " + std::string(e.what()));
         throw;
     }
     

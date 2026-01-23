@@ -61,7 +61,7 @@ std::string errorToString(std::exception_ptr eptr) {
 std::pair<Rusage, std::exception_ptr> Get(){
     auto r=get();
     if(r.second){
-        // throw myerror(errorToString(r.second));
+        
         return {Rusage(), r.second};
     }
     return r;

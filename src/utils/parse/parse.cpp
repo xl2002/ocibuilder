@@ -29,7 +29,7 @@ PullPolicy PullPolicyFromOptions(std::shared_ptr <Command> c){
     //     pullFlagsCount++;
     // }
     if(pullFlagsCount>0){
-        logger->log_error("Multiple pull flags specified - can only set one of 'pull' or 'pull-always' or 'pull-never'");
+        LOG_ERROR("Multiple pull flags specified - can only set one of 'pull' or 'pull-always' or 'pull-never'");
         throw myerror("can only set one of 'pull' or 'pull-always' or 'pull-never'");
     }
     Pull_Policy pullPolicy=PullIfMissing;
@@ -55,6 +55,7 @@ PullPolicy PullPolicyFromOptions(std::shared_ptr <Command> c){
     }
     catch(const myerror& e)
     {
+        LOG_ERROR("Failed to determine pull policy: " + std::string(e.what()));
         throw;
     }
     return PullPolicy(pullPolicy);
@@ -131,7 +132,7 @@ shared_ptr< SystemContext> SystemContextFromOptions(std::shared_ptr <Command> c)
     }
     catch(const myerror& e)
     {
-        logger->log_error("Failed to create SystemContext: " + std::string(e.what()));
+        LOG_ERROR("Failed to create SystemContext: " + std::string(e.what()));
         throw;
     }
     
@@ -180,9 +181,11 @@ shared_ptr<Isolation> IsolationOption(string isolation){
         } else if (isolation == "chroot") {
             return make_shared<Isolation>(IsolationChroot);
         } else {
+            LOG_ERROR("unrecognized isolation type: " + isolation);
             throw std::invalid_argument("unrecognized isolation type: " + isolation);
         }
     }else{
+        LOG_ERROR("isolation type cannot be empty");
         throw std::invalid_argument("isolation type cannot be empty");
     }
 }
@@ -269,7 +272,7 @@ shared_ptr<CommonBuildOptions> CommonbuildOptions(std::shared_ptr <Command> cmd)
     }
     catch(const myerror& e)
     {
-        logger->log_error("Failed to parse security options: " + std::string(e.what()));
+        LOG_ERROR("Failed to parse security options: " + std::string(e.what()));
         throw;
     }
     return commonOpts;
@@ -328,21 +331,6 @@ shared_ptr<NamespaceOptions> Namespaceoptions(std::shared_ptr <Command> cmd,std:
 std::vector<std::array<uint32_t, 3>> parseIDMap(const std::vector<std::string>& spec) {
     std::vector<std::array<uint32_t, 3>> m;
     m.reserve(spec.size());
-    // for (const auto& s : spec)
-    // {
-    //     std::istringstream iss(s);
-    //     std::vector<std::string> args{std::istream_iterator<std::string>(iss), {}};
-    //     if (args.size() % 3 != 0)
-    //     {
-    //         throw myerror("mapping " + s + " is not in the form containerid:hostid:size[,...]");
-    //     }
-    //     for (size_t i = 0; i < args.size(); i += 3)
-    //     {
-    //         uint32_t cid, hostid, size;
-    //         iss >> cid >> hostid >> size;
-    //         m.emplace_back(cid, hostid, size);
-    //     }
-    // }
     return m;
 }
 
@@ -435,7 +423,7 @@ shared_ptr<NamespaceOptions> idmappingOptions(std::shared_ptr <Command> cmd,shar
     auto usernsOptions=NamespaceOptions();
     usernsOptions.val.emplace_back(usernsOption);
     if ((!uidmap.empty() || !gidmap.empty()) && usernsOption.Host) {
-        logger->log_error("Invalid ID mapping configuration - cannot specify ID mappings while using host's user namespace");
+        LOG_ERROR("Invalid ID mapping configuration - cannot specify ID mappings while using host's user namespace");
         throw myerror("can not specify ID mappings while using host's user namespace");
     }
     auto idm=IDMappingOptions();
@@ -510,6 +498,7 @@ void Volumes( std::vector<std::string> volumes){
     }
     catch(const myerror& e)
     {
+        LOG_ERROR("Failed to parse volumes: " + std::string(e.what()));
         throw;
     }
 }
@@ -576,6 +565,7 @@ std::tuple<std::vector<std::string>, std::string> ContainerIgnoreFile(
             }
         }
     } catch (const myerror& e) {
+        LOG_ERROR("Failed to parse container ignore file: " + std::string(e.what()));
         throw;
         // return std::make_tuple(excludes, ignorePath, new myerror(e.what()));
     }

@@ -17,6 +17,7 @@ std::string GetConfigFilePath() {
         boost::filesystem::path configPath = boost::filesystem::path(userPath) / DefaultConfigFileName;
         return configPath.string();
     } else {
+        std::cerr << "Cannot get User Dir" << std::endl;
         throw std::runtime_error("Cannot get User Dir");
     }
 }
@@ -34,6 +35,7 @@ std::string GetConfigFilePath() {
         boost::filesystem::path configPath = boost::filesystem::path(homeDir) / DefaultConfigFileName;
         return configPath.string();
     } else {
+        std::cerr << "Cannot get User Dir" << std::endl;
         throw std::runtime_error("Cannot get User Dir");
     }
 }
@@ -79,9 +81,11 @@ public:
             try {
                 config.max_files = std::stoi(max_files_val.as_string().c_str());
             } catch (const std::exception& e) {
+                std::cerr << "Invalid 'max_files' value in logConfig.json: " << e.what() << std::endl;
                 throw std::runtime_error("'max_files' must be a valid integer or integer string");
             }
         } else {
+            std::cerr << "'max_files' must be an integer or string" << std::endl;
             throw std::runtime_error("'max_files' must be an integer or string");
         }
         return config;
@@ -131,6 +135,7 @@ std::shared_ptr<ProcessSafeLogger> Newlogger(){
     fs::path dir_path(log_dir);
     if (!fs::exists(dir_path)) {
         if (!fs::create_directories(dir_path)) {
+            std::cerr << "cannot create log file dir: " << log_dir << std::endl;
             throw std::runtime_error("cannot create log file dir: " + log_dir);
         }
     }
@@ -203,4 +208,18 @@ void ProcessSafeLogger::init_logging() {
     // ��������
     logging::add_common_attributes();
     logging::core::get()->add_global_attribute("ProcessID", attrs::current_process_id());
+}
+// std::shared_ptr<ProcessSafeLogger> ProcessSafeLogger::getInstance(const std::string& log_dir,
+//                                                                   const std::string& log_prefix) {
+//     static std::shared_ptr<ProcessSafeLogger> instance =
+//         std::make_shared<ProcessSafeLogger>(log_dir, log_prefix);
+//     return instance;
+// }
+void ProcessSafeLogger::log_error_loc(const std::string& message,
+                                      const char* file,
+                                      int line,
+                                      const char* func) {
+    std::ostringstream oss;
+    oss << file << ":" << line << " (" << func << ") - " << message;
+    this->log_error(oss.str()); // 复用原有实现
 }

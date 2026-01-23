@@ -11,7 +11,7 @@
 // #include "utils/logger/logrus/exported.h"
 #include <boost/any.hpp>
 // #include <boost/align.hpp>
-
+#include "utils/logger/ProcessSafeLogger.h"
 std::mutex cachedConfigMutex;
 /**
  * @brief 创建新的容器配置对象
@@ -38,6 +38,7 @@ std::shared_ptr<Config> New(std::shared_ptr<Options> options) {
     }
     catch(const  myerror& e)
     {
+        LOG_ERROR(std::string(e.what()));
         throw;
     }
     
@@ -57,6 +58,7 @@ std::shared_ptr<Config> Config_defaut() {
     if(cachedConfig!=nullptr){
         return cachedConfig;
     }else if(cachedConfigError!=nullptr){
+        LOG_ERROR(std::string(cachedConfigError->what()));
         throw *cachedConfigError;
     }
     try {
@@ -65,6 +67,7 @@ std::shared_ptr<Config> Config_defaut() {
         cachedConfig = newLocked(op);
         return cachedConfig;
     } catch (const myerror& e) {
+        LOG_ERROR(std::string(e.what()));
         // cachedConfigError = std::make_shared<myerror>(e.what());
         throw;
     }
@@ -89,6 +92,7 @@ std::shared_ptr<Config> newLocked(std::shared_ptr<Options> options) {
     try {
         config = defaultConfig();
     } catch (const myerror& e) {
+        LOG_ERROR(std::string(e.what()));
         throw;
     }
 
@@ -99,22 +103,16 @@ std::shared_ptr<Config> newLocked(std::shared_ptr<Options> options) {
     std::tie(configs, ec) = systemConfigs();
     
     if(ec) {
+        LOG_ERROR("finding config on system: " + ec.message());
         throw myerror("finding config on system: "+ ec.message());
     }
-    // for (const auto& path : configs) {
-    //     // 合并后续配置中的更改到之前的配置中
-    //     // 每个配置文件指定的字段将覆盖先前的字段
-    //     // boost::optional<myerror> err = readConfigFromFile(path, config, true);
-    //     if (err) {
-    //         throw myerror("reading system config "+ path +": " +*err->what());
-    //     }
-    //     // std::cout << "Merged system config " << path << std::endl;
-    // }
+    //
 
     std::vector<std::string> modules;
     try {
         modules = options->modules();
     } catch (const myerror& e) {
+        LOG_ERROR(std::string(e.what()));
         throw;
     }
     config->loadedModules = modules;
@@ -126,22 +124,11 @@ std::shared_ptr<Config> newLocked(std::shared_ptr<Options> options) {
     if (envPath && std::string(envPath) != "") {
         std::ifstream file(envPath);
         if (!file.good()) {
+            LOG_ERROR(containersConfOverrideEnv+" file bad");
             throw myerror(containersConfOverrideEnv+" file bad");
         }
         options->additionalConfigs.push_back(envPath);
     }
-
-    // 如果调用者指定了配置路径，则读取它以覆盖系统默认值
-    // for (const auto& add : options->additionalConfigs) {
-    //     if (add.empty()) {
-    //         continue;
-    //     }
-    //     boost::optional<myerror> err = readConfigFromFile(add, config, false);
-    //     if (err) {
-    //         throw myerror("reading additional config" +add +": " +*err->what());
-    //     }
-    //     std::cout << "Merged additional config " << add << std::endl;
-    // }
 
     config->addCAPPrefix();
     config->Validate();
@@ -307,55 +294,7 @@ std::tuple<std::string, boost::system::error_code> userConfigPath() {
     return std::make_tuple(configPath, ec);
 }
 
-// 读取指定路径的配置文件，并尝试将其内容解析到 Config 中。
-// config 参数指定之前的默认配置。
-// 如果 path 中的 TOML 文件只指定了一些字段，则 config 参数中的默认值将用于所有其他字段。
-// boost::optional<myerror> readConfigFromFile(const std::string& path, std::shared_ptr<Config> config, bool ignoreErrNotExist) {
-//     boost::optional<myerror> err;
-//     boost::system::error_code ec;
-//     // 输出日志信息，表示正在读取配置文件
-//     // std::cout << "正在读取配置文件: " << path << std::endl;
-//     // Tracef("Reading config from " + path);
-//     // 检查文件是否存在
-//     if (!boost::filesystem::exists(path,ec)) {
-//         if (ignoreErrNotExist && ec == boost::system::errc::no_such_file_or_directory) {
-//             return boost::none; // 返回成功，无错误
-//         }
-//         return myerror("decode configuration "+path+": "+ec.message());
-//     }
 
-    
-//     // 解析 TOML 文件
-//     boost::property_tree::ptree pt;
-//     boost::property_tree::read_json(path, pt);
-
-//     // 将解析后的内容填充到 Config 结构体中
-//     // 这里你需要根据实际的 Config 结构体字段进行解析
-
-//     // 检查是否有未解析的键
-//     // if (pt.empty()) {
-//     //     return myerror("Failed to decode the keys from"+path);
-//     // }
-
-//     return boost::none; // 返回成功，无错误
-// }
-// 解析TOML配置文件
-// void parseConfigFile(const std::string& confPath, boost::any conf) {
-//     boost::property_tree::ptree pt;
-
-//     // 尝试读取文件
-//     try {
-//         boost::property_tree::ini_parser::read_ini(confPath, pt);
-//     } catch (const boost::property_tree::ini_parser_error& e) {
-//         throw myerror("无法解析配置文件: " + confPath + ": " + e.what());
-//     }
-
-//     // 从ptree中提取值到conf中，需根据实际字段映射
-//     // 例如:
-//     // conf.someField = pt.get<std::string>("Section.someField");
-// }
-// Find the specified modules in the options. Return an error if a specific
-// module cannot be located on the host.
 /**
  * @brief 获取配置选项中的模块路径列表
  * @return std::vector<std::string> 模块路径列表

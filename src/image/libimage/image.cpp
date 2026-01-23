@@ -26,17 +26,17 @@ namespace LibImage{
     std::shared_ptr<ImageInspectInfo> Image::inspectInfo(){
         auto ref=this->StorageReference();
         if(ref==nullptr){
-            logger->log_error("storage reference is null");
+            LOG_ERROR("storage reference is null");
             throw myerror("storage reference is null");
         }
         auto img=ref->NewImage(this->runtime->systemContext);
         if(img==nullptr){
-            logger->log_error("new image is null");
+            LOG_ERROR("new image is null");
             throw myerror("new image is null");
         }
         auto imgData=img->Inspect();
         if(imgData==nullptr){
-            logger->log_error("image data is null");
+            LOG_ERROR("image data is null");
             throw myerror("image data is null");
         }
         this->cached.partialInspectData=imgData;

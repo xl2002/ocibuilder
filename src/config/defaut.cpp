@@ -9,7 +9,7 @@
 #include <boost/compute/detail/getenv.hpp>
 #include <boost/asio/ip/network_v4.hpp> // 使用 Boost 库中的 asio 进行网络处理
 #include "utils/common/go/file.h"
-
+#include "utils/logger/ProcessSafeLogger.h"
 /**
  * @brief 获取默认配置
  * @details 创建并返回包含容器、网络、引擎等默认配置的Config对象
@@ -22,6 +22,7 @@ std::shared_ptr<Config> defaultConfig() {
     std::tie(defaultengineConfig, err) = defaultEngineConfig();
 
     if (err) {
+        LOG_ERROR(std::string(err->what()));
         throw *err;
     };
 
@@ -35,6 +36,7 @@ std::shared_ptr<Config> defaultConfig() {
         try {
             configHome = boost::filesystem::path(home) / ".config";
         } catch (myerror& e) {
+            LOG_ERROR("getting home directory for rootless signature policy path: " + std::string(e.what()));
             throw;
         }
         boost::filesystem::path sigPath = configHome / DefaultRootlessSignaturePolicyPath;
@@ -382,6 +384,7 @@ SubnetPool parseSubnetPool(const std::string& subnet, int size) {
     boost::asio::ip::network_v4 network = boost::asio::ip::make_network_v4(subnet, ec);
     
     if (ec) {
+        LOG_ERROR("Invalid subnet provided: " + subnet);
         throw std::invalid_argument("Invalid subnet provided");
     }
 

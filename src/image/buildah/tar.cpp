@@ -65,7 +65,7 @@ void add_file_to_archive(struct archive* a, const fs::path& file_path, const fs:
     if (archive_write_header(a, entry) != ARCHIVE_OK) {
         std::cerr << "Error writing header for " << relative_path << ": " 
                   << archive_error_string(a) << std::endl;
-        logger->log_error("Failed to write header for " + relative_path + ": " + archive_error_string(a));
+        LOG_ERROR("Failed to write header for " + relative_path + ": " + archive_error_string(a));
         archive_entry_free(entry);
         return;
     }
@@ -106,14 +106,14 @@ void createTar(const std::string& tarFilePath, const fs::path& directory) {
              
     if (!fs::exists(directory)) {
         std::cerr << "Error: Directory " << directory << " does not exist." << std::endl;
-        logger->log_error("Directory does not exist: " + directory.string());
+        LOG_ERROR("Directory does not exist: " + directory.string());
         return;
     }
 
     struct archive* a = archive_write_new();
     if (!a) {
         std::cerr << "Error: Failed to create archive object." << std::endl;
-        logger->log_error("Failed to create archive object");
+        LOG_ERROR("Failed to create archive object");
         return;
     }
 
@@ -125,7 +125,7 @@ void createTar(const std::string& tarFilePath, const fs::path& directory) {
     if (archive_write_open_filename(a, tarFilePath.c_str()) != ARCHIVE_OK) {
         std::cerr << "Error opening output file " << tarFilePath << ": " 
                   << archive_error_string(a) << std::endl;
-        logger->log_error("Failed to open output file " + tarFilePath + ": " + archive_error_string(a));
+        LOG_ERROR("Failed to open output file " + tarFilePath + ": " + archive_error_string(a));
         archive_write_free(a);
         return;
     }
@@ -144,7 +144,7 @@ void createTar(const std::string& tarFilePath, const fs::path& directory) {
 
     if (archive_write_close(a) != ARCHIVE_OK) {
         std::cerr << "Error closing archive: " << archive_error_string(a) << std::endl;
-        logger->log_error("Failed to close archive: " + std::string(archive_error_string(a)));
+        LOG_ERROR("Failed to close archive: " + std::string(archive_error_string(a)));
     }
     archive_write_free(a);
 }
@@ -165,8 +165,7 @@ std::shared_ptr<tarFilterer> newTarFilterer(const std::string& tarFilePath, cons
     try {
         createTar(tarFilePath, directory.string());
     } catch (const myerror& e) {
-        logger->log_error("Error while creating tar: "+std::string(e.what()));
-        std::cerr << "Error while creating tar: " << e.what() << std::endl;
+        LOG_ERROR("Error while creating tar: "+std::string(e.what()));
         throw;
     }
     // filterer->pipeWriter_TarHeader.close();
@@ -298,14 +297,14 @@ bool extractTarGz(const std::string& tarGzPath, const std::string& destDir,
     // 第一阶段：使用zlib解压gz部分得到tar文件
     gzFile gzFilePtr = gzopen(tarGzPath.c_str(), "rb");
     if (!gzFilePtr) {
-        logger->log_error( "Error: Failed to open gzip file: "+tarGzPath);
+        LOG_ERROR( "Error: Failed to open gzip file: "+tarGzPath);
         std::cerr << "Error: Failed to open gzip file: " << tarGzPath << std::endl;
         return false;
     }
     
     std::ofstream tempTarFile(tempTarPath, std::ios::binary);
     if (!tempTarFile) {
-        logger->log_error("Error: Failed to create temporary tar file: "+tempTarPath);
+        LOG_ERROR("Error: Failed to create temporary tar file: "+tempTarPath);
         std::cerr << "Error: Failed to create temporary tar file: " << tempTarPath << std::endl;
         gzclose(gzFilePtr);
         return false;
@@ -326,7 +325,7 @@ bool extractTarGz(const std::string& tarGzPath, const std::string& destDir,
     if (!expectedTarHash.empty()) {
         std::ifstream tarFile(tempTarPath, std::ios::binary);
         if (!tarFile) {
-            logger->log_error("Error: Failed to open temporary tar file: "+tempTarPath);
+            LOG_ERROR("Error: Failed to open temporary tar file: "+tempTarPath);
             std::cerr << "Error: Failed to open temporary tar file: " << tempTarPath << std::endl;
             return false;
         }
@@ -362,8 +361,8 @@ bool extractTarGz(const std::string& tarGzPath, const std::string& destDir,
         std::string actualHash = Fromfile(tempTarPath)->digest.substr(7);
         
         if (actualHash != expectedTarHash) {
-            logger->log_error("Error: SHA256 verification failed!");
-            logger->log_error("  Expected: " + expectedTarHash+"  Actual:   " + actualHash);
+            LOG_ERROR("Error: SHA256 verification failed!");
+            LOG_ERROR("  Expected: " + expectedTarHash+"  Actual:   " + actualHash);
             std::cerr << "Error: SHA256 verification failed!" << std::endl;
             std::cerr << "  Expected: " << expectedTarHash << std::endl;
             std::cerr << "  Actual:   " << actualHash << std::endl;
@@ -384,7 +383,7 @@ bool extractTarGz(const std::string& tarGzPath, const std::string& destDir,
     // 创建archive reader，这次只需要支持tar格式
     a = archive_read_new();
     if (!a) {
-        logger->log_error("Error: Failed to create archive reader object.");
+        LOG_ERROR("Error: Failed to create archive reader object.");
         std::cerr << "Error: Failed to create archive reader object." << std::endl;
         // 清理临时文件
         std::remove(tempTarPath.c_str());
@@ -397,7 +396,7 @@ bool extractTarGz(const std::string& tarGzPath, const std::string& destDir,
     // 创建archive writer
     ext = archive_write_disk_new();
     if (!ext) {
-        logger->log_error("Error: Failed to create archive writer object.");
+        LOG_ERROR("Error: Failed to create archive writer object.");
         std::cerr << "Error: Failed to create archive writer object." << std::endl;
         archive_read_free(a);
         // 清理临时文件
@@ -417,7 +416,7 @@ bool extractTarGz(const std::string& tarGzPath, const std::string& destDir,
     if (r != ARCHIVE_OK) {
         std::cerr << "Error: Failed to open tar file '" << tempTarPath << "': " 
                   << archive_error_string(a) << std::endl;
-        logger->log_error("Failed to open tar file " + tempTarPath + ": " + archive_error_string(a));
+        LOG_ERROR("Failed to open tar file " + tempTarPath + ": " + archive_error_string(a));
         archive_read_free(a);
         archive_write_free(ext);
         // 清理临时文件
@@ -429,7 +428,7 @@ bool extractTarGz(const std::string& tarGzPath, const std::string& destDir,
     while ((r = archive_read_next_header(a, &entry)) == ARCHIVE_OK) {
         const char* entryPath = archive_entry_pathname(entry);
         if (!entryPath) {
-            logger->log_error ("Warning: Skipping entry with null path.");
+            LOG_ERROR ("Warning: Skipping entry with null path.");
             std::cerr << "Warning: Skipping entry with null path." << std::endl;
             continue;
         }
@@ -453,7 +452,7 @@ bool extractTarGz(const std::string& tarGzPath, const std::string& destDir,
         if (r != ARCHIVE_OK) {
             std::cerr << "Error: Failed to write header for entry '" << entryPath 
                       << "': " << archive_error_string(ext) << std::endl;
-            logger->log_error("Failed to write header for entry " + std::string(entryPath) + 
+            LOG_ERROR("Failed to write header for entry " + std::string(entryPath) + 
                             ": " + archive_error_string(ext));
             continue;
         }
@@ -470,7 +469,7 @@ bool extractTarGz(const std::string& tarGzPath, const std::string& destDir,
                 if (r != ARCHIVE_OK) {
                     std::cerr << "Error: Failed to read data for entry '" << entryPath 
                               << "': " << archive_error_string(a) << std::endl;
-                    logger->log_error("Failed to read data for entry " + std::string(entryPath) + 
+                    LOG_ERROR("Failed to read data for entry " + std::string(entryPath) + 
                                     ": " + archive_error_string(a));
                     archive_read_close(a);
                     archive_read_free(a);
@@ -485,7 +484,7 @@ bool extractTarGz(const std::string& tarGzPath, const std::string& destDir,
                 if (r != ARCHIVE_OK) {
                     std::cerr << "Error: Failed to write data for entry '" << entryPath 
                               << "': " << archive_error_string(ext) << std::endl;
-                    logger->log_error("Failed to write data for entry " + std::string(entryPath) + 
+                    LOG_ERROR("Failed to write data for entry " + std::string(entryPath) + 
                                     ": " + archive_error_string(ext));
                     archive_read_close(a);
                     archive_read_free(a);
@@ -502,7 +501,7 @@ bool extractTarGz(const std::string& tarGzPath, const std::string& destDir,
         if (r != ARCHIVE_OK) {
             std::cerr << "Error: Failed to finish writing entry '" << entryPath 
                       << "': " << archive_error_string(ext) << std::endl;
-            logger->log_error("Error: Failed to finish writing entry '" + std::string(entryPath) + "': "+ archive_error_string(ext));
+            LOG_ERROR("Error: Failed to finish writing entry '" + std::string(entryPath) + "': "+ archive_error_string(ext));
             archive_read_close(a);
             archive_read_free(a);
             archive_write_close(ext);
@@ -514,7 +513,7 @@ bool extractTarGz(const std::string& tarGzPath, const std::string& destDir,
     }
 
     if (r != ARCHIVE_EOF) {
-        logger->log_error("Error: Unexpected error while reading tar archive: " + std::string(archive_error_string(a)));
+        LOG_ERROR("Error: Unexpected error while reading tar archive: " + std::string(archive_error_string(a)));
         std::cerr << "Error: Unexpected error while reading tar archive: " 
                   << archive_error_string(a) << std::endl;
     }

@@ -1,5 +1,5 @@
 #include "storage/storage/overlay.h"
-
+#include "utils/logger/ProcessSafeLogger.h"
 // parseOptions函数定义
 /**
  * @brief 解析overlay挂载选项字符串向量
@@ -152,13 +152,15 @@ std::string LookPath(const std::string& file) {
             if (isExecutable(filePath)) {
                 return filePath.string();
             }
-            throw myerror("文件不可执行或未找到: " + file);
+            LOG_ERROR("File is not executable or not found: " + file);
+            throw myerror("File is not executable or not found: " + file);
         }
 
         // 查找 PATH 环境变量
         auto pathEnv = std::getenv("PATH");
         if (pathEnv == nullptr) {
-            throw myerror("未设置 PATH 环境变量");
+            LOG_ERROR("PATH environment variable is not set");
+            throw myerror("PATH environment variable is not set");
         }
 
         std::string path(pathEnv);
@@ -175,9 +177,11 @@ std::string LookPath(const std::string& file) {
 
         return "fuse-overlayfs";
     } catch (const myerror& e) {
+        LOG_ERROR("myerror caught in LookPath: " + std::string(e.what()));
         throw;  // 只处理 myerror 类型的异常
     } catch (const std::exception& e) {
-        throw myerror("未知错误: " + std::string(e.what()));
+        LOG_ERROR("Exception caught in LookPath: " + std::string(e.what()));
+        throw myerror("Unknown error: " + std::string(e.what()));
     }
 }
 /**
@@ -221,15 +225,8 @@ Driver Init(const std::string& home, const driver_Options& options) {
         int rootUID=0, rootGID=0;
         const string linkDir = "l";
         // 创建驱动程序主目录
-        // if (!MkdirAllAs(Join({home, linkDir}), 0755, 0, 0)) {
-        //     throw myerror("Failed to create directory for home");
-        // }
-
-        // // if (!options.ImageStore.empty() && !idtools::MkdirAllAs(options.ImageStore + "/" + linkDir, 0755, 0, 0)) {
-        //     throw myerror("Failed to create directory for image store");
-        // }
-
         if (!MkdirAllAs(runhome, 0700, rootUID, rootGID)) {
+            LOG_ERROR("Failed to create directory for runhome: " + runhome);
             throw myerror("Failed to create directory for runhome");
         }
 
@@ -332,6 +329,7 @@ Driver Init(const std::string& home, const driver_Options& options) {
 
         return d;
     } catch (const myerror& e) {
+        LOG_ERROR("Failed to initialize overlay driver: " + std::string(e.what()));
         throw;  // 重新抛出myerror
     }
 }

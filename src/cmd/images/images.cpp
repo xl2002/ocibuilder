@@ -132,7 +132,7 @@ void imagesCmd(std::shared_ptr<Command> cmd, vector<string> args,std::shared_ptr
         auto img = store->Image(args[0]);
         if (img == nullptr) {
             std::string errorMsg = "Image not found: " + args[0];
-            logger->log_error(errorMsg);
+            LOG_ERROR(errorMsg);
             throw std::runtime_error(errorMsg);
         }
         images.push_back(*img);  // 确认非空后再解引用

@@ -47,18 +47,18 @@ void inspectCmd(std::shared_ptr<Command> cmd, vector<string> args){
     //1. 加载镜像仓库
     std::shared_ptr<Store> store = getStore(cmd);
     if (!store) {
-        logger->log_error("Failed to load image store");
+        LOG_ERROR("Failed to load image store");
         return;
     }
     //2. 获得指定镜像的信息auto imagestore=store->Image(imageName/imageID);
     if (args.empty()) {
-        logger->log_error("No image name or ID provided");
+        LOG_ERROR("No image name or ID provided");
         return;
     }
     string imageNameOrID = args[0];
     std::shared_ptr<storage::Image> imagestore = store->Image(imageNameOrID);
     if (!imagestore) {
-        logger->log_error("Image not found: " + imageNameOrID);
+        LOG_ERROR("Image not found: " + imageNameOrID);
         return;
     }
     //3. 根据获得imagestore构造BuilderInfo，只需要填充OCI镜像部分

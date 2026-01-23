@@ -31,7 +31,7 @@ newExecutor(
     }
     catch(const myerror& e)
     {
-        logger->log_error("Failed to get container config: " + string(e.what()));
+        LOG_ERROR("Failed to get container config: " + string(e.what()));
         throw myerror("failed to get container config: "+string(e.what()));
     }
     auto excludes=options->Excludes;
@@ -169,7 +169,7 @@ newExecutor(
 std::tuple<string,std::shared_ptr<Canonical_interface>> Executor::Build(std::shared_ptr<Stages> stages){
     std::string imageID;
     if(stages->Stages.size()==0){
-        logger->log_error("No stages to build");
+        LOG_ERROR("No stages to build");
         throw myerror("building: no stages to build");
     }
     std::vector<std::string> cleanupImages;
@@ -190,7 +190,7 @@ std::tuple<string,std::shared_ptr<Canonical_interface>> Executor::Build(std::sha
                 stage.second->Delete();
             } catch (const myerror& e) {
                 // logrus::Debug("Failed to cleanup stage containers: ", e.what());
-                logger->log_error(std::string(e.what()));
+                LOG_ERROR(std::string(e.what()));
                 throw e;
             }
         }
@@ -203,20 +203,13 @@ std::tuple<string,std::shared_ptr<Canonical_interface>> Executor::Build(std::sha
             } catch (const myerror& e) {
                 // logrus::Debug("Failed to cleanup image containers: ", e.what());
                 // lastErr = std::current_exception();
-                logger->log_error(std::string(e.what()));
+                LOG_ERROR(std::string(e.what()));
                 throw e;
             }
         }
         this->containerMap.clear();
         // 如果需要删除中间容器，则进行清理
         if (this->removeIntermediateCtrs) {
-            // try {
-            //     this->deleteSuccessfulIntermediateCtrs();
-            // } catch (const myerror& e) {
-            //     // logrus::Debug("Failed to cleanup intermediate containers: ", e.what());
-            //     // lastErr = std::current_exception();
-            //     throw;
-            // }
         }
         // 清理中间镜像
         for (size_t i = 0; i < cleanupImages.size(); ++i) {
@@ -225,11 +218,8 @@ std::tuple<string,std::shared_ptr<Canonical_interface>> Executor::Build(std::sha
             try {
                 // this->store->DeleteImage(removeID, true);
             } catch (const myerror& e) {
-                // logrus::Debug("failed to remove intermediate image: ", e.what());
-                // if (this->forceRmIntermediateCtrs) {
-                //     throw;
-                // }
-                logger->log_error(std::string(e.what()));
+                
+                LOG_ERROR(std::string(e.what()));
                 throw;
             }
         }
@@ -268,7 +258,7 @@ std::tuple<string,std::shared_ptr<Canonical_interface>> Executor::Build(std::sha
                             try{
                                 baseWithArg = ProcessWord(base, userArgs);
                             }catch(const myerror& e){
-                                logger->log_error("while replacing arg variables with values for format "+base+" : "+std::string(e.what())+" in stage ");
+                                LOG_ERROR("while replacing arg variables with values for format "+base+" : "+std::string(e.what())+" in stage ");
                                 throw myerror("while replacing arg variables with values for format "+base+" : "+std::string(e.what())+" in stage ");
                             }
                             baseMap.emplace(baseWithArg);
@@ -380,7 +370,7 @@ std::tuple<string,std::shared_ptr<Canonical_interface>> Executor::Build(std::sha
             cancel = true;
             std::lock_guard<std::mutex> lock(resultMutex);
             results.push_back(Result{index, "", stageOnlyBaseImage,nullptr, stageErr});
-            logger->log_error(std::string(stageErr));
+            LOG_ERROR(std::string(stageErr));
             throw myerror(stageErr);
         }
         std::lock_guard<std::mutex> lock2(resultMutex);
@@ -468,27 +458,27 @@ std::tuple<string,std::shared_ptr<Canonical_interface>> Executor::Build(std::sha
             
         }
     }catch(const myerror& e){
-        logger->log_error("Failed to resolve image reference: " + std::string(e.what()));
+        LOG_ERROR("Failed to resolve image reference: " + std::string(e.what()));
         throw;
     }
     try{
         cleanup();
     }catch(const myerror& e){
-        logger->log_error("Cleanup failed: " + std::string(e.what()));
+        LOG_ERROR("Cleanup failed: " + std::string(e.what()));
         throw;
     }
     if(iidfile!=""){
         try{
             WriteFile(iidfile,"sha256:"+imageID);
         }catch(const myerror& e){
-            logger->log_error("Failed to write image ID file " + iidfile + ": " + string(e.what()));
+            LOG_ERROR("Failed to write image ID file " + iidfile + ": " + string(e.what()));
             throw myerror("failed to write image ID file "+iidfile+" : "+string(e.what()));
         }
     }else{
         try{
             std::cout<<imageID<<std::endl;
         }catch(const myerror& e){
-            logger->log_error("Failed to write image ID to stdout: " + string(e.what()));
+            LOG_ERROR("Failed to write image ID to stdout: " + string(e.what()));
             throw myerror("failed to write image ID to stdout : "+string(e.what()));
         }
         
@@ -513,7 +503,7 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,bool,std::string> Ex
     try {
         base = ib->From(node);  // 假设 `from()` 方法存在
     } catch (const std::exception& e) {
-        logger->log_error("Failed to get base image for stage " + std::to_string(stageIndex) + ": " + std::string(e.what()));
+        LOG_ERROR("Failed to get base image for stage " + std::to_string(stageIndex) + ": " + std::string(e.what()));
         throw myerror("buildStage: Error while calling from() "+std::string(e.what()) );
         // return std::make_tuple("", "", false, std::make_exception_ptr(e));
     }
@@ -627,7 +617,7 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,bool,std::string> Ex
         logger->log_info("Stage " + std::to_string(stageIndex) + " built successfully in " + 
                         std::to_string(duration.count()) + " seconds");
     } catch (const myerror& e) {
-        logger->log_error("Build stage failed: " + std::string(e.what()));
+        LOG_ERROR("Build stage failed: " + std::string(e.what()));
         return std::make_tuple("", nullptr, onlyBaseImage, std::string(e.what()));
     }
     //计算镜像构建效率

@@ -1,5 +1,5 @@
 #include "utils/common/semaphore.h"
-
+#include "utils/logger/ProcessSafeLogger.h"
 /**
  * @brief 创建新的Weighted信号量对象
  * @param n 信号量的初始容量
@@ -118,7 +118,8 @@ void Weighted::Release(int64_t n) {
     // 检查是否释放的资源超过持有的资源量
     if (cur < 0) {
         lock.unlock();
-        throw std::runtime_error("semaphore: released more than held");
+        LOG_ERROR("released more than held");
+        throw std::runtime_error("released more than held");
     }
 
     // 通知等待者

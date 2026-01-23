@@ -1,5 +1,5 @@
 #include "filesys/graphdriver/driver_linux_windows.h"
-
+#include "utils/logger/ProcessSafeLogger.h"
 /**
  * @brief 获取指定路径的文件系统类型标识
  * @param rootpath 要检查的根路径
@@ -17,7 +17,8 @@ FsMagic GetFSMagic(const std::string& rootpath) {
         struct statvfs buf;
         if (statvfs(path.c_str(), &buf) != 0) {
             // 若系统调用失败，抛出 myerror 类型错误
-            throw myerror("无法获取文件系统信息: " + path.string());
+            LOG_ERROR("Unable to get file system information: " + path.string());
+            throw myerror("Unable to get file system information: " + path.string());
         }
         // 返回文件系统魔法常量
         return static_cast<FsMagic>(buf.f_fsid);
@@ -27,9 +28,11 @@ FsMagic GetFSMagic(const std::string& rootpath) {
 #endif
     } catch (const myerror& e) {
         // 捕获 myerror 类型错误并重新抛出
+        LOG_ERROR(std::string(e.what()));
         throw;
     } catch (const std::exception& e) {
         // 捕获其他标准异常并转换为 myerror
-        throw myerror("未知错误: " + std::string(e.what()));
+        LOG_ERROR("Error getting file system magic: " + std::string(e.what()));
+        throw myerror(std::string(e.what()));
     }
 }

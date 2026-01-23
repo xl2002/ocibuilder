@@ -2,7 +2,7 @@
 #include "utils/common/go/string.h"
 #include "utils/parse/dockerfileparse.h"
 #include "utils/common/error.h"
-
+#include "utils/logger/ProcessSafeLogger.h"
 /**
  * @brief 解析命令行，分割出命令、参数和标志
  * @param line 输入的命令行字符串
@@ -29,6 +29,7 @@ std::tuple<std::string, std::vector<std::string>, std::string> splitCommand(cons
         }
         catch(const myerror& e)
         {
+            LOG_ERROR("Error extracting builder flags from line: " + line + ", error: " + e.what());
             throw;
         }
     }

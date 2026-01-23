@@ -191,7 +191,7 @@ std::shared_ptr<Node> parseNameVal(const std::string& rest, const std::string& k
         }
 
         if (parts.size() < 2) {
-            logger->log_error("parseNameVal failed: " + key + " must have two arguments");
+            LOG_ERROR("parseNameVal failed: " + key + " must have two arguments");
             throw myerror(key + " must have two arguments");
         }
         return newKeyValueNode(parts[0], parts[1]);
@@ -201,7 +201,7 @@ std::shared_ptr<Node> parseNameVal(const std::string& rest, const std::string& k
     std::shared_ptr<Node> prevNode = nullptr;
     for (const auto& word : words) {
         if (word.find('=') == std::string::npos) {
-            logger->log_error("parseNameVal failed: Syntax error - can't find = in \"" + word + "\"");
+            LOG_ERROR("parseNameVal failed: Syntax error - can't find = in \"" + word + "\"");
             throw myerror("Syntax error - can't find = in \"" + word + "\". Must be of the form: name=value");
         }
 
@@ -235,7 +235,7 @@ parseLabel(const std::string& rest, std::shared_ptr<Directive> d) {
     }
     catch(const myerror& e)
     {
-        logger->log_error("parseLabel failed: " + std::string(e.what()));
+        LOG_ERROR("parseLabel failed: " + std::string(e.what()));
         throw;
     }
 }
@@ -257,7 +257,7 @@ parseEnv(const std::string& rest, std::shared_ptr<Directive> d) {
     }
     catch(const myerror& e)
     {
-        logger->log_error("parseEnv failed: " + std::string(e.what()));
+        LOG_ERROR("parseEnv failed: " + std::string(e.what()));
         throw;
     }
 }
@@ -308,7 +308,7 @@ std::string extractNextString(const std::string& str, size_t& pos) {
             result += ch;
         }
     }
-
+    LOG_ERROR("extractNextString failed: Unterminated string in JSON");
     throw myerror("Unterminated string in JSON");
 }
 
@@ -373,7 +373,7 @@ std::tuple<std::shared_ptr<Node>, std::map<std::string, bool>, std::exception_pt
     size_t& pos
 ) {
     if (str[pos] != '{') {
-        logger->log_error("parseJSONObject failed: Expected '{' at the start of JSON object");
+        LOG_ERROR("parseJSONObject failed: Expected '{' at the start of JSON object");
         throw myerror("Expected '{' at the start of JSON object");
     }
     ++pos;  // Skip the opening '{'
@@ -387,12 +387,12 @@ std::tuple<std::shared_ptr<Node>, std::map<std::string, bool>, std::exception_pt
 
         // Extract key
         if (str[pos] != '"') {
-            logger->log_error("parseJSONObject failed: Expected '\"' at the start of JSON key");
+            LOG_ERROR("parseJSONObject failed: Expected '\"' at the start of JSON key");
             throw myerror("Expected '\"' at the start of JSON key");
         }
         key = extractNextString(str, pos);
         if (str[pos] != ':') {
-            logger->log_error("parseJSONObject failed: Expected ':' after JSON key");
+            LOG_ERROR("parseJSONObject failed: Expected ':' after JSON key");
             throw myerror("Expected ':' after JSON key");
         }
         ++pos;  // Skip ':'
@@ -415,7 +415,7 @@ std::tuple<std::shared_ptr<Node>, std::map<std::string, bool>, std::exception_pt
                 return result;
             }
         } else {
-            logger->log_error("parseJSONObject failed: Unexpected character in JSON value");
+            LOG_ERROR("parseJSONObject failed: Unexpected character in JSON value");
             throw myerror("Unexpected character in JSON value");
         }
 
@@ -436,7 +436,7 @@ std::tuple<std::shared_ptr<Node>, std::map<std::string, bool>, std::exception_pt
     }
 
     if (str[pos] != '}') {
-        logger->log_error("parseJSONObject failed: Expected '}' at the end of JSON object");
+        LOG_ERROR("parseJSONObject failed: Expected '}' at the end of JSON object");
         throw myerror("Expected '}' at the end of JSON object");
     }
     ++pos;  // Skip the closing '}'
@@ -459,7 +459,7 @@ std::tuple<std::shared_ptr<Node>, std::map<std::string, bool>, std::exception_pt
     size_t& pos
 ) {
     if (str[pos] != '[') {
-        logger->log_error("parseJSONArray failed: Expected '[' at the start of JSON array");
+        LOG_ERROR("parseJSONArray failed: Expected '[' at the start of JSON array");
         throw myerror("Expected '[' at the start of JSON array");
     }
     ++pos;  // Skip the opening '['
@@ -488,7 +488,7 @@ std::tuple<std::shared_ptr<Node>, std::map<std::string, bool>, std::exception_pt
                 return result;
             }
         } else {
-            logger->log_error("parseJSONArray failed: Unexpected character in JSON value");
+            LOG_ERROR("parseJSONArray failed: Unexpected character in JSON value");
             throw myerror("Unexpected character in JSON value");
         }
 
@@ -509,7 +509,7 @@ std::tuple<std::shared_ptr<Node>, std::map<std::string, bool>, std::exception_pt
     }
 
     if (str[pos] != ']') {
-        logger->log_error("parseJSONArray failed: Expected ']' at the end of JSON array");
+        LOG_ERROR("parseJSONArray failed: Expected ']' at the end of JSON array");
         throw myerror("Expected ']' at the end of JSON array");
     }
     ++pos;  // Skip the closing ']'
@@ -540,6 +540,7 @@ std::tuple<std::shared_ptr<Node>, std::map<std::string, bool>> parseMaybeJSONToL
     }
     catch(const myerror& e){
         if(std::string(e.what())=="when using JSON array syntax, arrays must be comprised of strings only")
+        LOG_ERROR("parseMaybeJSONToList failed: " + std::string(e.what()));
         throw;
     }
     return parseStringsWhitespaceDelimited(rest, d);
@@ -569,7 +570,7 @@ std::tuple<std::shared_ptr<Node>, std::map<std::string, bool>> parseMaybeJSON(
         std::rethrow_exception(err);
     }
     catch(const myerror& e){
-        logger->log_error("parseMaybeJSON failed: " + std::string(e.what()));
+        LOG_ERROR("parseMaybeJSON failed: " + std::string(e.what()));
         if(std::string(e.what())=="when using JSON array syntax, arrays must be comprised of strings only")
         throw;
     }

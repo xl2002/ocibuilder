@@ -99,7 +99,7 @@ shared_ptr<Store> getStore(std::shared_ptr <Command> cmd){
         storageTransport transport;
         transport.SetStore(store);
     } else {
-        logger->log_error("Failed to create store");
+        LOG_ERROR("Failed to create store");
     }
     needToShutdownStore = true;
     return store;
@@ -120,7 +120,7 @@ string GetFormat(string format){
         return Dockerv2ImageManifest;
     }
     else{
-        logger->log_error("Unrecognized image type: " + format);
+        LOG_ERROR("Unrecognized image type: " + format);
         throw myerror("unrecognized image type "+format);
     }
 }
@@ -247,7 +247,7 @@ std::string Abspath(const std::string& path) {
     try {
         // 使用 Boost 文件系统库获取绝对路径
         if(path.empty()) {
-            logger->log_error("Path is empty in Abspath function");
+            LOG_ERROR("Path is empty in Abspath function");
             throw myerror("Path is empty.");
         }
         if(path == ".") {
@@ -257,7 +257,7 @@ std::string Abspath(const std::string& path) {
             boost::filesystem::path absolutePath = boost::filesystem::absolute(boostPath);
             // 检查路径是否存在
             if (!boost::filesystem::exists(absolutePath)) {
-                logger->log_error("Path does not exist: " + path);
+                LOG_ERROR("Path does not exist: " + path);
                 throw myerror("Path does not exist.");
             }
 
@@ -265,13 +265,14 @@ std::string Abspath(const std::string& path) {
             return absolutePath.string();
         }
     } catch (const boost::filesystem::filesystem_error& e) {
-        logger->log_error("Failed to obtain absolute path: " + std::string(e.what()));
+        LOG_ERROR("Failed to obtain absolute path: " + std::string(e.what()));
         throw myerror("Failed to obtain the absolute path: " + std::string(e.what()));
     } catch (const std::exception& e) {
-        logger->log_error("Unexpected error in Abspath: " + std::string(e.what()));
+        LOG_ERROR("Unexpected error in Abspath: " + std::string(e.what()));
         throw myerror("An error occurred: " + std::string(e.what()));
     } catch (...) {
         // 捕获未知异常
+        LOG_ERROR("Unknown error occurred in Abspath function");
         throw myerror("Unknown error occurred.");
     }
 }
@@ -339,7 +340,7 @@ void tmpl(std::ostream& out, const std::string& text,std::shared_ptr<Command> da
         }
         out << std::endl;
     } catch (const std::exception& e) {
-        logger->log_error("Template rendering failed: " + std::string(e.what()));
+        LOG_ERROR("Template rendering failed: " + std::string(e.what()));
         throw myerror("Failed to execute template: " + std::string(e.what()));
     }
 }

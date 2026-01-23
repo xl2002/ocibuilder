@@ -72,6 +72,7 @@ shared_ptr<Driver> Store::createGraphDriverLocked() {
     config.driverOptions = graph_options;
     auto driver = New(graph_driver_name, config);
     if (!driver) {
+        LOG_ERROR("Failed to create graph driver.");
         throw myerror("Failed to create graph driver.");
     }
     return driver;
@@ -152,8 +153,7 @@ bool parseJson(const vector<uint8_t>& data, vector<shared_ptr<storage::Image>>& 
         }
     } catch (const std::exception& e) {
         auto err = "Failed to parse JSON: " + std::string(e.what());
-        logger->log_error(err);
-        std::cerr << err << std::endl;
+        LOG_ERROR(err);
         throw myerror(err);
     }
     return true;
@@ -220,11 +220,13 @@ void ImageStore::Save() {
         std::string index_str=marshal<storage::index>(Index);
         std::ofstream ofs(rpath, std::ios::out | std::ios::trunc | std::ios::binary);
         if (!ofs) {
+            LOG_ERROR("Failed to open file for writing: " + rpath);
             throw myerror("Failed to open file for writing: " + rpath);
         }
         ofs<<index_str;
         ofs.close();
         if (!ofs.good()) {
+            LOG_ERROR("Failed to write data to file: " + rpath);
             throw myerror("Failed to write data to file.");
         }
         // 记录写入时间
@@ -232,7 +234,7 @@ void ImageStore::Save() {
 
     } catch (const myerror& ex) {
         auto err = "Error: " + std::string(ex.what());
-        logger->log_error(err);
+        LOG_ERROR(err);
         std::cerr << err << std::endl;
     }
 }
@@ -254,6 +256,7 @@ bool ImageStore::load(bool lockedForWriting) {
             if (!boost::filesystem::exists(rpath)) {
                 return false; // 文件不存在，无需错误处理
             }
+            LOG_ERROR("Failed to read file: " + rpath);
             throw myerror("Failed to read file: " + rpath);
         }
 
@@ -266,6 +269,7 @@ bool ImageStore::load(bool lockedForWriting) {
         if (!data.empty()) {
             // 使用 parseJson 函数解析index数据
             if (!parseJson(data, images,this->dir)) {
+                LOG_ERROR("Failed to parse JSON from: " + rpath);
                 throw myerror("Failed to parse JSON from: " + rpath);
             }
         }
@@ -295,6 +299,7 @@ bool ImageStore::load(bool lockedForWriting) {
             try {
                 image->recomputeDigests(); 
             } catch (const std::exception& e) {
+                LOG_ERROR("Exception caught while computing digests for image with ID " + image->ID + ": " + std::string(e.what()));
                 throw myerror("Computing digests for image with ID " + image->ID + ": " + std::string(e.what()));
             }
 
@@ -312,6 +317,7 @@ bool ImageStore::load(bool lockedForWriting) {
         // 错误处理，如果需要保存镜像信息
         if (errorToResolveBySaving) {
             if (!lockfile->IsReadWrite()) {
+                LOG_ERROR("Cannot resolve duplicate image names in read-only mode.");
                 throw myerror("Cannot resolve duplicate image names in read-only mode.");
             }
             if (!lockedForWriting) {
@@ -335,6 +341,7 @@ bool ImageStore::load(bool lockedForWriting) {
 
     } catch (const myerror& e) {
         // 捕获并重新抛出 myerror 类型的异常
+        LOG_ERROR("myerror caught in load: " + std::string(e.what()));
         throw;
     }
 }
@@ -369,6 +376,7 @@ bool ImageStore::reloadIfChanged(bool lockedForWriting, bool& tryLockedForWritin
         }
     } catch (const std::exception& e) {
         // 处理异常并抛出 myerror 类型的异常
+        LOG_ERROR("Exception caught in reloadIfChanged: " + std::string(e.what()));
         throw myerror("reloadIfChanged failed: " + std::string(e.what()));
     }
 
@@ -399,6 +407,7 @@ bool ImageStore::startWritingWithReload(bool canReload) {
 
             // 检查是否有错误并抛出 myerror 类型的异常
             if (!result) {
+                LOG_ERROR("Failed to reload if changed");
                 throw myerror("Failed to reload if changed");
             }
         }
@@ -408,6 +417,7 @@ bool ImageStore::startWritingWithReload(bool canReload) {
         return succeeded;
     } catch (const std::exception& e) {
         // 处理异常并抛出 myerror 类型的异常
+        LOG_ERROR("Exception caught in startWritingWithReload: " + std::string(e.what()));
         throw myerror("startWritingWithReload failed: " + std::string(e.what()));
     }
 }
@@ -422,9 +432,11 @@ shared_ptr<rwImageStore_interface> newImageStore(const string& dir) {
     try {
         // 创建目录
         if (!MkdirAll(dir)) {
+            LOG_ERROR("Failed to create directory: " + dir);
             throw myerror("Failed to create directory: " + dir);
         }
         if(!MkdirAll(Join({dir, "blobs/sha256"}))){
+            LOG_ERROR("Failed to create directory: " + Join({dir, "blobs"}));
             throw myerror("Failed to create directory: " + Join({dir, "blobs"}));
         }
         fs::path indexPath = Join({dir, "index.json"});
@@ -441,6 +453,7 @@ shared_ptr<rwImageStore_interface> newImageStore(const string& dir) {
         // 获取锁文件
         auto lockfile = GetLockFile(Join({dir, "images.lock"}));
         if (!lockfile) {
+            LOG_ERROR("Failed to get lock file for: " + dir);
             throw myerror("Failed to get lock file for: " + dir);
         }
 
@@ -474,6 +487,7 @@ shared_ptr<rwImageStore_interface> newImageStore(const string& dir) {
 
         return istore;
     } catch (const myerror& e) {
+        LOG_ERROR("myerror caught in newImageStore: " + std::string(e.what()));
         throw; // 重新抛出错误以便进一步处理
     }
 }
@@ -503,6 +517,7 @@ void containerStore::Save(containerLocations saveLocations) {
     try {
         // 确保持有写锁
         if (!lockfile->IsReadWrite()) {
+            LOG_ERROR("Not allowed to modify the container store: Store_interface is read-only.");
             throw myerror("Not allowed to modify the container store: Store_interface is read-only.");
         }
         lockfile->AssertLockedForWriting();
@@ -532,34 +547,10 @@ void containerStore::Save(containerLocations saveLocations) {
                     subsetContainers.push_back(container);
                 }
             }
-
-            // 序列化 JSON 数据
-            // boost::property_tree::ptree ptree_root;
-            // for (const auto& container : subsetContainers) {
-            //     boost::property_tree::ptree container_ptree = containerToPtree(container);
-            //     ptree_root.add_child("containers.container", container_ptree);
-            // }
-
-            // 写入 JSON 文件
-            // std::ofstream ofs(rpath, std::ios::out | std::ios::trunc | std::ios::binary);
-            // if (!ofs) {
-            //     throw myerror("Failed to open file for writing: " + rpath);
-            // }
-            
-            // boost::property_tree::write_json(ofs, ptree_root);
-            // ofs.close();
-            // if (!ofs.good()) {
-            //     throw myerror("Failed to write data to file: " + rpath);
-            // }
-
-            // 处理 volatileContainerLocation 的特殊情况（如需要）
-            // if (location == volatileContainerLocation) {
-            //     // 可以添加额外的选项或逻辑处理，如在写入文件时禁用同步等
-            //     // 示例：禁用同步选项的逻辑
-            // }
         }
 
     } catch (const myerror& ex) {
+        LOG_ERROR("Error: " + std::string(ex.what()));
         throw;
     }
 }
@@ -616,7 +607,7 @@ std::shared_ptr<Container> containerStore::create(const std::string& id, const s
         for (const auto& name : uniqueNames) {
             if (byname.find(name) != byname.end()) {
                 auto err = "Container name '" + name + "' is already in use.";
-                logger->log_error(err);
+                LOG_ERROR(err);
                 throw std::runtime_error(err);
             }
         }
@@ -643,6 +634,7 @@ std::shared_ptr<Container> containerStore::create(const std::string& id, const s
 
         return container;
     } catch (const std::exception& ex) {
+        LOG_ERROR("Failed to create container: " + std::string(ex.what()));
         throw myerror(std::string("Failed to create container: ") + ex.what());
     }
 }
@@ -756,6 +748,7 @@ bool parseJsonContainers(const std::vector<uint8_t>& data, std::vector<std::shar
         //     containers.push_back(container);
         // }
     } catch (const std::exception& e) {
+        LOG_ERROR("Exception caught in parseJsonContainers: " + std::string(e.what()));
         throw myerror("Failed to parse JSON: " + std::string(e.what()));
     }
     return true;
@@ -787,6 +780,7 @@ bool containerStore::load(bool lockedForWriting) {
                 if (!boost::filesystem::exists(rpath)) {
                     continue; // 文件不存在，无需错误处理
                 }
+                LOG_ERROR("Failed to read file: " + rpath);
                 throw myerror("Failed to read file: " + rpath);
             }
 
@@ -796,6 +790,7 @@ bool containerStore::load(bool lockedForWriting) {
             if (!data.empty()) {
                 // 使用 parseJson 函数解析数据
                 if (!parseJsonContainers(data, locationContainers)) {
+                    LOG_ERROR("Failed to parse JSON from: " + rpath);
                     throw myerror("Failed to parse JSON from: " + rpath);
                 }
             }
@@ -852,6 +847,7 @@ bool containerStore::load(bool lockedForWriting) {
 
     } catch (const myerror& e) {
         // 捕获并重新抛出 myerror 类型的异常
+        LOG_ERROR("myerror caught in load: " + std::string(e.what()));
         throw;
     }
 }
@@ -909,6 +905,7 @@ bool containerStore::reloadIfChanged(bool lockedForWriting) {
         }
     } catch (const std::exception& e) {
         // 处理异常并抛出 myerror 类型的异常
+        LOG_ERROR("Exception caught in reloadIfChanged: " + std::string(e.what()));
         throw myerror("reloadIfChanged failed: " + std::string(e.what()));
     }
 
@@ -936,6 +933,7 @@ bool containerStore::startWritingWithReload(bool canReload) {
             // 调用 reloadIfChanged
             bool tryLockedForWriting = false;
             if (!reloadIfChanged(true)) {
+                LOG_ERROR("Failed to reload if changed");
                 throw myerror("Failed to reload if changed.");
             }
         }
@@ -944,6 +942,7 @@ bool containerStore::startWritingWithReload(bool canReload) {
         return true;
     } catch (const std::exception& e) {
         // 处理异常并抛出 myerror 类型的异常
+        LOG_ERROR("Exception caught in startWritingWithReload: " + std::string(e.what()));
         throw myerror("startWritingWithReload failed: " + std::string(e.what()));
     }
 }
@@ -961,12 +960,14 @@ std::shared_ptr<rwContainerStore_interface> newContainerStore(const std::string&
     try {
         // 创建目录
         if (!MkdirAll(dir)) {
+            LOG_ERROR("Failed to create directory: " + dir);
             throw myerror("Failed to create directory: " + dir);
         }
 
         std::string volatileDir = dir;
         if (transient) {
             if (!MkdirAll(runDir)) {
+                LOG_ERROR("Failed to create transient directory: " + runDir);
                 throw myerror("Failed to create transient directory: " + runDir);
             }
             volatileDir = runDir;
@@ -974,6 +975,7 @@ std::shared_ptr<rwContainerStore_interface> newContainerStore(const std::string&
         // 获取锁文件
         auto lockfile = GetLockFile(Join({volatileDir, "containers.lock"}));
         if (!lockfile) {
+            LOG_ERROR("Failed to get lock file for: " + volatileDir);
             throw myerror("Failed to get lock file for: " + volatileDir);
         }
 
@@ -996,6 +998,7 @@ std::shared_ptr<rwContainerStore_interface> newContainerStore(const std::string&
 
         // 开始写入操作
         if (!cstore->startWritingWithReload(false)) {
+            LOG_ERROR("Failed to start writing with reload.");
             throw myerror("Failed to start writing with reload.");
         }
 
@@ -1007,6 +1010,7 @@ std::shared_ptr<rwContainerStore_interface> newContainerStore(const std::string&
 
         // 加载数据
         if (!cstore->load(true)) {
+            LOG_ERROR("Failed to load container store.");
             throw myerror("Failed to load container store.");
         }
 
@@ -1039,6 +1043,7 @@ void load(std::shared_ptr<Store> s) {
             // 创建 Driver
             auto driver = s->createGraphDriverLocked(); // 创建 Driver
             if (!driver) {
+                LOG_ERROR("Failed to create graph driver.");
                 throw myerror("Failed to create graph driver.");
             } 
             s->graph_driver = driver;
@@ -1049,6 +1054,7 @@ void load(std::shared_ptr<Store> s) {
 
         // 如果函数返回的结果为空，抛出错误
         if (!func) {
+            LOG_ERROR("Function returned null driver.");
             throw myerror("Function returned null driver.");
         }
 
@@ -1065,12 +1071,14 @@ void load(std::shared_ptr<Store> s) {
         // 创建图像存储目录
         string gipath=imgStoreRoot;
         if (!MkdirAll(gipath)) {
+            LOG_ERROR("Failed to create directory: " + gipath);
             throw myerror("Failed to create directory: " + gipath);
         }
 
         // 创建 ImageStore,即oci_registry文件夹
         shared_ptr<rwImageStore_interface> imageStore = newImageStore(gipath);
         if (!imageStore) {
+            LOG_ERROR("Failed to create ImageStore at: " + gipath);
             throw myerror("Failed to create ImageStore at: " + gipath);
         }
         s->image_store = imageStore;
@@ -1079,15 +1087,18 @@ void load(std::shared_ptr<Store> s) {
         // 创建容器存储目录
         string gcpath = Join({s->graph_root, driverPrefix + "containers"});
         if (!MkdirAll(gcpath)) {
+            LOG_ERROR("Failed to create directory: " + gcpath);
             throw myerror("Failed to create directory: " + gcpath);
         }
         string rcpath = Join({s->run_root, driverPrefix + "containers"});
         if (!MkdirAll(rcpath)) {
+            LOG_ERROR("Failed to create directory: " + rcpath);
             throw myerror("Failed to create directory: " + rcpath);
         }
         // 创建 ContainerStore
         shared_ptr<rwContainerStore_interface> rcs = newContainerStore(gcpath, rcpath, s->transient_store);
         if (!rcs) {
+            LOG_ERROR("Failed to create ContainerStore.");
             throw myerror("Failed to create ContainerStore.");
 
         }
@@ -1113,6 +1124,7 @@ void Store::load() {
     try {
         ::load(shared_from_this());
     } catch (const myerror& e) {
+        LOG_ERROR("myerror caught in Store::load: " + std::string(e.what()));
         throw; // 重新抛出 myerror 类型的异常
     }
 }
@@ -1207,7 +1219,7 @@ void ImageStore::newtag(std::string name,std::string newname){
     //1. 通过name查找镜像
     auto des=this->lookup(name);
     if(des==nullptr){
-        logger->log_error("no such image: "+name);
+        LOG_ERROR("no such image: "+name);
         std::cerr<<"no such image: "+name << std::endl;
         return;
     }
@@ -1309,7 +1321,7 @@ void ImageStore::Delete(const std::string& id){
             return img->ID.substr(0,12)==id;
         });
         if(matchingImages.size()==0){
-            logger->log_error("no such image: "+id);
+            LOG_ERROR("no such image: "+id);
             std::cerr<<"no such image: "<<id<<std::endl;
             return;
         }
@@ -1354,23 +1366,23 @@ void ImageStore::Delete(const std::string& id){
         if(boost::filesystem::exists(configpath)){
             boost::filesystem::remove(configpath);
         }else{
-            logger->log_error("no such config: "+configid);
+            LOG_ERROR("no such config: "+configid);
             std::cerr<<"no such config: "<<configid<<std::endl;
         }
         //删除manifest文件
-        logger->log_error("delete manifest "+manifesid);
+        LOG_ERROR("delete manifest "+manifesid);
         std::cout<<"delete manifest "<<manifesid<<std::endl;
         if(boost::filesystem::exists(manifestpath)){
             boost::filesystem::remove(manifestpath);
         }else{
-            logger->log_error("no such manifest: "+manifesid);
+            LOG_ERROR("no such manifest: "+manifesid);
             std::cerr<<"no such manifest: "<<manifesid<<std::endl;
         }
     }else{
         //id是镜像name
         auto image=this->lookup(id);
         if(image==nullptr){
-            logger->log_error("no such image: "+id);
+            LOG_ERROR("no such image: "+id);
             std::cerr<<"no such image: "<<id<<std::endl;
             return;
         }
@@ -1432,7 +1444,7 @@ void ImageStore::Delete(const std::string& id){
                 if(boost::filesystem::exists(configpath)){
                     boost::filesystem::remove(configpath);
                 }else{
-                    logger->log_error("no such config: "+configid);
+                    LOG_ERROR("no such config: "+configid);
                     std::cerr<<"no such config: "<<configid<<std::endl;
                 }
                 //删除manifest文件
@@ -1441,7 +1453,7 @@ void ImageStore::Delete(const std::string& id){
                 if(boost::filesystem::exists(historytagpath)){
                     boost::filesystem::remove(historytagpath);
                 }else{
-                    logger->log_error("no such manifest: "+historytag);
+                    LOG_ERROR("no such manifest: "+historytag);
                     std::cerr<<"no such manifest: "<<historytag<<std::endl;
                 }
             }
@@ -1452,7 +1464,7 @@ void ImageStore::Delete(const std::string& id){
             if(boost::filesystem::exists(configpath)){
                 boost::filesystem::remove(configpath);
             }else{
-                logger->log_error("no such config: "+configid);
+                LOG_ERROR("no such config: "+configid);
                 std::cerr<<"no such config: "<<configid<<std::endl;
             }
             //删除manifest文件
@@ -1461,7 +1473,7 @@ void ImageStore::Delete(const std::string& id){
             if(boost::filesystem::exists(manifestpath)){
                 boost::filesystem::remove(manifestpath);
             }else{
-                logger->log_error("no such manifest: "+manifesid);
+                LOG_ERROR("no such manifest: "+manifesid);
                 std::cerr<<"no such manifest: "<<manifesid<<std::endl;
             }
         }
@@ -1607,7 +1619,7 @@ std::shared_ptr<rwLayerStore_interface> Store::bothLayerStoreKinds() {
         // 只需要返回rwLayerStore
         return bothLayerStoreKindsLocked();
     } catch (const myerror& e) {
-        logger->log_error("Error in bothLayerStoreKinds: ");
+        LOG_ERROR("Error in bothLayerStoreKinds: ");
         throw myerror("Error in bothLayerStoreKinds: ");  // 重新抛出myerror
     }
 }
@@ -1627,7 +1639,7 @@ std::shared_ptr<rwLayerStore_interface> Store::bothLayerStoreKindsLocked() {
     // 获取 primary layer store
     auto primary = getLayerStoreLocked();
     if (!primary) {
-        logger->log_error("Error loading primary layer store");
+        LOG_ERROR("Error loading primary layer store");
         throw myerror("Error loading primary layer store");
     }
     
@@ -1675,15 +1687,14 @@ std::shared_ptr<rwLayerStore_interface> Store::getLayerStoreLocked() {
         // 调用 newLayerStore 函数
         auto rls = this->newLayerStore(rlpath.string(), glpath.string(), ilpath, this->graph_driver, this->transient_store);
         if (!rls) {
-            logger->log_error("Failed to create layer store");
+            LOG_ERROR("Failed to create layer store");
             throw myerror("Failed to create layer store");
         }
 
         this->layer_store_use_getters = rls;
         return rls;
     } catch (const myerror& e) {
-        logger->log_error( "Error in getLayerStoreLocked: " +std::string(e.what()));
-        std::cerr << "Error in getLayerStoreLocked: " << e.what() << std::endl;
+        LOG_ERROR( "Error in getLayerStoreLocked: " +std::string(e.what()));
         throw;
     }
 }
@@ -1719,16 +1730,19 @@ std::shared_ptr<rwLayerStore_interface> Store::newLayerStore(
         // 检查路径是否有效并创建目录
         if (!boost::filesystem::exists(rundir)) {
             if (!boost::filesystem::create_directories(rundir)) {
+                LOG_ERROR("Failed to create rundir: " + rundir);
                 throw myerror("Failed to create rundir: " + rundir);
             }
         }
         if (!boost::filesystem::exists(layerdir)) {
             if (!boost::filesystem::create_directories(layerdir)) {
+                LOG_ERROR("Failed to create layerdir: " + layerdir);
                 throw myerror("Failed to create layerdir: " + layerdir);
             }
         }
         if (!imagedir.empty() && !boost::filesystem::exists(imagedir)) {
             if (!boost::filesystem::create_directories(imagedir)) {
+                LOG_ERROR("Failed to create imagedir: " + imagedir);
                 throw myerror("Failed to create imagedir: " + imagedir);
             }
         }
@@ -1737,6 +1751,7 @@ std::shared_ptr<rwLayerStore_interface> Store::newLayerStore(
             boost::filesystem::path file(layerfile);
             boost::filesystem::ofstream layers(file,std::ios::out);
             if(!layers.is_open()){
+                LOG_ERROR("Failed to create layerfile: " + layerfile);
                 throw myerror("Failed to create layerfile: "+layerfile);
             }
             layers.close();
@@ -1761,13 +1776,13 @@ std::shared_ptr<rwLayerStore_interface> Store::newLayerStore(
         }
         // 调用 load 方法读取 overlay 内容
         if (!layerstore->load(true)) {
+            LOG_ERROR("Failed to load overlay content.");
             throw myerror("Failed to load overlay content.");
         }
 
         return layerstore;
     } catch (const myerror& ex) {
-        logger->log_error("Layer store initialization error: " +std::string(ex.what()));
-        std::cerr << "Layer store initialization error: " << ex.what() << std::endl;
+        LOG_ERROR("Layer store initialization error: " +std::string(ex.what()));
         return nullptr;
     }
 }
@@ -1838,8 +1853,7 @@ std::shared_ptr<Container> Store::CreateContainer(
 
     } catch (const myerror& e) {
         auto err = "Error while creating container: " + std::string(e.what());
-        logger->log_error(err);
-        std::cerr << err << std::endl;
+        LOG_ERROR(err);
         throw;
     }
 }

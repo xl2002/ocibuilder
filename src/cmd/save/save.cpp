@@ -268,7 +268,7 @@ void saveCmd(std::shared_ptr<Command>cmd, vector<string> args, std::shared_ptr<s
     std::string manifestPath = store.get()->image_store_dir + "/blobs/sha256/" + index.manifests[manifest_index].digest.substr(7);
     if (!fs::exists(manifestPath))
     {
-        logger->log_error("Manifest file not found: " + manifestPath);
+        LOG_ERROR("Manifest file not found: " + manifestPath);
         std::cerr << "Manifest file not found" << std::endl;
         return;
     }
@@ -283,7 +283,7 @@ void saveCmd(std::shared_ptr<Command>cmd, vector<string> args, std::shared_ptr<s
     std::string configPath = store.get()->image_store_dir + "/blobs/sha256/" + manifest.Config.Digests.digest.substr(7);
     if (!fs::exists(configPath))
     {
-        logger->log_error("Config file not found: " + configPath);
+        LOG_ERROR("Config file not found: " + configPath);
         std::cerr << "Config file not found" << std::endl;
         return;
     }
@@ -297,7 +297,7 @@ void saveCmd(std::shared_ptr<Command>cmd, vector<string> args, std::shared_ptr<s
     for (auto &layer : manifest.Layers) {
         std::string layerPath = store.get()->image_store_dir + "/blobs/sha256/" + layer.Digests.digest.substr(7);
     if (!fs::exists(layerPath)) {
-        logger->log_error("Layer file not found: " + layerPath);
+        LOG_ERROR("Layer file not found: " + layerPath);
         std::cerr << "Layer not found: " << layerPath << std::endl;
         return;
         }

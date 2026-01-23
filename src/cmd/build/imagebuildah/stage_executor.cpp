@@ -17,6 +17,7 @@ void StageExecutor::Delete(){
             builder->Delete();
             builder=nullptr;
         }catch(const myerror& e){
+            LOG_ERROR("Failed to delete stage executor builder: " + std::string(e.what()));
             throw;
         }
     }
@@ -61,6 +62,7 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,bool> StageExecutor:
         if(Supported()){
             auto usage=Get();
             if(usage.second){
+                LOG_ERROR(errorToString(usage.second));
                 throw myerror(errorToString(usage.second));
             }
             if(execPtr->rusageLogFile!=nullptr){
@@ -72,7 +74,7 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,bool> StageExecutor:
     if(Supported()){
         auto resourceUsage=Get();
         if(resourceUsage.second){
-            // return std::make_tuple("",std::shared_ptr<canonical>(nullptr),false);
+            LOG_ERROR(errorToString(resourceUsage.second));
             throw myerror(errorToString(resourceUsage.second));
         }
 
@@ -80,6 +82,7 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,bool> StageExecutor:
     try{
         std::ignore=this->prepare(base,true,true,preserveBaseImageAnnotationsAtStageStart,pullPolicy);
     }catch(const myerror& e){
+        LOG_ERROR("preparing stage executor: "+std::string(e.what()));
         throw;
     }
     auto children=stage->Node->Children;
@@ -156,7 +159,7 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,bool> StageExecutor:
         try{
             step->Resolve(node);//得修改from的处理逻辑
         }catch(const myerror& e){
-            logger->log_error("resolving step "+std::to_string(i)+": "+std::string(e.what()));
+            LOG_ERROR("resolving step "+std::to_string(i)+": "+std::string(e.what()));
             throw myerror("resolving step "+std::to_string(i)+": "+std::string(e.what()));
         }
 
@@ -184,6 +187,7 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,bool> StageExecutor:
                 // auto stage_p=std::make_shared<StageExecutor>(*this);
                 ib->Run(step,shared_from_this(),noRunsRemaining);//将镜像层内容复制到overlay
             }catch(const myerror& e){
+                LOG_ERROR("building at STEP \""+step->Message+"\": "+std::string(e.what()));
                 throw myerror("building at STEP \""+step->Message+"\": "+std::string(e.what()));
             }
             auto addedContentSummary=getContentSummaryAfterAddingContent();
@@ -206,6 +210,7 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,bool> StageExecutor:
                         try{
                             this->generateBuildOutput(buildOutputOption);
                         }catch(const myerror& e){
+                            LOG_ERROR("generating build output: "+std::string(e.what()));
                             throw;
                         }
                     }
@@ -341,6 +346,7 @@ std::shared_ptr<Builder> StageExecutor::prepare(
                 this->builder=builder;
             }
         }catch(const myerror& e){
+            LOG_ERROR(std::string(e.what()));
             throw;
         }
 
@@ -442,6 +448,7 @@ std::pair<std::string,std::shared_ptr<Canonical_interface>> StageExecutor::commi
             auto imageRef2=execPtr->resolveNameToImageRef(output);
             imageRef=imageRef2;
         }catch(const myerror& e){
+            LOG_ERROR(string(e.what()));
             throw;
         }
     }
@@ -555,7 +562,7 @@ std::pair<std::string,std::shared_ptr<Canonical_interface>> StageExecutor::commi
     try{
         std::tie(imgID,std::ignore,manifestDigest)=this->builder->Commit(imageRef,options);
     }catch(const myerror& e){
-        logger->log_error("Failed to commit changes: " + std::string(e.what()));
+        LOG_ERROR("Failed to commit changes: " + std::string(e.what()));
         throw;
     }
     std::shared_ptr<Canonical_interface> ref;
@@ -565,7 +572,7 @@ std::pair<std::string,std::shared_ptr<Canonical_interface>> StageExecutor::commi
             try{
                 ref=WithDigest(dref,manifestDigest);
             }catch(const myerror& e){
-                logger->log_error("computing canonical reference for new image "+imgID+":"+std::string(e.what()));
+                LOG_ERROR("computing canonical reference for new image "+imgID+":"+std::string(e.what()));
                 throw myerror("computing canonical reference for new image "+imgID+":"+std::string(e.what()));
             }
         }

@@ -20,6 +20,11 @@
 #include <fstream>
 #include <string>
 #include <memory>
+#include <sstream>   // 新增
+
+extern std::string log_dir;
+extern std::string log_prefix;
+
 class ProcessSafeLogger {
 private:
     std::string log_dir_;
@@ -46,14 +51,32 @@ public:
     void set_module(const std::string& Module);
 
     void log_info(const std::string& message);
-
     void log_warning(const std::string& message);
-
     void log_error(const std::string& message);
+
+    // 新增：带位置信息的错误日志
+    void log_error_loc(const std::string& message,
+                       const char* file,
+                       int line,
+                       const char* func);
+
+    // 新增：线程安全懒汉单例，兼容默认 log_dir/log_prefix
+    // static std::shared_ptr<ProcessSafeLogger> getInstance(const std::string& log_dir = log_dir,
+    //                                                       const std::string& log_prefix = log_prefix);
 };
+
+// 便捷宏：自动带上文件/行/函数信息
+// 添加空指针检查，更安全
+#define LOG_ERROR(msg) \
+    do { \
+        if (logger) { \
+            logger->log_error_loc((msg), __FILE__, __LINE__, __func__); \
+        } \
+    } while(0)
+
+// 旧接口保持不变
 std::shared_ptr<ProcessSafeLogger> Newlogger();
-extern std::shared_ptr<ProcessSafeLogger>logger;
-extern std::string log_dir;
-extern std::string log_prefix;
+extern std::shared_ptr<ProcessSafeLogger> logger;
+
 
 #endif // PROCESS_SAFE_LOGGER_HPP

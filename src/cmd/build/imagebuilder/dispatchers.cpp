@@ -17,9 +17,11 @@ void env(
     std::vector<Heredoc>heredocs)
 {
     if(args.size()==0){
+        LOG_ERROR("ENV requires at least one argument");
         throw errAtLeastOneArgument("ENV");
     }
     if(args.size()%2!=0){
+        LOG_ERROR("ENV requires an even number of arguments");
         throw errTooManyArguments("ENV");
     }
     for(int i=0;i<args.size();i++){
@@ -47,6 +49,7 @@ void from(
 {
     // 确保传入的参数符合要求
     if (!(args.size() == 1 || (args.size() == 3 && !args[0].empty() && boost::iequals(args[1], "as") && !args[2].empty()))) {
+        LOG_ERROR("FROM requires either one argument, or three: FROM <source> [as <name>]");
         throw std::runtime_error("FROM requires either one argument, or three: FROM <source> [as <name>]");
     }
 
@@ -78,6 +81,7 @@ void from(
     try {
         name = ProcessWord(name, nameArgs);
     } catch (const std::exception& e) {
+        LOG_ERROR(std::string(e.what()));
         throw std::runtime_error(e.what());
     }
     // std::string dest = makeAbsolute(name, b->RunConfig->WorkingDir);
@@ -86,26 +90,18 @@ void from(
     std::string chmod;
     std::string from;
     // std::vector<std::string> userArgs = mergeEnv(envMapAsSlice(b->Args), b->Env);
-
-
-
-    // Windows 不支持没有基础镜像的容器
-//     if (name == "scratch") {
-// #ifdef _WIN32
-//         throw std::runtime_error("Windows does not support FROM scratch");
-// #endif
-//     }
-
     // 处理标志参数
     for (const auto& a : flagArgs) {
         std::string arg = ProcessWord(a, userArgs);
         if (boost::algorithm::starts_with(arg, "--platform=")) {
             std::string platformString = arg.substr(11);  // 去掉 "--platform="
             if (platformString.empty()) {
+                LOG_ERROR("no value specified for --platform=");
                 throw std::runtime_error("no value specified for --platform=");
             }
             b->Platform = platformString;
         } else {
+            LOG_ERROR("FROM only supports the --platform flag");
             throw std::runtime_error("FROM only supports the --platform flag");
         }
     }
@@ -141,11 +137,13 @@ void label(
 {
     // 检查参数长度是否为 0
     if (args.empty()) {
+        LOG_ERROR("LABEL requires at least one argument");
         throw errAtLeastOneArgument("LABEL");
     }
 
     // 检查参数长度是否为偶数，确保每个 name 都有对应的 value
     if (args.size() % 2 != 0) {
+        LOG_ERROR("LABEL requires an even number of arguments");
         throw errTooManyArguments("LABEL");
     }
 
@@ -173,6 +171,7 @@ void dispatchCopy(
     std::vector<Heredoc>heredocs)
 {
     if (args.size() < 2) {
+        LOG_ERROR("COPY requires at least two arguments");
         throw errAtLeastTwoArgument("COPY");
     }
 
@@ -191,6 +190,7 @@ void dispatchCopy(
         if (boost::algorithm::starts_with(arg, "--chown=")) {
             chown = arg.substr(8);  // 移除 "--chown=" 前缀
             if (chown.empty()) {
+                LOG_ERROR("no value specified for --chown=");
                 throw myerror("no value specified for --chown=");
             }
         } else if (boost::algorithm::starts_with(arg, "--chmod=")) {
@@ -199,9 +199,11 @@ void dispatchCopy(
         } else if (boost::algorithm::starts_with(arg, "--from=")) {
             from = arg.substr(7);  // 移除 "--from=" 前缀
             if (from.empty()) {
+                LOG_ERROR("no value specified for --from=");
                 throw myerror("no value specified for --from=");
             }
         } else {
+            LOG_ERROR("COPY only supports the --chmod=<permissions> --chown=<uid:gid> and the --from=<image|stage> flags");
             throw myerror("COPY only supports the --chmod=<permissions> --chown=<uid:gid> and the --from=<image|stage> flags");
         }
     }
@@ -234,6 +236,7 @@ void expose(
     std::vector<Heredoc>heredocs)
 {
     if (args.empty()) {
+        LOG_ERROR("EXPOSE requires at least one argument");
         throw errAtLeastOneArgument("EXPOSE");
     }
 
@@ -306,6 +309,7 @@ void Volume(
     std::vector<Heredoc>heredocs)
 {
     if(args.size()==0){
+        LOG_ERROR("VOLUME requires at least one argument");
         throw errAtLeastOneArgument("VOLUME");
     }
     if(b->RunConfig->Volumes.empty()){
@@ -316,6 +320,7 @@ void Volume(
         std::string src,dest;
         std::tie(src, dest,std::ignore)=Cut(v,':');
         if(v==""){
+            LOG_ERROR("Volume specified can not be an empty string");
             throw myerror("Volume specified can not be an empty string");
         }
         b->RunConfig->Volumes[src]=dest;
@@ -331,6 +336,7 @@ void workdir(
     std::vector<Heredoc>heredocs)
 {
     if(args.size()!=1){
+        LOG_ERROR("WORKDIR requires exactly one argument");
         throw errExactlyOneArgument("WORKDIR");
     }
     boost::filesystem::path workdir(args[0]);
@@ -362,6 +368,7 @@ std::vector<File> processHereDocs(const std::string& originalInstruction, const 
 			    shlex->RawEscapes = true;
                 content = shlex->ProcessWord(content, args);
             } catch (const myerror& e) {
+                LOG_ERROR(std::string(e.what()));
                 throw ;
             }
         }
@@ -378,39 +385,41 @@ void checkChmodConversion(const std::string& chmod) {
         std::size_t pos;
         unsigned long result = std::stoul(chmod, &pos, 8);  // 以8进制解析
         if (pos != chmod.size()) {
+            LOG_ERROR("Error parsing chmod " + chmod);
             throw std::invalid_argument("Error parsing chmod");
         }
     } catch (const std::invalid_argument&) {
+        LOG_ERROR("Error parsing chmod " + chmod);
         throw myerror("Error parsing chmod " + chmod);
     }
 }
 
 // 返回 "command 至少需要一个参数" 错误
 myerror errAtLeastOneArgument(const std::string& command) {
-    logger->log_error(command + " requires at least one argument");
+    LOG_ERROR(command + " requires at least one argument");
     return myerror(command + " requires at least one argument");
 }
 
 // 返回 "command 至少需要两个参数" 错误
 myerror errAtLeastTwoArgument(const std::string& command) {
-    logger->log_error(command + " requires at least two arguments");
+    LOG_ERROR(command + " requires at least two arguments");
     return myerror(command + " requires at least two arguments");
 }
 
 // 返回 "command 只需要一个参数" 错误
 myerror errExactlyOneArgument(const std::string& command) {
-    logger->log_error(command + " requires exactly one argument");
+    LOG_ERROR(command + " requires exactly one argument");
     return myerror(command + " requires exactly one argument");
 }
 
 // 返回 "command 参数过多" 错误
 myerror errTooManyArguments(const std::string& command) {
-    logger->log_error("Bad input to " + command + ", too many arguments");
+    LOG_ERROR("Bad input to " + command + ", too many arguments");
     return myerror("Bad input to " + command + ", too many arguments");
 }
 
 // 返回 "command 参数需要为 JSON 格式" 错误
 myerror errNotJSON(const std::string& command) {
-    logger->log_error(command + " requires the arguments to be in JSON form");
+    LOG_ERROR(command + " requires the arguments to be in JSON form");
     return myerror(command + " requires the arguments to be in JSON form");
 }

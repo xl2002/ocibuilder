@@ -17,6 +17,7 @@ void Builder::Delete(){
     try{
         store->DeleteContainer(ContainerID);
     }catch(const myerror& e){
+        LOG_ERROR("Failed to delete container " + ContainerID + ": " + std::string(e.what()));
         throw;
     }
     MountPoint.clear();
@@ -311,18 +312,18 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,std::shared_ptr<Dige
     try{
         blocked=isReferenceBlocked(dest,systemContext);
     }catch(const myerror& e){
-        logger->log_error("checking if committing to registry for "+ImageName(dest)+" is blocked: "+std::string(e.what()));
+        LOG_ERROR("checking if committing to registry for "+ImageName(dest)+" is blocked: "+std::string(e.what()));
         throw myerror("checking if committing to registry for "+ImageName(dest)+" is blocked: "+std::string(e.what()));
     }
     if(blocked){
-        logger->log_error("commit access to registry for"+ImageName(dest)+ "is blocked by configuration");
+        LOG_ERROR("commit access to registry for"+ImageName(dest)+ "is blocked by configuration");
         throw myerror("commit access to registry for"+ImageName(dest)+ "is blocked by configuration");
     }
     std::shared_ptr<Policy> commitPolicy;
     try{
         commitPolicy=DefaultPolicy(systemContext);
     }catch(const myerror& e){
-        logger->log_error("obtaining default signature policy: "+std::string(e.what()));
+        LOG_ERROR("obtaining default signature policy: "+std::string(e.what()));
         throw myerror("obtaining default signature policy: "+std::string(e.what()));
     }
     if(commitPolicy!=nullptr){
@@ -332,13 +333,14 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,std::shared_ptr<Dige
     try{
         policyContext=NewPolicyContext(commitPolicy);
     }catch(const myerror& e){
-        logger->log_error("creating new signature policy context: "+std::string(e.what()));
+        LOG_ERROR("creating new signature policy context: "+std::string(e.what()));
         throw myerror("creating new signature policy context: "+std::string(e.what()));
     }
     auto defer=[&](){
         try{
             policyContext->Destroy();
         }catch(const myerror& e){
+            LOG_ERROR("destroying signature policy context: "+std::string(e.what()));
             throw;
         }
     };
@@ -346,6 +348,7 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,std::shared_ptr<Dige
     try{
         insecure=checkRegistrySourcesAllows("commit to",dest);
     }catch(const myerror& e){
+        LOG_ERROR("checking if committing to registry for "+ImageName(dest)+" is blocked: "+std::string(e.what()));
         throw;
     }
     if(insecure){
@@ -360,7 +363,7 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,std::shared_ptr<Dige
     try{
         src=this->makeContainerImageRef(options);
     }catch(const myerror& e){
-        logger->log_error("computing layer digests and building metadata for container "+this->ContainerID+":"+std::string(e.what()));
+        LOG_ERROR("computing layer digests and building metadata for container "+this->ContainerID+":"+std::string(e.what()));
         throw myerror("computing layer digests and building metadata for container "+this->ContainerID+":"+std::string(e.what()));
     }
 
@@ -387,32 +390,9 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,std::shared_ptr<Dige
         coptions->check=options->check;
         manifestBytes=retryCopyImage(policyContext,maybeCachedDest,maybeCachedSrc,dest,coptions,options->MaxRetries,options->RetryDelay);
     }catch(const myerror& e){
-        logger->log_error("copying layers and metadata for container "+this->ContainerID+": "+std::string(e.what()));
+        LOG_ERROR("copying layers and metadata for container "+this->ContainerID+": "+std::string(e.what()));
         throw myerror("copying layers and metadata for container "+this->ContainerID+": "+std::string(e.what()));
     }
-    // if(dest->Transport()->Name()==Transport->Name()){
-    //     std::shared_ptr<storage::Image>img;
-    //     std::shared_ptr<ImageReference_interface>dest2=nullptr;
-    //     try{
-    //         std::tie(dest2,img)=ResolveReference(dest);
-    //     }catch(const myerror& e){
-    //         throw myerror("locating image "+ImageName(dest)+" in local storage: "+std::string(e.what()));
-    //     }
-    //     dest=dest2;
-    //     imgID=img->ID;
-    //     std::vector<std::string>toPruneNames(img->Names.size());
-    //     for(auto& name:img->Names){
-    //         if(nameToRemove!=""&& name.find(nameToRemove) != std::string::npos){
-    //             toPruneNames.push_back(name);
-    //         }
-    //     }
-    //     if(toPruneNames.size()>0){
-            
-    //     }
-    //     if(options->IIDFile!=""){
-
-    //     }
-    // }
     //得到imgID，为镜像的config的digest
     auto manifest=unmarshal<::Manifest>(vectorToString(manifestBytes));
     imgID=manifest.Config.Digests.Encoded();
@@ -424,18 +404,11 @@ std::tuple<std::string,std::shared_ptr<Canonical_interface>,std::shared_ptr<Dige
     try{
         manifestDigest=manifest::Digest(manifestBytes);
     }catch(const myerror& e){
-        logger->log_error("computing digest of manifest of new image "+this->ContainerID+": "+std::string(e.what()));
+        LOG_ERROR("computing digest of manifest of new image "+this->ContainerID+": "+std::string(e.what()));
         throw myerror("computing digest of manifest of new image "+this->ContainerID+": "+std::string(e.what()));
     }
     std::shared_ptr<Canonical_interface> ref=nullptr;
-    // auto name=dest->DockerReference();
-    // if(name!=nullptr){
-    //     try{
-    //         ref=WithDigest(name,manifestDigest);
-    //     }catch(const myerror& e){
-    //         throw;
-    //     }
-    // }
+
     if(options->Manifest!=""){
 
     }

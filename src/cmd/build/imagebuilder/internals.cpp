@@ -139,7 +139,7 @@ std::chrono::milliseconds parseOptInterval(const std::string& flagValue, const s
     long long value;
 
     if (!(iss >> value >> unit)) {
-        logger->log_error("Invalid duration format");
+        LOG_ERROR("Invalid duration format");
         throw std::invalid_argument("Invalid duration format");
     }
 
@@ -157,12 +157,12 @@ std::chrono::milliseconds parseOptInterval(const std::string& flagValue, const s
             duration = std::chrono::milliseconds(value * 1000 * 60 * 60 * 24);
             break;
         default:
-            logger->log_error("Unsupported duration unit");
+            LOG_ERROR("Unsupported duration unit");
             throw std::invalid_argument("Unsupported duration unit");
     }
 
     if (duration.count() <= 0) {
-        logger->log_error("Interval " + flagName + " must be positive");
+        LOG_ERROR("Interval " + flagName + " must be positive");
         throw std::invalid_argument("Interval " + flagName + " must be positive");
     }
 

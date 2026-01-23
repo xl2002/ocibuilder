@@ -20,6 +20,7 @@
 #include <memory>
 #include <chrono>
 #include "utils/common/go/file.h"
+#include "utils/logger/ProcessSafeLogger.h"
 vector<string> getContainerfiles(vector<string> files);
 
 /**
@@ -40,12 +41,15 @@ void GenBuildOptions(std::shared_ptr <Command> cmd, vector<string> inputArgs,std
     bool cleanTmpFile=false;
     if(iopts->Network=="none"){
         if(cmd->Flag_find("dns")->changed){
+            LOG_ERROR("the --dns option cannot be used with --network=none");
             throw myerror("the --dns option cannot be used with --network=none");
         }
         if(cmd->Flag_find("dns-option")->changed){
+            LOG_ERROR("the --dns-option option cannot be used with --network=none");
             throw myerror("the --dns-option option cannot be used with --network=none");
         }
         if(cmd->Flag_find("dns-search")->changed){
+            LOG_ERROR("the --dns-search option cannot be used with --network=none");
             throw myerror("the --dns-search option cannot be used with --network=none");
         }
     }
@@ -118,6 +122,7 @@ void GenBuildOptions(std::shared_ptr <Command> cmd, vector<string> inputArgs,std
 
         }
         if(cmd->Flag_find("compress")->changed){
+            LOG_ERROR("--compress option specified but is ignored");
             throw myerror("--compress option specified but is ignored");
         }
         auto compression=std::make_shared<Compression>();
@@ -251,6 +256,7 @@ void GenBuildOptions(std::shared_ptr <Command> cmd, vector<string> inputArgs,std
     }
     catch(const myerror& e)
     {
+        LOG_ERROR("Failed to generate build options: " + std::string(e.what()));
         throw;
     }
     return;

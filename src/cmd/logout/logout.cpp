@@ -59,13 +59,13 @@ void logoutCmd(std::shared_ptr<Command> cmd, vector<string> args, std::shared_pt
     // 如果没有all参数，则删除指定的用户名和密码
     std::string ipAddr = args[args.size()-1];
     if (!boost::filesystem::exists(authPath)) {
-        logger->log_error("No login information found in auth file");
+        LOG_ERROR("No login information found in auth file");
         std::cerr << "No login information\n";
         return;
     }
     std::ifstream ifs(authPath);
     if (!ifs) {
-        logger->log_error("Failed to open auth.json for reading");
+        LOG_ERROR("Failed to open auth.json for reading");
         std::cerr << "Failed to open auth.json for reading\n";
         return;
     }
@@ -75,7 +75,7 @@ void logoutCmd(std::shared_ptr<Command> cmd, vector<string> args, std::shared_pt
     ifs.close();
     jv = boost::json::parse(buffer.str());
     if (!jv.is_object()) {
-        logger->log_error("Error parsing JSON from auth file");
+        LOG_ERROR("Error parsing JSON from auth file");
         std::cerr << "Error parsing JSON\n";
         return;
     }
@@ -95,7 +95,7 @@ void logoutCmd(std::shared_ptr<Command> cmd, vector<string> args, std::shared_pt
         ofs.close();
         logger->log_info("Successfully updated auth file");
     } else {
-        logger->log_error("Failed to save credentials to auth file");
+        LOG_ERROR("Failed to save credentials to auth file");
         std::cerr << "Failed to save credentials\n";
     }
     // delete iopts;

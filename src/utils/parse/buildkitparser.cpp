@@ -29,7 +29,7 @@
 std::shared_ptr<Heredoc> heredocFromMatch(const std::vector<std::string>& match) {
     logger->log_info("Starting heredoc parsing from match");
     if (match.empty()) {
-        logger->log_error("Empty match vector provided to heredocFromMatch");
+        LOG_ERROR("Empty match vector provided to heredocFromMatch");
         return nullptr;
     }
 
@@ -42,7 +42,7 @@ std::shared_ptr<Heredoc> heredocFromMatch(const std::vector<std::string>& match)
     std::string rest = match[3];
 
     if (rest.size() == 0) {
-        logger->log_error("Empty heredoc delimiter found");
+        LOG_ERROR("Empty heredoc delimiter found");
         return nullptr;
     }
 
@@ -53,17 +53,17 @@ std::shared_ptr<Heredoc> heredocFromMatch(const std::vector<std::string>& match)
     shlex->RawQuotes=false;
     auto words = shlex->ProcessWords(rest,std::vector<std::string>{});
     if (words.size() != 1) {
-        logger->log_error("Invalid heredoc delimiter - multiple words found");
+        LOG_ERROR("Invalid heredoc delimiter - multiple words found");
         return nullptr;
     }
     if(words.size()!=1){
-        logger->log_error("Invalid heredoc delimiter - words size mismatch");
+        LOG_ERROR("Invalid heredoc delimiter - words size mismatch");
         return nullptr;
     }
     shlex->RawQuotes=true;
     auto wordsRaw = shlex->ProcessWords(rest,std::vector<std::string>{});
     if (wordsRaw.size() != words.size()) {
-        logger->log_error("Lexing inconsistency detected in heredoc: " + rest);
+        LOG_ERROR("Lexing inconsistency detected in heredoc: " + rest);
         throw myerror("internal lexing of heredoc produced inconsistent results: " + rest);
     }
 

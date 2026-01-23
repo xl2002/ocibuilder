@@ -56,7 +56,7 @@ std::vector<std::string> ParseIgnore(const std::string& path) {
     if (!file.is_open()) {
         error_message = "Could not open file: " + path;
         // return excludes;
-
+        LOG_ERROR(error_message);
         throw myerror(error_message);
     }
 
@@ -77,7 +77,7 @@ std::vector<std::string> ParseIgnore(const std::string& path) {
     
     if (file.bad()) {
         error_message = "Error reading file: " + path;
-        logger->log_error(error_message);
+        LOG_ERROR(error_message);
         // return excludes;
         throw myerror(error_message);
     }
@@ -127,6 +127,7 @@ std::shared_ptr<Stages>NewStages(std::shared_ptr<Node>node,std::shared_ptr<Image
     try{
         b->extractHeadingArgsFromNode(node);
     }catch(const myerror& e){
+        LOG_ERROR("extracting heading args from node: "+std::string(e.what()));
         throw;
     }
     auto f=SplitBy(node,"from");
@@ -166,14 +167,15 @@ std::string Image_Builder::From(std::shared_ptr<Node> node){
     try{
         extractHeadingArgsFromNode(node);
     }catch(const myerror& e){
+        LOG_ERROR("extracting heading args from node: "+std::string(e.what()));
         throw;
     }
     auto children=SplitChildren(node,"from");//分离from操作
     if(children.size()==0){
-        logger->log_error("no FROM statement found");
+        LOG_ERROR("no FROM statement found");
         throw myerror("no FROM statement found");
     }else if(children.size()>1){
-        logger->log_error("multiple FROM statements are not supported");
+        LOG_ERROR("multiple FROM statements are not supported");
         throw myerror("multiple FROM statements are not supported");
     }else{
         auto step=Step_new();
@@ -182,6 +184,7 @@ std::string Image_Builder::From(std::shared_ptr<Node> node){
             step->Resolve(children[0]);
             Run(step,NoopExecutor,false);
         }catch(const myerror& e){
+            LOG_ERROR("while processing FROM statement: "+std::string(e.what()));
             throw;
         }
         return RunConfig->Image;
@@ -202,7 +205,7 @@ void Image_Builder::extractHeadingArgsFromNode(std::shared_ptr<Node> node){
     // }
     for (auto i=0;i<node->Children.size();i++) {
         if (!node->Children[i]) {
-            logger->log_error("Warning: child is nullptr");
+            LOG_ERROR("Warning: child is nullptr");
             std::cerr << "Warning: child is nullptr" << std::endl;
             continue; // 如果 child 为空则跳过
         }
@@ -334,6 +337,7 @@ void Image_Builder::Run(std::shared_ptr<Step> step,std::shared_ptr<Executor_Inte
         auto func=fn->second;
         func(shared_from_this(),step->Args,step->Attrs,step->Flags,step->Original,step->Heredocs);
     }catch(const myerror& e){
+        LOG_ERROR(std::string(e.what()));
         throw;
     }
     auto copies = this->PendingCopies;
@@ -352,14 +356,14 @@ void Image_Builder::Run(std::shared_ptr<Step> step,std::shared_ptr<Executor_Inte
     try{
         exec->COPY(this->Excludes,copies);
     }catch(const myerror& e){
-        logger->log_error(std::string(e.what()));
+        LOG_ERROR(std::string(e.what()));
         throw;
     }
     if(this->RunConfig->WorkingDir.size()>0){
         try{
             exec->EnsureContainerPathAs(this->RunConfig->WorkingDir,this->RunConfig->User,nullptr);
         }catch(const myerror& e){
-            logger->log_error(std::string(e.what()));
+            LOG_ERROR(std::string(e.what()));
             throw;
         }
     }

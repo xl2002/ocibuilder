@@ -12,7 +12,7 @@ std::shared_ptr<Node> ParseDockerfile(std::vector<byte> r) {
     }
     catch(const myerror& e)
     {
-        logger->log_error(std::string(e.what()));
+        LOG_ERROR(std::string(e.what()));
         throw;
     }
 }
@@ -23,7 +23,7 @@ void Step::Resolve(std::shared_ptr<Node> ast) {
 
     // 检查平台是否支持命令
     if (platformSupports(toLower(cmd))!="") {
-        logger->log_error("Platform does not support command");
+        LOG_ERROR("Platform does not support command");
         throw myerror("Platform does not support command");
     }
     auto attrs=ast->Attributes;
@@ -39,7 +39,7 @@ void Step::Resolve(std::shared_ptr<Node> ast) {
 
     if (cmd == "ONBUILD") {
         if (ast->Children.empty()) {
-            logger->log_error("ONBUILD requires at least one argument");
+            LOG_ERROR("ONBUILD requires at least one argument");
             throw myerror("ONBUILD requires at least one argument");
         }
         ast = ast->Children[0];
@@ -71,7 +71,7 @@ void Step::Resolve(std::shared_ptr<Node> ast) {
                     words=ProcessWords(str, envs);
                     strList.insert(strList.end(), words.begin(), words.end());
                 }catch(const myerror& e){
-                    logger->log_error(std::string(e.what()));
+                    LOG_ERROR(std::string(e.what()));
                     throw;
                 }
             } else {
@@ -79,7 +79,7 @@ void Step::Resolve(std::shared_ptr<Node> ast) {
                     // auto str=ProcessWord(str, envs);
                     strList.push_back(ProcessWord(str, Env));
                 }catch(const myerror& e){
-                    logger->log_error(std::string(e.what()));
+                    LOG_ERROR(std::string(e.what()));
                     throw;
                 }
             }

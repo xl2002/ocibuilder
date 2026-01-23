@@ -209,6 +209,7 @@ void pushCmd(std::shared_ptr<Command>cmd, vector<string> args, std::shared_ptr<p
 
                 initResult = initUpload(url->host, url->port, url->imageName, url->projectName);
                 if (initResult.first.empty() || initResult.second.empty()) {
+                    LOG_ERROR("Failed to initialize upload");
                     throw std::runtime_error("Failed to initialize upload");
                 }
 
@@ -225,6 +226,7 @@ void pushCmd(std::shared_ptr<Command>cmd, vector<string> args, std::shared_ptr<p
             RetryIfNecessary([&](){
                 uploadResult = uploadBlobChunk(url->host, url->port, uid, state, filePath, 0, total_size, total_size, url->imageName, url->projectName);
                 if (uploadResult.first.empty() || uploadResult.second.empty()) {
+                    LOG_ERROR("Failed to upload blob chunk");
                     throw std::runtime_error("Failed to upload blob chunk");
                 }
             }, retryOptions);
@@ -236,6 +238,7 @@ void pushCmd(std::shared_ptr<Command>cmd, vector<string> args, std::shared_ptr<p
             RetryIfNecessary([&](){
                 finalizeUpload(url->host, url->port, uid, shaId, state, url->imageName, url->projectName);
                 if (!ifBlobExists(url->host, url->port, url->imageName, shaId, url->projectName)) {
+                    LOG_ERROR("Blob upload verification failed");
                     throw std::runtime_error("Blob upload verification failed");
                 }
             }, retryOptions);
@@ -249,7 +252,7 @@ void pushCmd(std::shared_ptr<Command>cmd, vector<string> args, std::shared_ptr<p
     }
     // 如果blob上传失败，直接返回
     if (!allBlobsUploaded) {
-        logger->log_error("Failed to push some blobs, aborting manifest upload");
+        LOG_ERROR("Failed to push some blobs, aborting manifest upload");
         std::cerr << "Failed to push some blobs, aborting manifest upload" << std::endl;
         // delete iopts;
         return;

@@ -8,7 +8,7 @@
 #include "image/types/define/types.h"
 #include "image/image_types/v1/annotations.h"
 #include <boost/filesystem.hpp>
-
+#include "utils/logger/ProcessSafeLogger.h"
 /**
  * @brief Create a new Builder instance with specified store and options
  * 
@@ -45,6 +45,7 @@ std::shared_ptr<Builder> newBuilder(std::shared_ptr<Store> store,std::shared_ptr
             imageRuntime=RuntimeFromStore(store,runtimeOptions);
             pullPolicy=ParsePullPolicy(options->PullPolicy->String());
         }catch(const myerror& e){
+            LOG_ERROR("initializing image runtime: "+std::string(e.what()));
             throw;
         }
         auto pullOptions=std::make_shared<PullOptions>();
@@ -62,6 +63,7 @@ std::shared_ptr<Builder> newBuilder(std::shared_ptr<Store> store,std::shared_ptr
                 // ref=pulledImages[0]->StorageReference();
             }
         }catch(const myerror& e){
+            LOG_ERROR("pulling image: "+std::string(e.what()));
             throw;
         }
     }
@@ -87,6 +89,7 @@ std::shared_ptr<Builder> newBuilder(std::shared_ptr<Store> store,std::shared_ptr
             std::shared_ptr<::Digest> instanceDigest=nullptr;
             // src=FromUnparsedImage(systemContext,UnparsedInstance(srcSrc,instanceDigest));
         }catch(const myerror& e){
+            LOG_ERROR("creating image from unparsed source: "+std::string(e.what()));
             throw;
         }
     }
@@ -127,6 +130,7 @@ std::shared_ptr<Builder> newBuilder(std::shared_ptr<Store> store,std::shared_ptr
             builder->initConfig(img,systemContext);
         }
     }catch(const myerror & e){
+        LOG_ERROR("initializing builder config: "+std::string(e.what()));
         throw;
     }
     if(!options->PreserveBaseImageAnns){

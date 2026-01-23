@@ -55,27 +55,12 @@ bool ReloadConfigurationFileIfNeeded(const std::string& configFile, StoreOptions
     boost::filesystem::file_status fs;
     fs=boost::filesystem::status(configFile);
     if(fs.type()!=boost::filesystem::regular_file) return false;
-    // try {
-    //     fs = boost::filesystem::status(configFile);
-    // } catch (const boost::filesystem::filesystem_error& e) {
-    //     // 文件状态检查失败，返回错误
-    //     throw myerror("检查配置文件状态失败: " + std::string(e.what()));
-    // }
     auto mtime = boost::filesystem::last_write_time(configFile);
 
     if (prevReloadConfig.storeOptions && prevReloadConfig.mod == mtime && prevReloadConfig.configFile == configFile) {
         storeOptions = *prevReloadConfig.storeOptions;
         return true;
     }
-    // try {
-    //     // 重新加载配置文件
-    //     if (!ReloadConfigurationFile(configFile, storeOptions)) {
-    //         throw myerror("重新加载配置文件失败: " + configFile);
-    //     }
-    // } catch (const myerror& e) {
-    //     // 重新加载配置文件失败，抛出错误
-    //     throw myerror("重新加载配置文件失败: " + std::string(e.what()));
-    // }
 
     prevReloadConfig.storeOptions = std::make_shared<StoreOptions>(storeOptions);
     prevReloadConfig.mod = mtime;
@@ -111,8 +96,8 @@ void loadDefaultStoreOptions() {
         if (!path.empty()) {
             defaultOverrideConfigFile = path;
             if (!ReloadConfigurationFileIfNeeded(defaultOverrideConfigFile, defaultStoreOptions)) {
-                logger->log_error("重新加载配置文件失败: " + defaultOverrideConfigFile);
-                throw myerror("重新加载配置文件失败: " + defaultOverrideConfigFile);
+                LOG_ERROR("Failed to reload configuration file: " + defaultOverrideConfigFile);
+                throw myerror("Failed to reload configuration file: " + defaultOverrideConfigFile);
             }
             setDefaults(defaultStoreOptions);
             return;
@@ -126,9 +111,9 @@ void loadDefaultStoreOptions() {
             if (boost::filesystem::exists(homeConfigFile)) {
                 defaultOverrideConfigFile = homeConfigFile;
             } else {
-                logger->log_warning("XDG配置文件不存在: " + homeConfigFile);
+                logger->log_warning("XDG configuration file does not exist: " + homeConfigFile);
                 if (!boost::filesystem::exists(homeConfigFile)) {
-                    throw myerror("无法访问配置文件: " + homeConfigFile);
+                    throw myerror("Failed to access configuration file: " + homeConfigFile);
                 }
             }
         }
@@ -137,8 +122,8 @@ void loadDefaultStoreOptions() {
         if (boost::filesystem::exists(defaultOverrideConfigFile)) {
             defaultConfigFile = defaultOverrideConfigFile;
             if (!ReloadConfigurationFileIfNeeded(defaultOverrideConfigFile, defaultStoreOptions)) {
-                logger->log_error("重新加载覆盖配置文件失败: " + defaultOverrideConfigFile);
-                throw myerror("重新加载配置文件失败: " + defaultOverrideConfigFile);
+                LOG_ERROR("Failed to reload configuration file: " + defaultOverrideConfigFile);
+                throw myerror("Failed to reload configuration file: " + defaultOverrideConfigFile);
             }
             setDefaults(defaultStoreOptions);
             return;
@@ -147,8 +132,8 @@ void loadDefaultStoreOptions() {
         // 默认配置文件路径
         if (!ReloadConfigurationFileIfNeeded(defaultConfigFile, defaultStoreOptions)) {
             if(boost::filesystem::exists(defaultConfigFile)) {
-                logger->log_error("重新加载默认配置文件失败: " + defaultConfigFile);
-                throw myerror("重新加载配置文件失败: " + defaultConfigFile);
+                LOG_ERROR("Failed to reload default configuration file: " + defaultConfigFile);
+                throw myerror("Failed to reload configuration file: " + defaultConfigFile);
             }
             //logger->log_warning("默认配置文件不存在: " + defaultConfigFile);
         }
@@ -156,8 +141,8 @@ void loadDefaultStoreOptions() {
 
     } catch (const myerror& e) {
         // 捕获并处理 myerror 异常，提供额外的错误信息
-        logger->log_error("加载默认存储选项失败: "+std::string(e.what()));
-        std::cerr << "加载默认存储选项时发生错误: " << e.what() << std::endl;
+        LOG_ERROR("Failed to load default store options: "+std::string(e.what()));
+        std::cerr << "Error occurred while loading default store options: " << e.what() << std::endl;
         throw; // 重新抛出异常，以便上层函数处理
     }
 }
@@ -227,9 +212,11 @@ int getRootlessUID() {
                 return std::stoi(uidEnv);
             } catch (const std::invalid_argument&) {
                 // 捕获转换错误但不输出错误信息
+                LOG_ERROR("Invalid UID value in environment variable: " + uidEnv);
                 throw myerror("Invalid UID value in environment variable");
             } catch (const std::out_of_range&) {
                 // 捕获转换范围错误但不输出错误信息
+                LOG_ERROR("UID value out of range in environment variable: " + uidEnv);
                 throw myerror("UID value out of range");
             }
         }
@@ -241,6 +228,7 @@ int getRootlessUID() {
         throw;
     } catch (...) {
         // 捕获其他异常，抛出 myerror 异常，不输出错误信息
+        LOG_ERROR("Unknown error occurred while retrieving UID");
         throw myerror("Unknown error occurred while retrieving UID");
     }
 }
@@ -257,11 +245,13 @@ StoreOptions DefaultStoreOptions() {
                 result = loadStoreOptions();
                 storeptions=result;
             } catch (const myerror& e) {
+                LOG_ERROR("Failed to load store options: " + std::string(e.what()));
                 throw; // 重新抛出 myerror 类型的异常
             }
         };
         std::call_once(defaultloadoptions, loadoptions);
     } catch (const myerror& e) {
+        LOG_ERROR("Failed to load default store options: " + std::string(e.what()));
         throw; // 重新抛出 myerror 类型的异常
     }
     return storeptions;
@@ -276,6 +266,7 @@ StoreOptions defaultOptions(){
         std::call_once(defaultStoreOptionsFlag, loadDefaultStoreOptions);
         return defaultStoreOptions;
     }catch(const myerror& e){
+        LOG_ERROR("Failed to get default store options: " + std::string(e.what()));
         throw;
     }
     
@@ -321,13 +312,15 @@ std::string DefaultConfigFile() {
         // 获取用户主目录
         std::string home = boost::filesystem::path(boost::compute::detail::getenv("HOME")).string();
         if (home.empty()) {
-            throw myerror("无法确定用户的主目录");
+            LOG_ERROR("Failed to determine user's home directory");
+            throw myerror("Failed to determine user's home directory");
         }
 
         return (boost::filesystem::path(home) / ".config" / "containers" / "storage.conf").string();
 
     } catch (const std::exception& e) {
-        throw myerror("获取默认配置文件路径失败: " + std::string(e.what()));
+        LOG_ERROR("Failed to get default configuration file path: " + std::string(e.what()));
+        throw myerror("Failed to get default configuration file path: " + std::string(e.what()));
     }
 }
 
@@ -428,7 +421,7 @@ bool MkdirAll(const std::string& path) {
     try {
         return boost::filesystem::create_directory(p) || boost::filesystem::is_directory(p);
     } catch (const boost::filesystem::filesystem_error& e) {
-        logger->log_error("创建目录失败: "+std::string(e.what()));
+        LOG_ERROR("创建目录失败: "+std::string(e.what()));
         std::cerr << "创建目录失败: " << e.what() << std::endl;
         return false;
     }
@@ -456,6 +449,7 @@ StoreOptions loadStoreOptions() {
             storageConf = DefaultConfigFile();
         } catch (const myerror& e) {
             // 如果 DefaultConfigFile 抛出 myerror 异常，直接重新抛出
+            LOG_ERROR("Failed to get default configuration file path: " + std::string(e.what()));
             throw;
         }
 
@@ -464,10 +458,12 @@ StoreOptions loadStoreOptions() {
             result = loadStoreOptionsFromConfFile(storageConf);
         } catch (const myerror& e) {
             // 如果 loadStoreOptionsFromConfFile 抛出 myerror 异常，直接重新抛出
+            LOG_ERROR("Failed to load store options from configuration file: " + std::string(e.what()));
             throw;
         }
     } catch (const myerror& e) {
         // 捕获并处理 myerror 异常，如果需要的话可以添加额外的处理逻辑
+        LOG_ERROR("Error loading store options: " + std::string(e.what()));
         throw; // 重新抛出异常
     }
     return result;
@@ -524,7 +520,8 @@ StoreOptions loadStoreOptionsFromConfFile(const std::string& storageConf) {
 
         // 确保 run_root 被设置
         if (storageOpts.run_root.empty()) {
-            throw myerror("run_root 必须被设置");
+            LOG_ERROR("run_root must be set");
+            throw myerror("run_root must be set");
         }
 
         // 处理环境变量路径
@@ -532,33 +529,39 @@ StoreOptions loadStoreOptionsFromConfFile(const std::string& storageConf) {
         try {
             storageOpts.run_root = expandEnvPath(storageOpts.run_root, rootlessUID);
         } catch (const myerror& e) {
-            throw myerror("扩展 run_root 路径失败: " + std::string(e.what()));
+            LOG_ERROR("Failed to expand run_root path: " + std::string(e.what()));
+            throw myerror("Failed to expand run_root path: " + std::string(e.what()));
         }
 
         if (storageOpts.graph_root.empty()) {
-            throw myerror("graph_root 必须被设置");
+            LOG_ERROR("graph_root must be set");
+            throw myerror("graph_root must be set");
         }
         try {
             storageOpts.graph_root = expandEnvPath(storageOpts.graph_root, rootlessUID);
         } catch (const myerror& e) {
-            throw myerror("扩展 graph_root 路径失败: " + std::string(e.what()));
+            LOG_ERROR("Failed to expand graph_root path: " + std::string(e.what()));
+            throw myerror("Failed to expand graph_root path: " + std::string(e.what()));
         }
 
         if (!storageOpts.rootless_storage_path.empty()) {
             try {
                 storageOpts.rootless_storage_path = expandEnvPath(storageOpts.rootless_storage_path, rootlessUID);
             } catch (const myerror& e) {
-                throw myerror("扩展 rootless_storage_path 路径失败: " + std::string(e.what()));
+                LOG_ERROR("Failed to expand rootless_storage_path path: " + std::string(e.what()));
+                throw myerror("Failed to expand rootless_storage_path path: " + std::string(e.what()));
             }
         }
 
         if (!storageOpts.image_store.empty() && storageOpts.image_store == storageOpts.graph_root) {
-            throw myerror("image_store " + storageOpts.image_store + " 必须未设置或不同于 graph_root");
+            LOG_ERROR("image_store " + storageOpts.image_store + " must be unset or different from graph_root");
+            throw myerror("image_store " + storageOpts.image_store + " must be unset or different from graph_root");
         }
 
     } catch (const myerror& e) {
         // 捕获并处理 myerror 异常，提供额外的错误信息
-        throw myerror("加载配置文件时发生错误: " + std::string(e.what()));
+        LOG_ERROR("Failed to load configuration file: " + std::string(e.what()));
+        throw myerror("Failed to load configuration file: " + std::string(e.what()));
     }
 
     return storageOpts;
@@ -606,7 +609,8 @@ std::shared_ptr<Store> GetStore(StoreOptions options) {
 
         // 检查根路径
         if (finalOptions.run_root.empty() && finalOptions.graph_root.empty()) {
-            throw myerror("未指定存储运行根目录或图形根目录");
+            LOG_ERROR("run_root and graph_root must be set");
+            throw myerror("run_root and graph_root must be set");
         }
         if (finalOptions.graph_root.empty()) {
             finalOptions.graph_root = defaultOpts.graph_root;
@@ -663,6 +667,7 @@ std::shared_ptr<Store> GetStore(StoreOptions options) {
         return s;
 
     } catch (const myerror& e) {
+        LOG_ERROR("Failed to get store: " + std::string(e.what()));
         throw; // 重新抛出 myerror 类型的异常
     }
 }

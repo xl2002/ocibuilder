@@ -13,7 +13,7 @@
 std::string Digest::Encoded() const {
     std::size_t sepindex = sepIndex();
     if (sepindex == std::string::npos || sepindex + 1 >= digest.size()) {
-        logger->log_error("Digest is not in a valid format");
+        LOG_ERROR("Digest is not in a valid format");
         throw myerror("Digest is not in a valid format");
     }
     return digest.substr(sepindex + 1);
@@ -77,11 +77,11 @@ void Digest::Validate() {
     auto s=this->digest;
     auto i=s.find(':');
     if(i==std::string::npos){
-        logger->log_error("Digest is not in a valid format");
+        LOG_ERROR("Digest is not in a valid format");
         throw myerror("Digest is not in a valid format");
     }
     if(i<=0 || i+1>=s.size()){
-        logger->log_error("Digest is not in a valid format");
+        LOG_ERROR("Digest is not in a valid format");
         throw myerror("Digest is not in a valid format");
     }
     auto algorithm=std::make_shared<Algorithm_sha256>(s.substr(0,i));
@@ -90,16 +90,17 @@ void Digest::Validate() {
     if (!algorithm->Available()) {
         // 使用正则表达式检查格式
         if (!std::regex_match(s, DigestRegexpAnchored)) {
-            logger->log_error("ErrDigestInvalidFormat");
+            LOG_ERROR("ErrDigestInvalidFormat");
             throw std::invalid_argument("ErrDigestInvalidFormat");
         }
-        logger->log_error("ErrDigestUnsupported");
+        LOG_ERROR("ErrDigestUnsupported");
         throw std::runtime_error("ErrDigestUnsupported");
     }
     
     try{
         algorithm->Validate(encoded);
     }catch(std::exception& e){
+        LOG_ERROR("Digest validation error: " + std::string(e.what()));
         throw myerror(e.what());
     }
 }

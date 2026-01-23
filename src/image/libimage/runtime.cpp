@@ -1,5 +1,4 @@
 #include "image/libimage/runtime.h"
-// #include "utils/logger/logrus/exported.h"
 #include "config/new.h"
 #include "image/transports/alltransports.h"
 #include "image/image_types/docker/docker_transport.h"
@@ -9,6 +8,7 @@
 #include "image/types/reference/regexp.h"
 #include "storage/storage/images.h"
 #include <boost/filesystem.hpp>
+#include "utils/logger/ProcessSafeLogger.h"
 namespace fs = boost::filesystem;
 /**
  * @brief 从存储创建运行时实例
@@ -121,12 +121,14 @@ std::vector<std::shared_ptr<LibImage::Image>> Runtime::Pull(std::string name,std
     if(ref==nullptr){
         auto t=TransportFromImageName(name);
         if(t!=nullptr&& t->Name()!=docker_Transport->Name()) {
-            throw;
+            LOG_ERROR("Unsupported transport: " + t->Name());
+            throw myerror("Unsupported transport: " + t->Name());
         }
         std::string normalizedName;
         try{
             std::tie(normalizedName,std::ignore)=normalizeTaggedDigestedString(name);
         }catch(const myerror& e) {
+            LOG_ERROR("Error normalizing tagged digested string: " + std::string(e.what()));
             throw;
         }
         name=normalizedName;
@@ -134,6 +136,7 @@ std::vector<std::shared_ptr<LibImage::Image>> Runtime::Pull(std::string name,std
         try{
             dockerRef=ParseImageName("docker://"+name);
         }catch(const myerror& e) {
+            LOG_ERROR("Error parsing image name: " + std::string(e.what()));
             throw;
         }
         ref=dockerRef;
@@ -161,6 +164,7 @@ std::vector<std::shared_ptr<LibImage::Image>> Runtime::Pull(std::string name,std
             pulledImages=this->copyFromRegistry(ref,possiblyUnqualifiedName,pullPolicy,options);
         }
     }catch(const myerror& e) {
+        LOG_ERROR("Error pulling image: " + std::string(e.what()));
         throw;
     }
     auto localImages=std::vector<std::shared_ptr<LibImage::Image>>{};
@@ -174,6 +178,7 @@ std::vector<std::shared_ptr<LibImage::Image>> Runtime::Pull(std::string name,std
             // }
             localImages.push_back(image);
         }catch(const myerror& e) {
+            LOG_ERROR("Error looking up image after pull: " + std::string(e.what()));
             throw;
         }
     }
@@ -238,6 +243,7 @@ std::vector<std::string> Runtime::copySingleImageFromRegistry(std::string imageN
     try{
         std::tie(localImage,resolvedImageName)=this->LookupImage(imageName,lookupImageOptions);
     }catch(const myerror& e) {
+        LOG_ERROR("Error looking up local image: " + std::string(e.what()));
         throw;
     }
     if(localImage!=nullptr) {
@@ -302,30 +308,6 @@ std::tuple<std::shared_ptr<LibImage::Image>,std::string> Runtime::LookupImage(st
     }
     std::tie(options->OS,options->Architecture,options->Variant)=LibImage::Normalize(options->OS,options->Architecture,options->Variant);
     std::vector<std::shared_ptr<Named_interface>> candidates;
-    // try{
-        // candidates=ResolveLocally(this->systemContext,name);
-    // }catch(const myerror& e) {
-    //     throw;
-    // }
-    //
-    // ParseDockerRef(name);
-    // 遍历 candidates
-    // for (const auto& candidate : candidates) {
-    //     // 尝试在本地存储中查找图像
-    //     std::shared_ptr<LibImage::Image> img;
-    //     try {
-    //         // 调用 lookupImageInLocalStorage，传入相应的参数
-    //         img = this->lookupImageInLocalStorage(name, candidate->String(), candidate, options);
-    //     } catch (const myerror& err) {
-    //         // 如果发生错误，返回空图像指针、空字符串，并抛出异常
-    //         throw;
-    //     }
-
-    //     // 如果找到了图像，则返回图像和候选项的字符串表示
-    //     if (img != nullptr) {
-    //         return std::make_tuple(img, candidate->String());
-    //     }
-    // }
     std::shared_ptr<LibImage::Image> img;
     img = this->lookupImageInLocalStorage(name, name, nullptr, options);
     if (img != nullptr) {
@@ -356,32 +338,17 @@ std::tuple<std::shared_ptr<LibImage::Image>,std::string> Runtime::LookupImage(st
 std::shared_ptr<LibImage::Image> Runtime::lookupImageInLocalStorage(std::string name,std::string candidate,std::shared_ptr<Named_interface> namedCandidate,std::shared_ptr<LookupImageOptions> options){
     std::shared_ptr<storage::Image> img;
     std::shared_ptr<ImageReference_interface> ref;
-    // if(namedCandidate!=nullptr) {
-    //     namedCandidate=TagNameOnly(namedCandidate);
-    //     try{
-    //         ref=Transport->NewStoreReference(this->store,namedCandidate,"");
-    //         std::tie(std::ignore,img)=ResolveReference(ref);
-    //     }catch(const myerror& e) {
-    //         throw;
-    //     }
-    // }
     img=this->store->Image(name);
     if(img==nullptr){
+        LOG_ERROR("Image not found in store: " + name);
         throw myerror("image: "+name +" don't in store");
     }
     ref=Transport->ParseStoreReference(this->store,img->ID);
     if(ref==nullptr) {
+        LOG_ERROR("Failed to parse image ID: " + img->ID);
         throw myerror("failed to parse image ID: "+img->ID);
     }
     auto image=this->storageToImage(img,ref);
-    // if(!image->matchesPlatform(options->OS,options->Architecture,options->Variant)) {
-    //     throw myerror("image does not match platform: "+options->OS+"/"+options->Architecture+"/"+options->Variant);
-    // }
-
-    // if(img!=nullptr) {
-    //     return img;
-    // }
-    
     return image;
 }
 /**

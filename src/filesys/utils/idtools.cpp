@@ -1,5 +1,5 @@
 #include "filesys/utils/idtools.h"
-
+#include "utils/logger/ProcessSafeLogger.h"
 /**
  * @brief 从用户映射和组映射创建新的IDMappings实例
  *
@@ -27,14 +27,16 @@ std::shared_ptr<IDMappings> NewIDMappingsFromMaps(std::vector<IDMap> uids, std::
 bool SafeChown(const std::string& name, int uid, int gid) {
     // 检查文件或目录是否存在
     if (!boost::filesystem::exists(name)) {
-        throw myerror("文件或目录不存在: " + name);
+        LOG_ERROR("File or directory does not exist: " + name);
+        throw myerror("File or directory does not exist: " + name);
     }
 
     struct stat statbuf;
 
     // 获取文件或目录的状态信息
     if (stat(name.c_str(), &statbuf) != 0) {
-        throw myerror("获取状态信息失败: " + name);
+        LOG_ERROR("Failed to get status information: " + name);
+        throw myerror("Failed to get status information: " + name);
     }
 
     // 检查 UID 和 GID 是否为 0
@@ -42,10 +44,6 @@ bool SafeChown(const std::string& name, int uid, int gid) {
         return true;  // UID 和 GID 都为 0，不需要修改
     }
 
-    // // 修改文件或目录的所有者
-    // if (chown(name.c_str(), uid, gid) != 0) {
-    //     throw myerror("修改所有者失败: " + name);
-    // }
     return true; // 返回 false，表示进行了修改
 }
 /**
@@ -69,31 +67,29 @@ bool mkdirAs(const std::string& path, int mode, int ownerUID, int ownerGID, bool
                 // 目录存在，处理权限更改
                 if (chownExisting) {
                     if (!SafeChown(path, ownerUID, ownerGID)) {
-                        throw myerror("修改目录所有者失败: " + path);
+                        LOG_ERROR("Failed to change directory ownership: " + path);
+                        throw myerror("Failed to change directory ownership: " + path);
                     }
                 }
                 return true;
             } else {
-                throw myerror("路径不是目录: " + path);
+                LOG_ERROR("Path is not a directory: " + path);
+                throw myerror("Path is not a directory: " + path);
             }
         }
 
         // 如果需要递归创建所有目录
         if (mkAll) {
             if (!MkdirAll(path)) {
-                throw myerror("递归创建目录失败: " + path);
+                LOG_ERROR("Failed to recursively create directory: " + path);
+                throw myerror("Failed to recursively create directory: " + path);
             }
         }
-
-        // 创建当前目录
-        // if (!boost::filesystem::create_directory(p)) {
-        //     throw myerror("创建目录失败: " + path);
-        // }
-
         // 处理权限变更
         for (const auto& pathComponent : paths) {
             if (!SafeChown(pathComponent, ownerUID, ownerGID)) {
-                throw myerror("修改目录所有者失败: " + pathComponent);
+                LOG_ERROR("Failed to change directory ownership: " + pathComponent);
+                throw myerror("Failed to change directory ownership: " + pathComponent);
             }
         }
     } catch (const myerror& e) {
@@ -136,6 +132,7 @@ void MkdirAllAndChownNew(const std::string& path, int mode, int ownerUID, int ow
     try {
         mkdirAs(path, mode, ownerUID, ownerGID, true, false);
     } catch (const myerror& e) {
+        LOG_ERROR("Failed to create directories and change ownership: " + path);
         throw;
     }
 }

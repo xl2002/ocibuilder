@@ -197,7 +197,7 @@ void Flagset::SetAnnotation(string name,string key,vector<string> value){
     auto flag=formal_flags.find(name);
     if(flag==formal_flags.end()){
         // throw myerror("no such flag: "+name);
-        logger->log_error("no such flag: "+name);
+        LOG_ERROR("no such flag: "+name);
         cerr<<"no such flag: "<<name<<endl;
     }
     flag->second->Annotations[key]=value;
@@ -308,7 +308,7 @@ bool Flagset:: Changed(string name ) {
 void Flagset::MarkHidden(string name){
     auto flag=Lookup(name);
     if(flag==nullptr){
-        logger->log_error("flag "+name+" does not exit");
+        LOG_ERROR("flag "+name+" does not exit");
         throw myerror("flag "+name+" does not exit");
         // cerr<<"flag "<<name<<"does not exit"<<endl;
     }else{
@@ -325,13 +325,13 @@ void Flagset::MarkHidden(string name){
 string Flagset::getFlagType(string name,const string ftype){
     auto flag=Lookup(name);
     if(flag==nullptr){
-        logger->log_error("flag accessed but not defined: "+name);
+        LOG_ERROR("flag accessed but not defined: "+name);
         throw myerror("flag accessed but not defined: "+name);
         // cerr<<"flag accessed but not defined: "<<name<<endl;
         return "";
     }
     if(flag->value->Type()!=ftype){
-        logger->log_error("trying to get"+ ftype+" value of flag of type "+flag->value->Type());
+        LOG_ERROR("trying to get"+ ftype+" value of flag of type "+flag->value->Type());
         throw myerror("trying to get"+ ftype+" value of flag of type "+flag->value->Type());
         // cerr<<"trying to get"<< ftype<<" value of flag of type "<<flag->value->Type()<<endl;
         return "";
@@ -358,6 +358,7 @@ bool Flagset::GetBool(string name) {
         // 如果标志的值为“true”，则返回true，否则返回false
         return (val == "true");
     } catch (const myerror& e) {
+        LOG_ERROR("Failed to get bool flag: " + string(e.what()));
         throw;
     }
 }
@@ -375,6 +376,7 @@ string Flagset::GetString(string name) {
         string val = getFlagType(name, "string");
         return val;
     } catch (const myerror& e) {
+        LOG_ERROR("Failed to get string flag: " + string(e.what()));
         throw;
     }
 }
@@ -415,6 +417,7 @@ vector<string> Flagset::GetStringArray(string name){
     }
     catch(const myerror& e)
     {
+        LOG_ERROR("Failed to get stringArray flag: " + string(e.what()));
         throw;
     }
 }
@@ -437,6 +440,7 @@ vector<string> Flagset::GetStringSlice(string name){
     }
     catch(const myerror& e)
     {
+        LOG_ERROR("Failed to get stringSlice flag: " + string(e.what()));
         throw;
     }
 }
@@ -455,6 +459,7 @@ uint64_t Flagset::GetUint64(string name){
     }
     catch(const myerror& e)
     {
+        LOG_ERROR("Failed to get uint64 flag: " + string(e.what()));
         throw;
     }
 }
@@ -466,6 +471,7 @@ int64_t Flagset::GetInt64(string name){
     }
     catch(const myerror& e)
     {
+        LOG_ERROR("Failed to get int64 flag: " + string(e.what()));
         throw;
     }
 }
@@ -524,6 +530,7 @@ void Flagset::Parse(vector<string> arguments) {
         parseArgs(arguments);
     } catch (const myerror& e) {
         // 捕获并重新抛出异常
+        LOG_ERROR("Failed to parse flags: " + string(e.what()));
         throw;
     }
 }
@@ -564,6 +571,7 @@ void Flagset::parseArgs(vector<string> args){
         }
         catch(const myerror& e)
         {
+            LOG_ERROR("Failed to parse long arg: " + string(e.what()));
             throw;
         }
         it=args.begin();
@@ -584,7 +592,7 @@ vector<string> Flagset::parseLongArg(string arg, vector<string> args) {
     // 提取标签名
     string name(arg.begin() + 2, arg.end());
     if (name.size() == 0 || name[0] == '-' || name[0] == '=') {
-        logger->log_error("bad flag syntax: " + arg);
+        LOG_ERROR("bad flag syntax: " + arg);
         throw myerror("bad flag syntax: " + arg);
     }
 
@@ -594,7 +602,7 @@ vector<string> Flagset::parseLongArg(string arg, vector<string> args) {
 
     std::shared_ptr<Flag> flag=nullptr;
     if (formal_flags.find(name) == formal_flags.end()) {
-        logger->log_error("unknown flag: --" + name);
+        LOG_ERROR("unknown flag: --" + name);
         throw myerror("unknown flag: --" + name);
     } else {
         flag = formal_flags[name];
@@ -613,7 +621,7 @@ vector<string> Flagset::parseLongArg(string arg, vector<string> args) {
         ret_args.erase(ret_args.begin());
     } else {
         // 格式为 --flag, 参数为必需
-        logger->log_error("flag needs an argument: " + arg);
+        LOG_ERROR("flag needs an argument: " + arg);
         throw myerror("flag needs an argument: " + arg);
     }
 
@@ -621,10 +629,11 @@ vector<string> Flagset::parseLongArg(string arg, vector<string> args) {
         // 尝试设置标志
         bool isSet = Set(flag->name, value);
         if (!isSet) {
-            logger->log_error( "fail to set the flag value");
+            LOG_ERROR( "fail to set the flag value");
             cerr << "fail to set the flag value" << endl;
         }
     } catch (const myerror& e) {
+        LOG_ERROR("Failed to set flag value: " + string(e.what()));
         throw;
     }
 
@@ -646,7 +655,7 @@ bool Flagset::Set(string name, string value){
     // string name =this->name;
     shared_ptr<Flag> flag=nullptr;
     if(formal_flags.find(name)==formal_flags.end()){
-        logger->log_error("no such flag "+name);
+        LOG_ERROR("no such flag "+name);
         throw myerror("no such flag "+name);
         // cerr<<"no such flag "<<name<<endl;
         return false;
@@ -664,7 +673,7 @@ bool Flagset::Set(string name, string value){
         order_actual_flags.emplace_back(flag);
     }
     if(flag->deprecated!=""){
-        logger->log_error("flag "+name+"has been deprecated, "+flag->deprecated);
+        LOG_ERROR("flag "+name+"has been deprecated, "+flag->deprecated);
         cerr<< "flag "<<name<<"has been deprecated, "<<flag->deprecated<<endl;
     }
     return true;

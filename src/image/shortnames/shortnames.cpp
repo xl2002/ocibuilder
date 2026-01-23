@@ -6,6 +6,7 @@
 #include "utils/common/error.h"
 #include "image/shortnames/sysregistriesv2/shortnames.h"
 #include "image/shortnames/sysregistriesv2/system_registries_v2.h"
+#include "utils/logger/ProcessSafeLogger.h"
 /**
  * @brief 本地解析短名称引用
  * @param ctx 系统上下文，可为nullptr
@@ -102,6 +103,7 @@ std::tuple<bool,bool,std::shared_ptr<Named_interface>,std::string,std::shared_pt
     
     auto tagged=std::dynamic_pointer_cast<NamedTagged_interface>(named);
     if(tagged==nullptr){
+        LOG_ERROR("Not a tagged reference: " + named->String());
         throw myerror("not a tagged reference");
     }
     isTagged=true;

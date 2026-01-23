@@ -51,7 +51,7 @@ void tagCmd(std::shared_ptr<Command> cmd, vector<string> args){
         images->newtag(args[0],args[1]);
         logger->log_info("Successfully tagged " + args[0] + " as " + args[1]);
     }catch(const myerror& e){
-        logger->log_error("Failed to tag image: " + std::string(e.what()));
+        LOG_ERROR("Failed to tag image: " + std::string(e.what()));
         e.logerror();
         exit(1);
     }

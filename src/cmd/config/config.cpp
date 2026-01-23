@@ -203,6 +203,7 @@ void updateConfig(std::shared_ptr<Builder> builder, std::shared_ptr<Command> c, 
                     builder->SetEnv(env[0], env[1]);
                 } else {
                     // 错误处理或默认行为，您可以选择抛出 myerror 异常
+                    LOG_ERROR("setting env " + env[0] + ": no value given");
                     throw myerror("setting env " + env[0] + ": no value given");
                 }
             }
@@ -229,7 +230,7 @@ void updateConfig(std::shared_ptr<Builder> builder, std::shared_ptr<Command> c, 
     } catch (const myerror& e) {
         // 处理 myerror 类型的异常
         // 此处您可以根据需要进行日志记录或其他处理
-        std::cerr << "Error: " << e.what() << std::endl;
+        LOG_ERROR(std::string(e.what()));
         throw; // 重新抛出异常以供外层捕获
     }
 }
@@ -247,11 +248,11 @@ void configCmd(std::shared_ptr<Command> cmd, std::vector<std::string> args, std:
         
         // 1. 检查是否提供了有效的容器ID参数
         if (args.empty()) {
-            logger->log_error("Container ID must be specified");
+            LOG_ERROR("Container ID must be specified");
             throw myerror("container ID must be specified");
         }
         if (args.size() > 1) {
-            logger->log_warning("Too many arguments specified, only first will be used");
+            LOG_ERROR("Too many arguments specified");
             throw myerror("too many arguments specified");
         }
         std::string name = args[0];
@@ -259,14 +260,14 @@ void configCmd(std::shared_ptr<Command> cmd, std::vector<std::string> args, std:
         // 2. 获取存储对象（store）
         auto store = getStore(cmd);
         if (!store) {
-            logger->log_error("Failed to get store");
+            LOG_ERROR("Failed to get store");
             throw myerror("failed to get store");
         }
 
         // 3. 创建Builder对象
         auto builder = openBuilder(store, name);
         if (!builder) {
-            logger->log_error("Failed to create builder for container: " + name);
+            LOG_ERROR("Failed to create builder for container: " + name);
             throw myerror("reading build container failed: " + name);
         }
 
@@ -279,7 +280,7 @@ void configCmd(std::shared_ptr<Command> cmd, std::vector<std::string> args, std:
         logger->log_info("Config command completed successfully");
     } catch (const myerror& e) {
         // 输出错误信息并终止执行
-        logger->log_error(std::string(e.what()));
+        LOG_ERROR(std::string(e.what()));
         std::cerr << "Error: " << e.what() << std::endl;
         return;
     }

@@ -12,7 +12,7 @@ void CheckAuthFile(std::shared_ptr<pushOptions> iopts){
     }
     struct stat buffer;
     if(stat(iopts->authfile.c_str(),&buffer)!=0){
-        logger->log_error("credential file is not accessible:"+std::make_error_code(std::errc::no_such_file_or_directory).message());
+        LOG_ERROR("credential file is not accessible:"+std::make_error_code(std::errc::no_such_file_or_directory).message());
         throw myerror("credential file is not accessible:"+std::make_error_code(std::errc::no_such_file_or_directory).message());
     }
 }

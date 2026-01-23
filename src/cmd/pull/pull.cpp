@@ -65,7 +65,7 @@ void pullCmd(std::shared_ptr<Command> cmd, vector<string> args,std::shared_ptr<p
     logger->set_module("pull");
     std::string src;
     if(args.size()==0){
-        logger->log_error("No image specified for pull");
+        LOG_ERROR("No image specified for pull");
         std::cout<<"Please input the image you want to push!!"<<"\n";
         return;
     } else{
@@ -110,7 +110,7 @@ void pullCmd(std::shared_ptr<Command> cmd, vector<string> args,std::shared_ptr<p
             logger->log_info("Authentication successful");
             loginAuth.bearerToken = btoken_push;
         } else {
-            logger->log_error("Authentication failed");
+            LOG_ERROR("Authentication failed");
             loginAuth.bearerToken.erase();
         }
         
@@ -125,13 +125,13 @@ void pullCmd(std::shared_ptr<Command> cmd, vector<string> args,std::shared_ptr<p
                 size_t mlen=0;
                 std::tie(digest,mlen)=pullManifestAndBlob(url->host,url->port,url->projectName,url->imageName,tagList[i],os,arch);
             if(digest == "" || mlen == 0){
-                logger->log_error("Failed to pull manifest");
+                LOG_ERROR("Failed to pull manifest");
                 std::cout<<"pull manifest error"<<std::endl;
                 return;
                 }
                 auto images=std::dynamic_pointer_cast<ImageStore>(store->image_store);
             if(images==nullptr){
-                logger->log_error("Image store is null");
+                LOG_ERROR("Image store is null");
                 std::cerr<<"imageindexs error"<<std::endl;
                 }
                 auto newindex=std::make_shared<storage::manifest>();
@@ -178,7 +178,7 @@ void pullCmd(std::shared_ptr<Command> cmd, vector<string> args,std::shared_ptr<p
             auto Layers = manifest.Layers;
             auto layerStore = store->getLayerStoreLocked();
         if (!layerStore) {
-            //logger->log_error("Failed to get layer store");
+            //LOG_ERROR("Failed to get layer store");
             return ;
         }
         auto layerOptions=std::make_shared<LayerOptions>();
@@ -211,7 +211,7 @@ void pullCmd(std::shared_ptr<Command> cmd, vector<string> args,std::shared_ptr<p
                 logger->log_info("Successfully extracted tar.gz");
                 std::cout << "extract targz successful" << std::endl;
             } else {
-                logger->log_error("Failed to extract tar.gz");
+                LOG_ERROR("Failed to extract tar.gz");
                 std::cout << "extract targz failed" << std::endl;
             }
             layerStore->savelayer();
@@ -222,13 +222,13 @@ void pullCmd(std::shared_ptr<Command> cmd, vector<string> args,std::shared_ptr<p
             size_t mlen=0;
             std::tie(digest,mlen)=pullManifestAndBlob(url->host,url->port,url->projectName,url->imageName,url->version,os,arch);
             if(digest == "" || mlen == 0){
-                logger->log_error("Failed to pull manifest");
+                LOG_ERROR("Failed to pull manifest");
                 std::cout<<"pull manifest error"<<std::endl;
                 return;
             }
             auto images=std::dynamic_pointer_cast<ImageStore>(store->image_store);
             if(images==nullptr){
-                logger->log_error("Image store is null");
+                LOG_ERROR("Image store is null");
                 std::cerr<<"imageindexs error"<<std::endl;
             }
             auto newindex=std::make_shared<storage::manifest>();
@@ -275,7 +275,7 @@ void pullCmd(std::shared_ptr<Command> cmd, vector<string> args,std::shared_ptr<p
             auto Layers = manifest.Layers;
             auto layerStore = store->getLayerStoreLocked();
         if (!layerStore) {
-            //logger->log_error("Failed to get layer store");
+            //LOG_ERROR("Failed to get layer store");
             return ;
         }
         auto layerOptions=std::make_shared<LayerOptions>();
@@ -307,7 +307,7 @@ void pullCmd(std::shared_ptr<Command> cmd, vector<string> args,std::shared_ptr<p
                 logger->log_info("Successfully extracted tar.gz");
                 std::cout << "extract targz successful" << std::endl;
             } else {
-                logger->log_error("Failed to extract tar.gz");
+                LOG_ERROR("Failed to extract tar.gz");
                 std::cout << "extract targz failed" << std::endl;
             }
             layerStore->savelayer();
@@ -320,7 +320,7 @@ void pullCmd(std::shared_ptr<Command> cmd, vector<string> args,std::shared_ptr<p
         std::string destPath = "oci_images/oci_registry/blobs/sha256";
         std::string indexPath = url->localPullPath+"/index.json";
         if(!fs::exists(indexPath)){
-            logger->log_error("Index file does not exist: " + indexPath);
+            LOG_ERROR("Index file does not exist: " + indexPath);
             std::cout << "File does not exist: " << indexPath << std::endl;
             return;
         }
@@ -341,7 +341,7 @@ void pullCmd(std::shared_ptr<Command> cmd, vector<string> args,std::shared_ptr<p
 
         std::string manifestPath = url->localPullPath+"/blobs/sha256/"+index.manifests[0].digest.substr(7);
         if(!fs::exists(manifestPath)){
-            logger->log_error("Manifest file does not exist");
+            LOG_ERROR("Manifest file does not exist");
             std::cout << "ManifestFile does not exist: " << std::endl;
             return;
         }
@@ -360,7 +360,7 @@ void pullCmd(std::shared_ptr<Command> cmd, vector<string> args,std::shared_ptr<p
 
         std::string configPath = url->localPullPath+"/blobs/sha256/"+manifest.Config.Digests.digest.substr(7);
         if(!fs::exists(configPath)){
-            logger->log_error("Config file does not exist");
+            LOG_ERROR("Config file does not exist");
             std::cout << "Config does not exist: " << std::endl;
             return;
         }
@@ -369,7 +369,7 @@ void pullCmd(std::shared_ptr<Command> cmd, vector<string> args,std::shared_ptr<p
         for(size_t i=0;i<manifest.Layers.size();i++){
             std::string tmp=url->localPullPath+"/blobs/sha256/"+manifest.Layers[i].Digests.digest.substr(7);
             if(!fs::exists(tmp)){
-            logger->log_error("Blob file does not exist");
+            LOG_ERROR("Blob file does not exist");
             std::cout << "Blob does not exist: " << std::endl;
                 return;
             }
@@ -393,7 +393,7 @@ void pullCmd(std::shared_ptr<Command> cmd, vector<string> args,std::shared_ptr<p
         //处理index.json
         auto images=std::dynamic_pointer_cast<ImageStore>(store->image_store);
         if(images==nullptr){
-            logger->log_error("Image store is null");
+            LOG_ERROR("Image store is null");
             std::cerr<<"imageindexs error"<<std::endl;
         }
         
@@ -433,7 +433,7 @@ void pullCmd(std::shared_ptr<Command> cmd, vector<string> args,std::shared_ptr<p
         
         auto layerStore = store->getLayerStoreLocked();
         if (!layerStore) {
-            //logger->log_error("Failed to get layer store");
+            //LOG_ERROR("Failed to get layer store");
             return ;
         }
         auto layerOptions=std::make_shared<LayerOptions>();
@@ -465,7 +465,7 @@ void pullCmd(std::shared_ptr<Command> cmd, vector<string> args,std::shared_ptr<p
                 logger->log_info("Successfully extracted tar.gz");
                 std::cout << "extract targz successful" << std::endl;
             } else {
-                logger->log_error("Failed to extract tar.gz");
+                LOG_ERROR("Failed to extract tar.gz");
                 std::cout << "extract targz failed" << std::endl;
             }
             layerStore->savelayer();

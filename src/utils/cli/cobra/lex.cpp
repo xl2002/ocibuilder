@@ -109,7 +109,7 @@ std::tuple<std::string,std::vector<std::string>> shellWord_lex::process(std::str
     }
     catch(const myerror& e)
     {
-        logger->log_error("Failed to process source: " + source + ", error: " + e.what());
+        LOG_ERROR("Failed to process source: " + source + ", error: " + e.what());
         throw myerror(std::string(e.what())+"\nfailed to process "+source);
     }
 }
@@ -180,7 +180,7 @@ std::tuple<std::string, std::vector<std::string>> shellWord_lex::processStopOn(c
 
     if (stopChar != '\0') {
         std::string errMsg = "unexpected end of statement while looking for matching character";
-        logger->log_error(errMsg);
+        LOG_ERROR(errMsg);
         throw std::runtime_error(errMsg);
     }
 
@@ -254,6 +254,7 @@ std::string shellWord_lex::processDollar() {
                         if (!word.empty()) {
                             message = word;
                         }
+                        LOG_ERROR(name + ": " + message);
                         throw std::runtime_error(name + ": " + message);
                     }
                     if (nullIsUnset && it->second.empty()) {
@@ -261,16 +262,18 @@ std::string shellWord_lex::processDollar() {
                         if (!word.empty()) {
                             message = word;
                         }
+                        LOG_ERROR(name + ": " + message);
                         throw std::runtime_error(name + ": " + message);
                     }
                     return it->second;
                 } else {
+                    LOG_ERROR("unsupported modifier (" + chs + ") in substitution");
                     throw std::runtime_error("unsupported modifier (" + chs + ") in substitution");
                 }
             }
         default:
             std::string errMsg = "unsupported modifier (" + chs + ") in substitution";
-            logger->log_error(errMsg);
+            LOG_ERROR(errMsg);
             throw std::runtime_error(errMsg);
     }
 }
@@ -348,7 +351,7 @@ std::string shellWord_lex::processSingleQuote() {
 
     // 如果到达这里，表示遇到了文件结束而没有找到结束单引号
     std::string errMsg = "unexpected end of statement while looking for matching single-quote";
-    logger->log_error(errMsg);
+    LOG_ERROR(errMsg);
     throw myerror(errMsg);
 }
 
@@ -379,6 +382,7 @@ std::string shellWord_lex::processDoubleQuote() {
             try {
                 value = processDollar();
             } catch (const std::exception& e) {
+                LOG_ERROR("Error processing dollar sign: " + std::string(e.what()));
                 throw myerror("Error processing dollar sign: " + std::string(e.what()));
             }
             result << value;
@@ -398,7 +402,7 @@ std::string shellWord_lex::processDoubleQuote() {
     }
 
     std::string errMsg = "unexpected end of statement while looking for matching double-quote";
-    logger->log_error(errMsg);
+    LOG_ERROR(errMsg);
     throw myerror(errMsg);
 }
 // 添加单个字符到当前单词中

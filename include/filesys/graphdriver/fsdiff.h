@@ -16,10 +16,6 @@ public:
     // };
     ~NaiveDiffDriver()=default;
     NaiveDiffDriver()=default;
-    // NaiveDiffDriver(std::shared_ptr<ProtoDriver_interface> protoDriver,
-    //                 std::shared_ptr<LayerIDMapUpdater_interface> updater)
-    //     : protoDriver(protoDriver ? protoDriver : throw std::invalid_argument("Invalid protoDriver")), 
-    //     layerIDMapUpdater(updater ? updater : throw std::invalid_argument("Invalid updater")) {}
 
     // 实现 ProtoDriver_interface 的 String 方法
     std::string String() override {

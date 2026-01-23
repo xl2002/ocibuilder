@@ -64,7 +64,7 @@ void loginCmd(std::shared_ptr<Command> cmd, vector<string> args,std::shared_ptr<
     bool flag = login(host, port, username, password);
     if (!flag) {
         std::cerr << "fail to login!!" << "\n";
-        logger->log_error("Login failed for username: " + username + " at registry: " + ipAddress);
+        LOG_ERROR("Login failed for username: " + username + " at registry: " + ipAddress);
         return;
     }
 
@@ -91,7 +91,7 @@ void loginCmd(std::shared_ptr<Command> cmd, vector<string> args,std::shared_ptr<
             }
     } else {
         std::cerr << "Failed to open file for loading cookie.\n";
-        logger->log_error("Failed to open auth file for loading cookie: " + authPath);
+        LOG_ERROR("Failed to open auth file for loading cookie: " + authPath);
         return;
     }
     }
@@ -105,7 +105,7 @@ void loginCmd(std::shared_ptr<Command> cmd, vector<string> args,std::shared_ptr<
         ofs.close();
     } else {
         std::cerr << "Failed to save credentials\n";
-        logger->log_error("Failed to save credentials to: " + authPath);
+        LOG_ERROR("Failed to save credentials to: " + authPath);
     }
     std::cout << "Credentials saved to auth.json\n";
     logger->log_info("Login successful for username: " + username + " at registry: " + ipAddress);

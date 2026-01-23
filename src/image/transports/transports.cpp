@@ -1,4 +1,5 @@
 #include "image/transports/transports.h"
+#include "utils/logger/ProcessSafeLogger.h"
 // auto kt=std::make_shared<knownTransports>();
 /**
  * @brief 根据名称获取已注册的传输协议对象
@@ -59,6 +60,7 @@ void knownTransports::Add(std::shared_ptr<ImageTransport_interface> t){
     std::lock_guard<std::mutex> lock(mu);
     auto name=t->Name();
     if(transports.find(name)!=transports.end()){
+        LOG_ERROR("Duplicate image transport name "+name);
         throw myerror("Duplicate image transport name "+name);
     }
     transports[name]=t;

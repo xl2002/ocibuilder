@@ -9,7 +9,7 @@
 #include <condition_variable>
 #include <memory>
 #include "utils/common/error.h"
-
+#include "utils/logger/ProcessSafeLogger.h"
 class Group
 {
 public:
@@ -30,6 +30,7 @@ public:
     void Add(int delta) {
         std::unique_lock<std::mutex> lock(mutex);
         if (count + delta < 0) {
+            LOG_ERROR("negative WaitGroup count");
             throw myerror("negative WaitGroup count");
         }
         count += delta;

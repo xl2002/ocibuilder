@@ -32,7 +32,7 @@ void storage::Image::recomputeDigests() {
             try {
                 digest->Validate();
             }catch (const myerror& e) {
-                logger->log_error("Validating image digest failed: %s"+std::string(e.what()));
+                LOG_ERROR("Validating image digest failed: %s"+std::string(e.what()));
                 throw myerror("Validating image digest failed.");
             }
             uniqueDigests.insert(*digest);
@@ -49,7 +49,7 @@ void storage::Image::recomputeDigests() {
             try{
                 bigDataDigest.Validate();
             }catch (const myerror& e) {
-                logger->log_error("Validating digest failed for big data item: %s"+std::string(e.what()));
+                LOG_ERROR("Validating digest failed for big data item: %s"+std::string(e.what()));
                 throw myerror("Validating digest failed for big data item.");
             }
             // 去重
@@ -68,6 +68,7 @@ void storage::Image::recomputeDigests() {
         // Digests = validDigests;
     } catch (const myerror& e) {
         // 捕获并重新抛出 myerror 类型的异常
+        LOG_ERROR("Recomputing image digests failed: %s"+std::string(e.what()));
         throw;
     }
 }

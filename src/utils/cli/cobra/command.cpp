@@ -77,7 +77,7 @@ void Command::Execute(int argc, char const *argv[]){
     }
     catch(const myerror& e)
     {
-        logger->log_error("Command execution failed: " + string(e.what()));
+        LOG_ERROR("Command execution failed: " + string(e.what()));
         throw ;
     }
 }
@@ -118,7 +118,7 @@ void Command::ExecuteC(int argc, char const *argv[]){
         if(cmd!=nullptr){
             *this=*cmd;
         }
-        cerr<<"Run "<<CommandPath()<<"--help' for usage."<<endl;
+        LOG_ERROR("Command execution failed: " + string(e.what()));
         throw ;
     }
     
@@ -138,7 +138,7 @@ void Command::ExecuteC(int argc, char const *argv[]){
             logger->log_info("Help requested for command: " + cmd->Name());
             cmd->Helpfunc()(cmd,args);
         }else{
-            logger->log_error("Command execution failed: " + string(e.what()));
+            LOG_ERROR("Command execution failed: " + string(e.what()));
             throw ;
         }
     }
@@ -154,7 +154,8 @@ void Command::AddCommand(initializer_list<std::shared_ptr<Command>>cmdlist){
     for (auto x : cmdlist) {
         if (x.get() == this) {
             // throw std::runtime_error("Command can't be a child of itself");
-            cerr<<"Command can't be a child of itself"<<endl;
+            // cerr<<"Command can't be a child of itself"<<endl;
+            logger->log_warning("Command can't be a child of itself");
         }
         x->parent_Command=shared_from_this();
         // x.parent = this;
@@ -254,7 +255,7 @@ void help_func(std::shared_ptr<Command> cmd, vector<string> a){
     try{
         tmpl(std::cout,cmd->HelpTemplate(),cmd);
     }catch(const myerror& e){
-        logger->log_error("help error: "+std::string(e.what()));
+        LOG_ERROR("help error: "+std::string(e.what()));
         std::cerr<<"help error: "<<e.what()<<std::endl;
     }
 }
@@ -392,7 +393,7 @@ void Command::InitDefaultHelpCmd(){
                     new_cmd = cmd->Root()->Find(args, new_args);
                     
                     if(new_cmd == nullptr){
-                        logger->log_error("Unknown command: " + args[0]);
+                        LOG_ERROR("Unknown command: " + args[0]);
                         cerr << "Unknown command: " << args[0] << endl;
                         cerr << "Run '" << cmd->Root()->Name() << " help' for usage." << endl;
                         return;
@@ -408,12 +409,12 @@ void Command::InitDefaultHelpCmd(){
                 try{
                     tmpl(std::cout, new_cmd->HelpTemplate(), new_cmd);
                 } catch(const myerror& e){
-                    logger->log_error("Failed to display help: " + string(e.what()));
+                    LOG_ERROR("Failed to display help: " + string(e.what()));
                     cerr << "Failed to display help: " << e.what() << endl;
                 }
             } 
             catch(const myerror& e) {
-                logger->log_error("Help command execution failed: " + string(e.what()));
+                LOG_ERROR("Help command execution failed: " + string(e.what()));
                 cerr << "Help command execution failed: " << e.what() << endl;
             }
         };
@@ -623,6 +624,7 @@ void legacyArgs(std::shared_ptr<Command>cmd,vector<string>args){
         return;
     }
     if(!cmd->HasParent() && args.size()>0){
+        LOG_ERROR("unknown command "+args[0]+" for "+cmd->CommandPath());
         throw myerror("unknown command "+args[0]+" for "+cmd->CommandPath());
     }
     return;
@@ -653,6 +655,7 @@ std::shared_ptr<Command> Command::Find(vector<string>args,vector<string>&ret_arg
         }
         catch(const myerror& e)
         {
+            LOG_ERROR("Legacy argument validation failed: " + string(e.what()));
             throw ;
         }
         
@@ -722,6 +725,7 @@ void Command::execute(vector<string> args){
     }
     catch(const myerror& e)
     {
+        LOG_ERROR("Failed to parse flags: " + string(e.what()));
         throw ;
     }
     bool helpval;
@@ -731,11 +735,13 @@ void Command::execute(vector<string> args){
     }
     catch(const myerror& e)
     {
-        cerr<<"\"help\" flag declared as non-bool. Please correct your code"<<endl;
+        // cerr<<"\"help\" flag declared as non-bool. Please correct your code"<<endl;
+        LOG_ERROR("\"help\" flag declared as non-bool. Please correct your code");
         throw ;
     }
     
     if(helpval){
+        LOG_ERROR("Help requested");
         throw myerror("help requested");
     }
     if(!Runnable()){
@@ -756,6 +762,7 @@ void Command::execute(vector<string> args){
             }
             catch(const myerror& e)
             {
+                LOG_ERROR("PersistentPreRun failed: " + string(e.what()));
                 throw;
             }
         }
@@ -767,6 +774,7 @@ void Command::execute(vector<string> args){
         }
         catch(const myerror& e)
         {
+            LOG_ERROR("PreRun failed: " + string(e.what()));
             throw;
         }
         
@@ -777,6 +785,7 @@ void Command::execute(vector<string> args){
     }
     catch(const myerror& e)
     {
+        LOG_ERROR("Required flag validation failed: " + string(e.what()));
         throw;
     }
     try
@@ -785,6 +794,7 @@ void Command::execute(vector<string> args){
     }
     catch(const myerror& e)
     {
+        LOG_ERROR("Flag group validation failed: " + string(e.what()));
         throw;
     }
     if(Run!=nullptr){
@@ -794,7 +804,7 @@ void Command::execute(vector<string> args){
     }
     catch(const myerror& e)
     {
-        logger->log_error("Command handler failed: " + string(e.what()));
+        LOG_ERROR("Command handler failed: " + string(e.what()));
         throw;
     }
     }
@@ -805,6 +815,7 @@ void Command::execute(vector<string> args){
         }
         catch(const myerror& e)
         {
+            LOG_ERROR("PostRun failed: " + string(e.what()));
             throw;
         }
     }
@@ -816,6 +827,7 @@ void Command::execute(vector<string> args){
             }
             catch(const myerror& e)
             {
+                LOG_ERROR("PersistentPostRun failed: " + string(e.what()));
                 throw;
             }
         }
@@ -843,6 +855,7 @@ void Command::ParseFlags(vector<string> args){
     }
     catch(const myerror& e)
     {
+        LOG_ERROR("Failed to parse flags: " + string(e.what()));
         throw;
     }
     
@@ -868,7 +881,7 @@ bool Command::ValidateRequiredFlags(){
     };
     flags->VisitAll(fn);
     if(missingFlagNames.size()>0){
-        logger->log_error("required flag(s) "+to_string(missingFlagNames.size()) +" not set");
+        LOG_ERROR("required flag(s) "+to_string(missingFlagNames.size()) +" not set");
         throw myerror("required flag(s) "+to_string(missingFlagNames.size()) +" not set");
         // cerr<<"required flag(s) "<<to_string(missingFlagNames.size()) <<" not set"<<endl;
     }

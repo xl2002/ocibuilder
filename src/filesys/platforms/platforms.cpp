@@ -2,6 +2,7 @@
 #include "filesys/platforms/database.h"
 #include "utils/common/error.h"
 #include "filesys/platforms/default_unix.h"
+#include "utils/logger/ProcessSafeLogger.h"
 // static std::regex specifierRe("[a-zA-Z0-9]+");
 /**
  * @brief 标准化平台规范对象
@@ -29,6 +30,7 @@ std::shared_ptr<Platform> PlatForms::Parse(const std::string& specifier) {
     Platform p;
 
     if (specifier.find("*") != std::string::npos) {
+        LOG_ERROR("Wildcards are not supported in platform specifier: " + specifier);
         throw myerror("wildcards not yet supported");
     }
 
@@ -41,6 +43,7 @@ std::shared_ptr<Platform> PlatForms::Parse(const std::string& specifier) {
 
     for (const auto& part : parts) {
         if (!std::regex_match(part, specifierRe)) {
+            LOG_ERROR(part + " is an invalid component of " + specifier);
             throw myerror(part + " is an invalid component of " + specifier);
         }
     }
@@ -66,6 +69,7 @@ std::shared_ptr<Platform> PlatForms::Parse(const std::string& specifier) {
                 p.OS = "runtime_os"; // 模拟当前系统
                 return std::make_shared<Platform>(p);
             }
+            LOG_ERROR("unknown operating system or architecture: " + parts[0]);
             throw myerror("unknown operating system or architecture");
         case 2:
             p.OS = normalizeOS(parts[0]);
@@ -88,6 +92,7 @@ std::shared_ptr<Platform> PlatForms::Parse(const std::string& specifier) {
             }
             return std::make_shared<Platform>(p);
         default:
+            LOG_ERROR("cannot parse platform specifier: " + specifier);
             throw myerror("cannot parse platform specifier");
     }
 }

@@ -10,6 +10,7 @@
 #include "image/shortnames/sysregistriesv2/system_registries_v2.h"
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/ini_parser.hpp>
+#include "utils/logger/ProcessSafeLogger.h"
 /**
  * @brief 解析短名称别名
  * @param ctx 系统上下文，可为nullptr
@@ -28,6 +29,7 @@ std::tuple<std::shared_ptr<Named_interface>,std::string> ResolveShortNameAlias(s
     try{
         validateShortName(name);
     }catch(const myerror& e){
+        LOG_ERROR("Invalid short name \"" + name + "\": " + e.what());
         throw;
     }
     auto confPath=".\\oci_images\\short-name-aliases.conf";
@@ -37,6 +39,7 @@ std::tuple<std::shared_ptr<Named_interface>,std::string> ResolveShortNameAlias(s
     try{
         std::tie(std::ignore,aliasCache)=loadShortNameAliasConf(confPath);
     }catch(const myerror& e){
+        LOG_ERROR("Error loading short name alias config: " + std::string(e.what()));
         throw;
     }
     auto it=aliasCache->namedAliases.find(name);
@@ -51,20 +54,7 @@ std::tuple<std::shared_ptr<Named_interface>,std::string> ResolveShortNameAlias(s
     return std::make_tuple(nullptr,"");
 
 }
-// 遍历ptree并将数据存储到map
-// void traverse_ptree_to_map(const boost::property_tree::ptree& pt, std::map<std::string, std::string>& result_map, const std::string& path) {
-//     for (const auto& kv : pt) {
-//         std::string full_path = path.empty() ? kv.first : path + "." + kv.first;
 
-//         if (kv.second.empty()) {
-//             // 如果没有子节点，将 key 和 value 存入 map
-//             result_map[full_path] = kv.second.get_value<std::string>();
-//         } else {
-//             // 如果有子节点，递归遍历
-//             traverse_ptree_to_map(kv.second, result_map, full_path);
-//         }
-//     }
-// }
 /**
  * @brief 加载短名称别名配置文件
  * @param confPath 配置文件路径
@@ -83,7 +73,8 @@ std::tuple<std::shared_ptr<shortNameAliasConf>,std::shared_ptr<shortNameAliasCac
     try {
         boost::property_tree::ini_parser::read_ini(confPath, pt);
     } catch (const boost::property_tree::ini_parser_error& e) {
-        throw myerror("无法解析配置文件: " + confPath + ": " + e.what());
+        LOG_ERROR("Unable to parse configuration file: " + confPath + ": " + e.what());
+        throw myerror("Unable to parse configuration file: " + confPath + ": " + e.what());
     }
     if(!pt.empty()){
         // traverse_ptree_to_map(pt,config->Aliases);
@@ -114,28 +105,33 @@ void validateShortName(const std::string& name) {
     try {
         repo = Parse(name);
     } catch (const myerror& e) {
+        LOG_ERROR("Cannot parse short name \"" + name + "\": " + e.what());
         throw myerror("cannot parse short name: \"" + name + "\": " + e.what());
     }
 
     // 检查是否包含摘要
     if (std::dynamic_pointer_cast<Digested_interface>(repo)) {
+        LOG_ERROR("Invalid short name \"" + name + "\": must not contain digest");
         throw myerror("invalid short name \"" + name + "\": must not contain digest");
     }
 
     // 检查是否包含标签
     if (std::dynamic_pointer_cast<Tagged_interface>(repo)) {
+        LOG_ERROR("Invalid short name \"" + name + "\": must not contain tag");
         throw myerror("invalid short name \"" + name + "\": must not contain tag");
     }
 
     // 检查是否有名字
     auto  named = std::dynamic_pointer_cast<Named_interface>(repo);
     if (!named) {
+        LOG_ERROR("Invalid short name \"" + name + "\": no name");
         throw myerror("invalid short name \"" + name + "\": no name");
     }
 
     // 获取域名并检查是否包含非法字符
     std::string registry = Domain(named);
     if (registry.find_first_of(".:") != std::string::npos || registry == "localhost") {
+        LOG_ERROR("Invalid short name \"" + name + "\": must not contain registry");
         throw myerror("invalid short name \"" + name + "\": must not contain registry");
     }
 }
@@ -160,28 +156,33 @@ std::shared_ptr<Named_interface> parseShortNameValue(const std::string& name) {
     try {
         repo = Parse(name);
     } catch (const myerror& e) {
+        LOG_ERROR("Error parsing alias \"" + name + "\": " + e.what());
         throw myerror("parsing alias: \"" + name + "\": " + e.what());
     }
 
     // 检查是否包含摘要
     if (std::dynamic_pointer_cast<Digested_interface>(repo)) {
+        LOG_ERROR("Invalid alias \"" + name + "\": must not contain digest");
         throw myerror("invalid alias \"" + name + "\": must not contain digest");
     }
 
     // 检查是否包含标签
     if (std::dynamic_pointer_cast<Tagged_interface>(repo)) {
+        LOG_ERROR("Invalid alias \"" + name + "\": must not contain tag");
         throw myerror("invalid alias \"" + name + "\": must not contain tag");
     }
 
     // 检查是否有名字
     auto  named = std::dynamic_pointer_cast<Named_interface>(repo);
     if (!named) {
+        LOG_ERROR("Invalid alias \"" + name + "\": no name");
         throw myerror("invalid alias \"" + name + "\": no name");
     }
 
     // 获取域名并检查是否包含非法字符
     std::string registry = Domain(named);
     if (registry.find_first_of(".:") != std::string::npos || registry == "localhost") {
+        LOG_ERROR("Invalid alias \"" + name + "\": must not contain registry");
         throw myerror("invalid short name \"" + name + "\": must not contain registry");
     }
     named=ParseNormalizedNamed(name);

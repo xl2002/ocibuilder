@@ -146,8 +146,6 @@ void Config::setupEnv() {
 
         // 设置环境变量
         std::string envVar = key + "=" + value;
-        // if (std::putenv(const_cast<char*>(envVar.c_str())) != 0) {
-        //     throw std::runtime_error("failed to set environment variable " + key);
-        // }
+        
     }
 }

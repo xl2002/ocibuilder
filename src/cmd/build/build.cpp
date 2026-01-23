@@ -11,6 +11,7 @@
 #include "cmd/build/build.h"
 #include "config/new.h"
 #include "utils/cli/cli/common.h"
+#include "utils/logger/ProcessSafeLogger.h"
 /**
  * @brief 返回build命令的标志
  * <p>根据BuildOptions结构体中的标志名，创建并初始化每个flag
@@ -252,6 +253,7 @@ void buildCmd(std::shared_ptr<Command> cmd, vector<string> args,std::shared_ptr<
         if(cmd->Flag_find("logfile")->changed){
             iopts->logwriter->open(iopts->Logfile,std::ios::out | std::ios::trunc);
             if(!iopts->logwriter){
+                LOG_ERROR("Failed to open log file: " + iopts->Logfile);
                 throw myerror("Failed to open log file: " + iopts->Logfile);
             }
         }
@@ -276,6 +278,7 @@ void buildCmd(std::shared_ptr<Command> cmd, vector<string> args,std::shared_ptr<
             stores =getStore(cmd);
         } catch (const myerror& e) {
             remove_temp_files();
+            LOG_ERROR("getting store failed: " + string(e.what()));
             throw;
         }
 
@@ -285,18 +288,20 @@ void buildCmd(std::shared_ptr<Command> cmd, vector<string> args,std::shared_ptr<
             // 构建Dockerfile
             id= BuildDockerfiles(stores, budopt, ret_containerfiles,ref);
             if (!budopt->Manifest.empty()) {
-                logger->log_warning("manifest list id = " + id + ", ref = " + ref->String());
+                LOG_ERROR("manifest list id = " + id + ", ref = " + ref->String());
                 throw myerror("manifest list id = " + id + ", ref = " + ref->String());
                 // std::cerr << "manifest list id = " << id << ", ref = " << ref << std::endl;
             }
         } catch (const myerror& e) {
             remove_temp_files();
+            LOG_ERROR("building Dockerfiles failed: " + string(e.what()));
             throw;
         }
 
         remove_temp_files();
         // delete iopts;
     } catch (const myerror& e) {
+        LOG_ERROR("build command failed: " + string(e.what()));
         throw;
     }
 }

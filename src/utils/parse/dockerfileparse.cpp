@@ -157,7 +157,7 @@ void Node::AddChild(std::shared_ptr<Node> child, int startLine, int endLine) {
  */
 void Directive::setEscapeToken(const std::string& s){
     if (s != "`" && s != "\\") {
-            logger->log_error("Invalid escape token: " + s);
+            LOG_ERROR("Invalid escape token: " + s);
             throw myerror("invalid ESCAPE '" + s + "'. Must be ` or \\");
         }
     escapeToken = s[0];
@@ -181,7 +181,7 @@ void Directive::setPlatformToken(const std::string& s) {
     if (std::find(valid.begin(), valid.end(), lower_s) != valid.end()) {
         platformToken = lower_s;
     } else {
-        logger->log_error("Invalid platform token: " + s + ", valid platforms: " + vectorToString(valid));
+        LOG_ERROR("Invalid platform token: " + s + ", valid platforms: " + vectorToString(valid));
         throw myerror("invalid PLATFORM '" + s + "'. Must be one of " + vectorToString(valid));
     }
 }
@@ -203,6 +203,7 @@ void Directive::possibleParserDirective(const std::string& line) {
     auto tecMatch=tokenEscapeCommand->FindSubmatch(lower_line);
     if (!tecMatch.empty()) {
         if (escapeSeen) {
+            LOG_ERROR("Multiple escape directives found");
             throw std::runtime_error("only one escape parser directive can be used");
         }
         escapeSeen = true;
@@ -215,6 +216,7 @@ void Directive::possibleParserDirective(const std::string& line) {
         auto tpcMatch = tokenPlatformCommand->FindSubmatch(lower_line);
         if (!tpcMatch.empty()) {
             if (platformSeen) {
+                LOG_ERROR("Multiple platform directives found");
                 throw std::runtime_error("only one platform parser directive can be used");
             }
             platformSeen = true;
@@ -316,7 +318,7 @@ std::shared_ptr<Result> Parse(std::stringstream& rwc) {
                     heredoc.Content += "\n" + stringread;
                 }
                 if (!terminated) {
-                    logger->log_error("Unterminated heredoc: " + heredoc.Name);
+                    LOG_ERROR("Unterminated heredoc: " + heredoc.Name);
                     throw myerror(heredoc.Name + ": unterminated heredoc");
                 }
                 child->Heredocs.emplace_back(heredoc); // Assuming heredocs are stored in Flags for simplicity
@@ -328,7 +330,7 @@ std::shared_ptr<Result> Parse(std::stringstream& rwc) {
     // auto children=root->Children;
     // Handle scanner errors, not directly applicable in C++
     if (rwc.bad()) {
-        logger->log_error("Dockerfile stream read error");
+        LOG_ERROR("Dockerfile stream read error");
         throw myerror("Stream error occurred");
     }
 
@@ -369,6 +371,7 @@ std::vector<Heredoc>heredocsFromLine(const std::string& line) {
         }
         catch(const myerror& e)
         {
+            LOG_ERROR("Invalid heredoc format in word: " + word + ", error: " + e.what());
             throw;
         }
     }
@@ -528,6 +531,7 @@ std::string processLine(std::shared_ptr<Directive> d, const std::string& token, 
     }
     catch(const myerror& e)
     {
+        LOG_ERROR("Error processing parser directive in line: " + processedToken + ", error: " + e.what());
         throw;
     }
     return ret_processedToken;
