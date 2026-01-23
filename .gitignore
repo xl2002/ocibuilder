@@ -1,6 +1,7 @@
 # Prerequisites
 *.d
-
+oci_images/*
+output/*
 # Compiled Object files
 *.slo
 *.lo

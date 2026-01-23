@@ -57,7 +57,7 @@ class Command: public std::enable_shared_from_this<Command> {
         std::shared_ptr<Flagset> flags=nullptr;                  ///<flags 是全套完整标志。
         std::shared_ptr<Flagset> persistent_flags=nullptr;       ///<persistent_flags 包含持久标志。
         std::shared_ptr<Flagset> local_flags=nullptr;            ///<local_flags 包含本地标志。
-        std::shared_ptr<Flagset>inherited_flags=nullptr;        ///<inherited_flags 包含继承的标志。
+        std::shared_ptr<Flagset> inherited_flags=nullptr;        ///<inherited_flags 包含继承的标志。
         std::shared_ptr<Flagset> parent_persistent_flags=nullptr;///<Parent_persistent_flags 是 cmd 父级的所有持久标志。
         CommandcalledAs commandcallas;           ///<commandcallas 是用于调用此命令的名称或别名值。
         std::function<bool(std::shared_ptr<Command>,vector<string>&)>Args; ///<检查命令的参数
@@ -119,6 +119,7 @@ class Command: public std::enable_shared_from_this<Command> {
         std::shared_ptr<Command> Root();
         std::shared_ptr<Command> Parent();
         bool HasSubCommands();
+        string GetSubCommandsHelp();
         void InitDefaultHelpCmd();
         void InitDefaultCompletionCmd();
         void InitDefaultHelpFlag();

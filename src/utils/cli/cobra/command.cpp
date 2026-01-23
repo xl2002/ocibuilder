@@ -251,7 +251,6 @@ void Command::Help(){
 void help_func(std::shared_ptr<Command> cmd, vector<string> a){
     cmd->mergePersistentFlags();
     // The help should be sent to stdout
-    //err := tmpl(c.OutOrStdout(), c.HelpTemplate(), c)
     try{
         tmpl(std::cout,cmd->HelpTemplate(),cmd);
     }catch(const myerror& e){
@@ -286,15 +285,26 @@ bool Command::HasParent(){
     }
 }
 std::string Command::HelpTemplate(){
-    if(this->helpTemplate!=""){
+    if(this->helpTemplate != ""){
         return this->helpTemplate;
     }
     if(this->HasParent()){
         return Parent()->HelpTemplate();
     }
-    std::string str{"\t%1%\n\nUsage:\n  %2%\n\nAliases:\n  %3%\n\nExamples:\n  %4%\n\nFlags:\n"};
+
+    // 仅保留描述、用法、示例的占位符，子命令列表与 Flags 由 tmpl 追加
+    std::string str{
+        "Usage:\n"
+        "  %2%\n"
+        "\nDescription:\n"
+        "  %1%\n"
+        "\nExamples:\n"
+        "  %3%\n"
+    };
+    
     return str;
 }
+
 /**
  * @brief Root函数返回Command对象命令树的根命令
  * 
@@ -324,6 +334,35 @@ bool Command::HasSubCommands(){
     return Son_command.size()>0;
 }
 /**
+ * @brief 辅助函数：生成子命令列表的帮助文本
+ * 
+ * @param cmd 当前命令
+ * @return string 格式化的子命令帮助文本
+ */
+string Command::GetSubCommandsHelp(){
+    if(!HasSubCommands()){
+        return "";
+    }
+    
+    string result = "Available Commands:\n";
+    
+    for(const auto& subcmd : Son_command){
+        // 跳过内部help命令的重复显示
+        if(subcmd->Name() == "help"){
+            continue;
+        }
+        
+        result += "  " + subcmd->Name();
+        
+        // 填充空格以对齐说明
+        int padding = commandsMaxNameLen - subcmd->Name().length() + 2;
+        result += string(padding, ' ');
+        result += subcmd->Short + "\n";
+    }
+    
+    return result;
+}
+/**
  * @brief InitDefaultHelpCmd初始化默认的help命令
  * <p>如果没有help子命令，则创建新的默认help命令
  */
@@ -332,19 +371,53 @@ void Command::InitDefaultHelpCmd(){
         return;
     }
     if(helpCommand==nullptr){
-        string name="help [command]";
+        string name="help";
         string Short="Help about any command";
-        string Long="Help provides help for any command in the application.\
-                    Simply type "+ Name() +"help [path to command] for full details.";
-        string example="";
+        string Long="Help provides help for any command in the application.\n  Simply type "+ Name() +" help [path to command] for full details.";
+        string example=Name() +" help build\n"
+                        "  "+ Name() +" help config";
         auto helpcmd=std::make_shared<Command>(name,Short,Long,example);
+        
+        // 实现 help 命令的主处理逻辑
         helpcmd->Run=[](std::shared_ptr<Command> cmd, vector<string> args){
-            std::shared_ptr<Command> new_cmd=nullptr;
-            vector<string> new_args;
-            new_cmd=cmd->Root()->Find(args,new_args);
-            new_cmd->InitDefaultHelpFlag();
-            new_cmd->InitDefaultVersionFlag();
+            try {
+                std::shared_ptr<Command> new_cmd=nullptr;
+                vector<string> new_args;
+                
+                // 情况1: help 命令不带参数，显示根命令帮助
+                if(args.empty()){
+                    new_cmd = cmd->Root();
+                } else {
+                    // 情况2: help [command] 显示指定命令的帮助
+                    new_cmd = cmd->Root()->Find(args, new_args);
+                    
+                    if(new_cmd == nullptr){
+                        logger->log_error("Unknown command: " + args[0]);
+                        cerr << "Unknown command: " << args[0] << endl;
+                        cerr << "Run '" << cmd->Root()->Name() << " help' for usage." << endl;
+                        return;
+                    }
+                }
+                
+                // 初始化标志并显示帮助
+                new_cmd->InitDefaultHelpFlag();
+                new_cmd->InitDefaultVersionFlag();
+                new_cmd->mergePersistentFlags();
+                
+                // 显示帮助信息
+                try{
+                    tmpl(std::cout, new_cmd->HelpTemplate(), new_cmd);
+                } catch(const myerror& e){
+                    logger->log_error("Failed to display help: " + string(e.what()));
+                    cerr << "Failed to display help: " << e.what() << endl;
+                }
+            } 
+            catch(const myerror& e) {
+                logger->log_error("Help command execution failed: " + string(e.what()));
+                cerr << "Help command execution failed: " << e.what() << endl;
+            }
         };
+        
         helpCommand=helpcmd;
     }
     RemoveCommand({helpCommand});

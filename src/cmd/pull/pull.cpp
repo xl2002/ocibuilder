@@ -28,7 +28,7 @@ void init_pull(){
     auto  options=std::make_shared <pullOptions>();
     string name{"pull"};
     string Short{"Pull an image from the specified location"};
-    string Long{"Pulls an image from a registry and stores it locally.\n\tAn image can be pulled using its tag or digest. If a tag is not\n\tspecified, the image with the 'latest' tag (if it exists) is pulled."};
+    string Long{"Pulls an image from a registry and stores it locally.\n  An image can be pulled using its tag or digest. If a tag is not specified,\n  the image with the 'latest' tag (if it exists) is pulled."};
     string example{"ocibuilder pull imagename\n  ocibuilder pull docker-daemon:imagename:imagetag\n  ocibuilder pull myregistry/myrepository/imagename:imagetag"};
     auto pullCommand=std::make_shared<Command>(name,Short,Long,example);
     string Template=UsageTemplate();
@@ -39,7 +39,7 @@ void init_pull(){
     flags->BoolVar(options->allTags,"all-tags",false,"pull all tags for the specified image");
     flags->StringVar(options->os,"os","linux","set the OS of the image (e.g., linux, windows) (default unset)");
     flags->StringVar(options->arch,"arch","amd64","set the architecture of the image (e.g., amd64, arm, ppc64le) (default unset)");
-    flags->StringVar(options->format, "format", std::string(), "manifest type (oci, v2s1, or v2s2) to use in the destination (default is manifest type of source, with fallbacks)");
+    flags->StringVar(options->format, "format", std::string(), "manifest type (oci or v2s2) to use in the destination (default is manifest type of source, with fallbacks)");
     pullCommand->Run=[=](std::shared_ptr<Command> cmd, vector<string> args){
         pullCmd(cmd,args,options);
     };

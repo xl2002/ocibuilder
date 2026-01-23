@@ -207,7 +207,7 @@ std::shared_ptr<Flagset> GetNameSpaceFlags(std::shared_ptr<NameSpaceResults> nr)
 void init_buildcmd(){
     string build_name="build [context]";
     string build_Short="Build an image using instructions in a Containerfile";
-    string build_Long={"Builds an OCI image using instructions in one or more Containerfiles.\n\tIf no arguments are specified, ocibuilder will use the current working directory\n\tas the build context and look for a Containerfile. The build fails if no\n\tContainerfile nor Dockerfile is present."};
+    string build_Long={"Builds an OCI image using instructions in one or more Containerfiles.\n  If no arguments are specified, ocibuilder will use the current working directory\n  as the build context and look for a Containerfile. The build fails if no\n  Containerfile nor Dockerfile is present."};
     string build_example={"ocibuilder build\n  ocibuilder bud -f Containerfile.simple.\n  ocibuilder bud --volume /home/test:/myvol:ro,Z -t imageName.\n  ocibuilder bud -f Containerfile.simple -f Containerfile.notsosimple."};
     auto build_Command=std::make_shared<Command>(build_name,build_Short,build_Long,build_example);
     //定义使用模板

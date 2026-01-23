@@ -309,26 +309,35 @@ string UsageTemplate(){
  */
 void tmpl(std::ostream& out, const std::string& text,std::shared_ptr<Command> data){
     try {
-        // 模拟帮助命令数据
-        // HelpData data = {"help", "Displays this help message"};
-        // // 模拟模板文本
-        // std::string text = "Command: %1%\nDescription: %2%";
-        // std::string description =data->Short+'\n'+data->Long;
-        std::string Usage =data->parent_Command->name+' '+data->name+' '+"[flags]";
-        std::string Aliases=data->Name();
-        std::string Examples=data->example;
-        auto flags=data->flags->order_formal_flags;
-
-        boost::format fmt(text);
-        fmt % data->Long % Usage % Aliases % Examples;
-        out << fmt.str();
-        std::string Flagstext;
-        for(auto flag:flags){
-            if(!flag->hidden){
-                out<<std::left<<std::setw(30)<<"--"+flag->name<<std::setw(80)<<flag->usage_help<<std::endl;
-            }
-            // Flagstext+=+"\t\t\t"+flag->usage_help+'\n';
+        std::string Usage;
+        if (data->parent_Command == nullptr) {
+            Usage = data->name + " [flags]";
+        } else {
+            Usage = data->parent_Command->name + " " + data->name + " [flags]";
         }
+        std::string Examples = data->example;
+
+        // 占位符顺序：%1%=Long，%2%=Usage，%3%=Examples
+        boost::format fmt(text);
+        fmt % data->Long % Usage % Examples;
+        out << fmt.str();
+
+        // 子命令列表
+        if (data->HasSubCommands()) {
+            out << "\n" << data->GetSubCommandsHelp();
+        }
+
+        // 本地 Flags
+        out << "\nFlags:\n";
+        auto flags = data->Flags()->order_formal_flags;
+        for(auto flag : flags){
+            if(!flag->hidden){
+                out << std::left << std::setw(30)
+                    << ("  --" + flag->name)
+                    << std::setw(80) << flag->usage_help<< "\n";
+            }
+        }
+        out << std::endl;
     } catch (const std::exception& e) {
         logger->log_error("Template rendering failed: " + std::string(e.what()));
         throw myerror("Failed to execute template: " + std::string(e.what()));

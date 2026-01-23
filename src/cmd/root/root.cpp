@@ -25,6 +25,7 @@ std::shared_ptr <Command> init_rootcmd(){
     Appcmd->name="ocibuilder";
     Appcmd->Long="A tool that facilitates building OCI images";
     Appcmd->version="image-spec 1.0.0";
+    Appcmd->example="ocibuilder build --tag imageName:tag .";
     Appcmd->Run=[](std::shared_ptr<Command> cmd, vector<string> args){cmd->Help();};
     Appcmd->PersistentPreRun=[](std::shared_ptr<Command> cmd, vector<string> args){before(cmd);};
     Appcmd->PersistentPostRun=[](std::shared_ptr<Command> cmd, vector<string> args){after(cmd);};
