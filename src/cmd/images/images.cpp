@@ -119,26 +119,32 @@ void formatImages(const std::vector<storage::Image>& images) {
 void imagesCmd(std::shared_ptr<Command> cmd, vector<string> args,std::shared_ptr<imagesOptions> iopts){
     logger->set_module("images");
     logger->log_info("Start executing images command");
-    
-    //1. 加载本地镜像库
-    auto store = getStore(cmd);
-    auto imagestore = store->image_store;
 
-    //2. 获得所有镜像信息
-    std::vector<storage::Image> images;
-    if(args.empty()){
-        images = imagestore->Images();
-    }else{
-        auto img = store->Image(args[0]);
-        if (img == nullptr) {
-            std::string errorMsg = "Image not found: " + args[0];
-            LOG_ERROR(errorMsg);
-            throw std::runtime_error(errorMsg);
+    try {
+        //1. 加载本地镜像库
+        auto store = getStore(cmd);
+        auto imagestore = store->image_store;
+
+        //2. 获得所有镜像信息
+        std::vector<storage::Image> images;
+        if(args.empty()){
+            images = imagestore->Images();
+        }else{
+            auto img = store->Image(args[0]);
+            if (img == nullptr) {
+                std::string errorMsg = "Image not found: " + args[0];
+                LOG_ERROR(errorMsg);
+                throw std::runtime_error(errorMsg);
+            }
+            images.push_back(*img);  // 确认非空后再解引用
         }
-        images.push_back(*img);  // 确认非空后再解引用
+        //3. 格式化打印所有镜像信息
+        formatImages(images);
+        logger->log_info("Images command completed successfully");
+    } catch (const std::exception& ex) {
+        LOG_ERROR(std::string("Images command failed: ") + ex.what());
+        std::cerr << "Error: " << ex.what() << std::endl;
+        return; // 捕获后返回，不中断进程
     }
-    //3. 格式化打印所有镜像信息
-    formatImages(images);
-    logger->log_info("Images command completed successfully");
     // delete iopts;
 }

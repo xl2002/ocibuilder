@@ -14,6 +14,7 @@
 #include "utils/cli/cobra/command.h"
 // #include "cmd/build/build.h"
 #include <iostream>
+#include "utils/logger/ProcessSafeLogger.h"
 // #include "utils/logger/logrus/exported.h"
 using namespace std;
 
@@ -30,21 +31,24 @@ using namespace std;
  * 
  */
 int main(int argc, char const *argv[]){
-    // 1. rootcmd 实例化
-    // 2. 初始化各个命令
-    init(argc, argv);
-    
     try
-    {
+    {    
+        // 1. rootcmd 实例化
+        // 2. 初始化各个命令
+        init(argc, argv);
         // 3. 执行rootcmd
         rootcmd->Execute(argc, argv);
-    }
-    catch(const myerror& e)
-    {
-        // 4.捕捉异常
-        e.logerror();
-        exit(1);
+        return 0;
+    } 
+    catch (const std::exception& ex) {
+        LOG_ERROR(std::string("fatal: ") + ex.what());
+        std::cerr << "Fatal error: " << ex.what() << std::endl;
+        return 1;
+    } 
+    catch (...) {
+        LOG_ERROR("fatal: unknown error");
+        std::cerr << "Fatal error: unknown error" << std::endl;
+        return 1;
     }
     // rootcmd->Run();
-    return 0;
 }
