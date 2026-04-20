@@ -30,7 +30,7 @@ void init_save()
     string name{"save"};
     string Short{"Save an image to a specified destination"};
     string Long{"Saves an image to a specified location."};
-    string example{"ocibuilder save image1:latest --output D:/test/image1:imagetest:latest"};
+    string example{"ocibuilder save --output D:/test/image1.tar image1:latest"};
     auto saveCommand = std::make_shared <Command>(name, Short, Long, example);
     string Template = UsageTemplate();
     saveCommand->SetUsageTemplate(Template);
@@ -38,24 +38,17 @@ void init_save()
     auto flags = saveCommand->Flags();
     // flags.StringVar();
     flags->SetInterspersed(false);//TODO: 对三条参数的解析
-    //flags->StringVar(opts->format, "format", std::string(), "manifest type (oci, v2s1, or v2s2) to use in the destination (default is manifest type of source, with fallbacks)");
+    flags->StringVar(opts->format, "format", std::string(), "manifest type (oci, v2s1, or v2s2) to use in the destination (default is manifest type of source, with fallbacks)");
     //flags->StringVar(opts->authfile, "authfile", std::string(), "path of the authentication file. Use REGISTRY_AUTH_FILE environment variable to override");
     flags->StringVar(opts->output, "output", std::string(), "path to save the image tar file (required)");
     saveCommand->Run = [=](std::shared_ptr<Command>cmd, vector<string> args)
     {
-         // 检查必选参数
-        if (args.size()< 3) {
-            std::cerr << "the number of arguments is not right!!" << std::endl;
+        if(args.size()==0){
+            std::cerr << "Error: Image name is required." << std::endl;
             return;
         }
         // 解析镜像名称
         opts->image = args[0];
-        opts->output = args[2];
-        // 检查 --output 是否提供
-        if (opts->output.empty()) {
-            std::cerr << "Error: The --output flag is required." << std::endl;
-            return;
-        }
         // 调用保存镜像的逻辑
         //std::cout<<opts->output << std::endl;
         saveCmd(cmd, args, opts);
@@ -185,61 +178,10 @@ bool convertOciConfigToDockerLayerConfig(const std::string &ociConfigPath, const
     }
 }
 
-/**
- * @brief 执行镜像保存的核心逻辑
- * @param cmd 命令对象的引用
- * @param args 命令行参数列表
- * @param iopts 保存命令的配置选项
- * @details 主要流程包含：
- * - 解析镜像存储路径
- * - 处理 OCI 镜像元数据
- * - 构建 Docker 兼容格式的 manifest
- * - 转换层文件格式
- * - 创建最终 tar 归档
- */
-void saveCmd(std::shared_ptr<Command>cmd, vector<string> args, std::shared_ptr<saveOptions> iopts)
+void SaveWithTar(const std::string &indexPath, const std::string &destPath, 
+    const std::string &destSpec, const std::string &imagetag, const std::string &withinTransport, 
+    const std::string &newImageName, std::shared_ptr<Store> store, std::shared_ptr<saveOptions> iopts) 
 {
-    logger->set_module("save");
-    logger->log_info("Starting to save image: " + args[0] + " to " + iopts->output);
-    
-    std::string destPath, withinTransport, destSpec, newImageName;
-    
-    // 1. 获得令牌.save不需要
-    //CheckAuthFile(iopts);
-    // 镜像名
-    withinTransport = args[0];
-    destPath = iopts->output;//args[1];
-
-    // 读取本地镜像的数据
-    auto store = getStore(cmd);
-    // 获得index.json
-    std::string indexPath = store.get()->image_store_dir + "/index.json";
-
-    // 得到或创建目标路径
-    destSpec = extractPath(destPath)+"/tmp";
-    //size_t lastColon = destPath.rfind(':');
-    //size_t secondLastColon = destPath.rfind(':', lastColon - 1);
-    size_t lastColon = destPath.rfind('/');
-    if(lastColon == std::string::npos)//windows系统的情况
-    {
-        lastColon=destPath.rfind('\\');
-    }
-    newImageName = destPath.substr(lastColon +1);
-    
-    // 去掉 .tar 后缀
-    size_t tarSuffixPos = newImageName.find(".tar");
-    if (tarSuffixPos != std::string::npos) {
-        newImageName = newImageName.substr(0, tarSuffixPos);
-    }
-    auto imagetag=withinTransport.substr(withinTransport.rfind(":")+1);
-    // destSpec = "C:\\Users\\admin\\Documents\\output";
-    // std::tie(std::ignore, destPath, std::ignore) = Cut(destPath, ':');
-    destPath = destSpec ;//+ "/blobs/sha256";
-    if (!fs::exists(destPath))
-    {
-        fs::create_directories(destPath);
-    }
-
     // 1. 读取index.json
     boost::filesystem::ifstream indexfile(indexPath, std::ios::binary);
     std::ostringstream indexBuffer;
@@ -311,9 +253,15 @@ void saveCmd(std::shared_ptr<Command>cmd, vector<string> args, std::shared_ptr<s
     dockerEntry["Layers"] = json::value_from(layers);
     dockerManifest.push_back(dockerEntry);
     
-    std::ofstream manifestOut(destPath + "/manifest.json");
-    manifestOut << marshal(dockerManifest);
-    manifestOut.close();
+    if(iopts->format=="oci"){
+        std::ofstream manifestOut(destPath + "/manifest");
+        manifestOut << marshal(manifest);
+        manifestOut.close();
+    }else{
+        std::ofstream manifestOut(destPath + "/manifest.json");
+        manifestOut << marshal(dockerManifest);
+        manifestOut.close();
+    }
     
     json::object repositories;
     json::object imageTags;
@@ -350,6 +298,73 @@ void saveCmd(std::shared_ptr<Command>cmd, vector<string> args, std::shared_ptr<s
     createTar(iopts->output,destSpec);
     // 删除压缩缓存
     fs::remove_all(destSpec);
+}
+/**
+ * @brief 执行镜像保存的核心逻辑
+ * @param cmd 命令对象的引用
+ * @param args 命令行参数列表
+ * @param iopts 保存命令的配置选项
+ * @details 主要流程包含：
+ * - 解析镜像存储路径
+ * - 处理 OCI 镜像元数据
+ * - 构建 Docker 兼容格式的 manifest
+ * - 转换层文件格式
+ * - 创建最终 tar 归档
+ */
+void saveCmd(std::shared_ptr<Command>cmd, vector<string> args, std::shared_ptr<saveOptions> iopts)
+{
+    logger->set_module("save");
+    logger->log_info("Starting to save image: " + args[0] + " to " + iopts->output);
+    if(iopts->output.empty()){
+        std::cerr << "Error: The --output flag is required." << std::endl;
+        return;
+    }
+    //format为空，oci，docker都可以，其他情况不合法
+    if(!iopts->format.empty() && iopts->format != "oci" && iopts->format != "docker"){
+        std::cerr << "Error: Invalid format specified. Supported formats are 'oci' and 'docker'." << std::endl;
+        return;
+    }
+    
+    std::string destPath, withinTransport, destSpec, newImageName;
+    
+    // 1. 获得令牌.save不需要
+    //CheckAuthFile(iopts);
+    // 镜像名
+    withinTransport = args[0];
+    //images1.tar或者tar文件路径
+    destPath = iopts->output;
+
+    // 读取本地镜像的数据
+    auto store = getStore(cmd);
+    // 获得index.json
+    std::string indexPath = store.get()->image_store_dir + "/index.json";
+
+    // 得到或创建目标路径
+    destSpec = extractPath(destPath)+"/tmp";
+    //size_t lastColon = destPath.rfind(':');
+    //size_t secondLastColon = destPath.rfind(':', lastColon - 1);
+    size_t lastColon = destPath.rfind('/');
+    if(lastColon == std::string::npos)//windows系统的情况
+    {
+        lastColon=destPath.rfind('\\');
+    }
+    newImageName = destPath.substr(lastColon +1);
+    
+    // 去掉 .tar 后缀
+    size_t tarSuffixPos = newImageName.find(".tar");
+    if (tarSuffixPos != std::string::npos) {
+        newImageName = newImageName.substr(0, tarSuffixPos);
+    }
+    auto imagetag=withinTransport.substr(withinTransport.rfind(":")+1);
+    // destSpec = "C:\\Users\\admin\\Documents\\output";
+    // std::tie(std::ignore, destPath, std::ignore) = Cut(destPath, ':');
+    destPath = destSpec ;
+    if (!fs::exists(destPath))
+    {
+        fs::create_directories(destPath);
+    }
+    SaveWithTar(indexPath, destPath, destSpec, imagetag, withinTransport, newImageName, store, iopts);
+    
     //if(!fs::exists(destSpec))cout << "Error delete!"<<endl;
     // delete iopts;
     logger->log_info("Successfully saved image to: " + iopts->output);
